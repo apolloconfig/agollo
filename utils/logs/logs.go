@@ -1,12 +1,18 @@
 package logs
 
 import (
-	"bytes"
-	"log"
+	"github.com/cihub/seelog"
 )
 
+func init(){
+	logger, err := seelog.LoggerFromConfigAsFile("seelog.xml")
 
-func CreateLogger() *log.Logger  {
-	var buf bytes.Buffer
-	return  log.New(&buf, "logger: ", log.Lshortfile)
+	if err != nil {
+		panic("init log fail,error!"+err.Error())
+	}
+
+	logger.SetAdditionalStackDepth(1)
+	seelog.ReplaceLogger(logger)
+	defer seelog.Flush()
 }
+

@@ -5,8 +5,10 @@ import (
 	"os"
 	"strconv"
 	"github.com/zouyx/agollo/utils/stringutils"
-	"github.com/zouyx/agollo/utils/logs"
 	"github.com/zouyx/agollo/utils/objectutils"
+
+	"github.com/cihub/seelog"
+	_ "github.com/zouyx/agollo/utils/logs"
 )
 
 var (
@@ -25,22 +27,21 @@ var (
 	//for typed config cache of parser result, e.g. integer, double, long, etc.
 	MAX_CONFIG_CACHE_SIZE    = 500             //500 cache key
 	CONFIG_CACHE_EXPIRE_TIME = 1 * time.Minute //1 minute
-
-	//log
-	LOGGER =logs.CreateLogger()
 )
 
 func init() {
 
 }
 
-func initRefreshInterval()  {
+func initRefreshInterval() error {
 	customizedRefreshInterval:=os.Getenv(REFRESH_INTERVAL_KEY)
 	if stringutils.IsNotEmpty(customizedRefreshInterval){
 		interval,err:=strconv.Atoi(customizedRefreshInterval)
 		if objectutils.IsNotNil(err) {
-			LOGGER.Printf("Config for apollo.refreshInterval is invalid:%s",customizedRefreshInterval)
+			seelog.Errorf("Config for apollo.refreshInterval is invalid:%s",customizedRefreshInterval)
+			return err
 		}
 		REFRESH_INTERVAL=interval
 	}
+	return nil
 }

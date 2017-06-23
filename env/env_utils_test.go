@@ -2,8 +2,8 @@ package env
 
 import (
 	"testing"
-	"agollo/test"
 	"fmt"
+	"github.com/zouyx/agollo/test"
 )
 
 func createEnvMap()map[string]Env {
