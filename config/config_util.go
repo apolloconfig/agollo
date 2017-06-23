@@ -3,10 +3,10 @@ package config
 import (
 	"time"
 	"os"
-	"agollo/utils/stringutils"
 	"strconv"
-	"agollo/utils/objectutils"
-	"agollo/utils/logs"
+	"github.com/zouyx/agollo/utils/stringutils"
+	"github.com/zouyx/agollo/utils/logs"
+	"github.com/zouyx/agollo/utils/objectutils"
 )
 
 var (
