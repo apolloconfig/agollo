@@ -12,9 +12,9 @@ import (
 )
 
 var (
-	REFRESH_INTERVAL = 5  //5m
+	REFRESH_INTERVAL time.Duration= 5  //5m
 	REFRESH_INTERVAL_KEY = "apollo.refreshInterval"  //
-	REFRESH_INTERVAL_TIME_UNIT=time.Minute //5m
+	REFRESH_INTERVAL_TIME_UNIT time.Duration=time.Minute //5m
 
 
 
@@ -41,7 +41,7 @@ func initRefreshInterval() error {
 			seelog.Errorf("Config for apollo.refreshInterval is invalid:%s",customizedRefreshInterval)
 			return err
 		}
-		REFRESH_INTERVAL=interval
+		REFRESH_INTERVAL=time.Duration(interval)
 	}
 	return nil
 }
