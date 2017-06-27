@@ -1,22 +1,36 @@
 package dto
 
+import (
+	"encoding/json"
+	"github.com/zouyx/agollo/utils/objectutils"
+)
+
 type ApolloConfig struct {
-	appId string
-	cluster string
-	namespaceName string
-	configurations map[string]string
-	releaseKey string
+	AppId string `json:"appId"`
+	Cluster string `json:"cluster"`
+	NamespaceName string `json:"namespaceName"`
+	Configurations map[string]string `json:"-"`
+	ReleaseKey string `json:"releaseKey"`
 }
 
 func CreateApolloConfig(appId string,
 	cluster string,
 	namespaceName string,
-	releaseKey string) (apolloConfig *ApolloConfig) {
-	apolloConfig=&ApolloConfig{
-		appId:appId,
-		cluster:cluster,
-		namespaceName:namespaceName,
-		releaseKey:releaseKey,
+	releaseKey string) *ApolloConfig {
+	apolloConfig:=&ApolloConfig{
+		AppId:appId,
+		Cluster:cluster,
+		NamespaceName:namespaceName,
+		ReleaseKey:releaseKey,
 	}
-	return
+	return apolloConfig
+}
+
+func CreateApolloConfigWithJson(str string) (*ApolloConfig,error) {
+	apolloConfig:=&ApolloConfig{}
+	err:=json.Unmarshal([]byte(str),apolloConfig)
+	if objectutils.IsNotNil(err) {
+		return nil,err
+	}
+	return apolloConfig,nil
 }

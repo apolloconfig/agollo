@@ -9,17 +9,15 @@ import (
 
 	"github.com/cihub/seelog"
 	_ "github.com/zouyx/agollo/utils/logs"
+	"github.com/zouyx/agollo/dto"
 )
 
 var (
-	REFRESH_INTERVAL time.Duration= 5  //5m
+	REFRESH_INTERVAL = 5 *time.Minute //5m
 	REFRESH_INTERVAL_KEY = "apollo.refreshInterval"  //
-	REFRESH_INTERVAL_TIME_UNIT time.Duration=time.Minute //5m
-
-
 
 	CONNECT_TIMEOUT  = 1 * time.Second //1s
-	READ_TIMEOUT     = 1 * time.Second //5s
+	READ_TIMEOUT     = 5 * time.Second //5s
 	LOAD_CONFIG_QPS  = 2
 	LONG_POLL_QPS    = 2
 	//for on error retry
@@ -27,11 +25,14 @@ var (
 	//for typed config cache of parser result, e.g. integer, double, long, etc.
 	MAX_CONFIG_CACHE_SIZE    = 500             //500 cache key
 	CONFIG_CACHE_EXPIRE_TIME = 1 * time.Minute //1 minute
+
+   	Config *dto.ApolloConfig
 )
 
 func init() {
 
 }
+
 
 func initRefreshInterval() error {
 	customizedRefreshInterval:=os.Getenv(REFRESH_INTERVAL_KEY)
