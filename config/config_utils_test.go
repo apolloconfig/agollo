@@ -5,6 +5,7 @@ import (
 	"os"
 	"github.com/zouyx/agollo/test"
 	"strconv"
+	"time"
 )
 
 func TestInitRefreshInterval(t *testing.T) {
@@ -18,6 +19,6 @@ func TestInitRefreshInterval(t *testing.T) {
 	err=initRefreshInterval()
 	test.Nil(t,err)
 	i,_:=strconv.Atoi(interval)
-	test.Equal(t,i,REFRESH_INTERVAL)
+	test.Equal(t,time.Duration(i),REFRESH_INTERVAL)
 
 }
