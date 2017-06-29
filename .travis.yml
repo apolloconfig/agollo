@@ -17,4 +17,4 @@ install:
     - go get github.com/cihub/seelog
 
 script:
-    - go build -o "$Project"  github.com/zouyx/agollo
+    - go build -o "$Project"  $Project
