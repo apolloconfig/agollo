@@ -9,15 +9,12 @@ env:
 
 before_install:
     - Project=apollo
-    - pwd
     - mkdir $GOPATH/src/$Project
     - mv * $GOPATH/src/$Project
     - cd $GOPATH/src/$Project
-    - pwd
-    - ls -l
 
 install:
     - go get github.com/cihub/seelog
 
 script:
-    - go build -o "$Project"  "$Project"
+    - go build -o "$Project"  github.com/zouyx/agollo

@@ -4,7 +4,7 @@ import (
 	"time"
 	"github.com/zouyx/agollo/config"
 	"fmt"
-	"net/http"
+	//"net/http"
 )
 
 const (
@@ -27,11 +27,16 @@ func (this *AutoRefreshConfigComponent) Start()  {
 	}
 }
 
+func StartAutoRefreshConfig()  {
+	auto:=&AutoRefreshConfigComponent{}
+	auto.Start()
+}
+
 func updateConfigServices()  {
-	client := &http.Client{
-		Timeout:config.CONNECT_TIMEOUT,
-	}
-	resp, err := client.Get("")
+	//client := &http.Client{
+	//	Timeout:config.CONNECT_TIMEOUT,
+	//}
+	//resp, err := client.Get("")
 }
 
 
