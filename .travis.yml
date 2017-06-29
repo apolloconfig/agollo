@@ -11,13 +11,6 @@ before_install:
     - Project=apollo
     - pwd
     - ls -l
-    - mkdir $GOPATH/src/github.com/zouyx/$Project
-    - mv * $GOPATH/src/github.com/zouyx/$Project
-    - cd $GOPATH/src/github.com/zouyx/$Project
-    - pwd
-    - ls -l
-    - ls $GOPATH/src/github.com/zouyx/agollo/component/timer
-    - ls $GOPATH/src/github.com/zouyx/agollo/component/
 
 install:
     - go get github.com/cihub/seelog
