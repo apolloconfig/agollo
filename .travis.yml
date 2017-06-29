@@ -8,7 +8,7 @@ env:
     - GO15VENDOREXPERIMENT="1"
 
 before_install:
-    - Project=zouyx
+    - Project=apollo
     - mkdir $GOPATH/src/$Project
     - mv * $GOPATH/src/$Project
     - cd $GOPATH/src/$Project
