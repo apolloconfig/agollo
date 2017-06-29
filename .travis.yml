@@ -16,5 +16,8 @@ before_install:
     - pwd
     - ls -l
 
+install:
+    - go get github.com/cihub/seelog
+
 script:
     - go build -o "$Project"  "$Project"
