@@ -9,6 +9,7 @@ env:
 
 before_install:
     - Project=apollo
+    - pwd 
     - mkdir $GOPATH/src/github.com/zouyx/$Project
     - mv * $GOPATH/src/github.com/zouyx/$Project
     - cd $GOPATH/src/github.com/zouyx/$Project
