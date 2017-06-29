@@ -9,12 +9,12 @@ env:
 
 before_install:
     - Project=apollo
-    - mkdir $GOPATH/src/$Project
-    - mv * $GOPATH/src/$Project
-    - cd $GOPATH/src/$Project
+    - mkdir $GOPATH/src/github.com/zouyx/$Project
+    - mv * $GOPATH/src/github.com/zouyx/$Project
+    - cd $GOPATH/src/github.com/zouyx/$Project
 
 install:
     - go get github.com/cihub/seelog
 
 script:
-    - go build -o "$Project"  $Project
+    - go build -o "$Project" github.com/zouyx/$Project
