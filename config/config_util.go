@@ -10,6 +10,7 @@ import (
 	"github.com/cihub/seelog"
 	_ "github.com/zouyx/agollo/utils/logs"
 	"github.com/zouyx/agollo/dto"
+	"github.com/zouyx/agollo/config/jsonconfig"
 )
 
 var (
@@ -26,11 +27,15 @@ var (
 	MAX_CONFIG_CACHE_SIZE    = 500             //500 cache key
 	CONFIG_CACHE_EXPIRE_TIME = 1 * time.Minute //1 minute
 
-   	Config *dto.ApolloConfig
+   	ApolloConfig *dto.ApolloConfig
 )
 
 func init() {
+	//init config file
+	ApolloConfig=jsonconfig.Load()
 
+	//init common
+	initRefreshInterval()
 }
 
 

@@ -5,6 +5,7 @@ import (
 	"github.com/zouyx/agollo/config"
 	"fmt"
 	//"net/http"
+	"net/http"
 )
 
 const (
@@ -21,7 +22,7 @@ func (this *AutoRefreshConfigComponent) Start()  {
 	for {
 		select {
 		case <-t2.C:
-			fmt.Println(config.REFRESH_INTERVAL,"s timer")
+			updateConfigServices()
 			t2.Reset(config.REFRESH_INTERVAL)
 		}
 	}
@@ -33,10 +34,17 @@ func StartAutoRefreshConfig()  {
 }
 
 func updateConfigServices()  {
-	//client := &http.Client{
-	//	Timeout:config.CONNECT_TIMEOUT,
-	//}
-	//resp, err := client.Get("")
+	client := &http.Client{
+		Timeout:config.CONNECT_TIMEOUT,
+	}
+	if config.ApolloConfig==nil{
+		panic("can not find apollo config!please confirm!")
+	}
+	url:=fmt.Sprint("http://10.16.4.193:8080/configfiles/json/%s/%s/%s",
+		config.ApolloConfig.AppId,
+		config.ApolloConfig.Cluster,
+		config.ApolloConfig.NamespaceName)
+	client.Get(url)
 }
 
 
