@@ -1,0 +1,21 @@
+<seelog type="sync" mininterval="2000000" maxinterval="100000000" critmsgcount="500" minlevel="debug">
+
+    <outputs formatid="all">
+        <console formatid="fmtinfo"/>
+        <filter levels="info,debug">
+            <rollingfile  type="date" filename="work/$project/info/app.log" datepattern="2006-01-02-15" maxrolls="100" />
+        </filter>
+        <filter levels="error,critical" formatid="fmterror">
+            <rollingfile   type="date" filename="work/$project/error/app.log" datepattern="2006-01-02-15" maxrolls="100" />
+        </filter>
+        <filter levels="warn" formatid="all">
+            <rollingfile   type="date" filename="work/$project/warn/app.log" datepattern="2006-01-02-15" maxrolls="100" />
+        </filter>
+    </outputs>
+    <formats>
+        <format id="fmtinfo" format="[%Level]  [%Time] %Msg%n"/>
+        <format id="fmterror" format="[%LEVEL] [%Time] [%FuncShort @ %File.%Line] %Msg%n"/>
+        <format id="all" format="[%Level] [%Time]  [@ %File.%Line] %Msg%n"/>
+        <format id="criticalemail" format="Critical error on our server!\n    %Time %Date %RelFile %Func %Msg \nSent by Seelog"/>
+    </formats>
+</seelog>
