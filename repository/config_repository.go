@@ -5,12 +5,14 @@ import "sync"
 var configRepository *ConfigRepository
 
 func init() {
-	configRepository=&ConfigRepository{}
+	configRepository=&ConfigRepository{
+		//configMap:make(map[string]interface{}),
+	}
 }
 
 type ConfigRepository struct {
 	configMap map[string]interface{}
-	*sync.RWMutex
+	sync.RWMutex
 }
 
 func UpdateConfig(configMap map[string]interface{})  {
@@ -18,4 +20,8 @@ func UpdateConfig(configMap map[string]interface{})  {
 	defer configRepository.Unlock()
 
 	configRepository.configMap=configMap
+}
+
+func GetConfig() *ConfigRepository{
+	return configRepository
 }
