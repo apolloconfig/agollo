@@ -44,7 +44,8 @@ func updateConfigServices() error {
 	if config.ApolloConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
-	url:=fmt.Sprintf("http://10.16.4.193:8080/configfiles/json/%s/%s/%s",
+	url:=fmt.Sprintf("http://%s/configfiles/json/%s/%s/%s",
+		config.ApolloConfig.Ip,
 		config.ApolloConfig.AppId,
 		config.ApolloConfig.Cluster,
 		config.ApolloConfig.NamespaceName)

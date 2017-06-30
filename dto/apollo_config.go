@@ -11,6 +11,7 @@ type ApolloConfig struct {
 	NamespaceName string `json:"namespaceName"`
 	Configurations map[string]string `json:"-"`
 	ReleaseKey string `json:"releaseKey"`
+	Ip string `json:"ip"`
 }
 
 func CreateApolloConfig(appId string,
