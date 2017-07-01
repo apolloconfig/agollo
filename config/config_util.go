@@ -12,11 +12,14 @@ import (
 	"github.com/zouyx/agollo/dto"
 	"github.com/zouyx/agollo/config/jsonconfig"
 	"fmt"
+	"net/url"
 )
 
 var (
 	REFRESH_INTERVAL = 5 *time.Minute //5m
 	REFRESH_INTERVAL_KEY = "apollo.refreshInterval"  //
+
+	LONG_POLL_INTERVAL = 5 *time.Second //5s
 
 	CONNECT_TIMEOUT  = 1 * time.Second //1s
 	READ_TIMEOUT     = 5 * time.Second //5s
@@ -62,4 +65,12 @@ func GetConfigUrl() string{
 		AppConfig.AppId,
 		AppConfig.Cluster,
 		AppConfig.NamespaceName)
+}
+
+func GetNotifyUrl(notifications string) string{
+	return fmt.Sprintf("http://%s/notifications/v2?appId=%s&cluster=%s&notifications=%s",
+		AppConfig.Ip,
+		url.QueryEscape(AppConfig.AppId),
+		url.QueryEscape(AppConfig.Cluster),
+		url.QueryEscape(notifications))
 }

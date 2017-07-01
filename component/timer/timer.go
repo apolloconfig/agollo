@@ -26,16 +26,11 @@ func (this *AutoRefreshConfigComponent) Start()  {
 	}
 }
 
-func StartAutoRefreshConfig()  {
-	auto:=&AutoRefreshConfigComponent{}
-	auto.Start()
-}
-
 func syncConfigServices() error {
 	client := &http.Client{
 		Timeout:config.CONNECT_TIMEOUT,
 	}
-	if config.ApolloConfig==nil{
+	if config.AppConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
 	url:=config.GetConfigUrl()
