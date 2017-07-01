@@ -7,17 +7,17 @@ import (
 	"github.com/cihub/seelog"
 )
 
-func Load() *dto.ApolloConfig {
+func Load() *dto.AppConfig {
 	fs, err := ioutil.ReadFile("app.properties")
 	if err != nil {
 		panic("faile to read config dir:" + err.Error())
 	}
 
-	apolloConfig,loadErr:=dto.CreateApolloConfigWithJson(string(fs))
+	appConfig,loadErr:=dto.CreateAppConfigWithJson(string(fs))
 
 	if objectutils.IsNotNil(loadErr){
 		seelog.Errorf("Load Json Config is fail:%s",loadErr)
 	}
 
-	return apolloConfig
+	return appConfig
 }

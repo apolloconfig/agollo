@@ -31,12 +31,12 @@ var (
 	//max retries connect apollo
 	MAX_RETRIES=5
 
-   	ApolloConfig *dto.ApolloConfig
+	AppConfig *dto.AppConfig
 )
 
 func init() {
 	//init config file
-	ApolloConfig=jsonconfig.Load()
+	AppConfig=jsonconfig.Load()
 
 	//init common
 	initRefreshInterval()
@@ -58,8 +58,8 @@ func initRefreshInterval() error {
 
 func GetConfigUrl() string{
 	return fmt.Sprintf("http://%s/configfiles/json/%s/%s/%s",
-		ApolloConfig.Ip,
-		ApolloConfig.AppId,
-		ApolloConfig.Cluster,
-		ApolloConfig.NamespaceName)
+		AppConfig.Ip,
+		AppConfig.AppId,
+		AppConfig.Cluster,
+		AppConfig.NamespaceName)
 }
