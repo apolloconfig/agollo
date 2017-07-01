@@ -3,18 +3,12 @@ package timer
 import (
 	"time"
 	"github.com/zouyx/agollo/config"
-	"fmt"
-	//"net/http"
 	"net/http"
 	"io/ioutil"
 	"github.com/cihub/seelog"
 	"encoding/json"
 	"github.com/zouyx/agollo/repository"
-)
-
-const (
-	//max retries connect apollo
-	MAX_RETRIES=5
+	"github.com/zouyx/agollo/utils/https"
 )
 
 type AutoRefreshConfigComponent struct {
@@ -26,7 +20,7 @@ func (this *AutoRefreshConfigComponent) Start()  {
 	for {
 		select {
 		case <-t2.C:
-			updateConfigServices()
+			syncConfigServices()
 			t2.Reset(config.REFRESH_INTERVAL)
 		}
 	}
@@ -37,18 +31,14 @@ func StartAutoRefreshConfig()  {
 	auto.Start()
 }
 
-func updateConfigServices() error {
+func syncConfigServices() error {
 	client := &http.Client{
 		Timeout:config.CONNECT_TIMEOUT,
 	}
 	if config.ApolloConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
-	url:=fmt.Sprintf("http://%s/configfiles/json/%s/%s/%s",
-		config.ApolloConfig.Ip,
-		config.ApolloConfig.AppId,
-		config.ApolloConfig.Cluster,
-		config.ApolloConfig.NamespaceName)
+	url:=config.GetConfigUrl()
 
 	retry:=0
 	var responseBody []byte
@@ -57,16 +47,22 @@ func updateConfigServices() error {
 	for{
 		retry++
 
-		if retry>MAX_RETRIES{
+		if retry>config.MAX_RETRIES{
 			break
 		}
 
 		res,err=client.Get(url)
 
-		if err != nil {
+		if err != nil || res.StatusCode != https.SUCCESS{
 			seelog.Error("Connect Apollo Server Fail,Error:",err)
+			if res!=nil{
+				seelog.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
+			}
+			// if error then sleep
+			time.Sleep(config.ON_ERROR_RETRY_INTERVAL)
 			continue
 		}
+
 		responseBody, err = ioutil.ReadAll(res.Body)
 		if err!=nil{
 			seelog.Error("Connect Apollo Server Fail,Error:",err)

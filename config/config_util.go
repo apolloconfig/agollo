@@ -11,6 +11,7 @@ import (
 	_ "github.com/zouyx/agollo/utils/logs"
 	"github.com/zouyx/agollo/dto"
 	"github.com/zouyx/agollo/config/jsonconfig"
+	"fmt"
 )
 
 var (
@@ -26,6 +27,9 @@ var (
 	//for typed config cache of parser result, e.g. integer, double, long, etc.
 	MAX_CONFIG_CACHE_SIZE    = 500             //500 cache key
 	CONFIG_CACHE_EXPIRE_TIME = 1 * time.Minute //1 minute
+
+	//max retries connect apollo
+	MAX_RETRIES=5
 
    	ApolloConfig *dto.ApolloConfig
 )
@@ -50,4 +54,12 @@ func initRefreshInterval() error {
 		REFRESH_INTERVAL=time.Duration(interval)
 	}
 	return nil
+}
+
+func GetConfigUrl() string{
+	return fmt.Sprintf("http://%s/configfiles/json/%s/%s/%s",
+		ApolloConfig.Ip,
+		ApolloConfig.AppId,
+		ApolloConfig.Cluster,
+		ApolloConfig.NamespaceName)
 }

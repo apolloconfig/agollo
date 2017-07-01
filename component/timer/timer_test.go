@@ -16,8 +16,8 @@ func TestInitRefreshInterval(t *testing.T) {
 	c.Start()
 }
 
-func TestUpdateConfigServices(t *testing.T) {
-	updateConfigServices()
+func TestSyncConfigServices(t *testing.T) {
+	syncConfigServices()
 
 	configRepository:=repository.GetConfig()
 
