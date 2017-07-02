@@ -22,7 +22,7 @@ func (this *NotifyConfigComponent) Start()  {
 	for {
 		select {
 		case <-t2.C:
-			go syncConfigServices()
+			syncConfigServices()
 			t2.Reset(config.LONG_POLL_INTERVAL)
 		}
 	}
@@ -42,7 +42,7 @@ func toApolloConfig(resBody []byte) ([]*dto.ApolloNotify,error) {
 
 func getRemoteConfig() ([]*dto.ApolloNotify,error) {
 	client := &http.Client{
-		Timeout:config.CONNECT_TIMEOUT,
+		Timeout:config.LONG_POLL_CONNECT_TIMEOUT,
 
 	}
 	if config.AppConfig==nil{

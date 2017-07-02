@@ -20,6 +20,7 @@ var (
 	REFRESH_INTERVAL_KEY = "apollo.refreshInterval"  //
 
 	LONG_POLL_INTERVAL = 5 *time.Second //5s
+	LONG_POLL_CONNECT_TIMEOUT  = 1 * time.Minute //1m
 
 	CONNECT_TIMEOUT  = 1 * time.Second //1s
 	READ_TIMEOUT     = 5 * time.Second //5s
