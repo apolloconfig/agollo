@@ -7,6 +7,9 @@ import (
 	"net/http"
 	"github.com/zouyx/agollo/utils/https"
 	"io/ioutil"
+	"github.com/zouyx/agollo/dto"
+	"encoding/json"
+	"github.com/zouyx/agollo/component/timer"
 )
 
 type NotifyConfigComponent struct {
@@ -25,7 +28,19 @@ func (this *NotifyConfigComponent) Start()  {
 	}
 }
 
-func syncConfigServices() error {
+func toApolloConfig(resBody []byte) ([]*dto.ApolloNotify,error) {
+	remoteConfig:=make([]*dto.ApolloNotify,0)
+
+	err:=json.Unmarshal(resBody,&remoteConfig)
+
+	if err!=nil{
+		seelog.Error("Unmarshal Msg Fail,Error:",err)
+		return nil,err
+	}
+	return remoteConfig,nil
+}
+
+func getRemoteConfig() ([]*dto.ApolloNotify,error) {
 	client := &http.Client{
 		Timeout:config.CONNECT_TIMEOUT,
 
@@ -63,7 +78,7 @@ func syncConfigServices() error {
 
 		if res.StatusCode==https.NOT_MODIFIED {
 			seelog.Warn("Config Not Modified:",err)
-			return nil
+			return nil,nil
 		}
 
 		responseBody, err = ioutil.ReadAll(res.Body)
@@ -75,22 +90,34 @@ func syncConfigServices() error {
 
 	if err !=nil {
 		seelog.Error("Over Max Retry Still Error,Error:",err)
+		return nil,err
+	}
+
+	return toApolloConfig(responseBody)
+}
+
+func syncConfigServices() error {
+
+	remoteConfigs,err:=getRemoteConfig()
+
+	if err!=nil||len(remoteConfigs)==0{
 		return err
 	}
 
+	updateAllNotifications(remoteConfigs)
 
-	seelog.Info("body:",string(responseBody))
-
-	//remoteConfig:=make(map[string]interface{})
-	//
-	//err=json.Unmarshal(responseBody,&remoteConfig)
-	//
-	//if err!=nil{
-	//	seelog.Error("Unmarshal Msg Fail,Error:",err)
-	//	return err
-	//}
-	//
-	//repository.UpdateConfig(remoteConfig)
+	//sync all config
+	timer.SyncConfig()
 
 	return nil
+}
+
+func updateAllNotifications(remoteConfigs []*dto.ApolloNotify) {
+	for _,remoteConfig:=range remoteConfigs{
+		if remoteConfig.NamespaceName==""{
+			continue
+		}
+
+		allNotifications.setNotify(remoteConfig.NamespaceName,remoteConfig.NotificationId)
+	}
 }

@@ -26,6 +26,10 @@ func (this *AutoRefreshConfigComponent) Start()  {
 	}
 }
 
+func SyncConfig() error {
+	return syncConfigServices()
+}
+
 func syncConfigServices() error {
 	client := &http.Client{
 		Timeout:config.CONNECT_TIMEOUT,

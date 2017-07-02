@@ -31,10 +31,10 @@ type notificationsMap struct {
 	sync.RWMutex
 }
 
-func (this *notificationsMap) setNotify(key string,value int64) {
+func (this *notificationsMap) setNotify(namespaceName string,notificationId int64) {
 	this.Lock()
 	defer this.Unlock()
-	this.notifications[key]=value
+	this.notifications[namespaceName]=notificationId
 }
 func (this *notificationsMap) getNotifies() string {
 	this.RLock()

@@ -60,7 +60,7 @@ func initRefreshInterval() error {
 }
 
 func GetConfigUrl() string{
-	return fmt.Sprintf("http://%s/configfiles/json/%s/%s/%s",
+	return fmt.Sprintf("http://%s/configs/%s/%s/%s",
 		AppConfig.Ip,
 		AppConfig.AppId,
 		AppConfig.Cluster,

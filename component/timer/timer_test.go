@@ -6,6 +6,7 @@ import (
 	"time"
 	"github.com/zouyx/agollo/config"
 	"github.com/zouyx/agollo/repository"
+	"github.com/zouyx/agollo/test"
 )
 
 func TestInitRefreshInterval(t *testing.T) {
@@ -17,9 +18,12 @@ func TestInitRefreshInterval(t *testing.T) {
 }
 
 func TestSyncConfigServices(t *testing.T) {
-	syncConfigServices()
+	err:=syncConfigServices()
 
 	configRepository:=repository.GetConfig()
+
+	test.Nil(t,err)
+	test.NotNil(t,configRepository)
 
 	t.Log(configRepository)
 }
