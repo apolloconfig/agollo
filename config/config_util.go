@@ -13,6 +13,7 @@ import (
 	"github.com/zouyx/agollo/config/jsonconfig"
 	"fmt"
 	"net/url"
+	"github.com/zouyx/agollo/utils"
 )
 
 var (
@@ -61,11 +62,13 @@ func initRefreshInterval() error {
 }
 
 func GetConfigUrl() string{
-	return fmt.Sprintf("http://%s/configs/%s/%s/%s",
+	return fmt.Sprintf("http://%s/configs/%s/%s/%s?releaseKey=%s&ip=%s",
 		AppConfig.Ip,
 		AppConfig.AppId,
 		AppConfig.Cluster,
-		AppConfig.NamespaceName)
+		AppConfig.NamespaceName,
+		AppConfig.ReleaseKey,
+		utils.GetInternal())
 }
 
 func GetNotifyUrl(notifications string) string{

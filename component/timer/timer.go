@@ -38,6 +38,7 @@ func syncConfigServices() error {
 		panic("can not find apollo config!please confirm!")
 	}
 	url:=config.GetConfigUrl()
+	seelog.Debug("url:",url)
 
 	retry:=0
 	var responseBody []byte
