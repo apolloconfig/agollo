@@ -18,7 +18,9 @@ func init()  {
 	allNotifications=&notificationsMap{
 		notifications:make(map[string]int64,1),
 	}
-	allNotifications.setNotify(config.AppConfig.NamespaceName,DEFAULT_NOTIFICATION_ID)
+	appConfig:=config.GetAppConfig()
+
+	allNotifications.setNotify(appConfig.NamespaceName,DEFAULT_NOTIFICATION_ID)
 }
 
 type notification struct {

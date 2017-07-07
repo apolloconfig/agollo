@@ -25,7 +25,7 @@ func TestNotifyConfigComponent(t *testing.T) {
 	go func() {
 		for{
 			time.Sleep(5*time.Second)
-			fmt.Println(repository.GetConfig())
+			fmt.Println(repository.GetCurrentApolloConfig())
 		}
 	}()
 

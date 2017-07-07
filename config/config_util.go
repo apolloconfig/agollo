@@ -9,11 +9,11 @@ import (
 
 	"github.com/cihub/seelog"
 	_ "github.com/zouyx/agollo/utils/logs"
-	"github.com/zouyx/agollo/dto"
-	"github.com/zouyx/agollo/config/jsonconfig"
 	"fmt"
 	"net/url"
 	"github.com/zouyx/agollo/utils"
+	"github.com/zouyx/agollo/repository"
+	"github.com/zouyx/agollo/dto"
 )
 
 var (
@@ -35,18 +35,12 @@ var (
 
 	//max retries connect apollo
 	MAX_RETRIES=5
-
-	AppConfig *dto.AppConfig
 )
 
 func init() {
-	//init config file
-	AppConfig=jsonconfig.Load()
-
 	//init common
 	initRefreshInterval()
 }
-
 
 func initRefreshInterval() error {
 	customizedRefreshInterval:=os.Getenv(REFRESH_INTERVAL_KEY)
@@ -61,20 +55,22 @@ func initRefreshInterval() error {
 	return nil
 }
 
-func GetConfigUrl() string{
+func GetConfigUrl(config *dto.AppConfig) string{
+	current:=repository.GetCurrentApolloConfig()
 	return fmt.Sprintf("http://%s/configs/%s/%s/%s?releaseKey=%s&ip=%s",
-		AppConfig.Ip,
-		AppConfig.AppId,
-		AppConfig.Cluster,
-		AppConfig.NamespaceName,
-		AppConfig.ReleaseKey,
+		config.Ip,
+		url.QueryEscape(current.AppId),
+		url.QueryEscape(current.Cluster),
+		url.QueryEscape(current.NamespaceName),
+		url.QueryEscape(current.ReleaseKey),
 		utils.GetInternal())
 }
 
-func GetNotifyUrl(notifications string) string{
+func GetNotifyUrl(notifications string,config *dto.AppConfig) string{
+	current:=repository.GetCurrentApolloConfig()
 	return fmt.Sprintf("http://%s/notifications/v2?appId=%s&cluster=%s&notifications=%s",
-		AppConfig.Ip,
-		url.QueryEscape(AppConfig.AppId),
-		url.QueryEscape(AppConfig.Cluster),
+		config.Ip,
+		url.QueryEscape(current.AppId),
+		url.QueryEscape(current.Cluster),
 		url.QueryEscape(notifications))
 }

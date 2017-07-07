@@ -1,27 +1,25 @@
 package repository
 
-import "sync"
+import (
+	"github.com/zouyx/agollo/dto"
+)
 
-var configRepository *ConfigRepository
+var (
+	currentApolloConfig *dto.ApolloConfig
+)
 
-func init() {
-	configRepository=&ConfigRepository{
-		//configMap:make(map[string]interface{}),
-	}
+func init(){
+	currentApolloConfig=&dto.ApolloConfig{}
 }
 
-type ConfigRepository struct {
-	configMap map[string]interface{}
-	sync.RWMutex
+func UpdateApolloConfig(apolloConfig *dto.ApolloConfig)  {
+	currentApolloConfig.Lock()
+	defer currentApolloConfig.Unlock()
+	currentApolloConfig=apolloConfig
 }
 
-func UpdateConfig(configMap map[string]interface{})  {
-	configRepository.Lock()
-	defer configRepository.Unlock()
-
-	configRepository.configMap=configMap
-}
-
-func GetConfig() *ConfigRepository{
-	return configRepository
+func GetCurrentApolloConfig()*dto.ApolloConfig  {
+	currentApolloConfig.RLock()
+	defer currentApolloConfig.RUnlock()
+	return currentApolloConfig
 }

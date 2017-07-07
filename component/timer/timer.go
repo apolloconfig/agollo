@@ -6,9 +6,10 @@ import (
 	"net/http"
 	"io/ioutil"
 	"github.com/cihub/seelog"
-	"encoding/json"
-	"github.com/zouyx/agollo/repository"
 	"github.com/zouyx/agollo/utils/https"
+	"errors"
+	"github.com/zouyx/agollo/dto"
+	"github.com/zouyx/agollo/repository"
 )
 
 type AutoRefreshConfigComponent struct {
@@ -34,10 +35,12 @@ func syncConfigServices() error {
 	client := &http.Client{
 		Timeout:config.CONNECT_TIMEOUT,
 	}
-	if config.AppConfig==nil{
+
+	appConfig:=config.GetAppConfig()
+	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
-	url:=config.GetConfigUrl()
+	url:=config.GetConfigUrl(appConfig)
 	seelog.Debug("url:",url)
 
 	retry:=0
@@ -75,18 +78,24 @@ func syncConfigServices() error {
 		return err
 	}
 
-	remoteConfig:=make(map[string]interface{})
+	if responseBody==nil{
+		return errors.New("response body is null!")
+	}
 
-	err=json.Unmarshal(responseBody,&remoteConfig)
+	apolloConfig,err:=dto.CreateApolloConfigWithJson(responseBody)
 
 	if err!=nil{
 		seelog.Error("Unmarshal Msg Fail,Error:",err)
 		return err
 	}
 
-	repository.UpdateConfig(remoteConfig)
+	go updateAppConfig(apolloConfig)
+
+	//repository.UpdateLocalConfigRepository(apolloConfig.Configurations)
 
 	return nil
 }
 
-
+func updateAppConfig(apolloConfig *dto.ApolloConfig) {
+	repository.UpdateApolloConfig(apolloConfig)
+}

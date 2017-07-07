@@ -45,10 +45,11 @@ func getRemoteConfig() ([]*dto.ApolloNotify,error) {
 		Timeout:config.LONG_POLL_CONNECT_TIMEOUT,
 
 	}
-	if config.AppConfig==nil{
+	appConfig:=config.GetAppConfig()
+	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
-	url:=config.GetNotifyUrl(allNotifications.getNotifies())
+	url:=config.GetNotifyUrl(allNotifications.getNotifies(),appConfig)
 
 	seelog.Debugf("sync config url:%s",url)
 	seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
