@@ -20,7 +20,7 @@ func TestInitRefreshInterval(t *testing.T) {
 func TestSyncConfigServices(t *testing.T) {
 	err:=syncConfigServices()
 
-	configRepository:=repository.GetConfig()
+	configRepository:=repository.GetCurrentApolloConfig()
 
 	test.Nil(t,err)
 	test.NotNil(t,configRepository)

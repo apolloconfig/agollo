@@ -4,6 +4,10 @@ import (
 	"github.com/zouyx/agollo/dto"
 )
 
+const (
+	empty  =""
+)
+
 var (
 	currentApolloConfig *dto.ApolloConfig
 )
@@ -22,4 +26,15 @@ func GetCurrentApolloConfig()*dto.ApolloConfig  {
 	currentApolloConfig.RLock()
 	defer currentApolloConfig.RUnlock()
 	return currentApolloConfig
+}
+
+func getConfigValue(key string) interface{}  {
+	if currentApolloConfig==nil ||currentApolloConfig.Configurations==nil  {
+		return empty
+	}
+
+	currentApolloConfig.RLock()
+	defer currentApolloConfig.RUnlock()
+
+	return currentApolloConfig.Configurations[key]
 }
