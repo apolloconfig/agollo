@@ -1,0 +1,19 @@
+language: go
+sudo: required
+
+go:
+  - 1.8
+
+env:
+    - GO15VENDOREXPERIMENT="1"
+
+before_install:
+    - Project=apollo
+    - pwd
+    - ls -l
+
+install:
+    - go get github.com/cihub/seelog
+
+script:
+    - go build -o "$Project"
