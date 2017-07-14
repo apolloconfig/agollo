@@ -11,7 +11,7 @@ func getValue(key string)string{
 		return empty
 	}
 
-	return string(value)
+	return value.(string)
 }
 
 func GetStringValue(key string,defaultValue string)string{
