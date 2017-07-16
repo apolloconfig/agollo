@@ -1,4 +1,4 @@
-Agollo
+Agollo - Go Client for Apollo
 ================
 
 [![Build Status](https://travis-ci.org/zouyx/agollo.svg?branch=master)](https://travis-ci.org/zouyx/agollo)
