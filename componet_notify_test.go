@@ -3,32 +3,78 @@ package agollo
 import (
 	"testing"
 	"time"
-	"fmt"
+	"github.com/zouyx/agollo/test"
 )
+
 func TestSyncConfigServices(t *testing.T) {
 	syncConfigServices()
 }
 
-
 func TestGetRemoteConfig(t *testing.T) {
-	remoteConfigs,err:=getRemoteConfig()
+	go runMockNotifyServer(normalResponse)
+	defer closeMockNotifyServer()
 
-	Nil(t,err)
-	NotNil(t,remoteConfigs)
+	time.Sleep(1*time.Second)
+
+	count:=1
+	var remoteConfigs []*ApolloNotify
+	var err error
+	for{
+		count++
+		remoteConfigs,err=getRemoteConfig()
+
+		//err keep nil
+		test.Nil(t,err)
+
+		//if remote config is nil then break
+		if remoteConfigs!=nil{
+			break
+		}
+	}
+
+	test.Equal(t,3,count)
+	test.Nil(t,err)
+	test.NotNil(t,remoteConfigs)
+	test.Equal(t,1,len(remoteConfigs))
 	t.Log("remoteConfigs:",remoteConfigs)
 	t.Log("remoteConfigs size:",len(remoteConfigs))
+
+	notify:=remoteConfigs[0]
+
+	test.Equal(t,"application",notify.NamespaceName)
+	test.Equal(t,true,notify.NotificationId>0)
 }
 
-func TestNotifyConfigComponent(t *testing.T) {
-	go func() {
-		for{
-			time.Sleep(5*time.Second)
-			fmt.Println(GetCurrentApolloConfig())
-		}
-	}()
+func TestErrorGetRemoteConfig(t *testing.T) {
+	go runMockNotifyServer(errorResponse)
+	defer closeMockNotifyServer()
 
+	time.Sleep(1 * time.Second)
 
-	c:=&NotifyConfigComponent{}
-	c.Start()
+	var remoteConfigs []*ApolloNotify
+	var err error
+	remoteConfigs, err = getRemoteConfig()
 
+	test.NotNil(t, err)
+	test.Nil(t, remoteConfigs)
+	test.Equal(t, 0, len(remoteConfigs))
+	t.Log("remoteConfigs:", remoteConfigs)
+	t.Log("remoteConfigs size:", len(remoteConfigs))
+
+	test.Equal(t,"Over Max Retry Still Error!",err.Error())
 }
+
+//
+//func TestNotifyConfigComponent(t *testing.T) {
+//	go func() {
+//		for{
+//			time.Sleep(5*time.Second)
+//			fmt.Println(GetCurrentApolloConfig())
+//		}
+//	}()
+//
+//
+//	c:=&NotifyConfigComponent{}
+//	c.Start()
+//
+//}
