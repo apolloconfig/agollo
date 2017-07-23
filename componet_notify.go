@@ -70,6 +70,12 @@ func getRemoteConfig() ([]*ApolloNotify,error) {
 
 		res,err=client.Get(url)
 
+		//not modified break
+		if res.StatusCode==NOT_MODIFIED {
+			seelog.Warn("Config Not Modified:",err)
+			return nil,nil
+		}
+
 		if err != nil || res.StatusCode != SUCCESS{
 			seelog.Error("Connect Apollo Server Fail,Error:",err)
 			if res!=nil{
@@ -78,11 +84,6 @@ func getRemoteConfig() ([]*ApolloNotify,error) {
 			// if error then sleep
 			time.Sleep(ON_ERROR_RETRY_INTERVAL)
 			continue
-		}
-
-		if res.StatusCode==NOT_MODIFIED {
-			seelog.Warn("Config Not Modified:",err)
-			return nil,nil
 		}
 
 		responseBody, err = ioutil.ReadAll(res.Body)
