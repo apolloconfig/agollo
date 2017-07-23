@@ -1,9 +1,45 @@
-package repository
+package agollo
 
 import (
 	"strconv"
 	"github.com/cihub/seelog"
 )
+
+const (
+	empty  =""
+)
+
+var (
+	currentApolloConfig *ApolloConfig
+)
+
+func init(){
+	currentApolloConfig=&ApolloConfig{}
+}
+
+func UpdateApolloConfig(apolloConfig *ApolloConfig)  {
+	currentApolloConfig.Lock()
+	defer currentApolloConfig.Unlock()
+	currentApolloConfig=apolloConfig
+}
+
+func GetCurrentApolloConfig()*ApolloConfig  {
+	currentApolloConfig.RLock()
+	defer currentApolloConfig.RUnlock()
+	return currentApolloConfig
+}
+
+func getConfigValue(key string) interface{}  {
+	if currentApolloConfig==nil ||currentApolloConfig.Configurations==nil  {
+		return empty
+	}
+
+	currentApolloConfig.RLock()
+	defer currentApolloConfig.RUnlock()
+
+	return currentApolloConfig.Configurations[key]
+}
+
 
 func getValue(key string)string{
 	value:=getConfigValue(key)

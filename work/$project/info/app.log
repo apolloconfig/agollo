@@ -1,0 +1,2 @@
+[Debug] [12:44:42]  [@ componet_notify.go.105] sync config url:http://10.16.4.193:8080/notifications/v2?appId=soa_userfollow_onlinestar&cluster=dev&notifications=%5B%7B%22namespaceName%22%3A%22application%22%2C%22notificationId%22%3A-1%7D%5D
+[Debug] [12:44:42]  [@ componet_notify.go.105] allNotifications.getNotifies():[{"namespaceName":"application","notificationId":-1}]

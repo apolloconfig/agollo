@@ -1,10 +1,12 @@
-package test
+package agollo
 
 import (
 	"path/filepath"
-	"testing"
 	"reflect"
+	"testing"
 	"runtime"
+	"encoding/json"
+	"encoding/xml"
 )
 
 func Equal(t *testing.T, expected, actual interface{}) {
@@ -55,4 +57,25 @@ func isNil(object interface{}) bool {
 	}
 
 	return false
+}
+
+
+// ToJson
+func ToJson(t *testing.T, v interface{}) string {
+	b, err := json.Marshal(v)
+	Nil(t, err)
+	return string(b)
+}
+
+// ToXML
+func ToXML(t *testing.T, v interface{}) string {
+	b, err := xml.Marshal(v)
+	Nil(t, err)
+	//t.Log("xml:",string(b))
+	return string(b)
+}
+
+//ToDefault
+func ToDefault(t *testing.T, v interface{}) string {
+	return ""
 }

@@ -1,9 +1,22 @@
-package dto
+package agollo
 
 import (
-	"encoding/json"
-	"github.com/zouyx/agollo/utils/objectutils"
 	"sync"
+	"encoding/json"
+)
+
+type AbsComponent interface {
+	Start()
+}
+
+
+func StartRefreshConfig(component AbsComponent)  {
+	component.Start()
+}
+
+const(
+	SUCCESS=200
+	NOT_MODIFIED=304
 )
 
 type ApolloConfig struct {
@@ -18,7 +31,7 @@ type ApolloConfig struct {
 func CreateApolloConfigWithJson(b []byte) (*ApolloConfig,error) {
 	apolloConfig:=&ApolloConfig{}
 	err:=json.Unmarshal(b,apolloConfig)
-	if objectutils.IsNotNil(err) {
+	if IsNotNil(err) {
 		return nil,err
 	}
 	return apolloConfig,nil

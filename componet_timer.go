@@ -1,15 +1,11 @@
-package timer
+package agollo
 
 import (
 	"time"
-	"github.com/zouyx/agollo/config"
 	"net/http"
 	"io/ioutil"
 	"github.com/cihub/seelog"
-	"github.com/zouyx/agollo/utils/https"
 	"errors"
-	"github.com/zouyx/agollo/dto"
-	"github.com/zouyx/agollo/repository"
 )
 
 type AutoRefreshConfigComponent struct {
@@ -17,30 +13,30 @@ type AutoRefreshConfigComponent struct {
 }
 
 func (this *AutoRefreshConfigComponent) Start()  {
-	t2 := time.NewTimer(config.REFRESH_INTERVAL)
+	t2 := time.NewTimer(REFRESH_INTERVAL)
 	for {
 		select {
 		case <-t2.C:
 			syncConfigServices()
-			t2.Reset(config.REFRESH_INTERVAL)
+			t2.Reset(REFRESH_INTERVAL)
 		}
 	}
 }
 
 func SyncConfig() error {
-	return syncConfigServices()
+	return autoSyncConfigServices()
 }
 
-func syncConfigServices() error {
+func autoSyncConfigServices() error {
 	client := &http.Client{
-		Timeout:config.CONNECT_TIMEOUT,
+		Timeout:CONNECT_TIMEOUT,
 	}
 
-	appConfig:=config.GetAppConfig()
+	appConfig:=GetAppConfig()
 	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
-	url:=config.GetConfigUrl(appConfig)
+	url:=GetConfigUrl(appConfig)
 	seelog.Debug("url:",url)
 
 	retry:=0
@@ -50,19 +46,19 @@ func syncConfigServices() error {
 	for{
 		retry++
 
-		if retry>config.MAX_RETRIES{
+		if retry>MAX_RETRIES{
 			break
 		}
 
 		res,err=client.Get(url)
 
-		if err != nil || res.StatusCode != https.SUCCESS{
+		if err != nil || res.StatusCode != SUCCESS{
 			seelog.Error("Connect Apollo Server Fail,Error:",err)
 			if res!=nil{
 				seelog.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
 			}
 			// if error then sleep
-			time.Sleep(config.ON_ERROR_RETRY_INTERVAL)
+			time.Sleep(ON_ERROR_RETRY_INTERVAL)
 			continue
 		}
 
@@ -82,7 +78,7 @@ func syncConfigServices() error {
 		return errors.New("response body is null!")
 	}
 
-	apolloConfig,err:=dto.CreateApolloConfigWithJson(responseBody)
+	apolloConfig,err:=CreateApolloConfigWithJson(responseBody)
 
 	if err!=nil{
 		seelog.Error("Unmarshal Msg Fail,Error:",err)
@@ -96,6 +92,6 @@ func syncConfigServices() error {
 	return nil
 }
 
-func updateAppConfig(apolloConfig *dto.ApolloConfig) {
-	repository.UpdateApolloConfig(apolloConfig)
+func updateAppConfig(apolloConfig *ApolloConfig) {
+	UpdateApolloConfig(apolloConfig)
 }

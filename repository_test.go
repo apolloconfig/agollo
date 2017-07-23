@@ -1,4 +1,4 @@
-package repository
+package agollo
 
 import "testing"
 

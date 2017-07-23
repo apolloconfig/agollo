@@ -1,8 +1,6 @@
-package utils
+package agollo
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestGetInternal(t *testing.T) {
 	//fmt.Println("Usage of ./getmyip --get_ip=(external|internal)")
