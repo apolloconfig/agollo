@@ -1,21 +1,19 @@
-package jsonconfig
+package agollo
 
 import (
-	"github.com/zouyx/agollo/dto"
 	"io/ioutil"
-	"github.com/zouyx/agollo/utils/objectutils"
 	"github.com/cihub/seelog"
 )
 
-func Load() *dto.AppConfig {
+func LoadJsonConfig() *AppConfig {
 	fs, err := ioutil.ReadFile("app.properties")
 	if err != nil {
 		panic("faile to read config dir:" + err.Error())
 	}
 
-	appConfig,loadErr:=dto.CreateAppConfigWithJson(string(fs))
+	appConfig,loadErr:=CreateAppConfigWithJson(string(fs))
 
-	if objectutils.IsNotNil(loadErr){
+	if IsNotNil(loadErr){
 		seelog.Errorf("Load Json Config is fail:%s",loadErr)
 	}
 

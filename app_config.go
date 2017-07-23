@@ -1,19 +1,13 @@
-package config
+package agollo
 
 import (
-	"time"
+	"encoding/json"
 	"os"
 	"strconv"
-	"github.com/zouyx/agollo/utils/stringutils"
-	"github.com/zouyx/agollo/utils/objectutils"
-
 	"github.com/cihub/seelog"
-	_ "github.com/zouyx/agollo/utils/logs"
+	"time"
 	"fmt"
 	"net/url"
-	"github.com/zouyx/agollo/utils"
-	"github.com/zouyx/agollo/repository"
-	"github.com/zouyx/agollo/dto"
 )
 
 var (
@@ -35,6 +29,9 @@ var (
 
 	//max retries connect apollo
 	MAX_RETRIES=5
+
+	//appconfig
+	appConfig *AppConfig
 )
 
 func init() {
@@ -42,11 +39,49 @@ func init() {
 	initRefreshInterval()
 }
 
+func init() {
+	//init config file
+	appConfig = LoadJsonConfig()
+
+	go func(appConfig *AppConfig) {
+		apolloConfig:=&ApolloConfig{
+			AppId:appConfig.AppId,
+			Cluster:appConfig.Cluster,
+			NamespaceName:appConfig.NamespaceName,
+		}
+
+		UpdateApolloConfig(apolloConfig)
+	}(appConfig)
+
+
+}
+
+func GetAppConfig()*AppConfig  {
+	return appConfig
+}
+
+type AppConfig struct {
+	AppId string `json:"appId"`
+	Cluster string `json:"cluster"`
+	NamespaceName string `json:"namespaceName"`
+	ReleaseKey string `json:"releaseKey"`
+	Ip string `json:"ip"`
+}
+
+func CreateAppConfigWithJson(str string) (*AppConfig,error) {
+	appConfig:=&AppConfig{}
+	err:=json.Unmarshal([]byte(str),appConfig)
+	if IsNotNil(err) {
+		return nil,err
+	}
+	return appConfig,nil
+}
+
 func initRefreshInterval() error {
 	customizedRefreshInterval:=os.Getenv(REFRESH_INTERVAL_KEY)
-	if stringutils.IsNotEmpty(customizedRefreshInterval){
+	if IsNotEmpty(customizedRefreshInterval){
 		interval,err:=strconv.Atoi(customizedRefreshInterval)
-		if objectutils.IsNotNil(err) {
+		if IsNotNil(err) {
 			seelog.Errorf("Config for apollo.refreshInterval is invalid:%s",customizedRefreshInterval)
 			return err
 		}
@@ -55,19 +90,19 @@ func initRefreshInterval() error {
 	return nil
 }
 
-func GetConfigUrl(config *dto.AppConfig) string{
-	current:=repository.GetCurrentApolloConfig()
+func GetConfigUrl(config *AppConfig) string{
+	current:=GetCurrentApolloConfig()
 	return fmt.Sprintf("http://%s/configs/%s/%s/%s?releaseKey=%s&ip=%s",
 		config.Ip,
 		url.QueryEscape(current.AppId),
 		url.QueryEscape(current.Cluster),
 		url.QueryEscape(current.NamespaceName),
 		url.QueryEscape(current.ReleaseKey),
-		utils.GetInternal())
+		GetInternal())
 }
 
-func GetNotifyUrl(notifications string,config *dto.AppConfig) string{
-	current:=repository.GetCurrentApolloConfig()
+func GetNotifyUrl(notifications string,config *AppConfig) string{
+	current:=GetCurrentApolloConfig()
 	return fmt.Sprintf("http://%s/notifications/v2?appId=%s&cluster=%s&notifications=%s",
 		config.Ip,
 		url.QueryEscape(current.AppId),
