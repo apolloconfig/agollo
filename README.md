@@ -12,22 +12,7 @@ Installation
 如果还没有安装Go开发环境，请参考以下文档[Getting Started](http://golang.org/doc/install.html) ，安装完成后，请执行以下命令：
 
 ```
-//以下是正常逻辑使用
 gopm get github.com/cihub/seelog -v -g
-//以下是测试用例使用
-gopm  get github.com/fatih/structs -v -g
-gopm  get github.com/ajg/form -v -g
-gopm  get github.com/gavv/monotime -v -g
-gopm  get github.com/google/go-querystring/query -v -g
-gopm  get github.com/imkira/go-interpol -v -g
-gopm  get golang.org/x/net/publicsuffix -v -g
-gopm  get github.com/moul/http2curl -v -g
-gopm  get github.com/stretchr/testify -v -g
-gopm  get github.com/valyala/fasthttp -v -g
-gopm get "github.com/xeipuuv/gojsonschema" -v -g
-gopm get "github.com/yalp/jsonpath" -v -g
-gopm get "github.com/yudai/gojsondiff" -v -g
-gopm get "github.com/yudai/gojsondiff/formatter" -v -g
 
 ```
 
