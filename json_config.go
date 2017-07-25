@@ -15,7 +15,7 @@ func LoadJsonConfig(fileName string) (*AppConfig,error) {
 	appConfig,loadErr:=createAppConfigWithJson(string(fs))
 
 	if IsNotNil(loadErr){
-		return nil,errors.New("Load Json Config fail:%s" + loadErr.Error())
+		return nil,errors.New("Load Json Config fail:" + loadErr.Error())
 	}
 
 	return appConfig,nil
@@ -27,6 +27,12 @@ func createAppConfigWithJson(str string) (*AppConfig,error) {
 	if IsNotNil(err) {
 		return nil,err
 	}
+
+	env:=transformEnv(appConfig.Cluster)
+	if env==UNKNOWN{
+		return nil,errors.New("Env is wrong ,current env:" + appConfig.Cluster)
+	}
+
 	return appConfig,nil
 }
 

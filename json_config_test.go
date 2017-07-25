@@ -53,7 +53,24 @@ func TestCreateApolloConfigWithJson(t *testing.T) {
 	test.Equal(t,"localhost:8888",config.Ip)
 }
 
-func TestCreateApolloConfigWithErrorJson(t *testing.T) {
+func TestCreateApolloConfigWithJsonWrongEnv(t *testing.T) {
+	jsonStr:=`{
+    "appId": "test",
+    "cluster": "joe",
+    "namespaceName": "application",
+    "ip": "localhost:8888",
+    "releaseKey": ""
+	}`
+	config,err:=createAppConfigWithJson(jsonStr)
+	t.Log(config)
+	t.Log(err)
+
+	test.NotNil(t,err)
+	test.Nil(t,config)
+	test.StartWith(t,"Env is wrong ,current env:joe",err.Error())
+}
+
+func TestCreateApolloConfigWithJsonError(t *testing.T) {
 	jsonStr:=`package agollo
 
 import (
