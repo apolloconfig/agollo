@@ -6,7 +6,7 @@ import (
 )
 
 func TestInitRefreshInterval(t *testing.T) {
-	REFRESH_INTERVAL=1*time.Second
+	refresh_interval=1*time.Second
 
 	var c AbsComponent
 	c=&AutoRefreshConfigComponent{}
