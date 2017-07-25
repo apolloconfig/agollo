@@ -2,6 +2,7 @@ Agollo - Go Client for Apollo
 ================
 
 [![Build Status](https://travis-ci.org/zouyx/agollo.svg?branch=master)](https://travis-ci.org/zouyx/agollo)
+[![Coverage Status](https://coveralls.io/repos/github/zouyx/agollo/badge.svg?branch=feature%2FMockCase)](https://coveralls.io/github/zouyx/agollo?branch=feature%2FMockCase)
 
 
 Apollo的Golang客户端。
