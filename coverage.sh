@@ -29,7 +29,7 @@ push_to_coveralls() {
     echo "Pushing coverage statistics to coveralls.io"
     # ignore failure to push - it happens
     $HOME/gopath/bin/goveralls -coverprofile="$profile" \
-                               -service=travis-ci       " || true
+                               -service=travis-ci  || true
 }
 
 generate_cover_data $(go list ./...)
