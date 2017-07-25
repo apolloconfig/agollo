@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 	"fmt"
+	"github.com/zouyx/agollo/test"
 )
 func TestSyncConfigServices(t *testing.T) {
 	syncConfigServices()
@@ -13,8 +14,8 @@ func TestSyncConfigServices(t *testing.T) {
 func TestGetRemoteConfig(t *testing.T) {
 	remoteConfigs,err:=getRemoteConfig()
 
-	Nil(t,err)
-	NotNil(t,remoteConfigs)
+	test.Nil(t,err)
+	test.NotNil(t,remoteConfigs)
 	t.Log("remoteConfigs:",remoteConfigs)
 	t.Log("remoteConfigs size:",len(remoteConfigs))
 }
