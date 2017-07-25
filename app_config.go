@@ -35,10 +35,18 @@ var (
 
 func init() {
 	//init common
+	initCommon()
+
+	//init config
+	initConfig()
+}
+
+func initCommon()  {
+
 	initRefreshInterval()
 }
 
-func init() {
+func initConfig() {
 	var err error
 	//init config file
 	appConfig,err = LoadJsonConfig(appConfigFileName)
@@ -56,8 +64,6 @@ func init() {
 
 		UpdateApolloConfig(apolloConfig)
 	}(appConfig)
-
-
 }
 
 func GetAppConfig()*AppConfig  {
@@ -89,18 +95,17 @@ func GetConfigUrl(config *AppConfig) string{
 	current:=GetCurrentApolloConfig()
 	return fmt.Sprintf("http://%s/configs/%s/%s/%s?releaseKey=%s&ip=%s",
 		config.Ip,
-		url.QueryEscape(current.AppId),
-		url.QueryEscape(current.Cluster),
-		url.QueryEscape(current.NamespaceName),
+		url.QueryEscape(config.AppId),
+		url.QueryEscape(config.Cluster),
+		url.QueryEscape(config.NamespaceName),
 		url.QueryEscape(current.ReleaseKey),
 		GetInternal())
 }
 
 func GetNotifyUrl(notifications string,config *AppConfig) string{
-	current:=GetCurrentApolloConfig()
 	return fmt.Sprintf("http://%s/notifications/v2?appId=%s&cluster=%s&notifications=%s",
 		config.Ip,
-		url.QueryEscape(current.AppId),
-		url.QueryEscape(current.Cluster),
+		url.QueryEscape(config.AppId),
+		url.QueryEscape(config.Cluster),
 		url.QueryEscape(notifications))
 }
