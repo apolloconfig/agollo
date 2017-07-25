@@ -1,7 +1,6 @@
 package agollo
 
 import (
-	"encoding/json"
 	"os"
 	"strconv"
 	"github.com/cihub/seelog"
@@ -9,6 +8,8 @@ import (
 	"fmt"
 	"net/url"
 )
+
+const appConfigFileName  ="app.properties"
 
 var (
 	refresh_interval = 5 *time.Minute //5m
@@ -38,8 +39,13 @@ func init() {
 }
 
 func init() {
+	var err error
 	//init config file
-	appConfig = LoadJsonConfig()
+	appConfig,err = LoadJsonConfig(appConfigFileName)
+
+	if err!=nil{
+		panic(err)
+	}
 
 	go func(appConfig *AppConfig) {
 		apolloConfig:=&ApolloConfig{
@@ -64,15 +70,6 @@ type AppConfig struct {
 	NamespaceName string `json:"namespaceName"`
 	ReleaseKey string `json:"releaseKey"`
 	Ip string `json:"ip"`
-}
-
-func CreateAppConfigWithJson(str string) (*AppConfig,error) {
-	appConfig:=&AppConfig{}
-	err:=json.Unmarshal([]byte(str),appConfig)
-	if IsNotNil(err) {
-		return nil,err
-	}
-	return appConfig,nil
 }
 
 func initRefreshInterval() error {

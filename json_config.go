@@ -2,20 +2,31 @@ package agollo
 
 import (
 	"io/ioutil"
-	"github.com/cihub/seelog"
+	"encoding/json"
+	"errors"
 )
 
-func LoadJsonConfig() *AppConfig {
-	fs, err := ioutil.ReadFile("app.properties")
+func LoadJsonConfig(fileName string) (*AppConfig,error) {
+	fs, err := ioutil.ReadFile(fileName)
 	if err != nil {
-		panic("faile to read config dir:" + err.Error())
+		return nil,errors.New("Fail to read config file:" + err.Error())
 	}
 
-	appConfig,loadErr:=CreateAppConfigWithJson(string(fs))
+	appConfig,loadErr:=createAppConfigWithJson(string(fs))
 
 	if IsNotNil(loadErr){
-		seelog.Errorf("Load Json Config is fail:%s",loadErr)
+		return nil,errors.New("Load Json Config fail:%s" + loadErr.Error())
 	}
 
-	return appConfig
+	return appConfig,nil
 }
+
+func createAppConfigWithJson(str string) (*AppConfig,error) {
+	appConfig:=&AppConfig{}
+	err:=json.Unmarshal([]byte(str),appConfig)
+	if IsNotNil(err) {
+		return nil,err
+	}
+	return appConfig,nil
+}
+

@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 func Equal(t *testing.T, expected, actual interface{}) {
@@ -14,6 +15,10 @@ func Equal(t *testing.T, expected, actual interface{}) {
 			filepath.Base(file), line, expected, actual)
 		t.FailNow()
 	}
+}
+
+func StartWith(t *testing.T, expected, actual string) {
+	Equal(t,true,strings.HasPrefix(actual,expected))
 }
 
 func NotEqual(t *testing.T, expected, actual interface{}) {
