@@ -20,13 +20,13 @@ type ApolloNotify struct {
 
 
 func (this *NotifyConfigComponent) Start()  {
-	t2 := time.NewTimer(LONG_POLL_INTERVAL)
+	t2 := time.NewTimer(long_poll_interval)
 	//long poll for sync
 	for {
 		select {
 		case <-t2.C:
 			syncConfigServices()
-			t2.Reset(LONG_POLL_INTERVAL)
+			t2.Reset(long_poll_interval)
 		}
 	}
 }
@@ -45,7 +45,7 @@ func toApolloConfig(resBody []byte) ([]*ApolloNotify,error) {
 
 func getRemoteConfig() ([]*ApolloNotify,error) {
 	client := &http.Client{
-		Timeout:LONG_POLL_CONNECT_TIMEOUT,
+		Timeout:long_poll_connect_timeout,
 
 	}
 	appConfig:=GetAppConfig()
@@ -64,7 +64,7 @@ func getRemoteConfig() ([]*ApolloNotify,error) {
 	for{
 		retry++
 
-		if retry>MAX_RETRIES{
+		if retry>max_retries{
 			break
 		}
 

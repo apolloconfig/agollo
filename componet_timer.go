@@ -13,12 +13,12 @@ type AutoRefreshConfigComponent struct {
 }
 
 func (this *AutoRefreshConfigComponent) Start()  {
-	t2 := time.NewTimer(REFRESH_INTERVAL)
+	t2 := time.NewTimer(refresh_interval)
 	for {
 		select {
 		case <-t2.C:
 			syncConfigServices()
-			t2.Reset(REFRESH_INTERVAL)
+			t2.Reset(refresh_interval)
 		}
 	}
 }
@@ -29,7 +29,7 @@ func SyncConfig() error {
 
 func autoSyncConfigServices() error {
 	client := &http.Client{
-		Timeout:CONNECT_TIMEOUT,
+		Timeout:connect_timeout,
 	}
 
 	appConfig:=GetAppConfig()
@@ -46,7 +46,7 @@ func autoSyncConfigServices() error {
 	for{
 		retry++
 
-		if retry>MAX_RETRIES{
+		if retry>max_retries{
 			break
 		}
 

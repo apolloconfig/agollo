@@ -11,24 +11,22 @@ import (
 )
 
 var (
-	REFRESH_INTERVAL = 5 *time.Minute //5m
-	REFRESH_INTERVAL_KEY = "apollo.refreshInterval"  //
+	refresh_interval = 5 *time.Minute //5m
+	refresh_interval_key = "apollo.refreshInterval"  //
 
-	LONG_POLL_INTERVAL = 5 *time.Second //5s
-	LONG_POLL_CONNECT_TIMEOUT  = 1 * time.Minute //1m
+	long_poll_interval = 5 *time.Second //5s
+	long_poll_connect_timeout  = 1 * time.Minute //1m
 
-	CONNECT_TIMEOUT  = 1 * time.Second //1s
-	READ_TIMEOUT     = 5 * time.Second //5s
-	LOAD_CONFIG_QPS  = 2
-	LONG_POLL_QPS    = 2
+	connect_timeout  = 1 * time.Second //1s
+	read_timeout     = 5 * time.Second //5s
 	//for on error retry
 	ON_ERROR_RETRY_INTERVAL = 1 * time.Second //1s
 	//for typed config cache of parser result, e.g. integer, double, long, etc.
-	MAX_CONFIG_CACHE_SIZE    = 500             //500 cache key
-	CONFIG_CACHE_EXPIRE_TIME = 1 * time.Minute //1 minute
+	max_config_cache_size    = 500             //500 cache key
+	config_cache_expire_time = 1 * time.Minute //1 minute
 
 	//max retries connect apollo
-	MAX_RETRIES=5
+	max_retries=5
 
 	//appconfig
 	appConfig *AppConfig
@@ -78,14 +76,14 @@ func CreateAppConfigWithJson(str string) (*AppConfig,error) {
 }
 
 func initRefreshInterval() error {
-	customizedRefreshInterval:=os.Getenv(REFRESH_INTERVAL_KEY)
+	customizedRefreshInterval:=os.Getenv(refresh_interval_key)
 	if IsNotEmpty(customizedRefreshInterval){
 		interval,err:=strconv.Atoi(customizedRefreshInterval)
 		if IsNotNil(err) {
 			seelog.Errorf("Config for apollo.refreshInterval is invalid:%s",customizedRefreshInterval)
 			return err
 		}
-		REFRESH_INTERVAL=time.Duration(interval)
+		refresh_interval=time.Duration(interval)
 	}
 	return nil
 }
