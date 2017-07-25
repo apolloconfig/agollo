@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"encoding/json"
 	"sync"
+	"errors"
 )
 
 type NotifyConfigComponent struct {
@@ -70,13 +71,26 @@ func getRemoteConfig() ([]*ApolloNotify,error) {
 
 		res,err=client.Get(url)
 
-		//not modified break
-		if res.StatusCode==NOT_MODIFIED {
-			seelog.Warn("Config Not Modified:",err)
-			return nil,nil
+		if res==nil||err!=nil{
+			seelog.Error("Connect Apollo Server Fail,Error:",err)
+			continue
 		}
 
-		if err != nil || res.StatusCode != SUCCESS{
+		//not modified break
+		switch res.StatusCode {
+		case http.StatusOK:
+			responseBody, err = ioutil.ReadAll(res.Body)
+			if err!=nil{
+				seelog.Error("Read Apollo Server response Fail,Error:",err)
+				continue
+			}
+			return toApolloConfig(responseBody)
+
+		case http.StatusNotModified:
+			seelog.Warn("Config Not Modified:", err)
+			return nil, nil
+
+		default:
 			seelog.Error("Connect Apollo Server Fail,Error:",err)
 			if res!=nil{
 				seelog.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
@@ -85,20 +99,13 @@ func getRemoteConfig() ([]*ApolloNotify,error) {
 			time.Sleep(ON_ERROR_RETRY_INTERVAL)
 			continue
 		}
-
-		responseBody, err = ioutil.ReadAll(res.Body)
-		if err!=nil{
-			seelog.Error("Connect Apollo Server Fail,Error:",err)
-			continue
-		}
 	}
 
-	if err !=nil {
-		seelog.Error("Over Max Retry Still Error,Error:",err)
-		return nil,err
+	seelog.Error("Over Max Retry Still Error,Error:",err)
+	if err==nil{
+		err=errors.New("Over Max Retry Still Error!")
 	}
-
-	return toApolloConfig(responseBody)
+	return nil,err
 }
 
 func syncConfigServices() error {
