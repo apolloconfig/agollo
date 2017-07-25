@@ -8,6 +8,7 @@ env:
     - GO15VENDOREXPERIMENT="1"
 
 before_install:
+    - go get github.com/mattn/goveralls
     - Project=apollo
     - pwd
     - ls -l
@@ -16,4 +17,5 @@ install:
     - go get github.com/cihub/seelog
 
 script:
+    - ./coverage.sh --coveralls
     - go build -o "$Project"
