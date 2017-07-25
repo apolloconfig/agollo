@@ -22,6 +22,8 @@ func createEnvMap()map[string]Env {
 	envMap["lpt"]=LPT
 	envMap["PRO"]=PRO
 	envMap["pro"]=PRO
+	envMap["PROD"]=PRO
+	envMap["prod"]=PRO
 	envMap["TOOLS"]=TOOLS
 	envMap["tools"]=TOOLS
 	envMap["213123"]=UNKNOWN

@@ -17,7 +17,7 @@ func init(){
 	currentApolloConfig=&ApolloConfig{}
 }
 
-func UpdateApolloConfig(apolloConfig *ApolloConfig)  {
+func updateApolloConfig(apolloConfig *ApolloConfig)  {
 	currentApolloConfig.Lock()
 	defer currentApolloConfig.Unlock()
 	currentApolloConfig=apolloConfig

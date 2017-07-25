@@ -52,7 +52,7 @@ func autoSyncConfigServices() error {
 
 		res,err=client.Get(url)
 
-		if err != nil || res.StatusCode != SUCCESS{
+		if err != nil || res.StatusCode != http.StatusOK{
 			seelog.Error("Connect Apollo Server Fail,Error:",err)
 			if res!=nil{
 				seelog.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
@@ -78,20 +78,16 @@ func autoSyncConfigServices() error {
 		return errors.New("response body is null!")
 	}
 
-	apolloConfig,err:=CreateApolloConfigWithJson(responseBody)
+	apolloConfig,err:=createApolloConfigWithJson(responseBody)
 
 	if err!=nil{
 		seelog.Error("Unmarshal Msg Fail,Error:",err)
 		return err
 	}
 
-	go updateAppConfig(apolloConfig)
+	go updateApolloConfig(apolloConfig)
 
 	//repository.UpdateLocalConfigRepository(apolloConfig.Configurations)
 
 	return nil
-}
-
-func updateAppConfig(apolloConfig *ApolloConfig) {
-	UpdateApolloConfig(apolloConfig)
 }

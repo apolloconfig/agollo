@@ -34,7 +34,7 @@ func TestLoadJsonConfigWrongType(t *testing.T) {
 	test.StartWith(t,"Load Json Config fail",err.Error())
 }
 
-func TestCreateApolloConfigWithJson(t *testing.T) {
+func TestCreateAppConfigWithJson(t *testing.T) {
 	jsonStr:=`{
     "appId": "test",
     "cluster": "dev",
@@ -53,7 +53,7 @@ func TestCreateApolloConfigWithJson(t *testing.T) {
 	test.Equal(t,"localhost:8888",config.Ip)
 }
 
-func TestCreateApolloConfigWithJsonWrongEnv(t *testing.T) {
+func TestCreateAppConfigWithJsonWrongEnv(t *testing.T) {
 	jsonStr:=`{
     "appId": "test",
     "cluster": "joe",
@@ -70,7 +70,7 @@ func TestCreateApolloConfigWithJsonWrongEnv(t *testing.T) {
 	test.StartWith(t,"Env is wrong ,current env:joe",err.Error())
 }
 
-func TestCreateApolloConfigWithJsonError(t *testing.T) {
+func TestCreateAppConfigWithJsonError(t *testing.T) {
 	jsonStr:=`package agollo
 
 import (

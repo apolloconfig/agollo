@@ -62,7 +62,7 @@ func initConfig() {
 			NamespaceName:appConfig.NamespaceName,
 		}
 
-		UpdateApolloConfig(apolloConfig)
+		updateApolloConfig(apolloConfig)
 	}(appConfig)
 }
 
