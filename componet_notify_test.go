@@ -4,6 +4,7 @@ import (
 	"testing"
 	"time"
 	"github.com/zouyx/agollo/test"
+	"encoding/json"
 )
 
 func TestSyncConfigServices(t *testing.T) {
@@ -64,6 +65,56 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 	test.Equal(t,"Over Max Retry Still Error!",err.Error())
 }
 
+func TestUpdateAllNotifications(t *testing.T) {
+	//clear
+	allNotifications=&notificationsMap{
+		notifications:make(map[string]int64,1),
+	}
+	notifyJson:=`[
+  {
+    "namespaceName": "application",
+    "notificationId": 101
+  }
+]`
+	notifies:=make([]*ApolloNotify,0)
+
+	err:=json.Unmarshal([]byte(notifyJson),&notifies)
+
+	test.Nil(t,err)
+	test.Equal(t,true,len(notifies)>0)
+
+	updateAllNotifications(notifies)
+
+	test.Equal(t,true,len(allNotifications.notifications)>0)
+	test.Equal(t,int64(101),allNotifications.notifications["application"])
+}
+
+
+func TestUpdateAllNotificationsError(t *testing.T) {
+	//clear
+	allNotifications=&notificationsMap{
+		notifications:make(map[string]int64,1),
+	}
+
+	notifyJson:=`ffffff`
+	notifies:=make([]*ApolloNotify,0)
+
+	err:=json.Unmarshal([]byte(notifyJson),&notifies)
+
+	test.NotNil(t,err)
+	test.Equal(t,true,len(notifies)==0)
+
+	updateAllNotifications(notifies)
+
+	test.Equal(t,true,len(allNotifications.notifications)==0)
+}
+
+func TestToApolloConfigError(t *testing.T) {
+
+	notified,err:=toApolloConfig([]byte("jaskldfjaskl"))
+	test.Nil(t,notified)
+	test.NotNil(t,err)
+}
 //
 //func TestNotifyConfigComponent(t *testing.T) {
 //	go func() {
