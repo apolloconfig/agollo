@@ -17,7 +17,7 @@ func (this *AutoRefreshConfigComponent) Start()  {
 	for {
 		select {
 		case <-t2.C:
-			syncConfigServices()
+			notifySyncConfigServices()
 			t2.Reset(refresh_interval)
 		}
 	}
@@ -52,7 +52,31 @@ func autoSyncConfigServices() error {
 
 		res,err=client.Get(url)
 
-		if err != nil || res.StatusCode != http.StatusOK{
+		if res==nil||err!=nil{
+			seelog.Error("Connect Apollo Server Fail,Error:",err)
+			continue
+		}
+
+		//not modified break
+		switch res.StatusCode {
+		case http.StatusOK:
+			responseBody, err = ioutil.ReadAll(res.Body)
+			if err!=nil{
+				seelog.Error("Connect Apollo Server Fail,Error:",err)
+				continue
+			}
+
+			apolloConfig,err:=createApolloConfigWithJson(responseBody)
+
+			if err!=nil{
+				seelog.Error("Unmarshal Msg Fail,Error:",err)
+				return err
+			}
+
+			updateApolloConfig(apolloConfig)
+
+			return nil
+		default:
 			seelog.Error("Connect Apollo Server Fail,Error:",err)
 			if res!=nil{
 				seelog.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
@@ -61,33 +85,12 @@ func autoSyncConfigServices() error {
 			time.Sleep(ON_ERROR_RETRY_INTERVAL)
 			continue
 		}
-
-		responseBody, err = ioutil.ReadAll(res.Body)
-		if err!=nil{
-			seelog.Error("Connect Apollo Server Fail,Error:",err)
-			continue
-		}
 	}
 
-	if err !=nil {
-		seelog.Error("Over Max Retry Still Error,Error:",err)
-		return err
+	seelog.Error("Over Max Retry Still Error,Error:",err)
+	if err==nil{
+		err=errors.New("Over Max Retry Still Error!")
 	}
-
-	if responseBody==nil{
-		return errors.New("response body is null!")
-	}
-
-	apolloConfig,err:=createApolloConfigWithJson(responseBody)
-
-	if err!=nil{
-		seelog.Error("Unmarshal Msg Fail,Error:",err)
-		return err
-	}
-
-	go updateApolloConfig(apolloConfig)
-
+	return err
 	//repository.UpdateLocalConfigRepository(apolloConfig.Configurations)
-
-	return nil
 }

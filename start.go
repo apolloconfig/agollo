@@ -3,7 +3,7 @@ package agollo
 //start apollo
 func Start() {
 	//first sync
-	syncConfigServices()
+	notifySyncConfigServices()
 
 	//start auto refresh config
 	go StartRefreshConfig(&AutoRefreshConfigComponent{})

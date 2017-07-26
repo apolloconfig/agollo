@@ -8,7 +8,7 @@ import (
 )
 
 func TestSyncConfigServices(t *testing.T) {
-	syncConfigServices()
+	notifySyncConfigServices()
 }
 
 func TestGetRemoteConfig(t *testing.T) {

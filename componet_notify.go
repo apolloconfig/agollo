@@ -26,7 +26,7 @@ func (this *NotifyConfigComponent) Start()  {
 	for {
 		select {
 		case <-t2.C:
-			syncConfigServices()
+			notifySyncConfigServices()
 			t2.Reset(long_poll_interval)
 		}
 	}
@@ -108,7 +108,7 @@ func getRemoteConfig() ([]*ApolloNotify,error) {
 	return nil,err
 }
 
-func syncConfigServices() error {
+func notifySyncConfigServices() error {
 
 	remoteConfigs,err:=getRemoteConfig()
 

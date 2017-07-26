@@ -8,8 +8,6 @@ import (
 
 const responseStr  =`[{"namespaceName":"application","notificationId":%d}]`
 
-var srv *http.Server
-
 //run mock notify server
 func runMockNotifyServer(handler func(http.ResponseWriter, *http.Request)) {
 	http.HandleFunc("/notifications/v2", handler)
