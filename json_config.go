@@ -28,11 +28,6 @@ func createAppConfigWithJson(str string) (*AppConfig,error) {
 		return nil,err
 	}
 
-	env:=transformEnv(appConfig.Cluster)
-	if env==UNKNOWN{
-		return nil,errors.New("Env is wrong ,current env:" + appConfig.Cluster)
-	}
-
 	return appConfig,nil
 }
 
