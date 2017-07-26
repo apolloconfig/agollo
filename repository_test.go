@@ -45,18 +45,7 @@ func TestGetConfigValueNullApolloConfig(t *testing.T) {
 
 	test.Equal(t,defaultValue,v)
 
-	//clear currentApolloConfig
-	currentApolloConfig=nil
-
-	//test getValue
-	value=getValue("joe")
-
-	test.Equal(t,empty,value)
-
-	//test GetStringValue
-	v=GetStringValue("joe",defaultValue)
-
-	test.Equal(t,defaultValue,v)
+	createMockApolloConfig()
 }
 
 func TestGetIntValue(t *testing.T) {
