@@ -15,6 +15,10 @@ Installation
 ```
 gopm get github.com/cihub/seelog -v -g
 
+或者
+
+go get -u github.com/cihub/seelog
+
 ```
 
 *请注意*: 最好使用Go 1.8进行开发
