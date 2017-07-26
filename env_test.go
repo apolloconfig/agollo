@@ -3,6 +3,7 @@ package agollo
 import (
 	"testing"
 	"fmt"
+	"github.com/zouyx/agollo/test"
 )
 
 func TestFromString(t *testing.T) {
@@ -13,11 +14,11 @@ func TestFromString(t *testing.T) {
 		env, err := FromString(key)
 		t.Log(fmt.Sprintf("对比:%s,期望值:%d,实际值:%d", key, +value, env))
 		if (UNKNOWN == env) {
-			NotNil(t, err)
+			test.NotNil(t, err)
 		} else {
-			Nil(t, err)
+			test.Nil(t, err)
 		}
-		Equal(t, value, env)
+		test.Equal(t, value, env)
 	}
 
 }

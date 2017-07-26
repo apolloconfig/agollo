@@ -69,7 +69,6 @@ func isNilObject(object interface{}) bool {
 }
 
 //log
-
 func init(){
 	logger, err := seelog.LoggerFromConfigAsFile("seelog.xml")
 

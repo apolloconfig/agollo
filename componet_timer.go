@@ -13,12 +13,12 @@ type AutoRefreshConfigComponent struct {
 }
 
 func (this *AutoRefreshConfigComponent) Start()  {
-	t2 := time.NewTimer(REFRESH_INTERVAL)
+	t2 := time.NewTimer(refresh_interval)
 	for {
 		select {
 		case <-t2.C:
-			syncConfigServices()
-			t2.Reset(REFRESH_INTERVAL)
+			notifySyncConfigServices()
+			t2.Reset(refresh_interval)
 		}
 	}
 }
@@ -29,7 +29,7 @@ func SyncConfig() error {
 
 func autoSyncConfigServices() error {
 	client := &http.Client{
-		Timeout:CONNECT_TIMEOUT,
+		Timeout:connect_timeout,
 	}
 
 	appConfig:=GetAppConfig()
@@ -46,13 +46,37 @@ func autoSyncConfigServices() error {
 	for{
 		retry++
 
-		if retry>MAX_RETRIES{
+		if retry>max_retries{
 			break
 		}
 
 		res,err=client.Get(url)
 
-		if err != nil || res.StatusCode != SUCCESS{
+		if res==nil||err!=nil{
+			seelog.Error("Connect Apollo Server Fail,Error:",err)
+			continue
+		}
+
+		//not modified break
+		switch res.StatusCode {
+		case http.StatusOK:
+			responseBody, err = ioutil.ReadAll(res.Body)
+			if err!=nil{
+				seelog.Error("Connect Apollo Server Fail,Error:",err)
+				continue
+			}
+
+			apolloConfig,err:=createApolloConfigWithJson(responseBody)
+
+			if err!=nil{
+				seelog.Error("Unmarshal Msg Fail,Error:",err)
+				return err
+			}
+
+			updateApolloConfig(apolloConfig)
+
+			return nil
+		default:
 			seelog.Error("Connect Apollo Server Fail,Error:",err)
 			if res!=nil{
 				seelog.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
@@ -61,37 +85,12 @@ func autoSyncConfigServices() error {
 			time.Sleep(ON_ERROR_RETRY_INTERVAL)
 			continue
 		}
-
-		responseBody, err = ioutil.ReadAll(res.Body)
-		if err!=nil{
-			seelog.Error("Connect Apollo Server Fail,Error:",err)
-			continue
-		}
 	}
 
-	if err !=nil {
-		seelog.Error("Over Max Retry Still Error,Error:",err)
-		return err
+	seelog.Error("Over Max Retry Still Error,Error:",err)
+	if err==nil{
+		err=errors.New("Over Max Retry Still Error!")
 	}
-
-	if responseBody==nil{
-		return errors.New("response body is null!")
-	}
-
-	apolloConfig,err:=CreateApolloConfigWithJson(responseBody)
-
-	if err!=nil{
-		seelog.Error("Unmarshal Msg Fail,Error:",err)
-		return err
-	}
-
-	go updateAppConfig(apolloConfig)
-
+	return err
 	//repository.UpdateLocalConfigRepository(apolloConfig.Configurations)
-
-	return nil
-}
-
-func updateAppConfig(apolloConfig *ApolloConfig) {
-	UpdateApolloConfig(apolloConfig)
 }

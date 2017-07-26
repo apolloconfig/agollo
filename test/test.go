@@ -1,12 +1,11 @@
-package agollo
+package test
 
 import (
-	"path/filepath"
-	"reflect"
 	"testing"
+	"reflect"
+	"path/filepath"
 	"runtime"
-	"encoding/json"
-	"encoding/xml"
+	"strings"
 )
 
 func Equal(t *testing.T, expected, actual interface{}) {
@@ -16,6 +15,10 @@ func Equal(t *testing.T, expected, actual interface{}) {
 			filepath.Base(file), line, expected, actual)
 		t.FailNow()
 	}
+}
+
+func StartWith(t *testing.T, expected, actual string) {
+	Equal(t,true,strings.HasPrefix(actual,expected))
 }
 
 func NotEqual(t *testing.T, expected, actual interface{}) {
@@ -57,25 +60,4 @@ func isNil(object interface{}) bool {
 	}
 
 	return false
-}
-
-
-// ToJson
-func ToJson(t *testing.T, v interface{}) string {
-	b, err := json.Marshal(v)
-	Nil(t, err)
-	return string(b)
-}
-
-// ToXML
-func ToXML(t *testing.T, v interface{}) string {
-	b, err := xml.Marshal(v)
-	Nil(t, err)
-	//t.Log("xml:",string(b))
-	return string(b)
-}
-
-//ToDefault
-func ToDefault(t *testing.T, v interface{}) string {
-	return ""
 }

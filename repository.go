@@ -17,7 +17,7 @@ func init(){
 	currentApolloConfig=&ApolloConfig{}
 }
 
-func UpdateApolloConfig(apolloConfig *ApolloConfig)  {
+func updateApolloConfig(apolloConfig *ApolloConfig)  {
 	currentApolloConfig.Lock()
 	defer currentApolloConfig.Unlock()
 	currentApolloConfig=apolloConfig
@@ -64,7 +64,7 @@ func GetIntValue(key string,defaultValue int) int {
 
 	i,err:=strconv.Atoi(value)
 	if err!=nil{
-		seelog.Error("convert to int fail!error:",err)
+		seelog.Debug("convert to int fail!error:",err)
 		return defaultValue
 	}
 
@@ -76,7 +76,7 @@ func GetFloatValue(key string,defaultValue float64) float64 {
 
 	i,err:=strconv.ParseFloat(value,64)
 	if err!=nil{
-		seelog.Error("convert to float fail!error:",err)
+		seelog.Debug("convert to float fail!error:",err)
 		return defaultValue
 	}
 
@@ -88,7 +88,7 @@ func GetBoolValue(key string,defaultValue bool) bool {
 
 	b,err:=strconv.ParseBool(value)
 	if err!=nil{
-		seelog.Error("convert to bool fail!error:",err)
+		seelog.Debug("convert to bool fail!error:",err)
 		return defaultValue
 	}
 

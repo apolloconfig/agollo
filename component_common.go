@@ -14,11 +14,6 @@ func StartRefreshConfig(component AbsComponent)  {
 	component.Start()
 }
 
-const(
-	SUCCESS=200
-	NOT_MODIFIED=304
-)
-
 type ApolloConfig struct {
 	AppId string `json:"appId"`
 	Cluster string `json:"cluster"`
@@ -28,7 +23,7 @@ type ApolloConfig struct {
 	sync.RWMutex
 }
 
-func CreateApolloConfigWithJson(b []byte) (*ApolloConfig,error) {
+func createApolloConfigWithJson(b []byte) (*ApolloConfig,error) {
 	apolloConfig:=&ApolloConfig{}
 	err:=json.Unmarshal(b,apolloConfig)
 	if IsNotNil(err) {
