@@ -28,6 +28,7 @@ func createEnvMap()map[string]Env {
 	envMap["tools"]=TOOLS
 	envMap["213123"]=UNKNOWN
 	envMap["jjj"]=UNKNOWN
+	envMap[""]=UNKNOWN
 
 	return envMap
 }

@@ -11,6 +11,10 @@ func init()  {
 	//wait 1s for another go routine update apollo config
 	time.Sleep(1*time.Second)
 
+	createMockApolloConfig()
+}
+
+func createMockApolloConfig(){
 	configs:=make(map[string]interface{},0)
 	//string
 	configs["string"]="value"
@@ -22,6 +26,37 @@ func init()  {
 	configs["bool"]="true"
 
 	currentApolloConfig.Configurations=configs
+}
+
+func TestGetConfigValueNullApolloConfig(t *testing.T) {
+	//clear Configurations
+	currentApolloConfig.Configurations=nil
+
+	//test getValue
+	value:=getValue("joe")
+
+	test.Equal(t,empty,value)
+
+	//test GetStringValue
+	defaultValue:="j"
+
+	//test default
+	v:=GetStringValue("joe",defaultValue)
+
+	test.Equal(t,defaultValue,v)
+
+	//clear currentApolloConfig
+	currentApolloConfig=nil
+
+	//test getValue
+	value=getValue("joe")
+
+	test.Equal(t,empty,value)
+
+	//test GetStringValue
+	v=GetStringValue("joe",defaultValue)
+
+	test.Equal(t,defaultValue,v)
 }
 
 func TestGetIntValue(t *testing.T) {
