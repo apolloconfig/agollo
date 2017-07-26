@@ -3,6 +3,7 @@ package agollo
 import (
 	"testing"
 	"fmt"
+	"github.com/zouyx/agollo/test"
 )
 
 func createEnvMap()map[string]Env {
@@ -21,10 +22,13 @@ func createEnvMap()map[string]Env {
 	envMap["lpt"]=LPT
 	envMap["PRO"]=PRO
 	envMap["pro"]=PRO
+	envMap["PROD"]=PRO
+	envMap["prod"]=PRO
 	envMap["TOOLS"]=TOOLS
 	envMap["tools"]=TOOLS
 	envMap["213123"]=UNKNOWN
 	envMap["jjj"]=UNKNOWN
+	envMap[""]=UNKNOWN
 
 	return envMap
 }
@@ -36,7 +40,7 @@ func TestTransformEnv(t *testing.T) {
 	for key,value:=range envMap{
 		env:=transformEnv(key)
 		t.Log(fmt.Sprintf("对比:%s,期望值:%d,实际值:%d",key,+value,env))
-		Equal(t,value,env)
+		test.Equal(t,value,env)
 	}
 
 }
