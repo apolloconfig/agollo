@@ -28,7 +28,7 @@ go get -u github.com/cihub/seelog
 * 灰度配置
 
 # Usage
-  [Wiki](https://github.com/zouyx/agollo/wiki)
+  欢迎查阅 [Wiki](https://github.com/zouyx/agollo/wiki) 获取更多有用的信息
 
 # To Do
 * 客户端容灾
