@@ -6,7 +6,7 @@ Agollo - Go Client for Apollo
 [![Coverage Status](https://coveralls.io/repos/github/zouyx/agollo/badge.svg?branch=master)](https://coveralls.io/github/zouyx/agollo?branch=master)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-Apollo的Golang客户端。
+[Apollo](https://github.com/ctripcorp/apollo)的Golang客户端。
 
 Installation
 ------------
