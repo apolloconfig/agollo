@@ -6,24 +6,24 @@ import (
 )
 
 const (
-	UNKNOWN= iota
-	LOCAL
-	DEV
-	FWS
-	FAT
-	UAT
-	LPT
-	PRO
-	TOOLS
+	unknown= iota
+	local
+	dev
+	fws
+	fat
+	uat
+	lpt
+	pro
+	tools
 )
 
 //环境
-type Env int
+type env int
 
-func FromString(env string) (Env,error) {
-	environment := transformEnv(env)
-	if environment==UNKNOWN{
-		return environment,errors.New(fmt.Sprintf("Env %s is invalid",env))
+func fromString(envKey string) (env,error) {
+	environment := transformEnv(envKey)
+	if environment==unknown{
+		return environment,errors.New(fmt.Sprintf("Env %s is invalid",envKey))
 	}
 	return environment,nil
 }

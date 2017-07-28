@@ -9,7 +9,7 @@ import (
 func TestGetInternal(t *testing.T) {
 	//fmt.Println("Usage of ./getmyip --get_ip=(external|internal)")
 	//flag.Parse()
-	ip:=GetInternal()
+	ip:=getInternal()
 
 	t.Log("Internal ip:",ip)
 	nums:=strings.Split(ip,".")
@@ -18,33 +18,33 @@ func TestGetInternal(t *testing.T) {
 }
 
 func TestIsEmpty(t *testing.T) {
-	flag:=IsEmpty("")
+	flag:=isEmpty("")
 	test.Equal(t,true,flag)
 
-	flag=IsEmpty("abc")
+	flag=isEmpty("abc")
 	test.Equal(t,false,flag)
 }
 
 func TestIsNotEmpty(t *testing.T) {
-	flag:=IsNotEmpty("")
+	flag:=isNotEmpty("")
 	test.Equal(t,false,flag)
 
-	flag=IsNotEmpty("abc")
+	flag=isNotEmpty("abc")
 	test.Equal(t,true,flag)
 }
 
 func TestIsNil(t *testing.T) {
-	flag:=IsNil(nil)
+	flag:=isNil(nil)
 	test.Equal(t,true,flag)
 
-	flag=IsNil("")
+	flag=isNil("")
 	test.Equal(t,false,flag)
 }
 
 func TestIsNotNil(t *testing.T) {
-	flag:=IsNotNil(nil)
+	flag:=isNotNil(nil)
 	test.Equal(t,false,flag)
 
-	flag=IsNotNil("")
+	flag=isNotNil("")
 	test.Equal(t,true,flag)
 }

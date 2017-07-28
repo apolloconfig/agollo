@@ -6,7 +6,7 @@ import (
 )
 
 func TestLoadJsonConfig(t *testing.T) {
-	config,err:=LoadJsonConfig(appConfigFileName)
+	config,err:=loadJsonConfig(appConfigFileName)
 	t.Log(config)
 
 	test.Nil(t,err)
@@ -19,7 +19,7 @@ func TestLoadJsonConfig(t *testing.T) {
 }
 
 func TestLoadJsonConfigWrongFile(t *testing.T) {
-	config,err:=LoadJsonConfig("")
+	config,err:=loadJsonConfig("")
 	test.NotNil(t,err)
 	test.Nil(t,config)
 
@@ -27,7 +27,7 @@ func TestLoadJsonConfigWrongFile(t *testing.T) {
 }
 
 func TestLoadJsonConfigWrongType(t *testing.T) {
-	config,err:=LoadJsonConfig("app_config.go")
+	config,err:=loadJsonConfig("app_config.go")
 	test.NotNil(t,err)
 	test.Nil(t,config)
 

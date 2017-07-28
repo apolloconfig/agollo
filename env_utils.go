@@ -2,35 +2,35 @@ package agollo
 
 import "strings"
 
-func transformEnv(envName string) Env {
+func transformEnv(envName string) env {
 	if envName == "" {
-		return UNKNOWN
+		return unknown
 	}
 
 	upper := strings.ToUpper(envName)
 
 	switch upper {
 	case "LPT":
-		return LPT
+		return lpt
 	case "FAT":
-		return FAT
+		return fat
 	case "FWS":
-		return FWS
+		return fws
 	case "UAT":
-		return UAT
+		return uat
 	case "PRO":
-		return PRO
+		return pro
 	case "PROD": //just in case
-		return PRO
+		return pro
 	case "DEV":
-		return DEV
+		return dev
 	case "LOCAL":
-		return LOCAL
+		return local
 	case "TOOLS":
-		return TOOLS
+		return tools
 	default:
-		return UNKNOWN
+		return unknown
 	}
 
-	return UNKNOWN
+	return unknown
 }

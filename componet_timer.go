@@ -36,7 +36,7 @@ func autoSyncConfigServices() error {
 	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
-	url:=GetConfigUrl(appConfig)
+	url:=getConfigUrl(appConfig)
 	seelog.Debug("url:",url)
 
 	retry:=0
@@ -82,7 +82,7 @@ func autoSyncConfigServices() error {
 				seelog.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
 			}
 			// if error then sleep
-			time.Sleep(ON_ERROR_RETRY_INTERVAL)
+			time.Sleep(on_error_retry_interval)
 			continue
 		}
 	}

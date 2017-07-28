@@ -18,7 +18,7 @@ func TestGetRemoteConfig(t *testing.T) {
 	time.Sleep(1*time.Second)
 
 	count:=1
-	var remoteConfigs []*ApolloNotify
+	var remoteConfigs []*apolloNotify
 	var err error
 	for{
 		count++
@@ -52,7 +52,7 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	var remoteConfigs []*ApolloNotify
+	var remoteConfigs []*apolloNotify
 	var err error
 	remoteConfigs, err = getRemoteConfig()
 
@@ -76,7 +76,7 @@ func TestUpdateAllNotifications(t *testing.T) {
     "notificationId": 101
   }
 ]`
-	notifies:=make([]*ApolloNotify,0)
+	notifies:=make([]*apolloNotify,0)
 
 	err:=json.Unmarshal([]byte(notifyJson),&notifies)
 
@@ -97,7 +97,7 @@ func TestUpdateAllNotificationsError(t *testing.T) {
 	}
 
 	notifyJson:=`ffffff`
-	notifies:=make([]*ApolloNotify,0)
+	notifies:=make([]*apolloNotify,0)
 
 	err:=json.Unmarshal([]byte(notifyJson),&notifies)
 
