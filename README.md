@@ -16,12 +16,14 @@ Installation
 
 ``` shell
 gopm get github.com/cihub/seelog -v -g
+gopm get github.com/zouyx/agollo -v -g
 ```
 
 或者
 
 ``` shell
 go get -u github.com/cihub/seelog
+go get -u github.com/zouyx/agollo
 ```
 
 
