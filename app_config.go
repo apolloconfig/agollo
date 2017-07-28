@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/url"
 	"github.com/cihub/seelog"
-	"github.com/zouyx/agollo/log"
 )
 
 const appConfigFileName  ="app.properties"
@@ -84,7 +83,7 @@ func initRefreshInterval() error {
 	if isNotEmpty(customizedRefreshInterval){
 		interval,err:=strconv.Atoi(customizedRefreshInterval)
 		if isNotNil(err) {
-			log.Errorf("Config for apollo.refreshInterval is invalid:%s",customizedRefreshInterval)
+			seelog.Errorf("Config for apollo.refreshInterval is invalid:%s",customizedRefreshInterval)
 			return err
 		}
 		refresh_interval=time.Duration(interval)

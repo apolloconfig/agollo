@@ -7,7 +7,7 @@ import (
 	"encoding/json"
 	"sync"
 	"errors"
-	"github.com/zouyx/agollo/log"
+	"github.com/cihub/seelog"
 )
 
 
@@ -47,7 +47,7 @@ func toApolloConfig(resBody []byte) ([]*apolloNotify,error) {
 	err:=json.Unmarshal(resBody,&remoteConfig)
 
 	if err!=nil{
-		log.Error("Unmarshal Msg Fail,Error:",err)
+		seelog.Error("Unmarshal Msg Fail,Error:",err)
 		return nil,err
 	}
 	return remoteConfig,nil
@@ -64,8 +64,8 @@ func getRemoteConfig() ([]*apolloNotify,error) {
 	}
 	url:=getNotifyUrl(allNotifications.getNotifies(),appConfig)
 
-	log.Debugf("sync config url:%s",url)
-	log.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
+	seelog.Debugf("sync config url:%s",url)
+	seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
 
 	retry:=0
 	var responseBody []byte
@@ -81,7 +81,7 @@ func getRemoteConfig() ([]*apolloNotify,error) {
 		res,err=client.Get(url)
 
 		if res==nil||err!=nil{
-			log.Error("Connect Apollo Server Fail,Error:",err)
+			seelog.Error("Connect Apollo Server Fail,Error:",err)
 			continue
 		}
 
@@ -90,19 +90,19 @@ func getRemoteConfig() ([]*apolloNotify,error) {
 		case http.StatusOK:
 			responseBody, err = ioutil.ReadAll(res.Body)
 			if err!=nil{
-				log.Error("Read Apollo Server response Fail,Error:",err)
+				seelog.Error("Read Apollo Server response Fail,Error:",err)
 				continue
 			}
 			return toApolloConfig(responseBody)
 
 		case http.StatusNotModified:
-			log.Warn("Config Not Modified:", err)
+			seelog.Warn("Config Not Modified:", err)
 			return nil, nil
 
 		default:
-			log.Error("Connect Apollo Server Fail,Error:",err)
+			seelog.Error("Connect Apollo Server Fail,Error:",err)
 			if res!=nil{
-				log.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
+				seelog.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
 			}
 			// if error then sleep
 			time.Sleep(on_error_retry_interval)
@@ -110,7 +110,7 @@ func getRemoteConfig() ([]*apolloNotify,error) {
 		}
 	}
 
-	log.Error("Over Max Retry Still Error,Error:",err)
+	seelog.Error("Over Max Retry Still Error,Error:",err)
 	if err==nil{
 		err=errors.New("Over Max Retry Still Error!")
 	}

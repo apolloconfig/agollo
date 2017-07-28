@@ -2,7 +2,7 @@ package agollo
 
 import (
 	"strconv"
-	"github.com/zouyx/agollo/log"
+	"github.com/cihub/seelog"
 )
 
 const (
@@ -10,12 +10,8 @@ const (
 )
 
 var (
-	currentApolloConfig *ApolloConfig
+	currentApolloConfig *ApolloConfig=&ApolloConfig{}
 )
-
-func init(){
-	currentApolloConfig=&ApolloConfig{}
-}
 
 func updateApolloConfig(apolloConfig *ApolloConfig)  {
 	currentApolloConfig.Lock()
@@ -64,7 +60,7 @@ func GetIntValue(key string,defaultValue int) int {
 
 	i,err:=strconv.Atoi(value)
 	if err!=nil{
-		log.Debug("convert to int fail!error:",err)
+		seelog.Debug("convert to int fail!error:",err)
 		return defaultValue
 	}
 
@@ -76,7 +72,7 @@ func GetFloatValue(key string,defaultValue float64) float64 {
 
 	i,err:=strconv.ParseFloat(value,64)
 	if err!=nil{
-		log.Debug("convert to float fail!error:",err)
+		seelog.Debug("convert to float fail!error:",err)
 		return defaultValue
 	}
 
@@ -88,7 +84,7 @@ func GetBoolValue(key string,defaultValue bool) bool {
 
 	b,err:=strconv.ParseBool(value)
 	if err!=nil{
-		log.Debug("convert to bool fail!error:",err)
+		seelog.Debug("convert to bool fail!error:",err)
 		return defaultValue
 	}
 
