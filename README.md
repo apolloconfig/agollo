@@ -5,6 +5,7 @@ Agollo - Go Client for Apollo
 [![GitHub release](https://img.shields.io/github/release/zouyx/agollo.svg)](https://github.com/zouyx/agollo/releases)
 [![Coverage Status](https://coveralls.io/repos/github/zouyx/agollo/badge.svg?branch=master)](https://coveralls.io/github/zouyx/agollo?branch=master)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![GoDoc](http://godoc.org/github.com/zouyx/agollo?status.svg)](http://godoc.org/github.com/zouyx/agollo)
 
 [Apollo](https://github.com/ctripcorp/apollo)的Golang客户端
 
@@ -66,7 +67,7 @@ func main() {
   
   后续可支持更多类型
  
-  欢迎查阅 [Wiki](https://github.com/zouyx/agollo/wiki) 获取更多有用的信息
+  欢迎查阅 [Wiki](https://github.com/zouyx/agollo/wiki) 或者 [godoc](http://godoc.org/github.com/zouyx/agollo) 获取更多有用的信息
 
 # To Do
 * 客户端容灾
