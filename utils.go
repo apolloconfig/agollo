@@ -4,7 +4,6 @@ import (
 	"net"
 	"os"
 	"reflect"
-	"github.com/cihub/seelog"
 )
 
 var(
@@ -66,17 +65,4 @@ func isNilObject(object interface{}) bool {
 	}
 
 	return false
-}
-
-//log
-func init(){
-	logger, err := seelog.LoggerFromConfigAsFile("seelog.xml")
-
-	if err != nil {
-		panic("init log fail,error!"+err.Error())
-	}
-
-	logger.SetAdditionalStackDepth(1)
-	seelog.ReplaceLogger(logger)
-	defer seelog.Flush()
 }

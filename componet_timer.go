@@ -4,8 +4,8 @@ import (
 	"time"
 	"net/http"
 	"io/ioutil"
-	"github.com/cihub/seelog"
 	"errors"
+	"github.com/zouyx/agollo/log"
 )
 
 type AutoRefreshConfigComponent struct {
@@ -37,7 +37,7 @@ func autoSyncConfigServices() error {
 		panic("can not find apollo config!please confirm!")
 	}
 	url:=getConfigUrl(appConfig)
-	seelog.Debug("url:",url)
+	log.Debug("url:",url)
 
 	retry:=0
 	var responseBody []byte
@@ -53,7 +53,7 @@ func autoSyncConfigServices() error {
 		res,err=client.Get(url)
 
 		if res==nil||err!=nil{
-			seelog.Error("Connect Apollo Server Fail,Error:",err)
+			log.Error("Connect Apollo Server Fail,Error:",err)
 			continue
 		}
 
@@ -62,14 +62,14 @@ func autoSyncConfigServices() error {
 		case http.StatusOK:
 			responseBody, err = ioutil.ReadAll(res.Body)
 			if err!=nil{
-				seelog.Error("Connect Apollo Server Fail,Error:",err)
+				log.Error("Connect Apollo Server Fail,Error:",err)
 				continue
 			}
 
 			apolloConfig,err:=createApolloConfigWithJson(responseBody)
 
 			if err!=nil{
-				seelog.Error("Unmarshal Msg Fail,Error:",err)
+				log.Error("Unmarshal Msg Fail,Error:",err)
 				return err
 			}
 
@@ -77,9 +77,9 @@ func autoSyncConfigServices() error {
 
 			return nil
 		default:
-			seelog.Error("Connect Apollo Server Fail,Error:",err)
+			log.Error("Connect Apollo Server Fail,Error:",err)
 			if res!=nil{
-				seelog.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
+				log.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
 			}
 			// if error then sleep
 			time.Sleep(on_error_retry_interval)
@@ -87,7 +87,7 @@ func autoSyncConfigServices() error {
 		}
 	}
 
-	seelog.Error("Over Max Retry Still Error,Error:",err)
+	log.Error("Over Max Retry Still Error,Error:",err)
 	if err==nil{
 		err=errors.New("Over Max Retry Still Error!")
 	}
