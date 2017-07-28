@@ -41,13 +41,13 @@ func TestInitRefreshInterval_1(t *testing.T) {
 
 func TestGetConfigUrl(t *testing.T) {
 	appConfig:=getTestAppConfig()
-	url:=GetConfigUrl(appConfig)
+	url:=getConfigUrl(appConfig)
 	test.StartWith(t,"http://localhost:8888/configs/test/dev/application?releaseKey=&ip=",url)
 }
 
 func TestGetNotifyUrl(t *testing.T) {
 	appConfig:=getTestAppConfig()
-	url:=GetNotifyUrl("notifys",appConfig)
+	url:=getNotifyUrl("notifys",appConfig)
 	test.Equal(t,"http://localhost:8888/notifications/v2?appId=test&cluster=dev&notifications=notifys",url)
 }
 

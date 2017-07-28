@@ -6,29 +6,29 @@ import (
 	"github.com/zouyx/agollo/test"
 )
 
-func createEnvMap()map[string]Env {
-	envMap:=make(map[string]Env)
-	envMap["LOCAL"]=LOCAL
-	envMap["local"]=LOCAL
-	envMap["DEV"]=DEV
-	envMap["dev"]=DEV
-	envMap["FWS"]=FWS
-	envMap["fws"]=FWS
-	envMap["FAT"]=FAT
-	envMap["fat"]=FAT
-	envMap["UAT"]=UAT
-	envMap["uat"]=UAT
-	envMap["LPT"]=LPT
-	envMap["lpt"]=LPT
-	envMap["PRO"]=PRO
-	envMap["pro"]=PRO
-	envMap["PROD"]=PRO
-	envMap["prod"]=PRO
-	envMap["TOOLS"]=TOOLS
-	envMap["tools"]=TOOLS
-	envMap["213123"]=UNKNOWN
-	envMap["jjj"]=UNKNOWN
-	envMap[""]=UNKNOWN
+func createEnvMap()map[string]env {
+	envMap:=make(map[string]env)
+	envMap["LOCAL"]=local
+	envMap["local"]=local
+	envMap["DEV"]=dev
+	envMap["dev"]=dev
+	envMap["FWS"]=fws
+	envMap["fws"]=fws
+	envMap["FAT"]=fat
+	envMap["fat"]=fat
+	envMap["UAT"]=uat
+	envMap["uat"]=uat
+	envMap["LPT"]=lpt
+	envMap["lpt"]=lpt
+	envMap["PRO"]=pro
+	envMap["pro"]=pro
+	envMap["PROD"]=pro
+	envMap["prod"]=pro
+	envMap["TOOLS"]=tools
+	envMap["tools"]=tools
+	envMap["213123"]=unknown
+	envMap["jjj"]=unknown
+	envMap[""]=unknown
 
 	return envMap
 }

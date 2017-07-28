@@ -12,7 +12,7 @@ var(
 )
 
 //ips
-func GetInternal() string {
+func getInternal() string {
 	if internalIp!=""{
 		return internalIp
 	}
@@ -35,21 +35,21 @@ func GetInternal() string {
 
 
 //stringUtils
-func IsEmpty(str string) bool {
+func isEmpty(str string) bool {
 	return ""==str
 }
 
-func IsNotEmpty(str string) bool {
-	return !IsEmpty(str)
+func isNotEmpty(str string) bool {
+	return !isEmpty(str)
 }
 
 //objectUtils
-func IsNil(object interface{}) bool {
+func isNil(object interface{}) bool {
 
 	return isNilObject(object)
 }
 
-func IsNotNil(object interface{}) bool {
+func isNotNil(object interface{}) bool {
 	return !isNilObject(object)
 }
 

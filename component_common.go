@@ -26,7 +26,7 @@ type ApolloConfig struct {
 func createApolloConfigWithJson(b []byte) (*ApolloConfig,error) {
 	apolloConfig:=&ApolloConfig{}
 	err:=json.Unmarshal(b,apolloConfig)
-	if IsNotNil(err) {
+	if isNotNil(err) {
 		return nil,err
 	}
 	return apolloConfig,nil

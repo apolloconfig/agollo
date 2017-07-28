@@ -10,11 +10,20 @@ import (
 	"errors"
 )
 
+
+const(
+	default_notification_id=-1
+)
+
+var(
+	allNotifications *notificationsMap
+)
+
 type NotifyConfigComponent struct {
 
 }
 
-type ApolloNotify struct {
+type apolloNotify struct {
 	NotificationId int64 `json:"notificationId"`
 	NamespaceName string `json:"namespaceName"`
 }
@@ -32,8 +41,8 @@ func (this *NotifyConfigComponent) Start()  {
 	}
 }
 
-func toApolloConfig(resBody []byte) ([]*ApolloNotify,error) {
-	remoteConfig:=make([]*ApolloNotify,0)
+func toApolloConfig(resBody []byte) ([]*apolloNotify,error) {
+	remoteConfig:=make([]*apolloNotify,0)
 
 	err:=json.Unmarshal(resBody,&remoteConfig)
 
@@ -44,7 +53,7 @@ func toApolloConfig(resBody []byte) ([]*ApolloNotify,error) {
 	return remoteConfig,nil
 }
 
-func getRemoteConfig() ([]*ApolloNotify,error) {
+func getRemoteConfig() ([]*apolloNotify,error) {
 	client := &http.Client{
 		Timeout:long_poll_connect_timeout,
 
@@ -53,7 +62,7 @@ func getRemoteConfig() ([]*ApolloNotify,error) {
 	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
-	url:=GetNotifyUrl(allNotifications.getNotifies(),appConfig)
+	url:=getNotifyUrl(allNotifications.getNotifies(),appConfig)
 
 	seelog.Debugf("sync config url:%s",url)
 	seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
@@ -96,7 +105,7 @@ func getRemoteConfig() ([]*ApolloNotify,error) {
 				seelog.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
 			}
 			// if error then sleep
-			time.Sleep(ON_ERROR_RETRY_INTERVAL)
+			time.Sleep(on_error_retry_interval)
 			continue
 		}
 	}
@@ -124,7 +133,7 @@ func notifySyncConfigServices() error {
 	return nil
 }
 
-func updateAllNotifications(remoteConfigs []*ApolloNotify) {
+func updateAllNotifications(remoteConfigs []*apolloNotify) {
 	for _,remoteConfig:=range remoteConfigs{
 		if remoteConfig.NamespaceName==""{
 			continue
@@ -135,21 +144,13 @@ func updateAllNotifications(remoteConfigs []*ApolloNotify) {
 }
 
 
-const(
-	DEFAULT_NOTIFICATION_ID=-1
-)
-
-var(
-	allNotifications *notificationsMap
-)
-
 func init()  {
 	allNotifications=&notificationsMap{
 		notifications:make(map[string]int64,1),
 	}
 	appConfig:=GetAppConfig()
 
-	allNotifications.setNotify(appConfig.NamespaceName,DEFAULT_NOTIFICATION_ID)
+	allNotifications.setNotify(appConfig.NamespaceName,default_notification_id)
 }
 
 type notification struct {

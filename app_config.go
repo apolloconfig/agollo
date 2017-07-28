@@ -21,7 +21,7 @@ var (
 	connect_timeout  = 1 * time.Second //1s
 	read_timeout     = 5 * time.Second //5s
 	//for on error retry
-	ON_ERROR_RETRY_INTERVAL = 1 * time.Second //1s
+	on_error_retry_interval = 1 * time.Second //1s
 	//for typed config cache of parser result, e.g. integer, double, long, etc.
 	max_config_cache_size    = 500             //500 cache key
 	config_cache_expire_time = 1 * time.Minute //1 minute
@@ -49,7 +49,7 @@ func initCommon()  {
 func initConfig() {
 	var err error
 	//init config file
-	appConfig,err = LoadJsonConfig(appConfigFileName)
+	appConfig,err = loadJsonConfig(appConfigFileName)
 
 	if err!=nil{
 		panic(err)
@@ -80,9 +80,9 @@ type AppConfig struct {
 
 func initRefreshInterval() error {
 	customizedRefreshInterval:=os.Getenv(refresh_interval_key)
-	if IsNotEmpty(customizedRefreshInterval){
+	if isNotEmpty(customizedRefreshInterval){
 		interval,err:=strconv.Atoi(customizedRefreshInterval)
-		if IsNotNil(err) {
+		if isNotNil(err) {
 			seelog.Errorf("Config for apollo.refreshInterval is invalid:%s",customizedRefreshInterval)
 			return err
 		}
@@ -91,7 +91,7 @@ func initRefreshInterval() error {
 	return nil
 }
 
-func GetConfigUrl(config *AppConfig) string{
+func getConfigUrl(config *AppConfig) string{
 	current:=GetCurrentApolloConfig()
 	return fmt.Sprintf("http://%s/configs/%s/%s/%s?releaseKey=%s&ip=%s",
 		config.Ip,
@@ -99,10 +99,10 @@ func GetConfigUrl(config *AppConfig) string{
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(config.NamespaceName),
 		url.QueryEscape(current.ReleaseKey),
-		GetInternal())
+		getInternal())
 }
 
-func GetNotifyUrl(notifications string,config *AppConfig) string{
+func getNotifyUrl(notifications string,config *AppConfig) string{
 	return fmt.Sprintf("http://%s/notifications/v2?appId=%s&cluster=%s&notifications=%s",
 		config.Ip,
 		url.QueryEscape(config.AppId),

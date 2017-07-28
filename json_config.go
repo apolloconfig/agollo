@@ -6,7 +6,7 @@ import (
 	"errors"
 )
 
-func LoadJsonConfig(fileName string) (*AppConfig,error) {
+func loadJsonConfig(fileName string) (*AppConfig,error) {
 	fs, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return nil,errors.New("Fail to read config file:" + err.Error())
@@ -14,7 +14,7 @@ func LoadJsonConfig(fileName string) (*AppConfig,error) {
 
 	appConfig,loadErr:=createAppConfigWithJson(string(fs))
 
-	if IsNotNil(loadErr){
+	if isNotNil(loadErr){
 		return nil,errors.New("Load Json Config fail:" + loadErr.Error())
 	}
 
@@ -24,7 +24,7 @@ func LoadJsonConfig(fileName string) (*AppConfig,error) {
 func createAppConfigWithJson(str string) (*AppConfig,error) {
 	appConfig:=&AppConfig{}
 	err:=json.Unmarshal([]byte(str),appConfig)
-	if IsNotNil(err) {
+	if isNotNil(err) {
 		return nil,err
 	}
 
