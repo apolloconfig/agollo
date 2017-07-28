@@ -13,13 +13,16 @@ Installation
 
 如果还没有安装Go开发环境，请参考以下文档[Getting Started](http://golang.org/doc/install.html) ，安装完成后，请执行以下命令：
 
-```
+``` shell
 gopm get github.com/cihub/seelog -v -g
+```
 
 或者
 
+``` shell
 go get -u github.com/cihub/seelog
 ```
+
 
 *请注意*: 最好使用Go 1.8进行开发
 
@@ -28,6 +31,41 @@ go get -u github.com/cihub/seelog
 * 灰度配置
 
 # Usage
+
+- 启动agollo
+
+``` go
+func main() {
+	 go agollo.Start()
+}
+```
+
+- 获取Apollo的配置
+  - String
+  
+  ```
+  agollo.GetStringValue(Key,DefaultValue)
+  ```
+  - Int
+  
+  ```
+  agollo.GetIntValue(Key,DefaultValue)
+  ```
+
+  - Float
+  
+  ```
+  agollo.GetFloatValue(Key,DefaultValue)
+  ```
+
+  - Bool
+  
+  ```
+  agollo.GetBoolValue(Key,DefaultValue)
+  ```
+  
+  后续可支持更多类型
+ 
   欢迎查阅 [Wiki](https://github.com/zouyx/agollo/wiki) 获取更多有用的信息
 
 # To Do
