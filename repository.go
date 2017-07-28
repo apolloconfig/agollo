@@ -10,12 +10,8 @@ const (
 )
 
 var (
-	currentApolloConfig *ApolloConfig
+	currentApolloConfig *ApolloConfig=&ApolloConfig{}
 )
-
-func init(){
-	currentApolloConfig=&ApolloConfig{}
-}
 
 func updateApolloConfig(apolloConfig *ApolloConfig)  {
 	currentApolloConfig.Lock()

@@ -4,8 +4,8 @@ import (
 	"time"
 	"net/http"
 	"io/ioutil"
-	"github.com/cihub/seelog"
 	"errors"
+	"github.com/cihub/seelog"
 )
 
 type AutoRefreshConfigComponent struct {

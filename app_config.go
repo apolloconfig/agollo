@@ -3,10 +3,10 @@ package agollo
 import (
 	"os"
 	"strconv"
-	"github.com/cihub/seelog"
 	"time"
 	"fmt"
 	"net/url"
+	"github.com/cihub/seelog"
 )
 
 const appConfigFileName  ="app.properties"

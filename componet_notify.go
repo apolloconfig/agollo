@@ -2,12 +2,12 @@ package agollo
 
 import (
 	"time"
-	"github.com/cihub/seelog"
 	"net/http"
 	"io/ioutil"
 	"encoding/json"
 	"sync"
 	"errors"
+	"github.com/cihub/seelog"
 )
 
 
