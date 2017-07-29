@@ -7,7 +7,7 @@ Agollo - Go Client for Apollo
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![GoDoc](http://godoc.org/github.com/zouyx/agollo?status.svg)](http://godoc.org/github.com/zouyx/agollo)
 
-为配置中心框架 [Apollo](https://github.com/ctripcorp/apollo) 所开发的Golang版本客户端，方便Golang同学接入。
+方便Golang接入配置中心框架 [Apollo](https://github.com/ctripcorp/apollo) 所开发的Golang版本客户端。
 
 Installation
 ------------
