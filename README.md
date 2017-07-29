@@ -3,10 +3,10 @@ Agollo - Go Client for Apollo
 
 [![Build Status](https://travis-ci.org/zouyx/agollo.svg?branch=master)](https://travis-ci.org/zouyx/agollo)
 [![codebeat badge](https://codebeat.co/badges/bc2009d6-84f1-4f11-803e-fc571a12a1c0)](https://codebeat.co/projects/github-com-zouyx-agollo-master)
-[![GitHub release](https://img.shields.io/github/release/zouyx/agollo.svg)](https://github.com/zouyx/agollo/releases)
 [![Coverage Status](https://coveralls.io/repos/github/zouyx/agollo/badge.svg?branch=master)](https://coveralls.io/github/zouyx/agollo?branch=master)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![GoDoc](http://godoc.org/github.com/zouyx/agollo?status.svg)](http://godoc.org/github.com/zouyx/agollo)
+[![GitHub release](https://img.shields.io/github/release/zouyx/agollo.svg)](https://github.com/zouyx/agollo/releases)
 
 方便Golang接入配置中心框架 [Apollo](https://github.com/ctripcorp/apollo) 所开发的Golang版本客户端。
 
