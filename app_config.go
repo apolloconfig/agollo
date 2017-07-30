@@ -74,7 +74,6 @@ type AppConfig struct {
 	AppId string `json:"appId"`
 	Cluster string `json:"cluster"`
 	NamespaceName string `json:"namespaceName"`
-	ReleaseKey string `json:"releaseKey"`
 	Ip string `json:"ip"`
 }
 
