@@ -87,3 +87,19 @@ import (
 	test.NotNil(t,err)
 	test.Nil(t,config)
 }
+
+func TestCreateAppConfigWithJsonDefault(t *testing.T) {
+	jsonStr:=`{
+    "appId": "testDefault",
+    "ip": "localhost:9999"
+	}`
+	config,err:=createAppConfigWithJson(jsonStr)
+	t.Log(err)
+
+	test.Nil(t,err)
+	test.NotNil(t,config)
+	test.Equal(t,"testDefault",config.AppId)
+	test.Equal(t,"default",config.Cluster)
+	test.Equal(t,"application",config.NamespaceName)
+	test.Equal(t,"localhost:9999",config.Ip)
+}

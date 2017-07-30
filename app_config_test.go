@@ -57,7 +57,7 @@ func getTestAppConfig() *AppConfig {
     "cluster": "dev",
     "namespaceName": "application",
     "ip": "localhost:8888",
-    "releaseKey": ""
+    "releaseKey": "1"
 	}`
 	config,_:=createAppConfigWithJson(jsonStr)
 
