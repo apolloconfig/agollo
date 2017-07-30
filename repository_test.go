@@ -15,7 +15,7 @@ func init()  {
 }
 
 func createMockApolloConfig(){
-	configs:=make(map[string]interface{},0)
+	configs:=make(map[string]string,0)
 	//string
 	configs["string"]="value"
 	//int
@@ -25,12 +25,12 @@ func createMockApolloConfig(){
 	//bool
 	configs["bool"]="true"
 
-	currentApolloConfig.Configurations=configs
+	updateApolloConfigCache(configs)
 }
 
 func TestGetConfigValueNullApolloConfig(t *testing.T) {
 	//clear Configurations
-	currentApolloConfig.Configurations=nil
+	apolloConfigCache.Clear()
 
 	//test getValue
 	value:=getValue("joe")

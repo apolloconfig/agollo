@@ -14,13 +14,17 @@ func StartRefreshConfig(component AbsComponent)  {
 	component.Start()
 }
 
-type ApolloConfig struct {
+type ApolloConnConfig struct {
 	AppId string `json:"appId"`
 	Cluster string `json:"cluster"`
 	NamespaceName string `json:"namespaceName"`
-	Configurations map[string]interface{} `json:"configurations"`
 	ReleaseKey string `json:"releaseKey"`
 	sync.RWMutex
+}
+
+type ApolloConfig struct {
+	ApolloConnConfig
+	Configurations map[string]string `json:"configurations"`
 }
 
 func createApolloConfigWithJson(b []byte) (*ApolloConfig,error) {

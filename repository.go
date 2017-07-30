@@ -3,37 +3,65 @@ package agollo
 import (
 	"strconv"
 	"github.com/cihub/seelog"
+	"github.com/coocood/freecache"
 )
 
 const (
-	empty  =""
-)
+	empty  = ""
 
+	//50m
+	apolloConfigCacheSize=50*1024*1024
+
+	//1 minute
+	configCacheExpireTime=60
+)
 var (
-	currentApolloConfig *ApolloConfig=&ApolloConfig{}
+	currentConnApolloConfig *ApolloConnConfig=&ApolloConnConfig{}
+
+	//config from apollo
+	apolloConfigCache *freecache.Cache = freecache.NewCache(apolloConfigCacheSize)
 )
 
 func updateApolloConfig(apolloConfig *ApolloConfig)  {
-	currentApolloConfig.Lock()
-	defer currentApolloConfig.Unlock()
-	currentApolloConfig=apolloConfig
+	if apolloConfig==nil{
+		seelog.Error("apolloConfig is null,can't update!")
+		return
+	}
+	go updateApolloConfigCache(apolloConfig.Configurations)
+
+	//update apollo connection config
+
+	currentConnApolloConfig.Lock()
+	defer currentConnApolloConfig.Unlock()
+	currentConnApolloConfig=&apolloConfig.ApolloConnConfig
 }
 
-func GetCurrentApolloConfig()*ApolloConfig  {
-	currentApolloConfig.RLock()
-	defer currentApolloConfig.RUnlock()
-	return currentApolloConfig
+func updateApolloConfigCache(configurations map[string]string)  {
+	if configurations==nil||len(configurations)==0{
+		return
+	}
+
+	apolloConfigCache.Clear()
+
+	for key,value:=range configurations{
+		apolloConfigCache.Set([]byte(key),[]byte(value),configCacheExpireTime)
+	}
+}
+
+func GetCurrentApolloConfig()*ApolloConnConfig  {
+	currentConnApolloConfig.RLock()
+	defer currentConnApolloConfig.RUnlock()
+	return currentConnApolloConfig
 }
 
 func getConfigValue(key string) interface{}  {
-	if currentApolloConfig==nil ||currentApolloConfig.Configurations==nil  {
+	value,err:=apolloConfigCache.Get([]byte(key))
+	if err!=nil{
+		seelog.Error("get config value fail!err:",err)
 		return empty
 	}
 
-	currentApolloConfig.RLock()
-	defer currentApolloConfig.RUnlock()
-
-	return currentApolloConfig.Configurations[key]
+	return string(value)
 }
 
 

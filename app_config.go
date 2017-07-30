@@ -56,11 +56,10 @@ func initConfig() {
 	}
 
 	go func(appConfig *AppConfig) {
-		apolloConfig:=&ApolloConfig{
-			AppId:appConfig.AppId,
-			Cluster:appConfig.Cluster,
-			NamespaceName:appConfig.NamespaceName,
-		}
+		apolloConfig:=&ApolloConfig{}
+		apolloConfig.AppId=appConfig.AppId
+		apolloConfig.Cluster=appConfig.Cluster
+		apolloConfig.NamespaceName=appConfig.NamespaceName
 
 		updateApolloConfig(apolloConfig)
 	}(appConfig)
