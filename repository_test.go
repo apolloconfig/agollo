@@ -55,6 +55,11 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 
 }
 
+func TestGetApolloConfigCache(t *testing.T) {
+	cache:=GetApolloConfigCache()
+	test.NotNil(t,cache)
+}
+
 func TestGetConfigValueTimeout(t *testing.T) {
 	expireTime:=5
 	configs:=createMockApolloConfig(expireTime)
