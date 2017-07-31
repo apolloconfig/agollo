@@ -48,6 +48,10 @@ func updateApolloConfigCache(configurations map[string]string,expireTime int)  {
 	}
 }
 
+func GetApolloConfigCache() *freecache.Cache {
+	return apolloConfigCache
+}
+
 func GetCurrentApolloConfig()*ApolloConnConfig  {
 	currentConnApolloConfig.RLock()
 	defer currentConnApolloConfig.RUnlock()
