@@ -14,6 +14,7 @@ before_install:
 
 install:
     - go get github.com/cihub/seelog
+    - go get github.com/coocood/freecache
 
 script:
     - chmod u+x coverage.sh
