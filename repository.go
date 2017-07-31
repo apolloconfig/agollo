@@ -27,7 +27,7 @@ func updateApolloConfig(apolloConfig *ApolloConfig)  {
 		seelog.Error("apolloConfig is null,can't update!")
 		return
 	}
-	go updateApolloConfigCache(apolloConfig.Configurations)
+	go updateApolloConfigCache(apolloConfig.Configurations,configCacheExpireTime)
 
 	//update apollo connection config
 
@@ -36,7 +36,7 @@ func updateApolloConfig(apolloConfig *ApolloConfig)  {
 	currentConnApolloConfig=&apolloConfig.ApolloConnConfig
 }
 
-func updateApolloConfigCache(configurations map[string]string)  {
+func updateApolloConfigCache(configurations map[string]string,expireTime int)  {
 	if configurations==nil||len(configurations)==0{
 		return
 	}
@@ -44,7 +44,7 @@ func updateApolloConfigCache(configurations map[string]string)  {
 	apolloConfigCache.Clear()
 
 	for key,value:=range configurations{
-		apolloConfigCache.Set([]byte(key),[]byte(value),configCacheExpireTime)
+		apolloConfigCache.Set([]byte(key),[]byte(value),expireTime)
 	}
 }
 
