@@ -7,6 +7,9 @@ import (
 	"fmt"
 	"net/url"
 	"github.com/cihub/seelog"
+	"errors"
+	"net/http"
+	"io/ioutil"
 )
 
 const appConfigFileName  ="app.properties"
@@ -29,9 +32,19 @@ var (
 	//max retries connect apollo
 	max_retries=5
 
+	//refresh ip list
+	refresh_ip_list_interval=20 *time.Minute //20m
+
 	//appconfig
 	appConfig *AppConfig
 )
+
+type AppConfig struct {
+	AppId string `json:"appId"`
+	Cluster string `json:"cluster"`
+	NamespaceName string `json:"namespaceName"`
+	Ip string `json:"ip"`
+}
 
 func init() {
 	//init common
@@ -65,15 +78,83 @@ func initConfig() {
 	}(appConfig)
 }
 
-func GetAppConfig()*AppConfig  {
-	return appConfig
+//set timer for update ip list
+//interval : 20m
+func initServerIpList() {
+	t2 := time.NewTimer(refresh_ip_list_interval)
+	for {
+		select {
+		case <-t2.C:
+			syncServerIpList()
+			t2.Reset(refresh_ip_list_interval)
+		}
+	}
 }
 
-type AppConfig struct {
-	AppId string `json:"appId"`
-	Cluster string `json:"cluster"`
-	NamespaceName string `json:"namespaceName"`
-	Ip string `json:"ip"`
+//sync ip list from server
+//then
+//1.update cache
+//2.store in disk
+func syncServerIpList() {
+	client := &http.Client{
+		Timeout:connect_timeout,
+	}
+
+	appConfig:=GetAppConfig()
+	if appConfig==nil{
+		panic("can not find apollo config!please confirm!")
+	}
+	url:=getServicesConfigUrl(appConfig)
+	seelog.Debug("url:",url)
+
+	retry:=0
+	var responseBody []byte
+	var err error
+	var res *http.Response
+	for{
+		retry++
+
+		if retry>max_retries{
+			break
+		}
+
+		res,err=client.Get(url)
+
+		if res==nil||err!=nil{
+			seelog.Error("Connect Apollo Server Fail,Error:",err)
+			continue
+		}
+
+		//not modified break
+		switch res.StatusCode {
+		case http.StatusOK:
+			responseBody, err = ioutil.ReadAll(res.Body)
+			if err!=nil{
+				seelog.Error("Connect Apollo Server Fail,Error:",err)
+				continue
+			}
+			return
+		default:
+			seelog.Error("Connect Apollo Server Fail,Error:",err)
+			if res!=nil{
+				seelog.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
+			}
+			// if error then sleep
+			time.Sleep(on_error_retry_interval)
+			continue
+		}
+	}
+
+	seelog.Debug(responseBody)
+
+	seelog.Error("Over Max Retry Still Error,Error:",err)
+	if err==nil{
+		err=errors.New("Over Max Retry Still Error!")
+	}
+}
+
+func GetAppConfig()*AppConfig  {
+	return appConfig
 }
 
 func initRefreshInterval() error {
