@@ -107,3 +107,10 @@ func getNotifyUrl(notifications string,config *AppConfig) string{
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(notifications))
 }
+
+func getServicesConfigUrl(config *AppConfig) string{
+	return fmt.Sprintf("http://%s/services/config?appId=%s&ip=%s",
+		config.Ip,
+		url.QueryEscape(config.AppId),
+		getInternal())
+}

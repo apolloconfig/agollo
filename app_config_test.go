@@ -51,6 +51,13 @@ func TestGetNotifyUrl(t *testing.T) {
 	test.Equal(t,"http://localhost:8888/notifications/v2?appId=test&cluster=dev&notifications=notifys",url)
 }
 
+func TestGetServicesConfigUrl(t *testing.T) {
+	appConfig:=getTestAppConfig()
+	url:=getServicesConfigUrl(appConfig)
+	ip:=getInternal()
+	test.Equal(t,"http://localhost:8888/services/config?appId=test&ip="+ip,url)
+}
+
 func getTestAppConfig() *AppConfig {
 	jsonStr:=`{
     "appId": "test",
