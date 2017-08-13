@@ -45,10 +45,22 @@ func TestGetConfigUrl(t *testing.T) {
 	test.StartWith(t,"http://localhost:8888/configs/test/dev/application?releaseKey=&ip=",url)
 }
 
+func TestGetConfigUrlByHost(t *testing.T) {
+	appConfig:=getTestAppConfig()
+	url:=getConfigUrlByHost(appConfig,"http://baidu.com/")
+	test.StartWith(t,"http://baidu.com/configs/test/dev/application?releaseKey=&ip=",url)
+}
+
 func TestGetNotifyUrl(t *testing.T) {
 	appConfig:=getTestAppConfig()
 	url:=getNotifyUrl("notifys",appConfig)
 	test.Equal(t,"http://localhost:8888/notifications/v2?appId=test&cluster=dev&notifications=notifys",url)
+}
+
+func TestGetNotifyUrlByHost(t *testing.T) {
+	appConfig:=getTestAppConfig()
+	url:=getNotifyUrlByHost("notifys",appConfig,"http://baidu.com/")
+	test.Equal(t,"http://baidu.com/notifications/v2?appId=test&cluster=dev&notifications=notifys",url)
 }
 
 func TestGetServicesConfigUrl(t *testing.T) {
