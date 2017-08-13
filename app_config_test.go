@@ -70,3 +70,15 @@ func getTestAppConfig() *AppConfig {
 
 	return config
 }
+
+func TestSyncServerIpList(t *testing.T) {
+	go runMockServicesConfigServer(normalServicesConfigResponse)
+	defer closeMockServicesConfigServer()
+
+	time.Sleep(1*time.Second)
+
+	err:=syncServerIpList()
+
+	test.Nil(t,err)
+
+}

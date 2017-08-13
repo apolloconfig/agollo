@@ -95,7 +95,7 @@ func initServerIpList() {
 //then
 //1.update cache
 //2.store in disk
-func syncServerIpList() {
+func syncServerIpList() error{
 	client := &http.Client{
 		Timeout:connect_timeout,
 	}
@@ -133,7 +133,7 @@ func syncServerIpList() {
 				seelog.Error("Connect Apollo Server Fail,Error:",err)
 				continue
 			}
-			return
+			return err
 		default:
 			seelog.Error("Connect Apollo Server Fail,Error:",err)
 			if res!=nil{
@@ -151,6 +151,7 @@ func syncServerIpList() {
 	if err==nil{
 		err=errors.New("Over Max Retry Still Error!")
 	}
+	return err
 }
 
 func GetAppConfig()*AppConfig  {
