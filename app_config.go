@@ -50,6 +50,10 @@ type AppConfig struct {
 	Ip string `json:"ip"`
 }
 
+func (this *AppConfig) getHost() string{
+	return "http://"+this.Ip+"/"
+}
+
 type serverInfo struct {
 	AppName string `json:"appName"`
 	InstanceId string `json:"instanceId"`
@@ -184,9 +188,13 @@ func initRefreshInterval() error {
 }
 
 func getConfigUrl(config *AppConfig) string{
+	return getConfigUrlByHost(config,config.getHost())
+}
+
+func getConfigUrlByHost(config *AppConfig,host string) string{
 	current:=GetCurrentApolloConfig()
-	return fmt.Sprintf("http://%s/configs/%s/%s/%s?releaseKey=%s&ip=%s",
-		config.Ip,
+	return fmt.Sprintf("%sconfigs/%s/%s/%s?releaseKey=%s&ip=%s",
+		host,
 		url.QueryEscape(config.AppId),
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(config.NamespaceName),
@@ -195,16 +203,22 @@ func getConfigUrl(config *AppConfig) string{
 }
 
 func getNotifyUrl(notifications string,config *AppConfig) string{
-	return fmt.Sprintf("http://%s/notifications/v2?appId=%s&cluster=%s&notifications=%s",
-		config.Ip,
+	return getNotifyUrlByHost(notifications,
+		config,
+		config.getHost())
+}
+
+func getNotifyUrlByHost(notifications string,config *AppConfig,host string) string{
+	return fmt.Sprintf("%snotifications/v2?appId=%s&cluster=%s&notifications=%s",
+		host,
 		url.QueryEscape(config.AppId),
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(notifications))
 }
 
 func getServicesConfigUrl(config *AppConfig) string{
-	return fmt.Sprintf("http://%s/services/config?appId=%s&ip=%s",
-		config.Ip,
+	return fmt.Sprintf("%sservices/config?appId=%s&ip=%s",
+		config.getHost(),
 		url.QueryEscape(config.AppId),
 		getInternal())
 }
