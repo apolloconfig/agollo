@@ -6,7 +6,7 @@ import (
 	//"time"
 )
 
-const servicesConfigResponseStr  =`{
+const servicesConfigResponseStr  =`[{
 "appName": "APOLLO-CONFIGSERVICE",
 "instanceId": "10.15.128.102:apollo-configservice:8080",
 "homepageUrl": "http://10.15.128.102:8080/"

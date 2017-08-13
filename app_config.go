@@ -10,6 +10,7 @@ import (
 	"errors"
 	"net/http"
 	"io/ioutil"
+	"encoding/json"
 )
 
 const appConfigFileName  ="app.properties"
@@ -37,6 +38,9 @@ var (
 
 	//appconfig
 	appConfig *AppConfig
+
+	//real servers ip
+	servers []*serverInfo=make([]*serverInfo,0)
 )
 
 type AppConfig struct {
@@ -44,6 +48,12 @@ type AppConfig struct {
 	Cluster string `json:"cluster"`
 	NamespaceName string `json:"namespaceName"`
 	Ip string `json:"ip"`
+}
+
+type serverInfo struct {
+	AppName string `json:"appName"`
+	InstanceId string `json:"instanceId"`
+	HomepageUrl string `json:"homepageUrl"`
 }
 
 func init() {
@@ -133,6 +143,8 @@ func syncServerIpList() error{
 				seelog.Error("Connect Apollo Server Fail,Error:",err)
 				continue
 			}
+
+			json.Unmarshal(responseBody,&servers)
 			return err
 		default:
 			seelog.Error("Connect Apollo Server Fail,Error:",err)

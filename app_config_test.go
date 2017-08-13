@@ -81,4 +81,6 @@ func TestSyncServerIpList(t *testing.T) {
 
 	test.Nil(t,err)
 
+	test.Equal(t,10,len(servers))
+
 }
