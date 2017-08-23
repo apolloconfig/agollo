@@ -23,12 +23,11 @@ var (
 	long_poll_connect_timeout  = 1 * time.Minute //1m
 
 	connect_timeout  = 1 * time.Second //1s
-	read_timeout     = 5 * time.Second //5s
 	//for on error retry
 	on_error_retry_interval = 1 * time.Second //1s
 	//for typed config cache of parser result, e.g. integer, double, long, etc.
-	max_config_cache_size    = 500             //500 cache key
-	config_cache_expire_time = 1 * time.Minute //1 minute
+	//max_config_cache_size    = 500             //500 cache key
+	//config_cache_expire_time = 1 * time.Minute //1 minute
 
 	//max retries connect apollo
 	max_retries=5
@@ -40,7 +39,10 @@ var (
 	appConfig *AppConfig
 
 	//real servers ip
-	servers []*serverInfo=make([]*serverInfo,0)
+	servers map[string]*serverInfo=make(map[string]*serverInfo,0)
+
+	//next try connect period - 60 second
+	next_try_connect_period int64=60
 )
 
 type AppConfig struct {
@@ -48,16 +50,46 @@ type AppConfig struct {
 	Cluster string `json:"cluster"`
 	NamespaceName string `json:"namespaceName"`
 	Ip string `json:"ip"`
+	NextTryConnTime int64 `json:"-"`
 }
 
 func (this *AppConfig) getHost() string{
 	return "http://"+this.Ip+"/"
 }
 
+//if this connect is fail will set this time
+func (this *AppConfig) setNextTryConnTime(){
+	this.NextTryConnTime=time.Now().Unix()+next_try_connect_period
+}
+
+//is connect by ip directly
+//false : no
+//true : yes
+func (this *AppConfig) isConnectDirectly() bool{
+	if this.NextTryConnTime==0||this.NextTryConnTime>time.Now().Unix(){
+		return false
+	}
+
+	return true
+}
+
+func (this *AppConfig) selectHost() string{
+	if this.isConnectDirectly(){
+		return this.getHost()
+	}
+
+
+
+
+	return ""
+}
+
+
 type serverInfo struct {
 	AppName string `json:"appName"`
 	InstanceId string `json:"instanceId"`
 	HomepageUrl string `json:"homepageUrl"`
+
 }
 
 func init() {
@@ -148,8 +180,25 @@ func syncServerIpList() error{
 				continue
 			}
 
-			json.Unmarshal(responseBody,&servers)
-			return err
+			tmpServerInfo:=make([]*serverInfo,0)
+
+			err = json.Unmarshal(responseBody,&tmpServerInfo)
+
+			if err!=nil{
+				seelog.Error("Unmarshal json Fail,Error:",err)
+				return err
+			}
+
+			if len(tmpServerInfo)==0 {
+				seelog.Info("get no real server!")
+				return nil
+			}
+
+			for _,server :=range tmpServerInfo {
+				servers[server.InstanceId]=server
+			}
+
+			return nil
 		default:
 			seelog.Error("Connect Apollo Server Fail,Error:",err)
 			if res!=nil{
