@@ -58,30 +58,44 @@ func (this *AppConfig) getHost() string{
 }
 
 //if this connect is fail will set this time
-func (this *AppConfig) setNextTryConnTime(){
-	this.NextTryConnTime=time.Now().Unix()+next_try_connect_period
+func (this *AppConfig) setNextTryConnTime(nextTryConnectPeriod int64){
+	this.NextTryConnTime=time.Now().Unix()+nextTryConnectPeriod
 }
 
 //is connect by ip directly
 //false : no
 //true : yes
 func (this *AppConfig) isConnectDirectly() bool{
-	if this.NextTryConnTime==0||this.NextTryConnTime>time.Now().Unix(){
-		return false
+	if this.NextTryConnTime>=0&&this.NextTryConnTime>time.Now().Unix(){
+		return true
 	}
 
-	return true
+	return false
 }
 
 func (this *AppConfig) selectHost() string{
-	if this.isConnectDirectly(){
+	if !this.isConnectDirectly(){
 		return this.getHost()
 	}
 
-
-
+	for host,server:=range servers{
+		// if some node has down then select next node
+		if server.IsDown{
+			continue
+		}
+		return host
+	}
 
 	return ""
+}
+
+func setDownNode(host string) {
+	for key,server:=range servers{
+		if key==host{
+			server.IsDown=true
+			break
+		}
+	}
 }
 
 
@@ -89,6 +103,7 @@ type serverInfo struct {
 	AppName string `json:"appName"`
 	InstanceId string `json:"instanceId"`
 	HomepageUrl string `json:"homepageUrl"`
+	IsDown bool `json:"-"`
 
 }
 
@@ -195,7 +210,10 @@ func syncServerIpList() error{
 			}
 
 			for _,server :=range tmpServerInfo {
-				servers[server.InstanceId]=server
+				if server==nil{
+					continue
+				}
+				servers[server.HomepageUrl]=server
 			}
 
 			return nil
