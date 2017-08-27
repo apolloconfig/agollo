@@ -231,6 +231,16 @@ func getConfigUrlByHost(config *AppConfig,host string) string{
 		getInternal())
 }
 
+func getConfigUrlSuffix(config *AppConfig) string{
+	current:=GetCurrentApolloConfig()
+	return fmt.Sprintf("configs/%s/%s/%s?releaseKey=%s&ip=%s",
+		url.QueryEscape(config.AppId),
+		url.QueryEscape(config.Cluster),
+		url.QueryEscape(config.NamespaceName),
+		url.QueryEscape(current.ReleaseKey),
+		getInternal())
+}
+
 func getNotifyUrl(notifications string,config *AppConfig) string{
 	return getNotifyUrlByHost(notifications,
 		config,
@@ -240,6 +250,13 @@ func getNotifyUrl(notifications string,config *AppConfig) string{
 func getNotifyUrlByHost(notifications string,config *AppConfig,host string) string{
 	return fmt.Sprintf("%snotifications/v2?appId=%s&cluster=%s&notifications=%s",
 		host,
+		url.QueryEscape(config.AppId),
+		url.QueryEscape(config.Cluster),
+		url.QueryEscape(notifications))
+}
+
+func getNotifyUrlSuffix(notifications string,config *AppConfig) string{
+	return fmt.Sprintf("notifications/v2?appId=%s&cluster=%s&notifications=%s",
 		url.QueryEscape(config.AppId),
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(notifications))

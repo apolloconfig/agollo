@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"time"
 	"errors"
+	"fmt"
 )
 
 func request(url string,successCallBack func([]byte)(interface{},error)) (interface{},error){
@@ -64,6 +65,25 @@ func request(url string,successCallBack func([]byte)(interface{},error)) (interf
 	return nil,err
 }
 
-func reqeustRecovery() {
+func reqeustRecovery(appConfig *AppConfig,
+	urlSuffix string,
+	successCallBack func([]byte)(interface{},error))(interface{},error) {
+	format:="%s%s"
 
+	for {
+		host:=appConfig.selectHost()
+		if host==""{
+			return nil,nil
+		}
+
+		requestUrl:=fmt.Sprintf(format,host,urlSuffix)
+		response,err:=request(requestUrl,successCallBack)
+		if err==nil{
+			return response,err
+		}
+
+		setDownNode(host)
+	}
+
+	return nil,errors.New("Try all Nodes Still Error!")
 }
