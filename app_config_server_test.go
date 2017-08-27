@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"fmt"
 	//"time"
+	"github.com/cihub/seelog"
 )
 
 const servicesConfigResponseStr  =`[{
@@ -58,31 +59,31 @@ const servicesConfigResponseStr  =`[{
 }
 ]`
 
-var server *http.Server
+//var server *http.Server
 
 //run mock config server
 func runMockServicesConfigServer(handler func(http.ResponseWriter, *http.Request)) {
 	uri:=fmt.Sprintf("/services/config")
 	http.HandleFunc(uri, handler)
 
-	server = &http.Server{
-		Addr:    appConfig.Ip,
-		Handler: http.DefaultServeMux,
-	}
-
-	server.ListenAndServe()
-
-	//
-	//seelog.Info("mock notify server:",appConfig.Ip)
-	//err:=http.ListenAndServe(fmt.Sprintf("%s",appConfig.Ip), nil)
-	//if err!=nil{
-	//	seelog.Error("runMockConfigServer err:",err)
+	//server = &http.Server{
+	//	Addr:    appConfig.Ip,
+	//	Handler: http.DefaultServeMux,
 	//}
+	//
+	//server.ListenAndServe()
+
+
+	seelog.Info("mock notify server:",appConfig.Ip)
+	err:=http.ListenAndServe(fmt.Sprintf("%s",appConfig.Ip), nil)
+	if err!=nil{
+		seelog.Error("runMockConfigServer err:",err)
+	}
 }
 
 func closeMockServicesConfigServer() {
 	http.DefaultServeMux=http.NewServeMux()
-	server.Close()
+	//server.Close()
 }
 
 
