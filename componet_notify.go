@@ -59,12 +59,11 @@ func getRemoteConfig() ([]*apolloNotify,error) {
 	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
-	url:=getNotifyUrl(allNotifications.getNotifies(),appConfig)
+	urlSuffix:=getNotifyUrlSuffix(allNotifications.getNotifies(),appConfig)
 
-	seelog.Debugf("sync config url:%s",url)
-	seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
+	//seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
 
-	notifies,err:=request(url,getRemoteConfigSuccessCallBack)
+	notifies ,err:=requestRecovery(appConfig,urlSuffix,getRemoteConfigSuccessCallBack)
 
 	if notifies==nil{
 		return nil,err

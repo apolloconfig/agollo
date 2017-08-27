@@ -65,19 +65,21 @@ func request(url string,successCallBack func([]byte)(interface{},error)) (interf
 	return nil,err
 }
 
-func reqeustRecovery(appConfig *AppConfig,
+func requestRecovery(appConfig *AppConfig,
 	urlSuffix string,
 	successCallBack func([]byte)(interface{},error))(interface{},error) {
 	format:="%s%s"
+	var err error
+	var response interface{}
 
 	for {
 		host:=appConfig.selectHost()
 		if host==""{
-			return nil,nil
+			return nil,err
 		}
 
 		requestUrl:=fmt.Sprintf(format,host,urlSuffix)
-		response,err:=request(requestUrl,successCallBack)
+		response,err=request(requestUrl,successCallBack)
 		if err==nil{
 			return response,err
 		}

@@ -26,12 +26,17 @@ func runMockConfigServer(handler func(http.ResponseWriter, *http.Request)) {
 	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
+	server = &http.Server{
+		Addr:    appConfig.Ip,
+		Handler: http.DefaultServeMux,
+	}
 
-	http.ListenAndServe(fmt.Sprintf("%s",appConfig.Ip), nil)
+	go server.ListenAndServe()
 }
 
 func closeMockConfigServer() {
 	http.DefaultServeMux=&http.ServeMux{}
+	server.Close()
 }
 
 var normalConfigCount=1

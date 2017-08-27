@@ -17,11 +17,17 @@ func runMockNotifyServer(handler func(http.ResponseWriter, *http.Request)) {
 		panic("can not find apollo config!please confirm!")
 	}
 
-	http.ListenAndServe(fmt.Sprintf("%s",appConfig.Ip), nil)
+	server = &http.Server{
+		Addr:    appConfig.Ip,
+		Handler: http.DefaultServeMux,
+	}
+
+	server.ListenAndServe()
 }
 
 func closeMockNotifyServer() {
-	http.DefaultServeMux=&http.ServeMux{}
+	server.Close()
+	http.DefaultServeMux=http.NewServeMux()
 }
 
 var normalNotifyCount=1

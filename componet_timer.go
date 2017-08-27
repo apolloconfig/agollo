@@ -43,10 +43,10 @@ func autoSyncConfigServices() error {
 	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
-	url:=getConfigUrlByHost(appConfig,appConfig.getHost())
-	seelog.Debug("url:",url)
 
-	_,err:=request(url,autoSyncConfigServicesSuccessCallBack)
+	urlSuffix:=getConfigUrlSuffix(appConfig)
+
+	_,err:=requestRecovery(appConfig,urlSuffix,autoSyncConfigServicesSuccessCallBack)
 
 	return err
 }
