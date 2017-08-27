@@ -1,44 +1,17 @@
 package agollo
 
 import (
-	"time"
 	"net/http"
-	"io/ioutil"
-	"errors"
 	"github.com/cihub/seelog"
+	"io/ioutil"
+	"time"
+	"errors"
 )
 
-type AutoRefreshConfigComponent struct {
-
-}
-
-func (this *AutoRefreshConfigComponent) Start()  {
-	t2 := time.NewTimer(refresh_interval)
-	for {
-		select {
-		case <-t2.C:
-			notifySyncConfigServices()
-			t2.Reset(refresh_interval)
-		}
-	}
-}
-
-func SyncConfig() error {
-	return autoSyncConfigServices()
-}
-
-func autoSyncConfigServices() error {
+func request(url string,successCallBack func([]byte)error) error{
 	client := &http.Client{
 		Timeout:connect_timeout,
 	}
-
-	appConfig:=GetAppConfig()
-	if appConfig==nil{
-		panic("can not find apollo config!please confirm!")
-	}
-	url:=getConfigUrlByHost(appConfig,appConfig.getHost())
-	seelog.Debug("url:",url)
-
 	retry:=0
 	var responseBody []byte
 	var err error
@@ -66,16 +39,7 @@ func autoSyncConfigServices() error {
 				continue
 			}
 
-			apolloConfig,err:=createApolloConfigWithJson(responseBody)
-
-			if err!=nil{
-				seelog.Error("Unmarshal Msg Fail,Error:",err)
-				return err
-			}
-
-			updateApolloConfig(apolloConfig)
-
-			return nil
+			return successCallBack(responseBody)
 		default:
 			seelog.Error("Connect Apollo Server Fail,Error:",err)
 			if res!=nil{
@@ -92,5 +56,8 @@ func autoSyncConfigServices() error {
 		err=errors.New("Over Max Retry Still Error!")
 	}
 	return err
-	//repository.UpdateLocalConfigRepository(apolloConfig.Configurations)
+}
+
+func reqeustRecovery() {
+
 }
