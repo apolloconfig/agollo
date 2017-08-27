@@ -8,7 +8,7 @@ import (
 	"errors"
 )
 
-func request(url string,successCallBack func([]byte)error) error{
+func request(url string,successCallBack func([]byte)(interface{},error)) (interface{},error){
 	client := &http.Client{
 		Timeout:connect_timeout,
 	}
@@ -40,6 +40,11 @@ func request(url string,successCallBack func([]byte)error) error{
 			}
 
 			return successCallBack(responseBody)
+
+		case http.StatusNotModified:
+			seelog.Warn("Config Not Modified:", err)
+			return nil, nil
+
 		default:
 			seelog.Error("Connect Apollo Server Fail,Error:",err)
 			if res!=nil{
@@ -52,10 +57,10 @@ func request(url string,successCallBack func([]byte)error) error{
 	}
 
 	seelog.Error("Over Max Retry Still Error,Error:",err)
-	if err==nil{
+	if err!=nil{
 		err=errors.New("Over Max Retry Still Error!")
 	}
-	return err
+	return nil,err
 }
 
 func reqeustRecovery() {

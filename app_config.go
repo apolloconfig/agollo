@@ -157,19 +157,19 @@ func initServerIpList() {
 	}
 }
 
-func syncServerIpListSuccessCallBack(responseBody []byte)error{
+func syncServerIpListSuccessCallBack(responseBody []byte)(o interface{},err error){
 	tmpServerInfo:=make([]*serverInfo,0)
 
-	err := json.Unmarshal(responseBody,&tmpServerInfo)
+	err= json.Unmarshal(responseBody,&tmpServerInfo)
 
 	if err!=nil{
 		seelog.Error("Unmarshal json Fail,Error:",err)
-		return err
+		return
 	}
 
 	if len(tmpServerInfo)==0 {
 		seelog.Info("get no real server!")
-		return nil
+		return
 	}
 
 	for _,server :=range tmpServerInfo {
@@ -178,7 +178,7 @@ func syncServerIpListSuccessCallBack(responseBody []byte)error{
 		}
 		servers[server.HomepageUrl]=server
 	}
-	return nil
+	return
 }
 
 //sync ip list from server
@@ -193,8 +193,10 @@ func syncServerIpList() error{
 	url:=getServicesConfigUrl(appConfig)
 	seelog.Debug("url:",url)
 
+	_,err:=request(url,syncServerIpListSuccessCallBack)
 
-	return request(url,syncServerIpListSuccessCallBack)
+
+	return err
 }
 
 func GetAppConfig()*AppConfig  {

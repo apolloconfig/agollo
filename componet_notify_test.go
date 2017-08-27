@@ -28,12 +28,12 @@ func TestGetRemoteConfig(t *testing.T) {
 		test.Nil(t,err)
 
 		//if remote config is nil then break
-		if remoteConfigs!=nil{
+		if remoteConfigs!=nil&&len(remoteConfigs)>0 {
 			break
 		}
 	}
 
-	test.Equal(t,3,count)
+	test.Equal(t,count>1,true)
 	test.Nil(t,err)
 	test.NotNil(t,remoteConfigs)
 	test.Equal(t,1,len(remoteConfigs))
