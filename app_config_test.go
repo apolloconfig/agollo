@@ -105,6 +105,8 @@ func TestSelectHost(t *testing.T) {
 	//mock ip data
 	trySyncServerIpList(t)
 
+	next_try_connect_period=5
+
 	t.Log("appconfig host:"+appConfig.getHost())
 	t.Log("appconfig select host:"+appConfig.selectHost())
 
@@ -114,13 +116,14 @@ func TestSelectHost(t *testing.T) {
 
 
 	//check select next time
-	appConfig.setNextTryConnTime(5)
+	initHost:=appConfig.selectHost()
+	setDownNode(initHost)
 	test.NotEqual(t,host,appConfig.selectHost())
 	time.Sleep(6*time.Second)
 	test.Equal(t,host,appConfig.selectHost())
 
 	//check servers
-	appConfig.setNextTryConnTime(5)
+	setDownNode(initHost)
 	firstHost:=appConfig.selectHost()
 	test.NotEqual(t,host,firstHost)
 	setDownNode(firstHost)

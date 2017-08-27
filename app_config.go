@@ -87,6 +87,14 @@ func (this *AppConfig) selectHost() string{
 }
 
 func setDownNode(host string) {
+	if host=="" || appConfig==nil{
+		return
+	}
+
+	if host==appConfig.getHost(){
+		appConfig.setNextTryConnTime(next_try_connect_period)
+	}
+
 	for key,server:=range servers{
 		if key==host{
 			server.IsDown=true
