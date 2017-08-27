@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
+	"github.com/cihub/seelog"
 )
 
 var IP1="localhost:7080"
@@ -30,17 +31,11 @@ func runMockServicesServer(handler func(http.ResponseWriter, *http.Request)) {
 	uri := fmt.Sprintf("/services/config")
 	http.HandleFunc(uri, handler)
 
-	server = &http.Server{
-		Addr:    appConfig.Ip,
-		Handler: http.DefaultServeMux,
-	}
-
-	server.ListenAndServe()
+	http.ListenAndServe(fmt.Sprintf("%s", appConfig.Ip), nil)
 }
 
 func closeMockServicesServer() {
-	server.Close()
-	http.DefaultServeMux=http.NewServeMux()
+	http.DefaultServeMux = &http.ServeMux{}
 }
 
 //Normal response
@@ -51,7 +46,8 @@ func normalServicesResponse(rw http.ResponseWriter, req *http.Request) {
 
 //run mock config Real And Backup server
 func runMockConfigBackupServer(handler func(http.ResponseWriter, *http.Request)) {
-	mockConfigServerListen(IP2,handler)
+	mockConfigServerListen(IP1,handler)
+	//mockConfigServerListen(IP2,handler)
 }
 
 func mockConfigServerListen(ip string,handler func(http.ResponseWriter, *http.Request)) {
@@ -63,17 +59,15 @@ func mockConfigServerListen(ip string,handler func(http.ResponseWriter, *http.Re
 		panic("can not find apollo config!please confirm!")
 	}
 
-	server = &http.Server{
-		Addr:    ip,
-		Handler: http.DefaultServeMux,
+	seelog.Info("mockConfigServerListen:",appConfig.Ip)
+	err:=http.ListenAndServe(fmt.Sprintf("%s",ip), nil)
+	if err!=nil{
+		seelog.Error("runMockConfigServer err:",err)
 	}
-
-	server.ListenAndServe()
 }
 
 func closeAllMockServicesServer() {
-	server.Close()
-	http.DefaultServeMux=http.NewServeMux()
+	http.DefaultServeMux = &http.ServeMux{}
 }
 
 var normalBackupConfigCount=0
@@ -84,7 +78,7 @@ var normalBackupConfigCount=0
 //Second request will response [{"namespaceName":"application","notificationId":3}]
 func normalBackupConfigResponse(rw http.ResponseWriter, req *http.Request) {
 	normalBackupConfigCount++
-	if normalBackupConfigCount%2==0 {
+	if normalBackupConfigCount%3==0 {
 		fmt.Fprintf(rw, configResponseStr)
 	}else {
 		time.Sleep(500 * time.Microsecond)
