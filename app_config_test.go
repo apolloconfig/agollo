@@ -45,10 +45,29 @@ func TestGetConfigUrl(t *testing.T) {
 	test.StartWith(t,"http://localhost:8888/configs/test/dev/application?releaseKey=&ip=",url)
 }
 
+func TestGetConfigUrlByHost(t *testing.T) {
+	appConfig:=getTestAppConfig()
+	url:=getConfigUrlByHost(appConfig,"http://baidu.com/")
+	test.StartWith(t,"http://baidu.com/configs/test/dev/application?releaseKey=&ip=",url)
+}
+
 func TestGetNotifyUrl(t *testing.T) {
 	appConfig:=getTestAppConfig()
 	url:=getNotifyUrl("notifys",appConfig)
 	test.Equal(t,"http://localhost:8888/notifications/v2?appId=test&cluster=dev&notifications=notifys",url)
+}
+
+func TestGetNotifyUrlByHost(t *testing.T) {
+	appConfig:=getTestAppConfig()
+	url:=getNotifyUrlByHost("notifys",appConfig,"http://baidu.com/")
+	test.Equal(t,"http://baidu.com/notifications/v2?appId=test&cluster=dev&notifications=notifys",url)
+}
+
+func TestGetServicesConfigUrl(t *testing.T) {
+	appConfig:=getTestAppConfig()
+	url:=getServicesConfigUrl(appConfig)
+	ip:=getInternal()
+	test.Equal(t,"http://localhost:8888/services/config?appId=test&ip="+ip,url)
 }
 
 func getTestAppConfig() *AppConfig {
@@ -62,4 +81,68 @@ func getTestAppConfig() *AppConfig {
 	config,_:=createAppConfigWithJson(jsonStr)
 
 	return config
+}
+
+func TestSyncServerIpList(t *testing.T) {
+	trySyncServerIpList(t)
+}
+
+func trySyncServerIpList(t *testing.T) {
+	go runMockServicesConfigServer(normalServicesConfigResponse)
+	defer closeMockServicesConfigServer()
+
+	time.Sleep(1*time.Second)
+
+	err:=syncServerIpList()
+
+	test.Nil(t,err)
+
+	test.Equal(t,10,len(servers))
+
+}
+
+func TestSelectHost(t *testing.T) {
+	//mock ip data
+	trySyncServerIpList(t)
+
+	t.Log("appconfig host:"+appConfig.getHost())
+	t.Log("appconfig select host:"+appConfig.selectHost())
+
+	host:="http://localhost:8888/"
+	test.Equal(t,host,appConfig.getHost())
+	test.Equal(t,host,appConfig.selectHost())
+
+
+	//check select next time
+	appConfig.setNextTryConnTime(5)
+	test.NotEqual(t,host,appConfig.selectHost())
+	time.Sleep(6*time.Second)
+	test.Equal(t,host,appConfig.selectHost())
+
+	//check servers
+	appConfig.setNextTryConnTime(5)
+	firstHost:=appConfig.selectHost()
+	test.NotEqual(t,host,firstHost)
+	setDownNode(firstHost)
+
+	secondHost:=appConfig.selectHost()
+	test.NotEqual(t,host,secondHost)
+	test.NotEqual(t,firstHost,secondHost)
+	setDownNode(secondHost)
+
+	thirdHost:=appConfig.selectHost()
+	test.NotEqual(t,host,thirdHost)
+	test.NotEqual(t,firstHost,thirdHost)
+	test.NotEqual(t,secondHost,thirdHost)
+
+
+	for host,_:=range servers{
+		setDownNode(host)
+	}
+
+	test.Equal(t,"",appConfig.selectHost())
+
+	//no servers
+	servers=make(map[string]*serverInfo,0)
+	test.Equal(t,"",appConfig.selectHost())
 }

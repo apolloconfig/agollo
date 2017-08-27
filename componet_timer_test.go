@@ -15,12 +15,15 @@ import (
 //}
 
 func TestAutoSyncConfigServices(t *testing.T) {
-	go runMockConfigServer(normalConfigResponse)
+	runMockConfigServer(normalConfigResponse)
 	defer closeMockConfigServer()
 
 	time.Sleep(1*time.Second)
 
+	appConfig.NextTryConnTime=0
+
 	err:=autoSyncConfigServices()
+	err=autoSyncConfigServices()
 
 	test.Nil(t,err)
 

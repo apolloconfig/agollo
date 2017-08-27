@@ -2,11 +2,8 @@ package agollo
 
 import (
 	"time"
-	"net/http"
-	"io/ioutil"
 	"encoding/json"
 	"sync"
-	"errors"
 	"github.com/cihub/seelog"
 )
 
@@ -53,68 +50,26 @@ func toApolloConfig(resBody []byte) ([]*apolloNotify,error) {
 	return remoteConfig,nil
 }
 
-func getRemoteConfig() ([]*apolloNotify,error) {
-	client := &http.Client{
-		Timeout:long_poll_connect_timeout,
+func getRemoteConfigSuccessCallBack(responseBody []byte)(o interface{},err error){
+	return toApolloConfig(responseBody)
+}
 
-	}
+func getRemoteConfig() ([]*apolloNotify,error) {
 	appConfig:=GetAppConfig()
 	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
-	url:=getNotifyUrl(allNotifications.getNotifies(),appConfig)
+	urlSuffix:=getNotifyUrlSuffix(allNotifications.getNotifies(),appConfig)
 
-	seelog.Debugf("sync config url:%s",url)
-	seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
+	//seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
 
-	retry:=0
-	var responseBody []byte
-	var err error
-	var res *http.Response
-	for{
-		retry++
+	notifies ,err:=requestRecovery(appConfig,urlSuffix,getRemoteConfigSuccessCallBack)
 
-		if retry>max_retries{
-			break
-		}
-
-		res,err=client.Get(url)
-
-		if res==nil||err!=nil{
-			seelog.Error("Connect Apollo Server Fail,Error:",err)
-			continue
-		}
-
-		//not modified break
-		switch res.StatusCode {
-		case http.StatusOK:
-			responseBody, err = ioutil.ReadAll(res.Body)
-			if err!=nil{
-				seelog.Error("Read Apollo Server response Fail,Error:",err)
-				continue
-			}
-			return toApolloConfig(responseBody)
-
-		case http.StatusNotModified:
-			seelog.Warn("Config Not Modified:", err)
-			return nil, nil
-
-		default:
-			seelog.Error("Connect Apollo Server Fail,Error:",err)
-			if res!=nil{
-				seelog.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
-			}
-			// if error then sleep
-			time.Sleep(on_error_retry_interval)
-			continue
-		}
+	if notifies==nil{
+		return nil,err
 	}
 
-	seelog.Error("Over Max Retry Still Error,Error:",err)
-	if err==nil{
-		err=errors.New("Over Max Retry Still Error!")
-	}
-	return nil,err
+	return notifies.([]*apolloNotify),err
 }
 
 func notifySyncConfigServices() error {
