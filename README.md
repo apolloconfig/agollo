@@ -35,6 +35,7 @@ go get -u github.com/zouyx/agollo
 # Features
 * 实时同步配置
 * 灰度配置
+* 客户端容灾
 
 # Usage
 
@@ -73,9 +74,6 @@ func main() {
   后续可支持更多类型
  
   欢迎查阅 [Wiki](https://github.com/zouyx/agollo/wiki) 或者 [godoc](http://godoc.org/github.com/zouyx/agollo) 获取更多有用的信息
-
-# To Do
-* 客户端容灾
 
 # Contribution
   * Source Code: https://github.com/zouyx/agollo/
