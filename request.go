@@ -50,6 +50,7 @@ func request(url string,successCallBack func([]byte)(interface{},error)) (interf
 			if res!=nil{
 				seelog.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
 			}
+			err=errors.New("Connect Apollo Server Fail!")
 			// if error then sleep
 			time.Sleep(on_error_retry_interval)
 			continue

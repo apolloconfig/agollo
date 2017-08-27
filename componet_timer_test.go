@@ -21,6 +21,7 @@ func TestAutoSyncConfigServices(t *testing.T) {
 	time.Sleep(1*time.Second)
 
 	err:=autoSyncConfigServices()
+	err=autoSyncConfigServices()
 
 	test.Nil(t,err)
 

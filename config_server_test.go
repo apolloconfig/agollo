@@ -34,14 +34,15 @@ func closeMockConfigServer() {
 	http.DefaultServeMux=&http.ServeMux{}
 }
 
+var normalConfigCount=1
 
 //Normal response
 //First request will hold 5s and response http.StatusNotModified
 //Second request will hold 5s and response http.StatusNotModified
 //Second request will response [{"namespaceName":"application","notificationId":3}]
 func normalConfigResponse(rw http.ResponseWriter, req *http.Request) {
-	i++
-	if i%3==0 {
+	normalConfigCount++
+	if normalConfigCount%3==0 {
 		fmt.Fprintf(rw, configResponseStr)
 	}else {
 		time.Sleep(500 * time.Microsecond)
