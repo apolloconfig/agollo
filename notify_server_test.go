@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"fmt"
 	"time"
+	"github.com/cihub/seelog"
 )
 
 const responseStr  =`[{"namespaceName":"application","notificationId":%d}]`
@@ -17,17 +18,15 @@ func runMockNotifyServer(handler func(http.ResponseWriter, *http.Request)) {
 		panic("can not find apollo config!please confirm!")
 	}
 
-	server = &http.Server{
-		Addr:    appConfig.Ip,
-		Handler: http.DefaultServeMux,
+	seelog.Info("runMockNotifyServer:",appConfig.Ip)
+	err:=http.ListenAndServe(fmt.Sprintf("%s",appConfig.Ip), nil)
+	if err!=nil{
+		seelog.Error("runMockConfigServer err:",err)
 	}
-
-	server.ListenAndServe()
 }
 
 func closeMockNotifyServer() {
-	server.Close()
-	http.DefaultServeMux=http.NewServeMux()
+	http.DefaultServeMux=&http.ServeMux{}
 }
 
 var normalNotifyCount=1

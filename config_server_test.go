@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"fmt"
 	"time"
+	"github.com/cihub/seelog"
 )
 
 const configResponseStr  =`{
@@ -26,17 +27,15 @@ func runMockConfigServer(handler func(http.ResponseWriter, *http.Request)) {
 	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
-	server = &http.Server{
-		Addr:    appConfig.Ip,
-		Handler: http.DefaultServeMux,
-	}
 
-	go server.ListenAndServe()
+	err:=http.ListenAndServe(fmt.Sprintf("%s",appConfig.Ip), nil)
+	if err!=nil{
+		seelog.Error("runMockConfigServer err:",err)
+	}
 }
 
 func closeMockConfigServer() {
 	http.DefaultServeMux=&http.ServeMux{}
-	server.Close()
 }
 
 var normalConfigCount=1
