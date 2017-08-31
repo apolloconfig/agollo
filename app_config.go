@@ -16,7 +16,7 @@ var (
 	refresh_interval = 5 *time.Minute //5m
 	refresh_interval_key = "apollo.refreshInterval"  //
 
-	long_poll_interval = 5 *time.Second //5s
+	long_poll_interval = 2 *time.Second //2s
 	long_poll_connect_timeout  = 1 * time.Minute //1m
 
 	connect_timeout  = 1 * time.Second //1s
@@ -193,7 +193,9 @@ func syncServerIpList() error{
 	url:=getServicesConfigUrl(appConfig)
 	seelog.Debug("url:",url)
 
-	_,err:=request(url,syncServerIpListSuccessCallBack)
+	_,err:=request(url,&CallBack{
+		SuccessCallBack:syncServerIpListSuccessCallBack,
+	})
 
 
 	return err

@@ -15,7 +15,9 @@ func TestRequestRecovery(t *testing.T) {
 	appConfig:=GetAppConfig()
 	urlSuffix:=getConfigUrlSuffix(appConfig)
 
-	o,err:=requestRecovery(appConfig,urlSuffix,autoSyncConfigServicesSuccessCallBack)
+	o,err:=requestRecovery(appConfig,urlSuffix,&CallBack{
+		SuccessCallBack:autoSyncConfigServicesSuccessCallBack,
+	})
 
 	test.Nil(t,err)
 	test.Nil(t,o)
