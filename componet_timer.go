@@ -46,7 +46,10 @@ func autoSyncConfigServices() error {
 
 	urlSuffix:=getConfigUrlSuffix(appConfig)
 
-	_,err:=requestRecovery(appConfig,urlSuffix,autoSyncConfigServicesSuccessCallBack)
+	_,err:=requestRecovery(appConfig,urlSuffix,&CallBack{
+		SuccessCallBack:autoSyncConfigServicesSuccessCallBack,
+		NotModifyCallBack:touchApolloConfigCache,
+	})
 
 	return err
 }

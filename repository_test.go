@@ -31,6 +31,26 @@ func createMockApolloConfig(expireTime int)map[string]string{
 	return configs
 }
 
+func TestTouchApolloConfigCache(t *testing.T) {
+	createMockApolloConfig(10)
+
+	time.Sleep(5*time.Second)
+	checkCacheLeft(t,5)
+
+	updateApolloConfigCacheTime(10)
+
+	checkCacheLeft(t,10)
+}
+
+func checkCacheLeft(t *testing.T,excepted uint32)  {
+	it := apolloConfigCache.NewIterator()
+	for i := int64(0); i < apolloConfigCache.EntryCount(); i++ {
+		entry := it.Next()
+		left,_:=apolloConfigCache.TTL(entry.Key)
+		test.Equal(t,true,left==uint32(excepted))
+	}
+}
+
 func TestUpdateApolloConfigNull(t *testing.T) {
 	time.Sleep(1*time.Second)
 	var currentConfig *ApolloConnConfig

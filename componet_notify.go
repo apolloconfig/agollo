@@ -63,7 +63,9 @@ func getRemoteConfig() ([]*apolloNotify,error) {
 
 	//seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
 
-	notifies ,err:=requestRecovery(appConfig,urlSuffix,getRemoteConfigSuccessCallBack)
+	notifies ,err:=requestRecovery(appConfig,urlSuffix,&CallBack{
+		SuccessCallBack:getRemoteConfigSuccessCallBack,
+	})
 
 	if notifies==nil{
 		return nil,err

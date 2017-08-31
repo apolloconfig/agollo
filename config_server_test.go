@@ -54,6 +54,11 @@ func normalConfigResponse(rw http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func notModifyConfigResponse(rw http.ResponseWriter, req *http.Request) {
+	time.Sleep(800 * time.Microsecond)
+	rw.WriteHeader(http.StatusNotModified)
+}
+
 //Error response
 //will hold 5s and keep response 404
 func errorConfigResponse(rw http.ResponseWriter, req *http.Request) {
