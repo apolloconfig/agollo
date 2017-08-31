@@ -4,6 +4,8 @@ import (
 	"strconv"
 	"github.com/cihub/seelog"
 	"github.com/coocood/freecache"
+	"sync"
+	"fmt"
 )
 
 const (
@@ -12,14 +14,17 @@ const (
 	//50m
 	apolloConfigCacheSize=50*1024*1024
 
-	//1 minute
-	configCacheExpireTime=60
+	//2 minute
+	configCacheExpireTime=120
+
 )
 var (
 	currentConnApolloConfig *ApolloConnConfig=&ApolloConnConfig{}
 
 	//config from apollo
 	apolloConfigCache *freecache.Cache = freecache.NewCache(apolloConfigCacheSize)
+	// update data lock
+	updateCacheLock = new(sync.Mutex)
 )
 
 func updateApolloConfig(apolloConfig *ApolloConfig)  {
@@ -41,10 +46,34 @@ func updateApolloConfigCache(configurations map[string]string,expireTime int)  {
 		return
 	}
 
-	apolloConfigCache.Clear()
+	updateCacheLock.Lock()
+	defer updateCacheLock.Unlock()
 
+	// get old keys
+	mp := map[string]bool{}
+	it := apolloConfigCache.NewIterator()
+	for en := it.Next(); en != nil ; en=it.Next(){
+		mp[string(en.Key)] = true
+	}
+	// update new keys
 	for key,value:=range configurations{
 		apolloConfigCache.Set([]byte(key),[]byte(value),expireTime)
+		delete(mp, string(key))
+	}
+	// remove del keys
+	for key := range mp {
+		apolloConfigCache.Del([]byte(key))
+	}
+}
+
+// config no change fresh expire
+func touchApolloConfigCache() {
+	fmt.Println("touchApolloConfigCache")
+	updateCacheLock.Lock()
+	defer updateCacheLock.Unlock()
+	it := apolloConfigCache.NewIterator()
+	for en := it.Next(); en != nil ; en=it.Next(){
+		apolloConfigCache.Set(en.Key,en.Value,configCacheExpireTime)
 	}
 }
 

@@ -39,11 +39,12 @@ func request(url string,successCallBack func([]byte)(interface{},error)) (interf
 				seelog.Error("Connect Apollo Server Fail,Error:",err)
 				continue
 			}
-
 			return successCallBack(responseBody)
 
 		case http.StatusNotModified:
 			seelog.Warn("Config Not Modified:", err)
+			// update data for expire
+			touchApolloConfigCache()
 			return nil, nil
 
 		default:
@@ -84,6 +85,7 @@ func requestRecovery(appConfig *AppConfig,
 			return response,err
 		}
 
+		fmt.Println("setDownNode", host, requestUrl)
 		setDownNode(host)
 	}
 
