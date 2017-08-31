@@ -10,14 +10,10 @@ type AutoRefreshConfigComponent struct {
 }
 
 func (this *AutoRefreshConfigComponent) Start()  {
-	t2 := time.NewTimer(refresh_interval)
 	for {
-		select {
-		case <-t2.C:
 			notifySyncConfigServices()
-			t2.Reset(refresh_interval)
+			time.Sleep(refresh_interval)
 		}
-	}
 }
 
 func SyncConfig() error {
@@ -43,6 +39,7 @@ func autoSyncConfigServices() error {
 	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
+
 
 	urlSuffix:=getConfigUrlSuffix(appConfig)
 
