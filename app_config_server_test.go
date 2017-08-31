@@ -1,13 +1,13 @@
 package agollo
 
 import (
-	"net/http"
 	"fmt"
+	"net/http"
 	//"time"
 	"github.com/cihub/seelog"
 )
 
-const servicesConfigResponseStr  =`[{
+const servicesConfigResponseStr = `[{
 "appName": "APOLLO-CONFIGSERVICE",
 "instanceId": "10.15.128.102:apollo-configservice:8080",
 "homepageUrl": "http://10.15.128.102:8080/"
@@ -63,7 +63,7 @@ const servicesConfigResponseStr  =`[{
 
 //run mock config server
 func runMockServicesConfigServer(handler func(http.ResponseWriter, *http.Request)) {
-	uri:=fmt.Sprintf("/services/config")
+	uri := fmt.Sprintf("/services/config")
 	http.HandleFunc(uri, handler)
 
 	//server = &http.Server{
@@ -73,19 +73,17 @@ func runMockServicesConfigServer(handler func(http.ResponseWriter, *http.Request
 	//
 	//server.ListenAndServe()
 
-
-	seelog.Info("mock notify server:",appConfig.Ip)
-	err:=http.ListenAndServe(fmt.Sprintf("%s",appConfig.Ip), nil)
-	if err!=nil{
-		seelog.Error("runMockConfigServer err:",err)
+	seelog.Info("mock notify server:", appConfig.Ip)
+	err := http.ListenAndServe(fmt.Sprintf("%s", appConfig.Ip), nil)
+	if err != nil {
+		seelog.Error("runMockConfigServer err:", err)
 	}
 }
 
 func closeMockServicesConfigServer() {
-	http.DefaultServeMux=http.NewServeMux()
+	http.DefaultServeMux = http.NewServeMux()
 	//server.Close()
 }
-
 
 //Normal response
 func normalServicesConfigResponse(rw http.ResponseWriter, req *http.Request) {
