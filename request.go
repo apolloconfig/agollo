@@ -9,7 +9,12 @@ import (
 	"fmt"
 )
 
-func request(url string,successCallBack func([]byte)(interface{},error)) (interface{},error){
+type CallBack struct {
+	SuccessCallBack func([]byte)(interface{},error)
+	NotModifyCallBack func()error
+}
+
+func request(url string,callBack *CallBack) (interface{},error){
 	client := &http.Client{
 		Timeout:connect_timeout,
 	}
@@ -40,12 +45,18 @@ func request(url string,successCallBack func([]byte)(interface{},error)) (interf
 				continue
 			}
 
-			return successCallBack(responseBody)
-
+			if callBack!=nil&&callBack.SuccessCallBack!=nil {
+				return callBack.SuccessCallBack(responseBody)
+			}else{
+				return nil,nil
+			}
 		case http.StatusNotModified:
 			seelog.Warn("Config Not Modified:", err)
-			return nil, nil
-
+			if callBack!=nil&&callBack.NotModifyCallBack!=nil {
+				return nil,callBack.NotModifyCallBack()
+			}else{
+				return nil,nil
+			}
 		default:
 			seelog.Error("Connect Apollo Server Fail,Error:",err)
 			if res!=nil{
@@ -67,7 +78,7 @@ func request(url string,successCallBack func([]byte)(interface{},error)) (interf
 
 func requestRecovery(appConfig *AppConfig,
 	urlSuffix string,
-	successCallBack func([]byte)(interface{},error))(interface{},error) {
+	callBack *CallBack)(interface{},error) {
 	format:="%s%s"
 	var err error
 	var response interface{}
@@ -79,7 +90,7 @@ func requestRecovery(appConfig *AppConfig,
 		}
 
 		requestUrl:=fmt.Sprintf(format,host,urlSuffix)
-		response,err=request(requestUrl,successCallBack)
+		response,err=request(requestUrl,callBack)
 		if err==nil{
 			return response,err
 		}

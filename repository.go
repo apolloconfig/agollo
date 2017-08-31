@@ -13,7 +13,7 @@ const (
 	apolloConfigCacheSize=50*1024*1024
 
 	//1 minute
-	configCacheExpireTime=60
+	configCacheExpireTime=120
 )
 var (
 	currentConnApolloConfig *ApolloConnConfig=&ApolloConnConfig{}
@@ -45,6 +45,22 @@ func updateApolloConfigCache(configurations map[string]string,expireTime int)  {
 
 	for key,value:=range configurations{
 		apolloConfigCache.Set([]byte(key),[]byte(value),expireTime)
+	}
+}
+
+func touchApolloConfigCache() error{
+	updateApolloConfigCacheTime(configCacheExpireTime)
+	return nil
+}
+
+func updateApolloConfigCacheTime(expireTime int)  {
+	it := apolloConfigCache.NewIterator()
+	for i := int64(0); i < apolloConfigCache.EntryCount(); i++ {
+		entry := it.Next()
+		if entry==nil{
+			break
+		}
+		apolloConfigCache.Set([]byte(entry.Key),[]byte(entry.Value),expireTime)
 	}
 }
 
