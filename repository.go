@@ -41,10 +41,22 @@ func updateApolloConfigCache(configurations map[string]string,expireTime int)  {
 		return
 	}
 
-	apolloConfigCache.Clear()
+	//get old keys
+	mp := map[string]bool{}
+	it := apolloConfigCache.NewIterator()
+	for en := it.Next(); en != nil; en = it.Next() {
+		mp[string(en.Key)] = true
+	}
 
-	for key,value:=range configurations{
-		apolloConfigCache.Set([]byte(key),[]byte(value),expireTime)
+	// update new keys
+	for key, value := range configurations {
+		apolloConfigCache.Set([]byte(key), []byte(value), expireTime)
+		delete(mp, string(key))
+	}
+
+	// remove del keys
+	for key := range mp {
+		apolloConfigCache.Del([]byte(key))
 	}
 }
 
