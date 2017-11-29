@@ -20,6 +20,8 @@ var (
 	long_poll_connect_timeout  = 1 * time.Minute //1m
 
 	connect_timeout  = 1 * time.Second //1s
+	//notify timeout
+	nofity_connect_timeout  = 60 * time.Second //60s
 	//for on error retry
 	on_error_retry_interval = 1 * time.Second //1s
 	//for typed config cache of parser result, e.g. integer, double, long, etc.
@@ -193,7 +195,8 @@ func syncServerIpList() error{
 	url:=getServicesConfigUrl(appConfig)
 	seelog.Debug("url:",url)
 
-	_,err:=request(url,&CallBack{
+	_,err:=request(url,&ConnectConfig{
+	},&CallBack{
 		SuccessCallBack:syncServerIpListSuccessCallBack,
 	})
 
