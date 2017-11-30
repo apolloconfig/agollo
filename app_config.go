@@ -21,7 +21,7 @@ var (
 
 	connect_timeout  = 1 * time.Second //1s
 	//notify timeout
-	nofity_connect_timeout  = 60 * time.Second //60s
+	nofity_connect_timeout  = 10 * time.Minute //10m
 	//for on error retry
 	on_error_retry_interval = 1 * time.Second //1s
 	//for typed config cache of parser result, e.g. integer, double, long, etc.
