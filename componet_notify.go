@@ -63,7 +63,10 @@ func getRemoteConfig() ([]*apolloNotify,error) {
 
 	//seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
 
-	notifies ,err:=requestRecovery(appConfig,urlSuffix,&CallBack{
+	notifies ,err:=requestRecovery(appConfig,&ConnectConfig{
+		Uri:urlSuffix,
+		Timeout:nofity_connect_timeout,
+	},&CallBack{
 		SuccessCallBack:getRemoteConfigSuccessCallBack,
 	})
 

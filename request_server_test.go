@@ -85,6 +85,12 @@ func normalBackupConfigResponse(rw http.ResponseWriter, req *http.Request) {
 		rw.WriteHeader(http.StatusBadGateway)
 	}
 }
+
+//wait long time then response
+func longTimeResponse(rw http.ResponseWriter, req *http.Request) {
+	time.Sleep(10*time.Second);
+	fmt.Fprintf(rw, configResponseStr)
+}
 //
 //func errorBackupConfigResponse(rw http.ResponseWriter, req *http.Request) {
 //	rw.WriteHeader(http.StatusBadGateway)
