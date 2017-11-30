@@ -15,10 +15,35 @@ func TestRequestRecovery(t *testing.T) {
 	appConfig:=GetAppConfig()
 	urlSuffix:=getConfigUrlSuffix(appConfig)
 
-	o,err:=requestRecovery(appConfig,urlSuffix,&CallBack{
+	o,err:=requestRecovery(appConfig,&ConnectConfig{
+		Uri:urlSuffix,
+	},&CallBack{
 		SuccessCallBack:autoSyncConfigServicesSuccessCallBack,
 	})
 
+	test.Nil(t,err)
+	test.Nil(t,o)
+}
+
+func TestCustomTimeout(t *testing.T) {
+	time.Sleep(1*time.Second)
+	mockIpList(t)
+	go runMockConfigBackupServer(longTimeResponse)
+	defer closeAllMockServicesServer()
+
+	startTime := time.Now().Second()
+	appConfig:=GetAppConfig()
+	urlSuffix:=getConfigUrlSuffix(appConfig)
+
+	o,err:=requestRecovery(appConfig,&ConnectConfig{
+		Uri:urlSuffix,
+		Timeout:11*time.Second,
+	},&CallBack{
+		SuccessCallBack:autoSyncConfigServicesSuccessCallBack,
+	})
+
+	endTime := time.Now().Second()
+	test.Equal(t,10,endTime-startTime)
 	test.Nil(t,err)
 	test.Nil(t,o)
 }

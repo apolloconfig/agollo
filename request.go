@@ -14,10 +14,22 @@ type CallBack struct {
 	NotModifyCallBack func()error
 }
 
-func request(url string,callBack *CallBack) (interface{},error){
-	client := &http.Client{
-		Timeout:connect_timeout,
+type ConnectConfig struct {
+	//设置到http.client中timeout字段
+	Timeout time.Duration
+	//连接接口的uri
+	Uri string
+}
+
+func request(requestUrl string,connectionConfig *ConnectConfig,callBack *CallBack) (interface{},error){
+	client := &http.Client{}
+	//如有设置自定义超时时间即使用
+	if connectionConfig!=nil&&connectionConfig.Timeout!=0{
+		client.Timeout=connectionConfig.Timeout
+	}else{
+		client.Timeout=connect_timeout
 	}
+
 	retry:=0
 	var responseBody []byte
 	var err error
@@ -29,7 +41,7 @@ func request(url string,callBack *CallBack) (interface{},error){
 			break
 		}
 
-		res,err=client.Get(url)
+		res,err=client.Get(requestUrl)
 
 		if res==nil||err!=nil{
 			seelog.Error("Connect Apollo Server Fail,Error:",err)
@@ -77,7 +89,7 @@ func request(url string,callBack *CallBack) (interface{},error){
 }
 
 func requestRecovery(appConfig *AppConfig,
-	urlSuffix string,
+	connectConfig *ConnectConfig,
 	callBack *CallBack)(interface{},error) {
 	format:="%s%s"
 	var err error
@@ -89,8 +101,8 @@ func requestRecovery(appConfig *AppConfig,
 			return nil,err
 		}
 
-		requestUrl:=fmt.Sprintf(format,host,urlSuffix)
-		response,err=request(requestUrl,callBack)
+		requestUrl:=fmt.Sprintf(format,host,connectConfig.Uri)
+		response,err=request(requestUrl,connectConfig,callBack)
 		if err==nil{
 			return response,err
 		}
