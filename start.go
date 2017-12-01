@@ -2,6 +2,14 @@ package agollo
 
 //start apollo
 func Start() {
+	StartWithLogger(nil)
+}
+
+func StartWithLogger(loggerInterface LoggerInterface) {
+	if loggerInterface != nil {
+		initLogger(loggerInterface)
+	}
+
 	//first sync
 	notifySyncConfigServices()
 

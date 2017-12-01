@@ -2,7 +2,6 @@ package agollo
 
 import (
 	"strconv"
-	"github.com/cihub/seelog"
 	"github.com/coocood/freecache"
 )
 
@@ -24,7 +23,7 @@ var (
 
 func updateApolloConfig(apolloConfig *ApolloConfig)  {
 	if apolloConfig==nil{
-		seelog.Error("apolloConfig is null,can't update!")
+		logger.Error("apolloConfig is null,can't update!")
 		return
 	}
 	go updateApolloConfigCache(apolloConfig.Configurations,configCacheExpireTime)
@@ -89,7 +88,7 @@ func GetCurrentApolloConfig()*ApolloConnConfig  {
 func getConfigValue(key string) interface{}  {
 	value,err:=apolloConfigCache.Get([]byte(key))
 	if err!=nil{
-		seelog.Error("get config value fail!err:",err)
+		logger.Error("get config value fail!err:",err)
 		return empty
 	}
 
@@ -120,7 +119,7 @@ func GetIntValue(key string,defaultValue int) int {
 
 	i,err:=strconv.Atoi(value)
 	if err!=nil{
-		seelog.Debug("convert to int fail!error:",err)
+		logger.Debug("convert to int fail!error:",err)
 		return defaultValue
 	}
 
@@ -132,7 +131,7 @@ func GetFloatValue(key string,defaultValue float64) float64 {
 
 	i,err:=strconv.ParseFloat(value,64)
 	if err!=nil{
-		seelog.Debug("convert to float fail!error:",err)
+		logger.Debug("convert to float fail!error:",err)
 		return defaultValue
 	}
 
@@ -144,7 +143,7 @@ func GetBoolValue(key string,defaultValue bool) bool {
 
 	b,err:=strconv.ParseBool(value)
 	if err!=nil{
-		seelog.Debug("convert to bool fail!error:",err)
+		logger.Debug("convert to bool fail!error:",err)
 		return defaultValue
 	}
 

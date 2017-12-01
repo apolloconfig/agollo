@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"fmt"
 	//"time"
-	"github.com/cihub/seelog"
 )
 
 const servicesConfigResponseStr  =`[{
@@ -74,10 +73,10 @@ func runMockServicesConfigServer(handler func(http.ResponseWriter, *http.Request
 	//server.ListenAndServe()
 
 
-	seelog.Info("mock notify server:",appConfig.Ip)
+	logger.Info("mock notify server:",appConfig.Ip)
 	err:=http.ListenAndServe(fmt.Sprintf("%s",appConfig.Ip), nil)
 	if err!=nil{
-		seelog.Error("runMockConfigServer err:",err)
+		logger.Error("runMockConfigServer err:",err)
 	}
 }
 
