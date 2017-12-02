@@ -47,6 +47,14 @@ func main() {
 }
 ```
 
+- 启动agollo - 自定义logger控件（感谢 @Adol1111 提供）
+
+``` go
+func main() {
+	 go agollo.StartWithLogger(loggerInterface)
+}
+```
+
 - 获取Apollo的配置
   - String
   
