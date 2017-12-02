@@ -2,7 +2,6 @@ package agollo
 
 import (
 	"time"
-	"github.com/cihub/seelog"
 )
 
 type AutoRefreshConfigComponent struct {
@@ -29,7 +28,7 @@ func autoSyncConfigServicesSuccessCallBack(responseBody []byte)(o interface{},er
 	apolloConfig,err:=createApolloConfigWithJson(responseBody)
 
 	if err!=nil{
-		seelog.Error("Unmarshal Msg Fail,Error:",err)
+		logger.Error("Unmarshal Msg Fail,Error:",err)
 		return nil,err
 	}
 

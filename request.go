@@ -2,7 +2,6 @@ package agollo
 
 import (
 	"net/http"
-	"github.com/cihub/seelog"
 	"io/ioutil"
 	"time"
 	"errors"
@@ -44,7 +43,7 @@ func request(requestUrl string,connectionConfig *ConnectConfig,callBack *CallBac
 		res,err=client.Get(requestUrl)
 
 		if res==nil||err!=nil{
-			seelog.Error("Connect Apollo Server Fail,Error:",err)
+			logger.Error("Connect Apollo Server Fail,Error:",err)
 			continue
 		}
 
@@ -53,7 +52,7 @@ func request(requestUrl string,connectionConfig *ConnectConfig,callBack *CallBac
 		case http.StatusOK:
 			responseBody, err = ioutil.ReadAll(res.Body)
 			if err!=nil{
-				seelog.Error("Connect Apollo Server Fail,Error:",err)
+				logger.Error("Connect Apollo Server Fail,Error:",err)
 				continue
 			}
 
@@ -63,16 +62,16 @@ func request(requestUrl string,connectionConfig *ConnectConfig,callBack *CallBac
 				return nil,nil
 			}
 		case http.StatusNotModified:
-			seelog.Info("Config Not Modified:", err)
+			logger.Info("Config Not Modified:", err)
 			if callBack!=nil&&callBack.NotModifyCallBack!=nil {
 				return nil,callBack.NotModifyCallBack()
 			}else{
 				return nil,nil
 			}
 		default:
-			seelog.Error("Connect Apollo Server Fail,Error:",err)
+			logger.Error("Connect Apollo Server Fail,Error:",err)
 			if res!=nil{
-				seelog.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
+				logger.Error("Connect Apollo Server Fail,StatusCode:",res.StatusCode)
 			}
 			err=errors.New("Connect Apollo Server Fail!")
 			// if error then sleep
@@ -81,7 +80,7 @@ func request(requestUrl string,connectionConfig *ConnectConfig,callBack *CallBac
 		}
 	}
 
-	seelog.Error("Over Max Retry Still Error,Error:",err)
+	logger.Error("Over Max Retry Still Error,Error:",err)
 	if err!=nil{
 		err=errors.New("Over Max Retry Still Error!")
 	}
