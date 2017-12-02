@@ -6,7 +6,6 @@ import (
 	"time"
 	"fmt"
 	"net/url"
-	"github.com/cihub/seelog"
 	"encoding/json"
 )
 
@@ -165,12 +164,12 @@ func syncServerIpListSuccessCallBack(responseBody []byte)(o interface{},err erro
 	err= json.Unmarshal(responseBody,&tmpServerInfo)
 
 	if err!=nil{
-		seelog.Error("Unmarshal json Fail,Error:",err)
+		logger.Error("Unmarshal json Fail,Error:",err)
 		return
 	}
 
 	if len(tmpServerInfo)==0 {
-		seelog.Info("get no real server!")
+		logger.Info("get no real server!")
 		return
 	}
 
@@ -193,7 +192,7 @@ func syncServerIpList() error{
 		panic("can not find apollo config!please confirm!")
 	}
 	url:=getServicesConfigUrl(appConfig)
-	seelog.Debug("url:",url)
+	logger.Debug("url:",url)
 
 	_,err:=request(url,&ConnectConfig{
 	},&CallBack{
@@ -213,7 +212,7 @@ func initRefreshInterval() error {
 	if isNotEmpty(customizedRefreshInterval){
 		interval,err:=strconv.Atoi(customizedRefreshInterval)
 		if isNotNil(err) {
-			seelog.Errorf("Config for apollo.refreshInterval is invalid:%s",customizedRefreshInterval)
+			logger.Errorf("Config for apollo.refreshInterval is invalid:%s",customizedRefreshInterval)
 			return err
 		}
 		refresh_interval=time.Duration(interval)

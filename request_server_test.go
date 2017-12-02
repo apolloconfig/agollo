@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-	"github.com/cihub/seelog"
 )
 
 var IP1="localhost:7080"
@@ -59,10 +58,10 @@ func mockConfigServerListen(ip string,handler func(http.ResponseWriter, *http.Re
 		panic("can not find apollo config!please confirm!")
 	}
 
-	seelog.Info("mockConfigServerListen:",appConfig.Ip)
+	logger.Info("mockConfigServerListen:",appConfig.Ip)
 	err:=http.ListenAndServe(fmt.Sprintf("%s",ip), nil)
 	if err!=nil{
-		seelog.Error("runMockConfigServer err:",err)
+		logger.Error("runMockConfigServer err:",err)
 	}
 }
 

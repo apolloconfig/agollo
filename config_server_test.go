@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"fmt"
 	"time"
-	"github.com/cihub/seelog"
 )
 
 const configResponseStr  =`{
@@ -30,7 +29,7 @@ func runMockConfigServer(handler func(http.ResponseWriter, *http.Request)) {
 
 	err:=http.ListenAndServe(fmt.Sprintf("%s",appConfig.Ip), nil)
 	if err!=nil{
-		seelog.Error("runMockConfigServer err:",err)
+		logger.Error("runMockConfigServer err:",err)
 	}
 }
 

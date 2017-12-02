@@ -4,7 +4,6 @@ import (
 	"time"
 	"encoding/json"
 	"sync"
-	"github.com/cihub/seelog"
 )
 
 
@@ -44,7 +43,7 @@ func toApolloConfig(resBody []byte) ([]*apolloNotify,error) {
 	err:=json.Unmarshal(resBody,&remoteConfig)
 
 	if err!=nil{
-		seelog.Error("Unmarshal Msg Fail,Error:",err)
+		logger.Error("Unmarshal Msg Fail,Error:",err)
 		return nil,err
 	}
 	return remoteConfig,nil

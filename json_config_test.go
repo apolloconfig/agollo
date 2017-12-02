@@ -76,7 +76,6 @@ func TestCreateAppConfigWithJsonError(t *testing.T) {
 import (
 	"os"
 	"strconv"
-	"github.com/cihub/seelog"
 	"time"
 	"fmt"
 	"net/url"
