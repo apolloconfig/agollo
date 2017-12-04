@@ -26,7 +26,7 @@ func updateApolloConfig(apolloConfig *ApolloConfig)  {
 		logger.Error("apolloConfig is null,can't update!")
 		return
 	}
-	go updateApolloConfigCache(apolloConfig.Configurations,configCacheExpireTime)
+	updateApolloConfigCache(apolloConfig.Configurations,configCacheExpireTime)
 
 	//update apollo connection config
 

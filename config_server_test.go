@@ -53,6 +53,10 @@ func normalConfigResponse(rw http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func onlyNormalConfigResponse(rw http.ResponseWriter, req *http.Request) {
+	fmt.Fprintf(rw, configResponseStr)
+}
+
 func notModifyConfigResponse(rw http.ResponseWriter, req *http.Request) {
 	time.Sleep(800 * time.Microsecond)
 	rw.WriteHeader(http.StatusNotModified)
