@@ -43,6 +43,9 @@ func TestCustomTimeout(t *testing.T) {
 	})
 
 	endTime := time.Now().Second()
+	t.Log("starttime:",startTime)
+	t.Log("endTime:",endTime)
+	t.Log("duration:",endTime-startTime)
 	test.Equal(t,10,endTime-startTime)
 	test.Nil(t,err)
 	test.Nil(t,o)

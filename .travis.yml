@@ -4,6 +4,7 @@ sudo: required
 go:
   - 1.7
   - 1.8
+  - 1.9
 
 env:
     - GO15VENDOREXPERIMENT="1"
