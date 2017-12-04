@@ -46,6 +46,11 @@ func normalResponse(rw http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func onlyNormalResponse(rw http.ResponseWriter, req *http.Request) {
+	result := fmt.Sprintf(responseStr, 3)
+	fmt.Fprintf(rw, "%s", result)
+}
+
 //Error response
 //will hold 5s and keep response 404
 func errorResponse(rw http.ResponseWriter, req *http.Request) {

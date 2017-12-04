@@ -2,11 +2,16 @@ package agollo
 
 import (
 	"testing"
-	"time"
+	"github.com/zouyx/agollo/test"
 )
 
 func TestStart(t *testing.T) {
+	go runMockConfigServer(onlyNormalConfigResponse)
+	go runMockNotifyServer(onlyNormalResponse)
+	defer closeMockConfigServer()
+
 	Start()
 
-	time.Sleep(2*time.Second)
+	value := getValue("key1")
+	test.Equal(t,"value1",value)
 }
