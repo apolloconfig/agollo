@@ -39,7 +39,19 @@ go get -u github.com/zouyx/agollo
 
 # Usage
 
-- 启动agollo
+- 异步启动agollo
+
+场景：启动程序不依赖加载Apollo的配置。
+
+``` go
+func main() {
+	 go agollo.Start()
+}
+```
+
+- 同步启动agollo（v1.2.0+）
+
+场景：启动程序依赖加载Apollo的配置。例：初始化程序基础配置。
 
 ``` go
 func main() {
