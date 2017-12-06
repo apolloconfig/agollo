@@ -55,7 +55,7 @@ func main() {
 
 ``` go
 func main() {
-	 go agollo.Start()
+	 agollo.Start()
 }
 ```
 
