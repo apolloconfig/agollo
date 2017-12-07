@@ -3,6 +3,7 @@ package agollo
 import (
 	"strconv"
 	"github.com/coocood/freecache"
+	"container/list"
 )
 
 const (
@@ -15,18 +16,25 @@ const (
 	configCacheExpireTime=120
 )
 var (
-	currentConnApolloConfig *ApolloConnConfig=&ApolloConnConfig{}
+	currentConnApolloConfig = &ApolloConnConfig{}
 
 	//config from apollo
-	apolloConfigCache *freecache.Cache = freecache.NewCache(apolloConfigCacheSize)
+	apolloConfigCache = freecache.NewCache(apolloConfigCacheSize)
 )
 
-func updateApolloConfig(apolloConfig *ApolloConfig)  {
+func updateApolloConfig(apolloConfig *ApolloConfig) {
 	if apolloConfig==nil{
 		logger.Error("apolloConfig is null,can't update!")
 		return
 	}
-	updateApolloConfigCache(apolloConfig.Configurations,configCacheExpireTime)
+	//get change list
+	changeList := updateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime)
+
+	//create config change event base on change list
+	event := createConfigChangeEvent(changeList, apolloConfig.NamespaceName)
+
+	//push change event to channel
+	pushChangeEvent(event)
 
 	//update apollo connection config
 
@@ -35,9 +43,9 @@ func updateApolloConfig(apolloConfig *ApolloConfig)  {
 	currentConnApolloConfig=&apolloConfig.ApolloConnConfig
 }
 
-func updateApolloConfigCache(configurations map[string]string,expireTime int)  {
+func updateApolloConfigCache(configurations map[string]string,expireTime int) *list.List {
 	if configurations==nil||len(configurations)==0{
-		return
+		return nil
 	}
 
 	//get old keys
@@ -47,15 +55,53 @@ func updateApolloConfigCache(configurations map[string]string,expireTime int)  {
 		mp[string(en.Key)] = true
 	}
 
-	// update new keys
+	changes := list.New()
+
+	// update new
+	// keys
 	for key, value := range configurations {
+		//key state insert or update
+		//insert
+		if !mp[key]{
+			changes.PushBack(createAddConfigChange(key,value))
+		} else {
+			//update
+			oldValue, _ := apolloConfigCache.Get([]byte(key))
+			changes.PushBack(createModifyConfigChange(key,string(oldValue),value))
+		}
+
+
 		apolloConfigCache.Set([]byte(key), []byte(value), expireTime)
 		delete(mp, string(key))
 	}
 
 	// remove del keys
 	for key := range mp {
+		//get old value and del
+		oldValue, _ := apolloConfigCache.Get([]byte(key))
+		changes.PushBack(createDeletedConfigChange(key,string(oldValue)))
+
 		apolloConfigCache.Del([]byte(key))
+	}
+
+	return changes
+}
+
+//base on changeList create Change event
+func createConfigChangeEvent(changeList *list.List,nameSpace string) *ChangeEvent {
+	if changeList==nil{
+		return nil
+	}
+
+	changes:=make(map[string]*ConfigChange)
+	for e := changeList.Front(); e != nil; e = e.Next() {
+		change := e.Value.(*ConfigChange)
+		changes[change.Key]=change
+	}
+
+	return &ChangeEvent{
+		Namespace:nameSpace,
+		Changes:changes,
 	}
 }
 
