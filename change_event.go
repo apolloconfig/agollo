@@ -32,6 +32,6 @@ func ListenChangeEvent() chan *ChangeEvent{
 }
 
 //推送配置改变事件
-func PushChangeEvent(event *ChangeEvent) {
+func pushChangeEvent(event *ChangeEvent) {
 	notifyChan<-event
 }
