@@ -17,6 +17,18 @@ const configResponseStr  =`{
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
+const configChangeResponseStr  =`{
+  "appId": "100004458",
+  "cluster": "default",
+  "namespaceName": "application",
+  "configurations": {
+    "key1":"value1",
+    "key2":"value2",
+    "string":"string"
+  },
+  "releaseKey": "20170430092936-dee2d58e74515ff3"
+}`
+
 //run mock config server
 func runMockConfigServer(handler func(http.ResponseWriter, *http.Request)) {
 	appConfig:=GetAppConfig()
@@ -51,6 +63,10 @@ func normalConfigResponse(rw http.ResponseWriter, req *http.Request) {
 		time.Sleep(500 * time.Microsecond)
 		rw.WriteHeader(http.StatusNotModified)
 	}
+}
+
+func changeConfigResponse(rw http.ResponseWriter, req *http.Request) {
+	fmt.Fprintf(rw, configChangeResponseStr)
 }
 
 func onlyNormalConfigResponse(rw http.ResponseWriter, req *http.Request) {
