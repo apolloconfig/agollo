@@ -67,6 +67,17 @@ func main() {
 }
 ```
 
+- 监听变更事件（阻塞）
+
+``` go
+func main() {
+	event := agollo.ListenChangeEvent()
+	changeEvent := <-event
+	bytes, _ := json.Marshal(changeEvent)
+	fmt.Println("event:", string(bytes))
+}
+```
+
 - 获取Apollo的配置
   - String
   
