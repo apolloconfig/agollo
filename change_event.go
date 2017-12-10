@@ -20,16 +20,15 @@ type ChangeEvent struct {
 }
 
 type ConfigChange struct {
-	Key string
 	OldValue string
 	NewValue string
 	ChangeType ConfigChangeType
 }
 
 //list config change event
-func ListenChangeEvent() chan *ChangeEvent{
+func ListenChangeEvent() <-chan *ChangeEvent{
 	if notifyChan==nil{
-		notifyChan=make(chan *ChangeEvent,10)
+		notifyChan=make(chan *ChangeEvent,1)
 	}
 	return notifyChan
 }
@@ -45,9 +44,8 @@ func pushChangeEvent(event *ChangeEvent) {
 }
 
 //create modify config change
-func createModifyConfigChange(key string,oldValue string,newValue string) *ConfigChange {
+func createModifyConfigChange(oldValue string,newValue string) *ConfigChange {
 	return &ConfigChange{
-		Key:key,
 		OldValue:oldValue,
 		NewValue:newValue,
 		ChangeType:MODIFIED,
@@ -55,18 +53,16 @@ func createModifyConfigChange(key string,oldValue string,newValue string) *Confi
 }
 
 //create add config change
-func createAddConfigChange(key string,newValue string) *ConfigChange {
+func createAddConfigChange(newValue string) *ConfigChange {
 	return &ConfigChange{
-		Key:key,
 		NewValue:newValue,
 		ChangeType:ADDED,
 	}
 }
 
 //create delete config change
-func createDeletedConfigChange(key string,oldValue string) *ConfigChange {
+func createDeletedConfigChange(oldValue string) *ConfigChange {
 	return &ConfigChange{
-		Key:key,
 		OldValue:oldValue,
 		ChangeType:DELETED,
 	}

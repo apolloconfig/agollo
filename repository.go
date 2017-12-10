@@ -3,7 +3,6 @@ package agollo
 import (
 	"strconv"
 	"github.com/coocood/freecache"
-	"container/list"
 )
 
 const (
@@ -43,7 +42,7 @@ func updateApolloConfig(apolloConfig *ApolloConfig) {
 	currentConnApolloConfig=&apolloConfig.ApolloConnConfig
 }
 
-func updateApolloConfigCache(configurations map[string]string,expireTime int) *list.List {
+func updateApolloConfigCache(configurations map[string]string,expireTime int) map[string]*ConfigChange {
 	if configurations==nil||len(configurations)==0{
 		return nil
 	}
@@ -55,7 +54,7 @@ func updateApolloConfigCache(configurations map[string]string,expireTime int) *l
 		mp[string(en.Key)] = true
 	}
 
-	changes := list.New()
+	changes:=make(map[string]*ConfigChange)
 
 	// update new
 	// keys
@@ -63,11 +62,11 @@ func updateApolloConfigCache(configurations map[string]string,expireTime int) *l
 		//key state insert or update
 		//insert
 		if !mp[key]{
-			changes.PushBack(createAddConfigChange(key,value))
+			changes[key]=createAddConfigChange(value)
 		} else {
 			//update
 			oldValue, _ := apolloConfigCache.Get([]byte(key))
-			changes.PushBack(createModifyConfigChange(key,string(oldValue),value))
+			changes[key]=createModifyConfigChange(string(oldValue),value)
 		}
 
 
@@ -79,7 +78,7 @@ func updateApolloConfigCache(configurations map[string]string,expireTime int) *l
 	for key := range mp {
 		//get old value and del
 		oldValue, _ := apolloConfigCache.Get([]byte(key))
-		changes.PushBack(createDeletedConfigChange(key,string(oldValue)))
+		changes[key]=createDeletedConfigChange(string(oldValue))
 
 		apolloConfigCache.Del([]byte(key))
 	}
@@ -88,17 +87,7 @@ func updateApolloConfigCache(configurations map[string]string,expireTime int) *l
 }
 
 //base on changeList create Change event
-func createConfigChangeEvent(changeList *list.List,nameSpace string) *ChangeEvent {
-	if changeList==nil{
-		return nil
-	}
-
-	changes:=make(map[string]*ConfigChange)
-	for e := changeList.Front(); e != nil; e = e.Next() {
-		change := e.Value.(*ConfigChange)
-		changes[change.Key]=change
-	}
-
+func createConfigChangeEvent(changes map[string]*ConfigChange,nameSpace string) *ChangeEvent {
 	return &ChangeEvent{
 		Namespace:nameSpace,
 		Changes:changes,
