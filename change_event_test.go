@@ -12,6 +12,7 @@ func TestListenChangeEvent(t *testing.T) {
 	go buildNotifyResult(t)
 
 	event := ListenChangeEvent()
+	defer clearChannel()
 	changeEvent := <-event
 	bytes, _ := json.Marshal(changeEvent)
 	fmt.Println("event:", string(bytes))
@@ -43,6 +44,10 @@ func TestListenChangeEvent(t *testing.T) {
 	test.Equal(t,"",changeEvent.Changes["key2"].OldValue)
 	test.Equal(t,ADDED,changeEvent.Changes["key2"].ChangeType)
 
+}
+
+func clearChannel()  {
+	notifyChan=nil
 }
 
 func buildNotifyResult(t *testing.T) {
