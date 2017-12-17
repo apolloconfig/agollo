@@ -43,7 +43,7 @@ func updateApolloConfig(apolloConfig *ApolloConfig) {
 }
 
 func updateApolloConfigCache(configurations map[string]string,expireTime int) map[string]*ConfigChange {
-	if configurations==nil||len(configurations)==0{
+	if (configurations==nil||len(configurations)==0)&& apolloConfigCache.EntryCount() == 0 {
 		return nil
 	}
 
@@ -56,22 +56,23 @@ func updateApolloConfigCache(configurations map[string]string,expireTime int) ma
 
 	changes:=make(map[string]*ConfigChange)
 
-	// update new
-	// keys
-	for key, value := range configurations {
-		//key state insert or update
-		//insert
-		if !mp[key]{
-			changes[key]=createAddConfigChange(value)
-		} else {
-			//update
-			oldValue, _ := apolloConfigCache.Get([]byte(key))
-			changes[key]=createModifyConfigChange(string(oldValue),value)
+	if configurations != nil {
+		// update new
+		// keys
+		for key, value := range configurations {
+			//key state insert or update
+			//insert
+			if !mp[key] {
+				changes[key] = createAddConfigChange(value)
+			} else {
+				//update
+				oldValue, _ := apolloConfigCache.Get([]byte(key))
+				changes[key] = createModifyConfigChange(string(oldValue), value)
+			}
+
+			apolloConfigCache.Set([]byte(key), []byte(value), expireTime)
+			delete(mp, string(key))
 		}
-
-
-		apolloConfigCache.Set([]byte(key), []byte(value), expireTime)
-		delete(mp, string(key))
 	}
 
 	// remove del keys
