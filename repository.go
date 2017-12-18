@@ -29,11 +29,13 @@ func updateApolloConfig(apolloConfig *ApolloConfig) {
 	//get change list
 	changeList := updateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime)
 
-	//create config change event base on change list
-	event := createConfigChangeEvent(changeList, apolloConfig.NamespaceName)
+	if len(changeList) > 0 {
+		//create config change event base on change list
+		event := createConfigChangeEvent(changeList, apolloConfig.NamespaceName)
 
-	//push change event to channel
-	pushChangeEvent(event)
+		//push change event to channel
+		pushChangeEvent(event)
+	}
 
 	//update apollo connection config
 
@@ -67,7 +69,9 @@ func updateApolloConfigCache(configurations map[string]string,expireTime int) ma
 			} else {
 				//update
 				oldValue, _ := apolloConfigCache.Get([]byte(key))
-				changes[key] = createModifyConfigChange(string(oldValue), value)
+				if string(oldValue) != value {
+					changes[key] = createModifyConfigChange(string(oldValue), value)
+				}
 			}
 
 			apolloConfigCache.Set([]byte(key), []byte(value), expireTime)
