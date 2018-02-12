@@ -106,7 +106,11 @@ func main() {
  
   欢迎查阅 [Wiki](https://github.com/zouyx/agollo/wiki) 或者 [godoc](http://godoc.org/github.com/zouyx/agollo) 获取更多有用的信息
   
-  如果你觉得该工具还不错或者有问题，一定要让我知道，可以发邮件或者[留言](https://github.com/zouyx/agollo/issues/20)。
+  如果你觉得该工具还不错或者有问题，一定要让我知道，可以发邮件或者[留言](https://github.com/zouyx/agollo/issues)。
+
+# User
+
+* [使用者名单](https://github.com/zouyx/agollo/issues/20)
 
 # Contribution
   * Source Code: https://github.com/zouyx/agollo/
