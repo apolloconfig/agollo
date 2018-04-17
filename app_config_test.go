@@ -8,12 +8,41 @@ import (
 	"github.com/zouyx/agollo/test"
 )
 
+func init() {
+	readyConfig:=&AppConfig{
+		AppId:"test1",
+		Cluster:"dev1",
+		NamespaceName:"application1",
+		Ip:"localhost:8889",
+	}
+	SetLoadAppConfig(func() (*AppConfig, error) {
+		return readyConfig,nil
+	})
+}
+
 func TestInit(t *testing.T) {
 	config:=GetAppConfig()
 
 	test.NotNil(t,config)
 	test.Equal(t,"test",config.AppId)
 	test.Equal(t,"dev",config.Cluster)
+	test.Equal(t,"application",config.NamespaceName)
+	test.Equal(t,"localhost:8888",config.Ip)
+
+	apolloConfig:=GetCurrentApolloConfig()
+	test.Equal(t,"test",apolloConfig.AppId)
+	test.Equal(t,"dev",apolloConfig.Cluster)
+	test.Equal(t,"application",apolloConfig.NamespaceName)
+
+}
+
+func TestStructInit(t *testing.T) {
+
+	config:=GetAppConfig()
+
+	test.NotNil(t,config)
+	test.Equal(t,"test1",config.AppId)
+	test.Equal(t,"dev1",config.Cluster)
 	test.Equal(t,"application",config.NamespaceName)
 	test.Equal(t,"localhost:8888",config.Ip)
 
