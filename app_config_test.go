@@ -58,6 +58,8 @@ func TestStructInit(t *testing.T) {
 	value := getValue("key1")
 	test.Equal(t,"value1",value)
 
+	//revert file config
+	initFileConfig()
 }
 
 func TestInitRefreshInterval_1(t *testing.T) {
