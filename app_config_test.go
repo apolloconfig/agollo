@@ -8,18 +8,6 @@ import (
 	"github.com/zouyx/agollo/test"
 )
 
-func init() {
-	readyConfig:=&AppConfig{
-		AppId:"test1",
-		Cluster:"dev1",
-		NamespaceName:"application1",
-		Ip:"localhost:8889",
-	}
-	SetLoadAppConfig(func() (*AppConfig, error) {
-		return readyConfig,nil
-	})
-}
-
 func TestInit(t *testing.T) {
 	config:=GetAppConfig()
 
@@ -38,18 +26,37 @@ func TestInit(t *testing.T) {
 
 func TestStructInit(t *testing.T) {
 
-	config:=GetAppConfig()
+	readyConfig:=&AppConfig{
+		AppId:"test1",
+		Cluster:"dev1",
+		NamespaceName:"application1",
+		Ip:"localhost:8889",
+	}
 
+	InitCustomConfig(func() (*AppConfig, error) {
+		return readyConfig,nil
+	})
+
+	config:=GetAppConfig()
 	test.NotNil(t,config)
 	test.Equal(t,"test1",config.AppId)
 	test.Equal(t,"dev1",config.Cluster)
-	test.Equal(t,"application",config.NamespaceName)
-	test.Equal(t,"localhost:8888",config.Ip)
+	test.Equal(t,"application1",config.NamespaceName)
+	test.Equal(t,"localhost:8889",config.Ip)
 
 	apolloConfig:=GetCurrentApolloConfig()
-	test.Equal(t,"test",apolloConfig.AppId)
-	test.Equal(t,"dev",apolloConfig.Cluster)
-	test.Equal(t,"application",apolloConfig.NamespaceName)
+	test.Equal(t,"test1",apolloConfig.AppId)
+	test.Equal(t,"dev1",apolloConfig.Cluster)
+	test.Equal(t,"application1",apolloConfig.NamespaceName)
+
+	go runMockConfigServer(onlyNormalConfigResponse)
+	go runMockNotifyServer(onlyNormalResponse)
+	defer closeMockConfigServer()
+
+	Start()
+
+	value := getValue("key1")
+	test.Equal(t,"value1",value)
 
 }
 

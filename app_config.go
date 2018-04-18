@@ -42,8 +42,6 @@ var (
 	//next try connect period - 60 second
 	next_try_connect_period int64=60
 
-	//load app config method
-	loadAppConfig func()(*AppConfig,error)
 )
 
 type AppConfig struct {
@@ -121,7 +119,7 @@ func init() {
 	initCommon()
 
 	//init config
-	initConfig()
+	initFileConfig()
 }
 
 func initCommon()  {
@@ -129,16 +127,30 @@ func initCommon()  {
 	initRefreshInterval()
 }
 
-func initConfig() {
+func initFileConfig()  {
+	// default use application.properties
+	initConfig(nil)
+}
+
+func InitCustomConfig(loadAppConfig func()(*AppConfig,error)) {
+
+	initConfig(loadAppConfig)
+
+	//init all notification
+	initAllNotifications()
+
+}
+
+func initConfig(loadAppConfig func()(*AppConfig,error)) {
 	var err error
 	//init config file
-	appConfig,err = getLoadAppConfig()
+	appConfig,err = getLoadAppConfig(loadAppConfig)
 
 	if err!=nil{
-		panic(err)
+		return
 	}
 
-	go func(appConfig *AppConfig) {
+	func(appConfig *AppConfig) {
 		apolloConfig:=&ApolloConfig{}
 		apolloConfig.AppId=appConfig.AppId
 		apolloConfig.Cluster=appConfig.Cluster
@@ -149,16 +161,11 @@ func initConfig() {
 }
 
 // set load app config's function
-func getLoadAppConfig() (*AppConfig,error) {
+func getLoadAppConfig(loadAppConfig func()(*AppConfig,error)) (*AppConfig,error) {
 	if loadAppConfig!=nil{
 		return loadAppConfig()
 	}
 	return loadJsonConfig(appConfigFileName)
-}
-
-// set load app config's function
-func SetLoadAppConfig(load func()(*AppConfig,error)) {
-	loadAppConfig=load
 }
 
 //set timer for update ip list
