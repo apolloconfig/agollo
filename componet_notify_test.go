@@ -8,6 +8,8 @@ import (
 )
 
 func TestSyncConfigServices(t *testing.T) {
+	defer closeMockNotifyServer()
+
 	notifySyncConfigServices()
 }
 

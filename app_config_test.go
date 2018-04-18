@@ -49,14 +49,14 @@ func TestStructInit(t *testing.T) {
 	test.Equal(t,"dev1",apolloConfig.Cluster)
 	test.Equal(t,"application1",apolloConfig.NamespaceName)
 
-	go runMockConfigServer(onlyNormalConfigResponse)
-	go runMockNotifyServer(onlyNormalResponse)
-	defer closeMockConfigServer()
-
-	Start()
-
-	value := getValue("key1")
-	test.Equal(t,"value1",value)
+	//go runMockConfigServer(onlyNormalConfigResponse)
+	//go runMockNotifyServer(onlyNormalResponse)
+	//defer closeMockConfigServer()
+	//
+	//Start()
+	//
+	//value := getValue("key1")
+	//test.Equal(t,"value1",value)
 
 	//revert file config
 	initFileConfig()
