@@ -24,6 +24,44 @@ func TestInit(t *testing.T) {
 
 }
 
+func TestStructInit(t *testing.T) {
+
+	readyConfig:=&AppConfig{
+		AppId:"test1",
+		Cluster:"dev1",
+		NamespaceName:"application1",
+		Ip:"localhost:8889",
+	}
+
+	InitCustomConfig(func() (*AppConfig, error) {
+		return readyConfig,nil
+	})
+
+	config:=GetAppConfig()
+	test.NotNil(t,config)
+	test.Equal(t,"test1",config.AppId)
+	test.Equal(t,"dev1",config.Cluster)
+	test.Equal(t,"application1",config.NamespaceName)
+	test.Equal(t,"localhost:8889",config.Ip)
+
+	apolloConfig:=GetCurrentApolloConfig()
+	test.Equal(t,"test1",apolloConfig.AppId)
+	test.Equal(t,"dev1",apolloConfig.Cluster)
+	test.Equal(t,"application1",apolloConfig.NamespaceName)
+
+	//go runMockConfigServer(onlyNormalConfigResponse)
+	//go runMockNotifyServer(onlyNormalResponse)
+	//defer closeMockConfigServer()
+	//
+	//Start()
+	//
+	//value := getValue("key1")
+	//test.Equal(t,"value1",value)
+
+	//revert file config
+	initFileConfig()
+}
+
 func TestInitRefreshInterval_1(t *testing.T) {
 	os.Setenv(refresh_interval_key,"joe")
 

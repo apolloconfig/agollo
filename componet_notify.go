@@ -102,14 +102,20 @@ func updateAllNotifications(remoteConfigs []*apolloNotify) {
 	}
 }
 
+func init() {
+	initAllNotifications()
+}
 
-func init()  {
-	allNotifications=&notificationsMap{
-		notifications:make(map[string]int64,1),
-	}
+func initAllNotifications()  {
 	appConfig:=GetAppConfig()
 
-	allNotifications.setNotify(appConfig.NamespaceName,default_notification_id)
+	if appConfig!=nil {
+		allNotifications = &notificationsMap{
+			notifications: make(map[string]int64, 1),
+		}
+
+		allNotifications.setNotify(appConfig.NamespaceName, default_notification_id)
+	}
 }
 
 type notification struct {

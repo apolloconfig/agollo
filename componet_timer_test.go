@@ -71,7 +71,7 @@ func TestAutoSyncConfigServicesNotModify(t *testing.T) {
 
 func TestAutoSyncConfigServicesError(t *testing.T) {
 	//reload app properties
-	go initConfig()
+	go initFileConfig()
 	go runMockConfigServer(errorConfigResponse)
 	defer closeMockConfigServer()
 
