@@ -9,10 +9,6 @@ import (
 
 //init param
 func init()  {
-	//wait 1s for another go routine update apollo config
-	time.Sleep(1*time.Second)
-
-	createMockApolloConfig(configCacheExpireTime)
 }
 
 func createMockApolloConfig(expireTime int)map[string]string{
