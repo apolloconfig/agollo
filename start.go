@@ -19,3 +19,17 @@ func StartWithLogger(loggerInterface LoggerInterface) {
 	//start long poll sync config
 	go StartRefreshConfig(&NotifyConfigComponent{})
 }
+
+func StartWithConfig(config *AppConfig) {
+	initConfig(func() (*AppConfig, error) {
+		return config, nil
+	})
+	StartWithLogger(nil)
+}
+
+func StartWithConfigFile(fileName string) {
+	initConfig(func() (*AppConfig, error) {
+		return loadJsonConfig(fileName)
+	})
+	StartWithLogger(nil)
+}
