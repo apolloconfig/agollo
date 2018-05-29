@@ -4,6 +4,7 @@ import (
 	"testing"
 	"github.com/zouyx/agollo/test"
 	"time"
+	"fmt"
 )
 
 //func TestInitRefreshInterval(t *testing.T) {
@@ -35,6 +36,30 @@ func TestAutoSyncConfigServices(t *testing.T) {
 	test.Equal(t,"20170430092936-dee2d58e74515ff3",config.ReleaseKey)
 	//test.Equal(t,"value1",config.Configurations["key1"])
 	//test.Equal(t,"value2",config.Configurations["key2"])
+}
+
+func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
+	go runMockConfigServer(longNotmodifiedConfigResponse)
+	defer closeMockConfigServer()
+
+	time.Sleep(1*time.Second)
+
+	appConfig.NextTryConnTime=0
+
+	autoSyncConfigServicesSuccessCallBack([]byte(configResponseStr))
+
+	config:=GetCurrentApolloConfig()
+
+	test.Equal(t,"100004458",config.AppId)
+	test.Equal(t,"default",config.Cluster)
+	test.Equal(t,"application",config.NamespaceName)
+	test.Equal(t,"20170430092936-dee2d58e74515ff3",config.ReleaseKey)
+	test.Equal(t,"value1",getValue("key1"))
+	test.Equal(t,"value2",getValue("key2"))
+
+	err:=autoSyncConfigServices()
+
+	fmt.Println(err)
 }
 
 //test if not modify
