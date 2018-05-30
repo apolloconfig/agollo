@@ -66,7 +66,7 @@ func normalConfigResponse(rw http.ResponseWriter, req *http.Request) {
 }
 
 func longNotmodifiedConfigResponse(rw http.ResponseWriter, req *http.Request) {
-	time.Sleep(2 * time.Second)
+	time.Sleep(500 * time.Microsecond)
 	rw.WriteHeader(http.StatusNotModified)
 }
 

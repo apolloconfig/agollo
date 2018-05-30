@@ -50,6 +50,23 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 
 	config:=GetCurrentApolloConfig()
 
+	fmt.Println("sleeping 10s")
+
+	time.Sleep(10*time.Second)
+
+	fmt.Println("checking cache time left")
+	it := apolloConfigCache.NewIterator()
+	for i := int64(0); i < apolloConfigCache.EntryCount(); i++ {
+		entry := it.Next()
+		if entry==nil{
+			break
+		}
+		timeLeft, err := apolloConfigCache.TTL([]byte(entry.Key))
+		test.Nil(t,err)
+		fmt.Printf("key:%s,time:%v \n",string(entry.Key),timeLeft)
+		test.Equal(t,timeLeft>=110,true)
+	}
+
 	test.Equal(t,"100004458",config.AppId)
 	test.Equal(t,"default",config.Cluster)
 	test.Equal(t,"application",config.NamespaceName)
@@ -58,6 +75,19 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	test.Equal(t,"value2",getValue("key2"))
 
 	err:=autoSyncConfigServices()
+
+	fmt.Println("checking cache time left")
+	it1 := apolloConfigCache.NewIterator()
+	for i := int64(0); i < apolloConfigCache.EntryCount(); i++ {
+		entry := it1.Next()
+		if entry==nil{
+			break
+		}
+		timeLeft, err := apolloConfigCache.TTL([]byte(entry.Key))
+		test.Nil(t,err)
+		fmt.Printf("key:%s,time:%v \n",string(entry.Key),timeLeft)
+		test.Equal(t,timeLeft>=120,true)
+	}
 
 	fmt.Println(err)
 }
