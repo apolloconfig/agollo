@@ -67,6 +67,7 @@ func getRemoteConfig() ([]*apolloNotify,error) {
 		Timeout:nofity_connect_timeout,
 	},&CallBack{
 		SuccessCallBack:getRemoteConfigSuccessCallBack,
+		NotModifyCallBack:touchApolloConfigCache,
 	})
 
 	if notifies==nil{
