@@ -4,6 +4,7 @@ import (
 	"testing"
 	"github.com/zouyx/agollo/test"
 	"time"
+	"fmt"
 )
 
 //func TestInitRefreshInterval(t *testing.T) {
@@ -35,6 +36,60 @@ func TestAutoSyncConfigServices(t *testing.T) {
 	test.Equal(t,"20170430092936-dee2d58e74515ff3",config.ReleaseKey)
 	//test.Equal(t,"value1",config.Configurations["key1"])
 	//test.Equal(t,"value2",config.Configurations["key2"])
+}
+
+func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
+	go runMockConfigServer(longNotmodifiedConfigResponse)
+	defer closeMockConfigServer()
+
+	time.Sleep(1*time.Second)
+
+	appConfig.NextTryConnTime=0
+
+	autoSyncConfigServicesSuccessCallBack([]byte(configResponseStr))
+
+	config:=GetCurrentApolloConfig()
+
+	fmt.Println("sleeping 10s")
+
+	time.Sleep(10*time.Second)
+
+	fmt.Println("checking cache time left")
+	it := apolloConfigCache.NewIterator()
+	for i := int64(0); i < apolloConfigCache.EntryCount(); i++ {
+		entry := it.Next()
+		if entry==nil{
+			break
+		}
+		timeLeft, err := apolloConfigCache.TTL([]byte(entry.Key))
+		test.Nil(t,err)
+		fmt.Printf("key:%s,time:%v \n",string(entry.Key),timeLeft)
+		test.Equal(t,timeLeft>=110,true)
+	}
+
+	test.Equal(t,"100004458",config.AppId)
+	test.Equal(t,"default",config.Cluster)
+	test.Equal(t,"application",config.NamespaceName)
+	test.Equal(t,"20170430092936-dee2d58e74515ff3",config.ReleaseKey)
+	test.Equal(t,"value1",getValue("key1"))
+	test.Equal(t,"value2",getValue("key2"))
+
+	err:=autoSyncConfigServices()
+
+	fmt.Println("checking cache time left")
+	it1 := apolloConfigCache.NewIterator()
+	for i := int64(0); i < apolloConfigCache.EntryCount(); i++ {
+		entry := it1.Next()
+		if entry==nil{
+			break
+		}
+		timeLeft, err := apolloConfigCache.TTL([]byte(entry.Key))
+		test.Nil(t,err)
+		fmt.Printf("key:%s,time:%v \n",string(entry.Key),timeLeft)
+		test.Equal(t,timeLeft>=120,true)
+	}
+
+	fmt.Println(err)
 }
 
 //test if not modify
