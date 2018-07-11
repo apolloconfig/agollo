@@ -120,13 +120,8 @@ func trySyncServerIpList(t *testing.T) {
 	server := runMockServicesConfigServer()
 	defer server.Close()
 
-	appConfig:=&AppConfig{
-		"test",
-		"dev",
-		"application",
-		server.URL,
-		0,
-	}
+	appConfig:=getTestAppConfig()
+	appConfig.Ip=server.URL
 	err:=syncServerIpList(appConfig)
 
 	test.Nil(t,err)
