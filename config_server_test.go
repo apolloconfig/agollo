@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"fmt"
 	"time"
+	"net/http/httptest"
 )
 
 const configResponseStr  =`{
@@ -70,8 +71,13 @@ func longNotmodifiedConfigResponse(rw http.ResponseWriter, req *http.Request) {
 	rw.WriteHeader(http.StatusNotModified)
 }
 
-func changeConfigResponse(rw http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(rw, configChangeResponseStr)
+func runChangeConfigResponse()*httptest.Server{
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(configChangeResponseStr))
+	}))
+
+	return ts
 }
 
 func onlyNormalConfigResponse(rw http.ResponseWriter, req *http.Request) {

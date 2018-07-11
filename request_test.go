@@ -13,7 +13,7 @@ func TestRequestRecovery(t *testing.T) {
 	defer closeAllMockServicesServer()
 
 	appConfig:=GetAppConfig(nil)
-	urlSuffix:=getConfigUrlSuffix(appConfig)
+	urlSuffix:=getConfigUrlSuffix(appConfig,nil)
 
 	o,err:=requestRecovery(appConfig,&ConnectConfig{
 		Uri:urlSuffix,
@@ -33,7 +33,7 @@ func TestCustomTimeout(t *testing.T) {
 
 	startTime := time.Now().Second()
 	appConfig:=GetAppConfig(nil)
-	urlSuffix:=getConfigUrlSuffix(appConfig)
+	urlSuffix:=getConfigUrlSuffix(appConfig,nil)
 
 	o,err:=requestRecovery(appConfig,&ConnectConfig{
 		Uri:urlSuffix,

@@ -271,7 +271,10 @@ func getConfigUrlByHost(config *AppConfig,host string) string{
 		getInternal())
 }
 
-func getConfigUrlSuffix(config *AppConfig) string{
+func getConfigUrlSuffix(config *AppConfig,newConfig *AppConfig) string{
+	if newConfig!=nil{
+		return ""
+	}
 	current:=GetCurrentApolloConfig()
 	return fmt.Sprintf("configs/%s/%s/%s?releaseKey=%s&ip=%s",
 		url.QueryEscape(config.AppId),

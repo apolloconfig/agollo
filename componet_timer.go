@@ -20,7 +20,7 @@ func (this *AutoRefreshConfigComponent) Start()  {
 }
 
 func SyncConfig() error {
-	return autoSyncConfigServices()
+	return autoSyncConfigServices(nil)
 }
 
 
@@ -37,13 +37,13 @@ func autoSyncConfigServicesSuccessCallBack(responseBody []byte)(o interface{},er
 	return nil,nil
 }
 
-func autoSyncConfigServices() error {
-	appConfig:=GetAppConfig(nil)
+func autoSyncConfigServices(newAppConfig *AppConfig) error {
+	appConfig:=GetAppConfig(newAppConfig)
 	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
 
-	urlSuffix:=getConfigUrlSuffix(appConfig)
+	urlSuffix:=getConfigUrlSuffix(appConfig,newAppConfig)
 
 	_,err:=requestRecovery(appConfig,&ConnectConfig{
 		Uri:urlSuffix,

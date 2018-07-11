@@ -23,8 +23,8 @@ func TestAutoSyncConfigServices(t *testing.T) {
 
 	appConfig.NextTryConnTime=0
 
-	err:=autoSyncConfigServices()
-	err=autoSyncConfigServices()
+	err:=autoSyncConfigServices(nil)
+	err=autoSyncConfigServices(nil)
 
 	test.Nil(t,err)
 
@@ -74,7 +74,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	test.Equal(t,"value1",getValue("key1"))
 	test.Equal(t,"value2",getValue("key2"))
 
-	err:=autoSyncConfigServices()
+	err:=autoSyncConfigServices(nil)
 
 	fmt.Println("checking cache time left")
 	it1 := apolloConfigCache.NewIterator()
@@ -105,7 +105,7 @@ func TestAutoSyncConfigServicesNotModify(t *testing.T) {
 
 	appConfig.NextTryConnTime=0
 
-	err=autoSyncConfigServices()
+	err=autoSyncConfigServices(nil)
 
 	test.Nil(t,err)
 
@@ -132,7 +132,7 @@ func TestAutoSyncConfigServicesError(t *testing.T) {
 
 	time.Sleep(1*time.Second)
 
-	err:=autoSyncConfigServices()
+	err:=autoSyncConfigServices(nil)
 
 	test.NotNil(t,err)
 
