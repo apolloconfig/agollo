@@ -50,7 +50,7 @@ func runMockConfigBackupServer(handler func(http.ResponseWriter, *http.Request))
 }
 
 func mockConfigServerListen(ip string,handler func(http.ResponseWriter, *http.Request)) {
-	appConfig:=GetAppConfig()
+	appConfig:=GetAppConfig(nil)
 	uri:=fmt.Sprintf("/configs/%s/%s/%s",appConfig.AppId,appConfig.Cluster,appConfig.NamespaceName)
 	http.HandleFunc(uri, handler)
 

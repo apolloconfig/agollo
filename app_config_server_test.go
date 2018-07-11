@@ -2,9 +2,9 @@ package agollo
 
 import (
 	"net/http"
-	"fmt"
-	//"time"
-)
+		//"time"
+	"net/http/httptest"
+				)
 
 const servicesConfigResponseStr  =`[{
 "appName": "APOLLO-CONFIGSERVICE",
@@ -61,39 +61,11 @@ const servicesConfigResponseStr  =`[{
 //var server *http.Server
 
 //run mock config server
-func runMockServicesConfigServer(handler func(http.ResponseWriter, *http.Request)) {
-	uri:=fmt.Sprintf("/services/config")
-	http.HandleFunc(uri, handler)
+func runMockServicesConfigServer() *httptest.Server{
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(servicesConfigResponseStr))
+	}))
 
-	//server = &http.Server{
-	//	Addr:    appConfig.Ip,
-	//	Handler: http.DefaultServeMux,
-	//}
-	//
-	//server.ListenAndServe()
-
-
-	logger.Info("mock notify server:",appConfig.Ip)
-	err:=http.ListenAndServe(fmt.Sprintf("%s",appConfig.Ip), nil)
-	if err!=nil{
-		logger.Error("runMockConfigServer err:",err)
-	}
+	return ts
 }
-
-func closeMockServicesConfigServer() {
-	http.DefaultServeMux=http.NewServeMux()
-	//server.Close()
-}
-
-
-//Normal response
-func normalServicesConfigResponse(rw http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(rw, servicesConfigResponseStr)
-}
-
-////Error response
-////will hold 5s and keep response 404
-//func errorConfigResponse(rw http.ResponseWriter, req *http.Request) {
-//	time.Sleep(500 * time.Microsecond)
-//	rw.WriteHeader(http.StatusNotFound)
-//}

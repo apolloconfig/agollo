@@ -54,7 +54,7 @@ func getRemoteConfigSuccessCallBack(responseBody []byte)(o interface{},err error
 }
 
 func getRemoteConfig() ([]*apolloNotify,error) {
-	appConfig:=GetAppConfig()
+	appConfig:=GetAppConfig(nil)
 	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
@@ -108,7 +108,7 @@ func init() {
 }
 
 func initAllNotifications()  {
-	appConfig:=GetAppConfig()
+	appConfig:=GetAppConfig(nil)
 
 	if appConfig!=nil {
 		allNotifications = &notificationsMap{

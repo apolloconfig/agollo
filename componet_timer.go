@@ -38,7 +38,7 @@ func autoSyncConfigServicesSuccessCallBack(responseBody []byte)(o interface{},er
 }
 
 func autoSyncConfigServices() error {
-	appConfig:=GetAppConfig()
+	appConfig:=GetAppConfig(nil)
 	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/url"
 	"encoding/json"
+	"strings"
 )
 
 const appConfigFileName  ="app.properties"
@@ -53,6 +54,9 @@ type AppConfig struct {
 }
 
 func (this *AppConfig) getHost() string{
+	if strings.HasPrefix(this.Ip,"http"){
+		return this.Ip
+	}
 	return "http://"+this.Ip+"/"
 }
 
@@ -175,7 +179,7 @@ func initServerIpList() {
 	for {
 		select {
 		case <-t2.C:
-			syncServerIpList()
+			syncServerIpList(nil)
 			t2.Reset(refresh_ip_list_interval)
 		}
 	}
@@ -209,12 +213,18 @@ func syncServerIpListSuccessCallBack(responseBody []byte)(o interface{},err erro
 //then
 //1.update cache
 //2.store in disk
-func syncServerIpList() error{
-	appConfig:=GetAppConfig()
+func syncServerIpList(newAppConfig *AppConfig) error{
+	appConfig:=GetAppConfig(newAppConfig)
 	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
-	url:=getServicesConfigUrl(appConfig)
+
+	var url string
+	if newAppConfig ==nil{
+		getServicesConfigUrl(appConfig)
+	}else{
+		url=newAppConfig.Ip
+	}
 	logger.Debug("url:",url)
 
 	_,err:=request(url,&ConnectConfig{
@@ -226,7 +236,10 @@ func syncServerIpList() error{
 	return err
 }
 
-func GetAppConfig()*AppConfig  {
+func GetAppConfig(newAppConfig *AppConfig)*AppConfig  {
+	if newAppConfig !=nil{
+		return newAppConfig
+	}
 	return appConfig
 }
 

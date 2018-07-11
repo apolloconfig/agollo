@@ -9,7 +9,7 @@ import (
 )
 
 func TestInit(t *testing.T) {
-	config:=GetAppConfig()
+	config:=GetAppConfig(nil)
 
 	test.NotNil(t,config)
 	test.Equal(t,"test",config.AppId)
@@ -37,7 +37,7 @@ func TestStructInit(t *testing.T) {
 		return readyConfig,nil
 	})
 
-	config:=GetAppConfig()
+	config:=GetAppConfig(nil)
 	test.NotNil(t,config)
 	test.Equal(t,"test1",config.AppId)
 	test.Equal(t,"dev1",config.Cluster)
@@ -48,15 +48,6 @@ func TestStructInit(t *testing.T) {
 	test.Equal(t,"test1",apolloConfig.AppId)
 	test.Equal(t,"dev1",apolloConfig.Cluster)
 	test.Equal(t,"application1",apolloConfig.NamespaceName)
-
-	//go runMockConfigServer(onlyNormalConfigResponse)
-	//go runMockNotifyServer(onlyNormalResponse)
-	//defer closeMockConfigServer()
-	//
-	//Start()
-	//
-	//value := getValue("key1")
-	//test.Equal(t,"value1",value)
 
 	//revert file config
 	initFileConfig()
@@ -126,12 +117,17 @@ func TestSyncServerIpList(t *testing.T) {
 }
 
 func trySyncServerIpList(t *testing.T) {
-	go runMockServicesConfigServer(normalServicesConfigResponse)
-	defer closeMockServicesConfigServer()
+	server := runMockServicesConfigServer()
+	defer server.Close()
 
-	time.Sleep(1*time.Second)
-
-	err:=syncServerIpList()
+	appConfig:=&AppConfig{
+		"test",
+		"dev",
+		"application",
+		server.URL,
+		0,
+	}
+	err:=syncServerIpList(appConfig)
 
 	test.Nil(t,err)
 

@@ -31,7 +31,7 @@ const configChangeResponseStr  =`{
 
 //run mock config server
 func runMockConfigServer(handler func(http.ResponseWriter, *http.Request)) {
-	appConfig:=GetAppConfig()
+	appConfig:=GetAppConfig(nil)
 	uri:=fmt.Sprintf("/configs/%s/%s/%s",appConfig.AppId,appConfig.Cluster,appConfig.NamespaceName)
 	http.HandleFunc(uri, handler)
 

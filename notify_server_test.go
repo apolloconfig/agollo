@@ -12,7 +12,7 @@ const responseStr  =`[{"namespaceName":"application","notificationId":%d}]`
 func runMockNotifyServer(handler func(http.ResponseWriter, *http.Request)) {
 	http.HandleFunc("/notifications/v2", handler)
 
-	appConfig:=GetAppConfig()
+	appConfig:=GetAppConfig(nil)
 	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}

@@ -12,7 +12,7 @@ func TestRequestRecovery(t *testing.T) {
 	go runMockConfigBackupServer(normalBackupConfigResponse)
 	defer closeAllMockServicesServer()
 
-	appConfig:=GetAppConfig()
+	appConfig:=GetAppConfig(nil)
 	urlSuffix:=getConfigUrlSuffix(appConfig)
 
 	o,err:=requestRecovery(appConfig,&ConnectConfig{
@@ -32,7 +32,7 @@ func TestCustomTimeout(t *testing.T) {
 	defer closeAllMockServicesServer()
 
 	startTime := time.Now().Second()
-	appConfig:=GetAppConfig()
+	appConfig:=GetAppConfig(nil)
 	urlSuffix:=getConfigUrlSuffix(appConfig)
 
 	o,err:=requestRecovery(appConfig,&ConnectConfig{
@@ -75,7 +75,7 @@ func mockIpList(t *testing.T) {
 	defer closeMockServicesServer()
 	time.Sleep(1*time.Second)
 
-	err:=syncServerIpList()
+	err:=syncServerIpList(nil)
 
 	test.Nil(t,err)
 
