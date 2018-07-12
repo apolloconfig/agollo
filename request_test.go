@@ -9,11 +9,12 @@ import (
 func TestRequestRecovery(t *testing.T) {
 	time.Sleep(1*time.Second)
 	mockIpList(t)
-	go runMockConfigBackupServer(normalBackupConfigResponse)
-	defer closeAllMockServicesServer()
+	server:=runNormalBackupConfigResponse()
+	newAppConfig:=getTestAppConfig()
+	newAppConfig.Ip=server.URL
 
-	appConfig:=GetAppConfig(nil)
-	urlSuffix:=getConfigUrlSuffix(appConfig,nil)
+	appConfig:=GetAppConfig(newAppConfig)
+	urlSuffix:=getConfigUrlSuffix(appConfig,newAppConfig)
 
 	o,err:=requestRecovery(appConfig,&ConnectConfig{
 		Uri:urlSuffix,
@@ -28,12 +29,13 @@ func TestRequestRecovery(t *testing.T) {
 func TestCustomTimeout(t *testing.T) {
 	time.Sleep(1*time.Second)
 	mockIpList(t)
-	go runMockConfigBackupServer(longTimeResponse)
-	defer closeAllMockServicesServer()
+	server := runLongTimeResponse()
+	newAppConfig:=getTestAppConfig()
+	newAppConfig.Ip=server.URL
 
 	startTime := time.Now().Second()
-	appConfig:=GetAppConfig(nil)
-	urlSuffix:=getConfigUrlSuffix(appConfig,nil)
+	appConfig:=GetAppConfig(newAppConfig)
+	urlSuffix:=getConfigUrlSuffix(appConfig,newAppConfig)
 
 	o,err:=requestRecovery(appConfig,&ConnectConfig{
 		Uri:urlSuffix,
@@ -51,31 +53,14 @@ func TestCustomTimeout(t *testing.T) {
 	test.Nil(t,o)
 }
 
-//func TestErrorRequestRecovery(t *testing.T) {
-//	time.Sleep(1*time.Second)
-//	mockBackupConfig()
-//	go runMockConfigBackupServer(errorBackupConfigResponse)
-//	defer closeAllMockServicesServer()
-//
-//	appConfig:=GetAppConfig()
-//	urlSuffix:=getConfigUrlSuffix(appConfig)
-//
-//	o,err:=requestRecovery(appConfig,urlSuffix,autoSyncConfigServicesSuccessCallBack)
-//
-//	test.NotNil(t,err)
-//	test.Nil(t,o)
-//}
-//
-//func mockBackupConfig(){
-//	syncServerIpListSuccessCallBack([]byte(servicesResponseStr))
-//}
-
 func mockIpList(t *testing.T) {
-	go runMockServicesServer(normalServicesResponse)
-	defer closeMockServicesServer()
+	server := runNormalServicesResponse()
+	defer server.Close()
 	time.Sleep(1*time.Second)
+	newAppConfig:=getTestAppConfig()
+	newAppConfig.Ip=server.URL
 
-	err:=syncServerIpList(nil)
+	err:=syncServerIpList(newAppConfig)
 
 	test.Nil(t,err)
 

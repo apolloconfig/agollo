@@ -1,10 +1,9 @@
 package agollo
 
 import (
-	"encoding/json"
-	"fmt"
-	"net/http"
+			"net/http"
 	"time"
+	"net/http/httptest"
 )
 
 var IP1="localhost:7080"
@@ -21,52 +20,14 @@ var servicesResponseStr = `[{
 "homepageUrl": "http://`+IP2+`/"
 }]`
 
-//run mock config server
-func runMockServicesServer(handler func(http.ResponseWriter, *http.Request)) {
-	tmpServerInfo := make([]*serverInfo, 0)
-
-	json.Unmarshal([]byte(servicesResponseStr), &tmpServerInfo)
-
-	uri := fmt.Sprintf("/services/config")
-	http.HandleFunc(uri, handler)
-
-	http.ListenAndServe(fmt.Sprintf("%s", appConfig.Ip), nil)
-}
-
-func closeMockServicesServer() {
-	http.DefaultServeMux = &http.ServeMux{}
-}
-
 //Normal response
-func normalServicesResponse(rw http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(rw, servicesResponseStr)
-}
+func runNormalServicesResponse() *httptest.Server {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(servicesResponseStr))
+	}))
 
-
-//run mock config Real And Backup server
-func runMockConfigBackupServer(handler func(http.ResponseWriter, *http.Request)) {
-	mockConfigServerListen(IP1,handler)
-	//mockConfigServerListen(IP2,handler)
-}
-
-func mockConfigServerListen(ip string,handler func(http.ResponseWriter, *http.Request)) {
-	appConfig:=GetAppConfig(nil)
-	uri:=fmt.Sprintf("/configs/%s/%s/%s",appConfig.AppId,appConfig.Cluster,appConfig.NamespaceName)
-	http.HandleFunc(uri, handler)
-
-	if appConfig==nil{
-		panic("can not find apollo config!please confirm!")
-	}
-
-	logger.Info("mockConfigServerListen:",appConfig.Ip)
-	err:=http.ListenAndServe(fmt.Sprintf("%s",ip), nil)
-	if err!=nil{
-		logger.Error("runMockConfigServer err:",err)
-	}
-}
-
-func closeAllMockServicesServer() {
-	http.DefaultServeMux = &http.ServeMux{}
+	return ts
 }
 
 var normalBackupConfigCount=0
@@ -75,22 +36,28 @@ var normalBackupConfigCount=0
 //First request will hold 5s and response http.StatusNotModified
 //Second request will hold 5s and response http.StatusNotModified
 //Second request will response [{"namespaceName":"application","notificationId":3}]
-func normalBackupConfigResponse(rw http.ResponseWriter, req *http.Request) {
-	normalBackupConfigCount++
-	if normalBackupConfigCount%3==0 {
-		fmt.Fprintf(rw, configResponseStr)
-	}else {
-		time.Sleep(500 * time.Microsecond)
-		rw.WriteHeader(http.StatusBadGateway)
-	}
+func runNormalBackupConfigResponse() *httptest.Server {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		normalBackupConfigCount++
+		if normalBackupConfigCount%3==0 {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(configResponseStr))
+		}else {
+			time.Sleep(500 * time.Microsecond)
+			w.WriteHeader(http.StatusBadGateway)
+		}
+	}))
+
+	return ts
 }
 
 //wait long time then response
-func longTimeResponse(rw http.ResponseWriter, req *http.Request) {
-	time.Sleep(10*time.Second);
-	fmt.Fprintf(rw, configResponseStr)
+func runLongTimeResponse() *httptest.Server {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(10*time.Second)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(configResponseStr))
+	}))
+
+	return ts
 }
-//
-//func errorBackupConfigResponse(rw http.ResponseWriter, req *http.Request) {
-//	rw.WriteHeader(http.StatusBadGateway)
-//}
