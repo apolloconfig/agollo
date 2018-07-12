@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"fmt"
 	"time"
+	"net/http/httptest"
 )
 
 const configResponseStr  =`{
@@ -31,7 +32,7 @@ const configChangeResponseStr  =`{
 
 //run mock config server
 func runMockConfigServer(handler func(http.ResponseWriter, *http.Request)) {
-	appConfig:=GetAppConfig()
+	appConfig:=GetAppConfig(nil)
 	uri:=fmt.Sprintf("/configs/%s/%s/%s",appConfig.AppId,appConfig.Cluster,appConfig.NamespaceName)
 	http.HandleFunc(uri, handler)
 
@@ -55,37 +56,59 @@ var normalConfigCount=1
 //First request will hold 5s and response http.StatusNotModified
 //Second request will hold 5s and response http.StatusNotModified
 //Second request will response [{"namespaceName":"application","notificationId":3}]
-func normalConfigResponse(rw http.ResponseWriter, req *http.Request) {
-	normalConfigCount++
-	if normalConfigCount%3==0 {
-		fmt.Fprintf(rw, configResponseStr)
-	}else {
+func runNormalConfigResponse() *httptest.Server {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		normalConfigCount++
+		if normalConfigCount%3==0 {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(configResponseStr))
+		}else {
+			time.Sleep(500 * time.Microsecond)
+			w.WriteHeader(http.StatusNotModified)
+		}
+	}))
+
+	return ts
+}
+
+func runLongNotmodifiedConfigResponse() *httptest.Server {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(500 * time.Microsecond)
-		rw.WriteHeader(http.StatusNotModified)
-	}
+		w.WriteHeader(http.StatusNotModified)
+	}))
+
+	return ts
 }
 
-func longNotmodifiedConfigResponse(rw http.ResponseWriter, req *http.Request) {
-	time.Sleep(500 * time.Microsecond)
-	rw.WriteHeader(http.StatusNotModified)
-}
+func runChangeConfigResponse()*httptest.Server{
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(configChangeResponseStr))
+	}))
 
-func changeConfigResponse(rw http.ResponseWriter, req *http.Request) {
-	fmt.Fprintf(rw, configChangeResponseStr)
+	return ts
 }
 
 func onlyNormalConfigResponse(rw http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(rw, configResponseStr)
 }
 
-func notModifyConfigResponse(rw http.ResponseWriter, req *http.Request) {
-	time.Sleep(800 * time.Microsecond)
-	rw.WriteHeader(http.StatusNotModified)
+func runNotModifyConfigResponse() *httptest.Server {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(800 * time.Microsecond)
+		w.WriteHeader(http.StatusNotModified)
+	}))
+
+	return ts
 }
 
 //Error response
 //will hold 5s and keep response 404
-func errorConfigResponse(rw http.ResponseWriter, req *http.Request) {
-	time.Sleep(500 * time.Microsecond)
-	rw.WriteHeader(http.StatusNotFound)
+func runErrorConfigResponse() *httptest.Server {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(500 * time.Microsecond)
+		w.WriteHeader(http.StatusNotFound)
+	}))
+
+	return ts
 }

@@ -19,22 +19,9 @@ func TestListenChangeEvent(t *testing.T) {
 
 	test.Equal(t,"application",changeEvent.Namespace)
 
-	//DELETED
-	test.Equal(t,"value",changeEvent.Changes["string"].OldValue)
 	test.Equal(t,"string",changeEvent.Changes["string"].NewValue)
-	test.Equal(t,MODIFIED,changeEvent.Changes["string"].ChangeType)
-
-	test.Equal(t,"true",changeEvent.Changes["bool"].OldValue)
-	test.Equal(t,"",changeEvent.Changes["bool"].NewValue)
-	test.Equal(t,DELETED,changeEvent.Changes["bool"].ChangeType)
-
-	test.Equal(t,"190.3",changeEvent.Changes["float"].OldValue)
-	test.Equal(t,"",changeEvent.Changes["float"].NewValue)
-	test.Equal(t,DELETED,changeEvent.Changes["float"].ChangeType)
-
-	test.Equal(t,"1",changeEvent.Changes["int"].OldValue)
-	test.Equal(t,"",changeEvent.Changes["int"].NewValue)
-	test.Equal(t,DELETED,changeEvent.Changes["int"].ChangeType)
+	test.Equal(t,"",changeEvent.Changes["string"].OldValue)
+	test.Equal(t,ADDED,changeEvent.Changes["string"].ChangeType)
 
 	test.Equal(t,"value1",changeEvent.Changes["key1"].NewValue)
 	test.Equal(t,"",changeEvent.Changes["key2"].OldValue)
@@ -51,15 +38,16 @@ func clearChannel()  {
 }
 
 func buildNotifyResult(t *testing.T) {
-	go runMockConfigServer(changeConfigResponse)
-	defer closeMockConfigServer()
+	server := runChangeConfigResponse()
+	defer server.Close()
 
 	time.Sleep(1*time.Second)
 
-	appConfig.NextTryConnTime=0
+	newAppConfig:=getTestAppConfig()
+	newAppConfig.Ip=server.URL
 
-	err:=autoSyncConfigServices()
-	err=autoSyncConfigServices()
+	err:=autoSyncConfigServices(newAppConfig)
+	err=autoSyncConfigServices(newAppConfig)
 
 	test.Nil(t,err)
 

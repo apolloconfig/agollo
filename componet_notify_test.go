@@ -8,14 +8,13 @@ import (
 )
 
 func TestSyncConfigServices(t *testing.T) {
-	defer closeMockNotifyServer()
-
 	notifySyncConfigServices()
 }
 
 func TestGetRemoteConfig(t *testing.T) {
-	go runMockNotifyServer(normalResponse)
-	defer closeMockNotifyServer()
+	server:= runNormalResponse()
+	newAppConfig:=getTestAppConfig()
+	newAppConfig.Ip=server.URL
 
 	time.Sleep(1*time.Second)
 
@@ -24,7 +23,7 @@ func TestGetRemoteConfig(t *testing.T) {
 	var err error
 	for{
 		count++
-		remoteConfigs,err=getRemoteConfig()
+		remoteConfigs,err=getRemoteConfig(newAppConfig)
 
 		//err keep nil
 		test.Nil(t,err)
@@ -49,14 +48,15 @@ func TestGetRemoteConfig(t *testing.T) {
 }
 
 func TestErrorGetRemoteConfig(t *testing.T) {
-	go runMockNotifyServer(errorResponse)
-	defer closeMockNotifyServer()
+	server:= runErrorResponse()
+	newAppConfig:=getTestAppConfig()
+	newAppConfig.Ip=server.URL
 
 	time.Sleep(1 * time.Second)
 
 	var remoteConfigs []*apolloNotify
 	var err error
-	remoteConfigs, err = getRemoteConfig()
+	remoteConfigs, err = getRemoteConfig(nil)
 
 	test.NotNil(t, err)
 	test.Nil(t, remoteConfigs)
@@ -117,17 +117,3 @@ func TestToApolloConfigError(t *testing.T) {
 	test.Nil(t,notified)
 	test.NotNil(t,err)
 }
-//
-//func TestNotifyConfigComponent(t *testing.T) {
-//	go func() {
-//		for{
-//			time.Sleep(5*time.Second)
-//			fmt.Println(GetCurrentApolloConfig())
-//		}
-//	}()
-//
-//
-//	c:=&NotifyConfigComponent{}
-//	c.Start()
-//
-//}

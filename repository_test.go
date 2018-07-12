@@ -68,10 +68,14 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 	config := currentConnApolloConfig.config
 
 	//make sure currentConnApolloConfig was not modified
-	test.Equal(t, currentConfig.NamespaceName, config.NamespaceName)
-	test.Equal(t, currentConfig.AppId, config.AppId)
-	test.Equal(t, currentConfig.Cluster, config.Cluster)
-	test.Equal(t, currentConfig.ReleaseKey, config.ReleaseKey)
+	//test.Equal(t, currentConfig.NamespaceName, config.NamespaceName)
+	//test.Equal(t, currentConfig.AppId, config.AppId)
+	//test.Equal(t, currentConfig.Cluster, config.Cluster)
+	//test.Equal(t, currentConfig.ReleaseKey, config.ReleaseKey)
+	test.Equal(t, "application", config.NamespaceName)
+	test.Equal(t, "test",config.AppId)
+	test.Equal(t, "dev", config.Cluster)
+	test.Equal(t, "", config.ReleaseKey)
 
 }
 

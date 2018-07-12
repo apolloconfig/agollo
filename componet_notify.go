@@ -53,12 +53,12 @@ func getRemoteConfigSuccessCallBack(responseBody []byte)(o interface{},err error
 	return toApolloConfig(responseBody)
 }
 
-func getRemoteConfig() ([]*apolloNotify,error) {
-	appConfig:=GetAppConfig()
+func getRemoteConfig(newAppConfig *AppConfig) ([]*apolloNotify,error) {
+	appConfig:=GetAppConfig(newAppConfig)
 	if appConfig==nil{
 		panic("can not find apollo config!please confirm!")
 	}
-	urlSuffix:=getNotifyUrlSuffix(allNotifications.getNotifies(),appConfig)
+	urlSuffix:=getNotifyUrlSuffix(allNotifications.getNotifies(),appConfig,newAppConfig)
 
 	//seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
 
@@ -79,7 +79,7 @@ func getRemoteConfig() ([]*apolloNotify,error) {
 
 func notifySyncConfigServices() error {
 
-	remoteConfigs,err:=getRemoteConfig()
+	remoteConfigs,err:=getRemoteConfig(nil)
 
 	if err!=nil||len(remoteConfigs)==0{
 		return err
@@ -108,7 +108,7 @@ func init() {
 }
 
 func initAllNotifications()  {
-	appConfig:=GetAppConfig()
+	appConfig:=GetAppConfig(nil)
 
 	if appConfig!=nil {
 		allNotifications = &notificationsMap{
