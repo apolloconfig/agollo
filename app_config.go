@@ -298,7 +298,10 @@ func getNotifyUrlByHost(notifications string,config *AppConfig,host string) stri
 		url.QueryEscape(notifications))
 }
 
-func getNotifyUrlSuffix(notifications string,config *AppConfig) string{
+func getNotifyUrlSuffix(notifications string,config *AppConfig,newConfig *AppConfig) string{
+	if newConfig!=nil{
+		return ""
+	}
 	return fmt.Sprintf("notifications/v2?appId=%s&cluster=%s&notifications=%s",
 		url.QueryEscape(config.AppId),
 		url.QueryEscape(config.Cluster),
