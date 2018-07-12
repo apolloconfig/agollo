@@ -7,24 +7,17 @@ import (
 	"fmt"
 )
 
-//func TestInitRefreshInterval(t *testing.T) {
-//	refresh_interval=1*time.Second
-//
-//	var c AbsComponent
-//	c=&AutoRefreshConfigComponent{}
-//	c.Start()
-//}
-
 func TestAutoSyncConfigServices(t *testing.T) {
-	go runMockConfigServer(normalConfigResponse)
-	defer closeMockConfigServer()
+	server := runNormalConfigResponse()
+	newAppConfig:=getTestAppConfig()
+	newAppConfig.Ip=server.URL
 
 	time.Sleep(1*time.Second)
 
 	appConfig.NextTryConnTime=0
 
-	err:=autoSyncConfigServices(nil)
-	err=autoSyncConfigServices(nil)
+	err:=autoSyncConfigServices(newAppConfig)
+	err=autoSyncConfigServices(newAppConfig)
 
 	test.Nil(t,err)
 
@@ -39,9 +32,9 @@ func TestAutoSyncConfigServices(t *testing.T) {
 }
 
 func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
-	go runMockConfigServer(longNotmodifiedConfigResponse)
-	defer closeMockConfigServer()
-
+	server := runLongNotmodifiedConfigResponse()
+	newAppConfig:=getTestAppConfig()
+	newAppConfig.Ip=server.URL
 	time.Sleep(1*time.Second)
 
 	appConfig.NextTryConnTime=0
@@ -74,7 +67,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	test.Equal(t,"value1",getValue("key1"))
 	test.Equal(t,"value2",getValue("key2"))
 
-	err:=autoSyncConfigServices(nil)
+	err:=autoSyncConfigServices(newAppConfig)
 
 	fmt.Println("checking cache time left")
 	it1 := apolloConfigCache.NewIterator()
@@ -94,8 +87,9 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 
 //test if not modify
 func TestAutoSyncConfigServicesNotModify(t *testing.T) {
-	go runMockConfigServer(notModifyConfigResponse)
-	defer closeMockConfigServer()
+	server := runNotModifyConfigResponse()
+	newAppConfig:=getTestAppConfig()
+	newAppConfig.Ip=server.URL
 
 	apolloConfig,err:=createApolloConfigWithJson([]byte(configResponseStr))
 	updateApolloConfig(apolloConfig)
@@ -105,7 +99,7 @@ func TestAutoSyncConfigServicesNotModify(t *testing.T) {
 
 	appConfig.NextTryConnTime=0
 
-	err=autoSyncConfigServices(nil)
+	err=autoSyncConfigServices(newAppConfig)
 
 	test.Nil(t,err)
 
@@ -127,8 +121,9 @@ func TestAutoSyncConfigServicesNotModify(t *testing.T) {
 func TestAutoSyncConfigServicesError(t *testing.T) {
 	//reload app properties
 	go initFileConfig()
-	go runMockConfigServer(errorConfigResponse)
-	defer closeMockConfigServer()
+	server := runErrorConfigResponse()
+	newAppConfig:=getTestAppConfig()
+	newAppConfig.Ip=server.URL
 
 	time.Sleep(1*time.Second)
 

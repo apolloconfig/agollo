@@ -25,10 +25,6 @@ func runMockNotifyServer(handler func(http.ResponseWriter, *http.Request)) {
 	}
 }
 
-func closeMockNotifyServer() {
-	http.DefaultServeMux=&http.ServeMux{}
-}
-
 var normalNotifyCount=1
 
 //Normal response
