@@ -1,21 +1,23 @@
 package agollo
 
 //start apollo
-func Start() {
-	StartWithLogger(nil)
+func Start() error {
+	return StartWithLogger(nil)
 }
 
-func StartWithLogger(loggerInterface LoggerInterface) {
+func StartWithLogger(loggerInterface LoggerInterface) error {
 	if loggerInterface != nil {
 		initLogger(loggerInterface)
 	}
 
 	//first sync
-	notifySyncConfigServices()
+	error := notifySyncConfigServices()
 
 	//start auto refresh config
 	go StartRefreshConfig(&AutoRefreshConfigComponent{})
 
 	//start long poll sync config
 	go StartRefreshConfig(&NotifyConfigComponent{})
+	
+	return error
 }
