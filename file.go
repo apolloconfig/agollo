@@ -5,9 +5,9 @@ import (
 	"os"
 )
 
-const FILE = "a.json"
+const FILE = "apolloConfig.json"
 
-func writeConfigFile(config *ApolloConfig)error{
+func writeConfigFile(config *ApolloConfig,configPath string)error{
 	file, e := os.Create(FILE)
 	defer  file.Close()
 	if e!=nil{
@@ -17,7 +17,7 @@ func writeConfigFile(config *ApolloConfig)error{
 	return json.NewEncoder(file).Encode(config)
 }
 
-func loadConfigFile() (*ApolloConfig,error){
+func loadConfigFile(configPath string) (*ApolloConfig,error){
 	file, e := os.Open(FILE)
 	defer  file.Close()
 	if e!=nil{

@@ -20,7 +20,7 @@ func TestWriteConfigFile(t *testing.T) {
 	config, err := createApolloConfigWithJson([]byte(jsonStr))
 
 	isNil(err)
-	e := writeConfigFile(config)
+	e := writeConfigFile(config,"")
 	isNil(e)
 }
 
@@ -39,7 +39,7 @@ func TestLoadConfigFile(t *testing.T) {
 	config, err := createApolloConfigWithJson([]byte(jsonStr))
 
 	isNil(err)
-	newConfig,e := loadConfigFile()
+	newConfig,e := loadConfigFile("")
 
 	t.Log(newConfig)
 	isNil(e)
