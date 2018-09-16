@@ -51,7 +51,13 @@ type AppConfig struct {
 	NamespaceName string `json:"namespaceName"`
 	Ip string `json:"ip"`
 	NextTryConnTime int64 `json:"-"`
+	BackupConfigPath string `json:"backupConfigPath"`
 }
+
+func (this *AppConfig) getBackupConfigPath() string{
+	return this.BackupConfigPath
+}
+
 
 func (this *AppConfig) getHost() string{
 	if strings.HasPrefix(this.Ip,"http"){
