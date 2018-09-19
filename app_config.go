@@ -166,7 +166,7 @@ func initConfig(loadAppConfig func()(*AppConfig,error)) {
 		apolloConfig.Cluster=appConfig.Cluster
 		apolloConfig.NamespaceName=appConfig.NamespaceName
 
-		updateApolloConfig(apolloConfig)
+		updateApolloConfig(apolloConfig,false)
 	}(appConfig)
 }
 

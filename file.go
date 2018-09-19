@@ -2,6 +2,7 @@ package agollo
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 )
@@ -11,6 +12,10 @@ var configFile=""
 
 //write config to file
 func writeConfigFile(config *ApolloConfig,configPath string)error{
+	if config==nil{
+		logger.Error("apollo config is null can not write backup file")
+		return errors.New("apollo config is null can not write backup file")
+	}
 	file, e := os.Create(getConfigFile(configPath))
 	defer  file.Close()
 	if e!=nil{

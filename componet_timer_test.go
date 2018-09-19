@@ -107,7 +107,7 @@ func TestAutoSyncConfigServicesNotModify(t *testing.T) {
 	newAppConfig.Ip=server.URL
 
 	apolloConfig,err:=createApolloConfigWithJson([]byte(configResponseStr))
-	updateApolloConfig(apolloConfig)
+	updateApolloConfig(apolloConfig,true)
 
 	time.Sleep(10*time.Second)
 	checkCacheLeft(t,configCacheExpireTime-10)

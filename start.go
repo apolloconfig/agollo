@@ -17,7 +17,7 @@ func StartWithLogger(loggerInterface LoggerInterface) error {
 	if err !=nil{
 		config, _ := loadConfigFile(appConfig.BackupConfigPath)
 		if config!=nil{
-			updateApolloConfig(config)
+			updateApolloConfig(config,false)
 		}
 	}
 
