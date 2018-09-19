@@ -22,10 +22,10 @@ func writeConfigFile(config *ApolloConfig,configPath string)error{
 }
 
 //get real config file
-func getConfigFile(configPath string) string {
+func getConfigFile(configDir string) string {
 	if configFile == "" {
-		if configPath!="" {
-			configFile=fmt.Sprintf("%s/%s",configPath,FILE)
+		if configDir!="" {
+			configFile=fmt.Sprintf("%s/%s",configDir,FILE)
 		}else{
 			configFile=FILE
 		}
@@ -35,8 +35,10 @@ func getConfigFile(configPath string) string {
 }
 
 //load config from file
-func loadConfigFile(configPath string) (*ApolloConfig,error){
-	file, e := os.Open(getConfigFile(configPath))
+func loadConfigFile(configDir string) (*ApolloConfig,error){
+	configFilePath := getConfigFile(configDir)
+	logger.Info("load config file from :",configFilePath)
+	file, e := os.Open(configFilePath)
 	defer file.Close()
 	if e!=nil{
 		logger.Errorf("loadConfigFile fail,error:",e)

@@ -83,7 +83,22 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	}
 
 	fmt.Println(err)
+
+	//sleep for async
+	time.Sleep(1 *time.Second)
+	checkBackupFile(t)
 }
+
+func checkBackupFile(t *testing.T){
+	newConfig,e := loadConfigFile(appConfig.getBackupConfigPath())
+	t.Log(newConfig.Configurations)
+	isNil(e)
+	isNotNil(newConfig.Configurations)
+	for k,v :=range newConfig.Configurations  {
+		test.Equal(t,getValue(k),v)
+	}
+}
+
 
 //test if not modify
 func TestAutoSyncConfigServicesNotModify(t *testing.T) {
