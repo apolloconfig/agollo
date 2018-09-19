@@ -2,10 +2,13 @@ package agollo
 
 import (
 	"github.com/zouyx/agollo/test"
+	"os"
 	"testing"
 )
 
 func TestWriteConfigFile(t *testing.T) {
+	configPath:=""
+	os.Remove(getConfigFile(configPath))
 	jsonStr := `{
   "appId": "100004458",
   "cluster": "default",
@@ -20,7 +23,7 @@ func TestWriteConfigFile(t *testing.T) {
 	config, err := createApolloConfigWithJson([]byte(jsonStr))
 
 	isNil(err)
-	e := writeConfigFile(config,"")
+	e := writeConfigFile(config,configPath)
 	isNil(e)
 }
 
