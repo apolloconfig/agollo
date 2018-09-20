@@ -17,11 +17,11 @@ func writeConfigFile(config *ApolloConfig,configPath string)error{
 		return errors.New("apollo config is null can not write backup file")
 	}
 	file, e := os.Create(getConfigFile(configPath))
-	defer  file.Close()
 	if e!=nil{
 		logger.Errorf("writeConfigFile fail,error:",e)
 		return e
 	}
+	defer  file.Close()
 
 	return json.NewEncoder(file).Encode(config)
 }
@@ -44,11 +44,11 @@ func loadConfigFile(configDir string) (*ApolloConfig,error){
 	configFilePath := getConfigFile(configDir)
 	logger.Info("load config file from :",configFilePath)
 	file, e := os.Open(configFilePath)
-	defer file.Close()
 	if e!=nil{
 		logger.Errorf("loadConfigFile fail,error:",e)
 		return nil,e
 	}
+	defer file.Close()
 	config:=&ApolloConfig{}
 	e=json.NewDecoder(file).Decode(config)
 
