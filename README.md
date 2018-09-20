@@ -36,6 +36,7 @@ go get -u github.com/zouyx/agollo
 * 实时同步配置
 * 灰度配置
 * 客户端容灾
+* 配置文件容灾 (v1.6.0+) 
 
 # Usage
 
