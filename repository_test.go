@@ -61,7 +61,7 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 
 	test.NotNil(t, currentConfig)
 
-	updateApolloConfig(nil)
+	updateApolloConfig(nil,true)
 
 	currentConnApolloConfig.l.RLock()
 	defer currentConnApolloConfig.l.RUnlock()

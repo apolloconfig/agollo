@@ -11,7 +11,15 @@ func StartWithLogger(loggerInterface LoggerInterface) error {
 	}
 
 	//first sync
-	error := notifySyncConfigServices()
+	err := notifySyncConfigServices()
+
+	//first sync fail then load config file
+	if err !=nil{
+		config, _ := loadConfigFile(appConfig.BackupConfigPath)
+		if config!=nil{
+			updateApolloConfig(config,false)
+		}
+	}
 
 	//start auto refresh config
 	go StartRefreshConfig(&AutoRefreshConfigComponent{})
@@ -19,5 +27,5 @@ func StartWithLogger(loggerInterface LoggerInterface) error {
 	//start long poll sync config
 	go StartRefreshConfig(&NotifyConfigComponent{})
 	
-	return error
+	return err
 }

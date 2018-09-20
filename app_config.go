@@ -51,7 +51,13 @@ type AppConfig struct {
 	NamespaceName string `json:"namespaceName"`
 	Ip string `json:"ip"`
 	NextTryConnTime int64 `json:"-"`
+	BackupConfigPath string `json:"backupConfigPath"`
 }
+
+func (this *AppConfig) getBackupConfigPath() string{
+	return this.BackupConfigPath
+}
+
 
 func (this *AppConfig) getHost() string{
 	if strings.HasPrefix(this.Ip,"http"){
@@ -160,7 +166,7 @@ func initConfig(loadAppConfig func()(*AppConfig,error)) {
 		apolloConfig.Cluster=appConfig.Cluster
 		apolloConfig.NamespaceName=appConfig.NamespaceName
 
-		updateApolloConfig(apolloConfig)
+		updateApolloConfig(apolloConfig,false)
 	}(appConfig)
 }
 

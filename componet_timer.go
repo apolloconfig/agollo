@@ -32,7 +32,7 @@ func autoSyncConfigServicesSuccessCallBack(responseBody []byte)(o interface{},er
 		return nil,err
 	}
 
-	updateApolloConfig(apolloConfig)
+	updateApolloConfig(apolloConfig,true)
 
 	return nil,nil
 }
