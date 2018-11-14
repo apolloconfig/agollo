@@ -1,21 +1,16 @@
 package agollo
 
 import (
-	"os"
-	"strconv"
-	"time"
+	"encoding/json"
 	"fmt"
 	"net/url"
-	"encoding/json"
 	"strings"
+	"time"
 )
 
 const appConfigFileName  ="app.properties"
 
 var (
-	refresh_interval = 5 *time.Minute //5m
-	refresh_interval_key = "apollo.refreshInterval"  //
-
 	long_poll_interval = 2 *time.Second //2s
 	long_poll_connect_timeout  = 1 * time.Minute //1m
 
@@ -133,22 +128,13 @@ func init() {
 }
 
 func initCommon()  {
-
-	initRefreshInterval()
+	//init server ip list
+	initServerIpList()
 }
 
 func initFileConfig()  {
 	// default use application.properties
 	initConfig(nil)
-}
-
-func InitCustomConfig(loadAppConfig func()(*AppConfig,error)) {
-
-	initConfig(loadAppConfig)
-
-	//init all notification
-	initAllNotifications()
-
 }
 
 func initConfig(loadAppConfig func()(*AppConfig,error)) {
@@ -168,6 +154,16 @@ func initConfig(loadAppConfig func()(*AppConfig,error)) {
 
 		updateApolloConfig(apolloConfig,false)
 	}(appConfig)
+}
+
+//init config by custom
+func InitCustomConfig(loadAppConfig func()(*AppConfig,error)) {
+
+	initConfig(loadAppConfig)
+
+	//init all notification
+	initAllNotifications()
+
 }
 
 // set load app config's function
@@ -249,19 +245,6 @@ func GetAppConfig(newAppConfig *AppConfig)*AppConfig  {
 	return appConfig
 }
 
-func initRefreshInterval() error {
-	customizedRefreshInterval:=os.Getenv(refresh_interval_key)
-	if isNotEmpty(customizedRefreshInterval){
-		interval,err:=strconv.Atoi(customizedRefreshInterval)
-		if isNotNil(err) {
-			logger.Errorf("Config for apollo.refreshInterval is invalid:%s",customizedRefreshInterval)
-			return err
-		}
-		refresh_interval=time.Duration(interval)
-	}
-	return nil
-}
-
 func getConfigUrl(config *AppConfig) string{
 	return getConfigUrlByHost(config,config.getHost())
 }
@@ -288,20 +271,6 @@ func getConfigUrlSuffix(config *AppConfig,newConfig *AppConfig) string{
 		url.QueryEscape(config.NamespaceName),
 		url.QueryEscape(current.ReleaseKey),
 		getInternal())
-}
-
-func getNotifyUrl(notifications string,config *AppConfig) string{
-	return getNotifyUrlByHost(notifications,
-		config,
-		config.getHost())
-}
-
-func getNotifyUrlByHost(notifications string,config *AppConfig,host string) string{
-	return fmt.Sprintf("%snotifications/v2?appId=%s&cluster=%s&notifications=%s",
-		host,
-		url.QueryEscape(config.AppId),
-		url.QueryEscape(config.Cluster),
-		url.QueryEscape(notifications))
 }
 
 func getNotifyUrlSuffix(notifications string,config *AppConfig,newConfig *AppConfig) string{
