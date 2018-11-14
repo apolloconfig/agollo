@@ -120,11 +120,11 @@ type serverInfo struct {
 }
 
 func init() {
-	//init common
-	initCommon()
-
 	//init config
 	initFileConfig()
+
+	//init common
+	initCommon()
 }
 
 func initCommon()  {
@@ -177,6 +177,8 @@ func getLoadAppConfig(loadAppConfig func()(*AppConfig,error)) (*AppConfig,error)
 //set timer for update ip list
 //interval : 20m
 func initServerIpList() {
+	syncServerIpList(nil)
+
 	t2 := time.NewTimer(refresh_ip_list_interval)
 	for {
 		select {
@@ -188,6 +190,8 @@ func initServerIpList() {
 }
 
 func syncServerIpListSuccessCallBack(responseBody []byte)(o interface{},err error){
+	logger.Debug("get all server info:",string(responseBody))
+
 	tmpServerInfo:=make([]*serverInfo,0)
 
 	err= json.Unmarshal(responseBody,&tmpServerInfo)
@@ -221,15 +225,7 @@ func syncServerIpList(newAppConfig *AppConfig) error{
 		panic("can not find apollo config!please confirm!")
 	}
 
-	var url string
-	if newAppConfig ==nil{
-		getServicesConfigUrl(appConfig)
-	}else{
-		url=newAppConfig.Ip
-	}
-	logger.Debug("url:",url)
-
-	_,err:=request(url,&ConnectConfig{
+	_,err:=request(getServicesConfigUrl(appConfig),&ConnectConfig{
 	},&CallBack{
 		SuccessCallBack:syncServerIpListSuccessCallBack,
 	})
