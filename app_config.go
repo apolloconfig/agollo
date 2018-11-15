@@ -56,6 +56,9 @@ func (this *AppConfig) getBackupConfigPath() string{
 
 func (this *AppConfig) getHost() string{
 	if strings.HasPrefix(this.Ip,"http"){
+		if(!strings.HasSuffix(this.Ip,"/")){
+			return this.Ip+"/"
+		}
 		return this.Ip
 	}
 	return "http://"+this.Ip+"/"
