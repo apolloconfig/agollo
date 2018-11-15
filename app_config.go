@@ -1,21 +1,16 @@
 package agollo
 
 import (
-	"os"
-	"strconv"
-	"time"
+	"encoding/json"
 	"fmt"
 	"net/url"
-	"encoding/json"
 	"strings"
+	"time"
 )
 
 const appConfigFileName  ="app.properties"
 
 var (
-	refresh_interval = 5 *time.Minute //5m
-	refresh_interval_key = "apollo.refreshInterval"  //
-
 	long_poll_interval = 2 *time.Second //2s
 	long_poll_connect_timeout  = 1 * time.Minute //1m
 
@@ -61,6 +56,9 @@ func (this *AppConfig) getBackupConfigPath() string{
 
 func (this *AppConfig) getHost() string{
 	if strings.HasPrefix(this.Ip,"http"){
+		if(!strings.HasSuffix(this.Ip,"/")){
+			return this.Ip+"/"
+		}
 		return this.Ip
 	}
 	return "http://"+this.Ip+"/"
@@ -125,30 +123,21 @@ type serverInfo struct {
 }
 
 func init() {
-	//init common
-	initCommon()
-
 	//init config
 	initFileConfig()
+
+	//init common
+	initCommon()
 }
 
 func initCommon()  {
-
-	initRefreshInterval()
+	//init server ip list
+	go initServerIpList()
 }
 
 func initFileConfig()  {
 	// default use application.properties
 	initConfig(nil)
-}
-
-func InitCustomConfig(loadAppConfig func()(*AppConfig,error)) {
-
-	initConfig(loadAppConfig)
-
-	//init all notification
-	initAllNotifications()
-
 }
 
 func initConfig(loadAppConfig func()(*AppConfig,error)) {
@@ -170,6 +159,16 @@ func initConfig(loadAppConfig func()(*AppConfig,error)) {
 	}(appConfig)
 }
 
+//init config by custom
+func InitCustomConfig(loadAppConfig func()(*AppConfig,error)) {
+
+	initConfig(loadAppConfig)
+
+	//init all notification
+	initAllNotifications()
+
+}
+
 // set load app config's function
 func getLoadAppConfig(loadAppConfig func()(*AppConfig,error)) (*AppConfig,error) {
 	if loadAppConfig!=nil{
@@ -181,6 +180,8 @@ func getLoadAppConfig(loadAppConfig func()(*AppConfig,error)) (*AppConfig,error)
 //set timer for update ip list
 //interval : 20m
 func initServerIpList() {
+	syncServerIpList(nil)
+
 	t2 := time.NewTimer(refresh_ip_list_interval)
 	for {
 		select {
@@ -192,6 +193,8 @@ func initServerIpList() {
 }
 
 func syncServerIpListSuccessCallBack(responseBody []byte)(o interface{},err error){
+	logger.Debug("get all server info:",string(responseBody))
+
 	tmpServerInfo:=make([]*serverInfo,0)
 
 	err= json.Unmarshal(responseBody,&tmpServerInfo)
@@ -225,15 +228,7 @@ func syncServerIpList(newAppConfig *AppConfig) error{
 		panic("can not find apollo config!please confirm!")
 	}
 
-	var url string
-	if newAppConfig ==nil{
-		getServicesConfigUrl(appConfig)
-	}else{
-		url=newAppConfig.Ip
-	}
-	logger.Debug("url:",url)
-
-	_,err:=request(url,&ConnectConfig{
+	_,err:=request(getServicesConfigUrl(appConfig),&ConnectConfig{
 	},&CallBack{
 		SuccessCallBack:syncServerIpListSuccessCallBack,
 	})
@@ -247,19 +242,6 @@ func GetAppConfig(newAppConfig *AppConfig)*AppConfig  {
 		return newAppConfig
 	}
 	return appConfig
-}
-
-func initRefreshInterval() error {
-	customizedRefreshInterval:=os.Getenv(refresh_interval_key)
-	if isNotEmpty(customizedRefreshInterval){
-		interval,err:=strconv.Atoi(customizedRefreshInterval)
-		if isNotNil(err) {
-			logger.Errorf("Config for apollo.refreshInterval is invalid:%s",customizedRefreshInterval)
-			return err
-		}
-		refresh_interval=time.Duration(interval)
-	}
-	return nil
 }
 
 func getConfigUrl(config *AppConfig) string{
@@ -288,20 +270,6 @@ func getConfigUrlSuffix(config *AppConfig,newConfig *AppConfig) string{
 		url.QueryEscape(config.NamespaceName),
 		url.QueryEscape(current.ReleaseKey),
 		getInternal())
-}
-
-func getNotifyUrl(notifications string,config *AppConfig) string{
-	return getNotifyUrlByHost(notifications,
-		config,
-		config.getHost())
-}
-
-func getNotifyUrlByHost(notifications string,config *AppConfig,host string) string{
-	return fmt.Sprintf("%snotifications/v2?appId=%s&cluster=%s&notifications=%s",
-		host,
-		url.QueryEscape(config.AppId),
-		url.QueryEscape(config.Cluster),
-		url.QueryEscape(notifications))
 }
 
 func getNotifyUrlSuffix(notifications string,config *AppConfig,newConfig *AppConfig) string{

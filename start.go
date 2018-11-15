@@ -21,11 +21,10 @@ func StartWithLogger(loggerInterface LoggerInterface) error {
 		}
 	}
 
-	//start auto refresh config
-	go StartRefreshConfig(&AutoRefreshConfigComponent{})
-
 	//start long poll sync config
 	go StartRefreshConfig(&NotifyConfigComponent{})
+
+	logger.Info("agollo start finished , error:",err)
 	
 	return err
 }

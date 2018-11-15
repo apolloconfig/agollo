@@ -1,11 +1,9 @@
 package agollo
 
 import (
-	"testing"
-	"os"
-	"strconv"
-	"time"
 	"github.com/zouyx/agollo/test"
+	"testing"
+	"time"
 )
 
 func TestInit(t *testing.T) {
@@ -53,21 +51,6 @@ func TestStructInit(t *testing.T) {
 	initFileConfig()
 }
 
-func TestInitRefreshInterval_1(t *testing.T) {
-	os.Setenv(refresh_interval_key,"joe")
-
-	err:=initRefreshInterval()
-	test.NotNil(t,err)
-
-	interval:="3"
-	os.Setenv(refresh_interval_key,interval)
-	err=initRefreshInterval()
-	test.Nil(t,err)
-	i,_:=strconv.Atoi(interval)
-	test.Equal(t,time.Duration(i),refresh_interval)
-
-}
-
 func TestGetConfigUrl(t *testing.T) {
 	appConfig:=getTestAppConfig()
 	url:=getConfigUrl(appConfig)
@@ -78,18 +61,6 @@ func TestGetConfigUrlByHost(t *testing.T) {
 	appConfig:=getTestAppConfig()
 	url:=getConfigUrlByHost(appConfig,"http://baidu.com/")
 	test.StartWith(t,"http://baidu.com/configs/test/dev/application?releaseKey=&ip=",url)
-}
-
-func TestGetNotifyUrl(t *testing.T) {
-	appConfig:=getTestAppConfig()
-	url:=getNotifyUrl("notifys",appConfig)
-	test.Equal(t,"http://localhost:8888/notifications/v2?appId=test&cluster=dev&notifications=notifys",url)
-}
-
-func TestGetNotifyUrlByHost(t *testing.T) {
-	appConfig:=getTestAppConfig()
-	url:=getNotifyUrlByHost("notifys",appConfig,"http://baidu.com/")
-	test.Equal(t,"http://baidu.com/notifications/v2?appId=test&cluster=dev&notifications=notifys",url)
 }
 
 func TestGetServicesConfigUrl(t *testing.T) {
