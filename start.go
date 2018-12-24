@@ -1,7 +1,5 @@
 package agollo
 
-import "github.com/cihub/seelog"
-
 //start apollo
 func Start() error {
 	return StartWithLogger(nil)
@@ -26,7 +24,7 @@ func StartWithLogger(loggerInterface LoggerInterface) error {
 	//start long poll sync config
 	go StartRefreshConfig(&NotifyConfigComponent{})
 
-	seelog.Info("agollo start finished , error:",err)
+	logger.Info("agollo start finished , error:",err)
 	
 	return err
 }
