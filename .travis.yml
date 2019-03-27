@@ -3,8 +3,6 @@ sudo: required
 
 go:
   - 1.9
-  - "1.10"
-  - 1.11
 
 env:
     - GO15VENDOREXPERIMENT="1"
