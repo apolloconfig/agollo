@@ -143,7 +143,7 @@ func GetCurrentApolloConfig() *ApolloConnConfig {
 func getConfigValue(key string) interface{} {
 	value, err := apolloConfigCache.Get([]byte(key))
 	if err != nil {
-		logger.Error("get config value fail!err:", err)
+		logger.Errorf("get config value fail!key:%s,err:%s", key,err)
 		return empty
 	}
 
