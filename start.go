@@ -10,6 +10,9 @@ func StartWithLogger(loggerInterface LoggerInterface) error {
 		initLogger(loggerInterface)
 	}
 
+  //init server ip list
+  go initServerIpList()
+
 	//first sync
 	err := notifySyncConfigServices()
 
