@@ -1,11 +1,11 @@
 package test
 
 import (
-	"testing"
-	"reflect"
 	"path/filepath"
+	"reflect"
 	"runtime"
 	"strings"
+	"testing"
 )
 
 func Equal(t *testing.T, expected, actual interface{}) {
@@ -18,7 +18,7 @@ func Equal(t *testing.T, expected, actual interface{}) {
 }
 
 func StartWith(t *testing.T, expected, actual string) {
-	Equal(t,true,strings.HasPrefix(actual,expected))
+	Equal(t, true, strings.HasPrefix(actual, expected))
 }
 
 func NotEqual(t *testing.T, expected, actual interface{}) {
