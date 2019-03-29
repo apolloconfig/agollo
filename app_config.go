@@ -131,8 +131,7 @@ func init() {
 }
 
 func initCommon()  {
-	//init server ip list
-	go initServerIpList()
+
 }
 
 func initFileConfig()  {
