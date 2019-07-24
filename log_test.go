@@ -1,8 +1,8 @@
 package agollo
 
 import (
-	"testing"
 	"github.com/cihub/seelog"
+	"testing"
 )
 
 func TestInitNullSeeLog(t *testing.T) {
