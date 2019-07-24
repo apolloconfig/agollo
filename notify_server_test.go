@@ -1,31 +1,31 @@
 package agollo
 
 import (
-	"net/http"
 	"fmt"
-	"time"
+	"net/http"
 	"net/http/httptest"
+	"time"
 )
 
-const responseStr  =`[{"namespaceName":"application","notificationId":%d}]`
+const responseStr = `[{"namespaceName":"application","notificationId":%d}]`
 
 //run mock notify server
 func runMockNotifyServer(handler func(http.ResponseWriter, *http.Request)) {
 	http.HandleFunc("/notifications/v2", handler)
 
-	appConfig:=GetAppConfig(nil)
-	if appConfig==nil{
+	appConfig := GetAppConfig(nil)
+	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}
 
-	logger.Info("runMockNotifyServer:",appConfig.Ip)
-	err:=http.ListenAndServe(fmt.Sprintf("%s",appConfig.Ip), nil)
-	if err!=nil{
-		logger.Error("runMockConfigServer err:",err)
+	logger.Info("runMockNotifyServer:", appConfig.Ip)
+	err := http.ListenAndServe(fmt.Sprintf("%s", appConfig.Ip), nil)
+	if err != nil {
+		logger.Error("runMockConfigServer err:", err)
 	}
 }
 
-var normalNotifyCount=1
+var normalNotifyCount = 1
 
 //Normal response
 //First request will hold 5s and response http.StatusNotModified
@@ -33,12 +33,12 @@ var normalNotifyCount=1
 //Second request will response [{"namespaceName":"application","notificationId":3}]
 func runNormalResponse() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(10*time.Second)
+		time.Sleep(10 * time.Second)
 		normalNotifyCount++
-		if normalNotifyCount%3==0 {
+		if normalNotifyCount%3 == 0 {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(fmt.Sprintf(responseStr, normalNotifyCount)))
-		}else {
+		} else {
 			time.Sleep(5 * time.Second)
 			w.WriteHeader(http.StatusNotModified)
 		}

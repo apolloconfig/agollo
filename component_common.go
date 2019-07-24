@@ -1,24 +1,23 @@
 package agollo
 
 import (
-	"sync"
 	"encoding/json"
+	"sync"
 )
 
 type AbsComponent interface {
 	Start()
 }
 
-
-func StartRefreshConfig(component AbsComponent)  {
+func StartRefreshConfig(component AbsComponent) {
 	component.Start()
 }
 
 type ApolloConnConfig struct {
-	AppId string `json:"appId"`
-	Cluster string `json:"cluster"`
+	AppId         string `json:"appId"`
+	Cluster       string `json:"cluster"`
 	NamespaceName string `json:"namespaceName"`
-	ReleaseKey string `json:"releaseKey"`
+	ReleaseKey    string `json:"releaseKey"`
 	sync.RWMutex
 }
 
@@ -27,11 +26,11 @@ type ApolloConfig struct {
 	Configurations map[string]string `json:"configurations"`
 }
 
-func createApolloConfigWithJson(b []byte) (*ApolloConfig,error) {
-	apolloConfig:=&ApolloConfig{}
-	err:=json.Unmarshal(b,apolloConfig)
+func createApolloConfigWithJson(b []byte) (*ApolloConfig, error) {
+	apolloConfig := &ApolloConfig{}
+	err := json.Unmarshal(b, apolloConfig)
 	if isNotNil(err) {
-		return nil,err
+		return nil, err
 	}
-	return apolloConfig,nil
+	return apolloConfig, nil
 }

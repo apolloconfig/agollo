@@ -1,13 +1,13 @@
 package agollo
 
 import (
-	"net/http"
 	"fmt"
-	"time"
+	"net/http"
 	"net/http/httptest"
+	"time"
 )
 
-const configResponseStr  =`{
+const configResponseStr = `{
   "appId": "100004458",
   "cluster": "default",
   "namespaceName": "application",
@@ -18,7 +18,7 @@ const configResponseStr  =`{
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
-const configChangeResponseStr  =`{
+const configChangeResponseStr = `{
   "appId": "100004458",
   "cluster": "default",
   "namespaceName": "application",
@@ -32,25 +32,25 @@ const configChangeResponseStr  =`{
 
 //run mock config server
 func runMockConfigServer(handler func(http.ResponseWriter, *http.Request)) {
-	appConfig:=GetAppConfig(nil)
-	uri:=fmt.Sprintf("/configs/%s/%s/%s",appConfig.AppId,appConfig.Cluster,appConfig.NamespaceName)
+	appConfig := GetAppConfig(nil)
+	uri := fmt.Sprintf("/configs/%s/%s/%s", appConfig.AppId, appConfig.Cluster, appConfig.NamespaceName)
 	http.HandleFunc(uri, handler)
 
-	if appConfig==nil{
+	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}
 
-	err:=http.ListenAndServe(fmt.Sprintf("%s",appConfig.Ip), nil)
-	if err!=nil{
-		logger.Error("runMockConfigServer err:",err)
+	err := http.ListenAndServe(fmt.Sprintf("%s", appConfig.Ip), nil)
+	if err != nil {
+		logger.Error("runMockConfigServer err:", err)
 	}
 }
 
 func closeMockConfigServer() {
-	http.DefaultServeMux=&http.ServeMux{}
+	http.DefaultServeMux = &http.ServeMux{}
 }
 
-var normalConfigCount=1
+var normalConfigCount = 1
 
 //Normal response
 //First request will hold 5s and response http.StatusNotModified
@@ -59,10 +59,10 @@ var normalConfigCount=1
 func runNormalConfigResponse() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		normalConfigCount++
-		if normalConfigCount%3==0 {
+		if normalConfigCount%3 == 0 {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(configResponseStr))
-		}else {
+		} else {
 			time.Sleep(500 * time.Microsecond)
 			w.WriteHeader(http.StatusNotModified)
 		}
@@ -80,7 +80,7 @@ func runLongNotmodifiedConfigResponse() *httptest.Server {
 	return ts
 }
 
-func runChangeConfigResponse()*httptest.Server{
+func runChangeConfigResponse() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(configChangeResponseStr))
