@@ -3,7 +3,7 @@ Agollo - Go Client for Apollo
 
 [![golang](https://img.shields.io/badge/Language-Go-green.svg?style=flat)](https://golang.org)
 [![Build Status](https://travis-ci.org/zouyx/agollo.svg?branch=master)](https://travis-ci.org/zouyx/agollo)
-[![Go Report Card](https://goreportcard.com/report/github.com/zouyx/agollo)]
+[![Go Report Card](https://goreportcard.com/report/github.com/zouyx/agollo)](https://goreportcard.com/report/github.com/zouyx/agollo)
 [![codebeat badge](https://codebeat.co/badges/bc2009d6-84f1-4f11-803e-fc571a12a1c0)](https://codebeat.co/projects/github-com-zouyx-agollo-master)
 [![Coverage Status](https://coveralls.io/repos/github/zouyx/agollo/badge.svg?branch=master)](https://coveralls.io/github/zouyx/agollo?branch=master)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
