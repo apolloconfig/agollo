@@ -2,11 +2,11 @@ package agollo
 
 import (
 	"net/http"
-		//"time"
+	//"time"
 	"net/http/httptest"
-				)
+)
 
-const servicesConfigResponseStr  =`[{
+const servicesConfigResponseStr = `[{
 "appName": "APOLLO-CONFIGSERVICE",
 "instanceId": "10.15.128.102:apollo-configservice:8080",
 "homepageUrl": "http://10.15.128.102:8080/"
@@ -61,7 +61,7 @@ const servicesConfigResponseStr  =`[{
 //var server *http.Server
 
 //run mock config server
-func runMockServicesConfigServer() *httptest.Server{
+func runMockServicesConfigServer() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(servicesConfigResponseStr))
