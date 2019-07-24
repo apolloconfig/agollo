@@ -1,9 +1,9 @@
 package test
 
 import (
-	"testing"
 	"encoding/json"
 	"encoding/xml"
+	"testing"
 )
 
 // ToJson
@@ -25,4 +25,3 @@ func ToXML(t *testing.T, v interface{}) string {
 func ToDefault(t *testing.T, v interface{}) string {
 	return ""
 }
-

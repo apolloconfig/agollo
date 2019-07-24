@@ -61,7 +61,7 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 
 	test.NotNil(t, currentConfig)
 
-	updateApolloConfig(nil,true)
+	updateApolloConfig(nil, true)
 
 	currentConnApolloConfig.l.RLock()
 	defer currentConnApolloConfig.l.RUnlock()
@@ -73,7 +73,7 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 	//test.Equal(t, currentConfig.Cluster, config.Cluster)
 	//test.Equal(t, currentConfig.ReleaseKey, config.ReleaseKey)
 	test.Equal(t, "application", config.NamespaceName)
-	test.Equal(t, "test",config.AppId)
+	test.Equal(t, "test", config.AppId)
 	test.Equal(t, "dev", config.Cluster)
 	test.Equal(t, "", config.ReleaseKey)
 
@@ -94,7 +94,7 @@ func TestGetConfigValueTimeout(t *testing.T) {
 
 	time.Sleep(time.Duration(expireTime) * time.Second)
 
-	for k, _ := range configs {
+	for k := range configs {
 		test.Equal(t, "", getValue(k))
 	}
 }

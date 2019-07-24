@@ -10,24 +10,24 @@ func StartWithLogger(loggerInterface LoggerInterface) error {
 		initLogger(loggerInterface)
 	}
 
-  //init server ip list
-  go initServerIpList()
+	//init server ip list
+	go initServerIpList()
 
 	//first sync
 	err := notifySyncConfigServices()
 
 	//first sync fail then load config file
-	if err !=nil{
+	if err != nil {
 		config, _ := loadConfigFile(appConfig.BackupConfigPath)
-		if config!=nil{
-			updateApolloConfig(config,false)
+		if config != nil {
+			updateApolloConfig(config, false)
 		}
 	}
 
 	//start long poll sync config
 	go StartRefreshConfig(&NotifyConfigComponent{})
 
-	logger.Info("agollo start finished , error:",err)
-	
+	logger.Info("agollo start finished , error:", err)
+
 	return err
 }

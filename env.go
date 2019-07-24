@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	unknown= iota
+	unknown = iota
 	local
 	dev
 	fws
@@ -20,10 +20,10 @@ const (
 //环境
 type env int
 
-func fromString(envKey string) (env,error) {
+func fromString(envKey string) (env, error) {
 	environment := transformEnv(envKey)
-	if environment==unknown{
-		return environment,errors.New(fmt.Sprintf("Env %s is invalid",envKey))
+	if environment == unknown {
+		return environment, errors.New(fmt.Sprintf("Env %s is invalid", envKey))
 	}
-	return environment,nil
+	return environment, nil
 }

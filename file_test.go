@@ -7,7 +7,7 @@ import (
 )
 
 func TestWriteConfigFile(t *testing.T) {
-	configPath:=""
+	configPath := ""
 	os.Remove(getConfigFile(configPath))
 	jsonStr := `{
   "appId": "100004458",
@@ -23,7 +23,7 @@ func TestWriteConfigFile(t *testing.T) {
 	config, err := createApolloConfigWithJson([]byte(jsonStr))
 
 	isNil(err)
-	e := writeConfigFile(config,configPath)
+	e := writeConfigFile(config, configPath)
 	isNil(e)
 }
 
@@ -42,12 +42,12 @@ func TestLoadConfigFile(t *testing.T) {
 	config, err := createApolloConfigWithJson([]byte(jsonStr))
 
 	isNil(err)
-	newConfig,e := loadConfigFile("")
+	newConfig, e := loadConfigFile("")
 
 	t.Log(newConfig)
 	isNil(e)
-	test.Equal(t,config.AppId,newConfig.AppId)
-	test.Equal(t,config.ReleaseKey,newConfig.ReleaseKey)
-	test.Equal(t,config.Cluster,newConfig.Cluster)
-	test.Equal(t,config.NamespaceName,newConfig.NamespaceName)
+	test.Equal(t, config.AppId, newConfig.AppId)
+	test.Equal(t, config.ReleaseKey, newConfig.ReleaseKey)
+	test.Equal(t, config.Cluster, newConfig.Cluster)
+	test.Equal(t, config.NamespaceName, newConfig.NamespaceName)
 }
