@@ -21,7 +21,6 @@ Installation
 ``` shell
 gopm get github.com/cihub/seelog -v -g
 gopm get github.com/coocood/freecache -v -g
-gopm get github.com/zouyx/agollo -v -g
 ```
 
 或者
@@ -29,7 +28,6 @@ gopm get github.com/zouyx/agollo -v -g
 ``` shell
 go get -u github.com/cihub/seelog
 go get -u github.com/coocood/freecache
-go get -u github.com/zouyx/agollo
 ```
 
 
@@ -68,6 +66,14 @@ func main() {
 ``` go
 func main() {
 	 go agollo.StartWithLogger(loggerInterface)
+}
+```
+
+- 启动agollo - 自定义cache控件 (v1.7.0+)
+
+``` go
+func main() {
+	 go agollo.StartWithCache(cacheInterface)
 }
 ```
 

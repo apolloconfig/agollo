@@ -21,8 +21,28 @@ var (
 	currentConnApolloConfig = &currentApolloConfig{}
 
 	//config from apollo
-	apolloConfigCache = freecache.NewCache(apolloConfigCacheSize)
+	apolloConfigCache CacheInterface = freecache.NewCache(apolloConfigCacheSize)
 )
+
+func initCache(cacheInterface CacheInterface)  {
+	apolloConfigCache=cacheInterface
+}
+
+type CacheInterface interface {
+	Set(key, value []byte, expireSeconds int) (err error)
+
+	EntryCount() (entryCount int64)
+
+	Get(key []byte) (value []byte, err error)
+
+	Del(key []byte) (affected bool)
+
+	NewIterator() *freecache.Iterator
+
+	TTL(key []byte) (timeLeft uint32, err error)
+
+	Clear()
+}
 
 type currentApolloConfig struct {
 	l      sync.RWMutex
@@ -128,7 +148,7 @@ func updateApolloConfigCacheTime(expireTime int) {
 	}
 }
 
-func GetApolloConfigCache() *freecache.Cache {
+func GetApolloConfigCache() CacheInterface {
 	return apolloConfigCache
 }
 
