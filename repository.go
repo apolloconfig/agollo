@@ -29,7 +29,7 @@ type currentApolloConfig struct {
 	config *ApolloConnConfig
 }
 
-func updateApolloConfig(apolloConfig *ApolloConfig,isBackupConfig bool) {
+func updateApolloConfig(apolloConfig *ApolloConfig, isBackupConfig bool) {
 	if apolloConfig == nil {
 		logger.Error("apolloConfig is null,can't update!")
 		return
@@ -51,9 +51,9 @@ func updateApolloConfig(apolloConfig *ApolloConfig,isBackupConfig bool) {
 
 	currentConnApolloConfig.config = &apolloConfig.ApolloConnConfig
 
-	if isBackupConfig{
+	if isBackupConfig {
 		//write config file async
-		go writeConfigFile(apolloConfig,appConfig.getBackupConfigPath())
+		go writeConfigFile(apolloConfig, appConfig.getBackupConfigPath())
 	}
 }
 
@@ -143,7 +143,7 @@ func GetCurrentApolloConfig() *ApolloConnConfig {
 func getConfigValue(key string) interface{} {
 	value, err := apolloConfigCache.Get([]byte(key))
 	if err != nil {
-		logger.Errorf("get config value fail!key:%s,err:%s", key,err)
+		logger.Errorf("get config value fail!key:%s,err:%s", key, err)
 		return empty
 	}
 

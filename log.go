@@ -32,7 +32,7 @@ type LoggerInterface interface {
 	Error(v ...interface{}) error
 }
 
-func initSeeLog(configPath string) (LoggerInterface) {
+func initSeeLog(configPath string) LoggerInterface {
 	logger, err := seelog.LoggerFromConfigAsFile(configPath)
 
 	//if error is happen change to default config.

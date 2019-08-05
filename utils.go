@@ -6,13 +6,13 @@ import (
 	"reflect"
 )
 
-var(
+var (
 	internalIp string
 )
 
 //ips
 func getInternal() string {
-	if internalIp!=""{
+	if internalIp != "" {
 		return internalIp
 	}
 
@@ -24,7 +24,7 @@ func getInternal() string {
 	for _, a := range addrs {
 		if ipnet, ok := a.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
 			if ipnet.IP.To4() != nil {
-				internalIp=ipnet.IP.To4().String()
+				internalIp = ipnet.IP.To4().String()
 				return internalIp
 			}
 		}
@@ -32,10 +32,9 @@ func getInternal() string {
 	return ""
 }
 
-
 //stringUtils
 func isEmpty(str string) bool {
-	return ""==str
+	return "" == str
 }
 
 func isNotEmpty(str string) bool {
@@ -51,7 +50,6 @@ func isNil(object interface{}) bool {
 func isNotNil(object interface{}) bool {
 	return !isNilObject(object)
 }
-
 
 func isNilObject(object interface{}) bool {
 	if object == nil {
