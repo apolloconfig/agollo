@@ -6,8 +6,19 @@ func Start() error {
 }
 
 func StartWithLogger(loggerInterface LoggerInterface) error {
+	return StartWithParams(loggerInterface,nil)
+}
+
+func StartWithCache(cacheInterface CacheInterface) error {
+	return StartWithParams(nil,cacheInterface)
+}
+
+func StartWithParams(loggerInterface LoggerInterface,cacheInterface CacheInterface) error {
 	if loggerInterface != nil {
 		initLogger(loggerInterface)
+	}
+	if cacheInterface != nil {
+		initCache(cacheInterface)
 	}
 
 	//init server ip list
