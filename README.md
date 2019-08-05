@@ -69,6 +69,14 @@ func main() {
 }
 ```
 
+- 启动agollo - 自定义cache控件 (v1.7.0+)
+
+``` go
+func main() {
+	 go agollo.StartWithCache(cacheInterface)
+}
+```
+
 - 监听变更事件（阻塞）
 
 ``` go
