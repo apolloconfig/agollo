@@ -2,25 +2,32 @@ package agollo
 
 //start apollo
 func Start() error {
-	return StartWithLogger(nil)
+	return startAgollo()
 }
 
-func StartWithLogger(loggerInterface LoggerInterface) error {
-	return StartWithParams(loggerInterface,nil)
-}
-
-func StartWithCache(cacheInterface CacheInterface) error {
-	return StartWithParams(nil,cacheInterface)
-}
-
-func StartWithParams(loggerInterface LoggerInterface,cacheInterface CacheInterface) error {
+func SetLogger(loggerInterface LoggerInterface)  {
 	if loggerInterface != nil {
 		initLogger(loggerInterface)
 	}
+}
+
+func SetCache(cacheInterface CacheInterface)  {
 	if cacheInterface != nil {
 		initCache(cacheInterface)
 	}
+}
 
+func StartWithLogger(loggerInterface LoggerInterface) error {
+	SetLogger(loggerInterface)
+	return startAgollo()
+}
+
+func StartWithCache(cacheInterface CacheInterface) error {
+	SetCache(cacheInterface)
+	return startAgollo()
+}
+
+func startAgollo() error {
 	//init server ip list
 	go initServerIpList()
 

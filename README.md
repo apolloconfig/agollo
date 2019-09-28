@@ -19,15 +19,20 @@ Installation
 如果还没有安装Go开发环境，请参考以下文档[Getting Started](http://golang.org/doc/install.html) ，安装完成后，请执行以下命令：
 
 ``` shell
-gopm get github.com/cihub/seelog -v -g
 gopm get github.com/coocood/freecache -v -g
 ```
 
 或者
 
 ``` shell
-go get -u github.com/cihub/seelog
 go get -u github.com/coocood/freecache
+```
+
+或者
+
+```shell
+chmod u+x ./depend.sh
+./depend.sh
 ```
 
 
@@ -37,7 +42,8 @@ go get -u github.com/coocood/freecache
 * 实时同步配置
 * 灰度配置
 * 客户端容灾
-* 配置文件容灾 (v1.6.0+) 
+* 配置文件容灾 (v1.6.0+)
+* 自定义日志组件 （因开源协议原因，从v1.8.0不再存在默认日志组件。请参考自定义日志组件实现）
 
 # Usage
 
@@ -65,7 +71,7 @@ func main() {
 
 ``` go
 func main() {
-	 go agollo.StartWithLogger(loggerInterface)
+	 agollo.StartWithLogger(loggerInterface)
 }
 ```
 
@@ -73,7 +79,17 @@ func main() {
 
 ``` go
 func main() {
-	 go agollo.StartWithCache(cacheInterface)
+	 agollo.StartWithCache(cacheInterface)
+}
+```
+
+- 启动agollo - 自定义各种控件 (v1.8.0+)
+
+```go
+func main() {
+    agollo.SetLogger(loggerInterface)
+	agollo.SetCache(cacheInterface)
+	agollo.Start()
 }
 ```
 
