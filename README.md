@@ -43,7 +43,7 @@ chmod u+x ./depend.sh
 * 灰度配置
 * 客户端容灾
 * 配置文件容灾 (v1.6.0+)
-* 自定义日志组件 （因开源协议原因，从v1.8.0不再存在默认日志组件。请参考自定义日志组件实现）
+* 自定义日志组件 （因开源协议原因，从v1.8.0不再存在默认日志组件。如还需使用seelog，请参考：[如何使用seelog](https://github.com/zouyx/agollo/wiki/%E4%BD%BF%E7%94%A8seelog%E6%97%A5%E5%BF%97%E7%BB%84%E4%BB%B6)）
 
 # Usage
 
