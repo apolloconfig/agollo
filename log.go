@@ -1,13 +1,9 @@
 package agollo
 
-import (
-	"github.com/cihub/seelog"
-)
-
 var logger LoggerInterface
 
 func init() {
-	initLogger(initSeeLog("seelog.xml"))
+	logger=&DefaultLogger{}
 }
 
 func initLogger(ILogger LoggerInterface) {
@@ -32,17 +28,38 @@ type LoggerInterface interface {
 	Error(v ...interface{}) error
 }
 
-func initSeeLog(configPath string) LoggerInterface {
-	logger, err := seelog.LoggerFromConfigAsFile(configPath)
+type DefaultLogger struct {
+}
 
-	//if error is happen change to default config.
-	if err != nil {
-		logger, err = seelog.LoggerFromConfigAsBytes([]byte("<seelog />"))
-	}
+func (this *DefaultLogger)Debugf(format string, params ...interface{})  {
+	
+}
 
-	logger.SetAdditionalStackDepth(1)
-	seelog.ReplaceLogger(logger)
-	defer seelog.Flush()
+func (this *DefaultLogger)Infof(format string, params ...interface{}) {
 
-	return logger
+}
+
+
+func (this *DefaultLogger)Warnf(format string, params ...interface{}) error {
+	return nil
+}
+
+func (this *DefaultLogger)Errorf(format string, params ...interface{}) error {
+	return nil
+}
+
+
+func (this *DefaultLogger)Debug(v ...interface{}) {
+
+}
+func (this *DefaultLogger)Info(v ...interface{}){
+
+}
+
+func (this *DefaultLogger)Warn(v ...interface{}) error{
+	return nil
+}
+
+func (this *DefaultLogger)Error(v ...interface{}) error{
+	return nil
 }
