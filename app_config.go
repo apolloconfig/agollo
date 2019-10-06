@@ -19,8 +19,8 @@ var (
 	nofity_connect_timeout = 10 * time.Minute //10m
 	//for on error retry
 	on_error_retry_interval = 1 * time.Second //1s
-	//for typed config cache of parser result, e.g. integer, double, long, etc.
-	//max_config_cache_size    = 500             //500 cache key
+	//for typed config agcache of parser result, e.g. integer, double, long, etc.
+	//max_config_cache_size    = 500             //500 agcache key
 	//config_cache_expire_time = 1 * time.Minute //1 minute
 
 	//max retries connect apollo
@@ -215,7 +215,7 @@ func syncServerIpListSuccessCallBack(responseBody []byte) (o interface{}, err er
 
 //sync ip list from server
 //then
-//1.update cache
+//1.update agcache
 //2.store in disk
 func syncServerIpList(newAppConfig *AppConfig) error {
 	appConfig := GetAppConfig(newAppConfig)

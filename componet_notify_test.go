@@ -158,7 +158,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 
 	time.Sleep(10 * time.Second)
 
-	fmt.Println("checking cache time left")
+	fmt.Println("checking agcache time left")
 	it := apolloConfigCache.NewIterator()
 	for i := int64(0); i < apolloConfigCache.EntryCount(); i++ {
 		entry := it.Next()
@@ -180,7 +180,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 
 	err := autoSyncConfigServices(newAppConfig)
 
-	fmt.Println("checking cache time left")
+	fmt.Println("checking agcache time left")
 	it1 := apolloConfigCache.NewIterator()
 	for i := int64(0); i < apolloConfigCache.EntryCount(); i++ {
 		entry := it1.Next()

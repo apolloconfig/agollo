@@ -1,5 +1,7 @@
 package agollo
 
+import "github.com/zouyx/agollo/agcache"
+
 //start apollo
 func Start() error {
 	return startAgollo()
@@ -11,7 +13,7 @@ func SetLogger(loggerInterface LoggerInterface)  {
 	}
 }
 
-func SetCache(cacheInterface CacheInterface)  {
+func SetCache(cacheInterface agcache.CacheInterface)  {
 	if cacheInterface != nil {
 		initCache(cacheInterface)
 	}
@@ -22,7 +24,7 @@ func StartWithLogger(loggerInterface LoggerInterface) error {
 	return startAgollo()
 }
 
-func StartWithCache(cacheInterface CacheInterface) error {
+func StartWithCache(cacheInterface agcache.CacheInterface) error {
 	SetCache(cacheInterface)
 	return startAgollo()
 }

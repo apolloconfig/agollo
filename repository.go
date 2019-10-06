@@ -1,52 +1,120 @@
 package agollo
 
 import (
+	"github.com/zouyx/agollo/agcache"
 	"strconv"
 	"sync"
-
-	"github.com/coocood/freecache"
 )
 
 const (
 	empty = ""
 
-	//50m
-	apolloConfigCacheSize = 50 * 1024 * 1024
-
 	//1 minute
 	configCacheExpireTime = 120
+
+	defaultNamespace="DEFAULT"
 )
+
 
 var (
 	currentConnApolloConfig = &currentApolloConfig{}
 
 	//config from apollo
-	apolloConfigCache CacheInterface = freecache.NewCache(apolloConfigCacheSize)
+	apolloConfigCache = agcache.DefaultCacheFactory{}.Create()
+
+	apolloConfigLocalCache = make(map[string]*Config,0)
 )
 
-func initCache(cacheInterface CacheInterface)  {
+func init() {
+	s, i := createDefaultConfig()
+	apolloConfigLocalCache[s]=i
+}
+
+func initCache(cacheInterface agcache.CacheInterface)  {
 	apolloConfigCache=cacheInterface
 }
 
-type CacheInterface interface {
-	Set(key, value []byte, expireSeconds int) (err error)
+func createDefaultConfig() (string,*Config) {
+	c:=&Config{
+		namespace:defaultNamespace,
+		cache:agcache.DefaultCacheFactory{}.Create(),
+	}
 
-	EntryCount() (entryCount int64)
-
-	Get(key []byte) (value []byte, err error)
-
-	Del(key []byte) (affected bool)
-
-	NewIterator() *freecache.Iterator
-
-	TTL(key []byte) (timeLeft uint32, err error)
-
-	Clear()
+	return c.namespace,c
 }
 
 type currentApolloConfig struct {
 	l      sync.RWMutex
 	config *ApolloConnConfig
+}
+
+type Config struct {
+	namespace string
+	cache agcache.CacheInterface
+}
+
+func (this *Config) getConfigValue(key string) interface{} {
+	value, err := this.cache.Get([]byte(key))
+	if err != nil {
+		logger.Errorf("get config value fail!key:%s,err:%s", key, err)
+		return empty
+	}
+
+	return string(value)
+}
+
+func (this *Config) getValue(key string) string {
+	value := getConfigValue(key)
+	if value == nil {
+		return empty
+	}
+
+	return value.(string)
+}
+
+func (this *Config) GetStringValue(key string, defaultValue string) string {
+	value := getValue(key)
+	if value == empty {
+		return defaultValue
+	}
+
+	return value
+}
+
+func (this *Config) GetIntValue(key string, defaultValue int) int {
+	value := getValue(key)
+
+	i, err := strconv.Atoi(value)
+	if err != nil {
+		logger.Debug("convert to int fail!error:", err)
+		return defaultValue
+	}
+
+	return i
+}
+
+func (this *Config) GetFloatValue(key string, defaultValue float64) float64 {
+	value := getValue(key)
+
+	i, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		logger.Debug("convert to float fail!error:", err)
+		return defaultValue
+	}
+
+	return i
+}
+
+func (this *Config) GetBoolValue(key string, defaultValue bool) bool {
+	value := getValue(key)
+
+	b, err := strconv.ParseBool(value)
+	if err != nil {
+		logger.Debug("convert to bool fail!error:", err)
+		return defaultValue
+	}
+
+	return b
 }
 
 func updateApolloConfig(apolloConfig *ApolloConfig, isBackupConfig bool) {
@@ -148,7 +216,7 @@ func updateApolloConfigCacheTime(expireTime int) {
 	}
 }
 
-func GetApolloConfigCache() CacheInterface {
+func GetApolloConfigCache() agcache.CacheInterface {
 	return apolloConfigCache
 }
 
