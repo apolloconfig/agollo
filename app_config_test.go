@@ -54,13 +54,13 @@ func TestStructInit(t *testing.T) {
 func TestGetConfigUrl(t *testing.T) {
 	appConfig := getTestAppConfig()
 	url := getConfigUrl(appConfig)
-	gohamcrest.Assert(t, "http://localhost:8888/configs/test/dev/application?releaseKey=&ip=", gohamcrest.StartWith(url))
+	gohamcrest.Assert(t, url, gohamcrest.StartWith("http://localhost:8888/configs/test/dev/application?releaseKey=&ip="))
 }
 
 func TestGetConfigUrlByHost(t *testing.T) {
 	appConfig := getTestAppConfig()
 	url := getConfigUrlByHost(appConfig, "http://baidu.com/")
-	gohamcrest.Assert(t, "http://baidu.com/configs/test/dev/application?releaseKey=&ip=", gohamcrest.StartWith(url))
+	gohamcrest.Assert(t, url, gohamcrest.StartWith("http://baidu.com/configs/test/dev/application?releaseKey=&ip="))
 }
 
 func TestGetServicesConfigUrl(t *testing.T) {
@@ -95,7 +95,7 @@ func trySyncServerIpList(t *testing.T) {
 	newAppConfig.Ip = server.URL
 	err := syncServerIpList(newAppConfig)
 
-	gohamcrest.Assert(t, err,gohamcrest.NotNilVal())
+	gohamcrest.Assert(t, err,gohamcrest.NilVal())
 
 	gohamcrest.Assert(t, 10, gohamcrest.Equal(len(servers)))
 
