@@ -20,24 +20,28 @@ var (
 	currentConnApolloConfig = &currentApolloConfig{}
 
 	//config from apollo
-	apolloConfigCache = agcache.DefaultCacheFactory{}.Create()
-
-	apolloConfigLocalCache = make(map[string]*Config,0)
+	apolloConfigCache = make(map[string]*Config,0)
 )
 
 func init() {
-	s, i := createDefaultConfig()
-	apolloConfigLocalCache[s]=i
+	initDefaultConfig()
 }
 
-func initCache(cacheInterface agcache.CacheInterface)  {
-	apolloConfigCache=cacheInterface
+func initDefaultConfig() *Config {
+	cacheFactory := &agcache.DefaultCacheFactory{}
+	return initConfigCache(cacheFactory.Create())
 }
 
-func createDefaultConfig() (string,*Config) {
+func initConfigCache(cacheInterface agcache.CacheInterface) *Config {
+	s, i := createDefaultConfig(cacheInterface)
+	apolloConfigCache[s]=i
+	return i
+}
+
+func createDefaultConfig(cacheInterface agcache.CacheInterface) (string,*Config) {
 	c:=&Config{
 		namespace:defaultNamespace,
-		cache:agcache.DefaultCacheFactory{}.Create(),
+		cache:cacheInterface,
 	}
 
 	return c.namespace,c
@@ -64,7 +68,7 @@ func (this *Config) getConfigValue(key string) interface{} {
 }
 
 func (this *Config) getValue(key string) string {
-	value := getConfigValue(key)
+	value := this.getConfigValue(key)
 	if value == nil {
 		return empty
 	}
@@ -73,7 +77,7 @@ func (this *Config) getValue(key string) string {
 }
 
 func (this *Config) GetStringValue(key string, defaultValue string) string {
-	value := getValue(key)
+	value := this.getValue(key)
 	if value == empty {
 		return defaultValue
 	}
@@ -82,7 +86,7 @@ func (this *Config) GetStringValue(key string, defaultValue string) string {
 }
 
 func (this *Config) GetIntValue(key string, defaultValue int) int {
-	value := getValue(key)
+	value := this.getValue(key)
 
 	i, err := strconv.Atoi(value)
 	if err != nil {
@@ -94,7 +98,7 @@ func (this *Config) GetIntValue(key string, defaultValue int) int {
 }
 
 func (this *Config) GetFloatValue(key string, defaultValue float64) float64 {
-	value := getValue(key)
+	value := this.getValue(key)
 
 	i, err := strconv.ParseFloat(value, 64)
 	if err != nil {
@@ -106,7 +110,7 @@ func (this *Config) GetFloatValue(key string, defaultValue float64) float64 {
 }
 
 func (this *Config) GetBoolValue(key string, defaultValue bool) bool {
-	value := getValue(key)
+	value := this.getValue(key)
 
 	b, err := strconv.ParseBool(value)
 	if err != nil {
@@ -115,6 +119,19 @@ func (this *Config) GetBoolValue(key string, defaultValue bool) bool {
 	}
 
 	return b
+}
+
+func GetConfig(namespace string) *Config{
+	return apolloConfigCache[namespace]
+}
+
+func getDefaultConfigCache()agcache.CacheInterface{
+	config := apolloConfigCache[defaultNamespace]
+	if config!=nil{
+		return config.cache
+	}
+	defaultConfgi := initDefaultConfig()
+	return defaultConfgi.cache
 }
 
 func updateApolloConfig(apolloConfig *ApolloConfig, isBackupConfig bool) {
@@ -146,13 +163,13 @@ func updateApolloConfig(apolloConfig *ApolloConfig, isBackupConfig bool) {
 }
 
 func updateApolloConfigCache(configurations map[string]string, expireTime int) map[string]*ConfigChange {
-	if (configurations == nil || len(configurations) == 0) && apolloConfigCache.EntryCount() == 0 {
+	if (configurations == nil || len(configurations) == 0) && getDefaultConfigCache().EntryCount() == 0 {
 		return nil
 	}
 
 	//get old keys
 	mp := map[string]bool{}
-	it := apolloConfigCache.NewIterator()
+	it := getDefaultConfigCache().NewIterator()
 	for en := it.Next(); en != nil; en = it.Next() {
 		mp[string(en.Key)] = true
 	}
@@ -169,13 +186,13 @@ func updateApolloConfigCache(configurations map[string]string, expireTime int) m
 				changes[key] = createAddConfigChange(value)
 			} else {
 				//update
-				oldValue, _ := apolloConfigCache.Get([]byte(key))
+				oldValue, _ := getDefaultConfigCache().Get([]byte(key))
 				if string(oldValue) != value {
 					changes[key] = createModifyConfigChange(string(oldValue), value)
 				}
 			}
 
-			apolloConfigCache.Set([]byte(key), []byte(value), expireTime)
+			getDefaultConfigCache().Set([]byte(key), []byte(value), expireTime)
 			delete(mp, string(key))
 		}
 	}
@@ -183,10 +200,10 @@ func updateApolloConfigCache(configurations map[string]string, expireTime int) m
 	// remove del keys
 	for key := range mp {
 		//get old value and del
-		oldValue, _ := apolloConfigCache.Get([]byte(key))
+		oldValue, _ := getDefaultConfigCache().Get([]byte(key))
 		changes[key] = createDeletedConfigChange(string(oldValue))
 
-		apolloConfigCache.Del([]byte(key))
+		getDefaultConfigCache().Del([]byte(key))
 	}
 
 	return changes
@@ -206,18 +223,18 @@ func touchApolloConfigCache() error {
 }
 
 func updateApolloConfigCacheTime(expireTime int) {
-	it := apolloConfigCache.NewIterator()
-	for i := int64(0); i < apolloConfigCache.EntryCount(); i++ {
+	it := getDefaultConfigCache().NewIterator()
+	for i := int64(0); i < getDefaultConfigCache().EntryCount(); i++ {
 		entry := it.Next()
 		if entry == nil {
 			break
 		}
-		apolloConfigCache.Set([]byte(entry.Key), []byte(entry.Value), expireTime)
+		getDefaultConfigCache().Set([]byte(entry.Key), []byte(entry.Value), expireTime)
 	}
 }
 
 func GetApolloConfigCache() agcache.CacheInterface {
-	return apolloConfigCache
+	return getDefaultConfigCache()
 }
 
 func GetCurrentApolloConfig() *ApolloConnConfig {
@@ -229,7 +246,7 @@ func GetCurrentApolloConfig() *ApolloConnConfig {
 }
 
 func getConfigValue(key string) interface{} {
-	value, err := apolloConfigCache.Get([]byte(key))
+	value, err := getDefaultConfigCache().Get([]byte(key))
 	if err != nil {
 		logger.Errorf("get config value fail!key:%s,err:%s", key, err)
 		return empty

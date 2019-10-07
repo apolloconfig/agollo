@@ -15,7 +15,7 @@ func SetLogger(loggerInterface LoggerInterface)  {
 
 func SetCache(cacheInterface agcache.CacheInterface)  {
 	if cacheInterface != nil {
-		initCache(cacheInterface)
+		initConfigCache(cacheInterface)
 	}
 }
 

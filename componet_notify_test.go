@@ -159,13 +159,14 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	time.Sleep(10 * time.Second)
 
 	fmt.Println("checking agcache time left")
-	it := apolloConfigCache.NewIterator()
-	for i := int64(0); i < apolloConfigCache.EntryCount(); i++ {
+	defaultConfigCache := getDefaultConfigCache()
+	it := defaultConfigCache.NewIterator()
+	for i := int64(0); i < defaultConfigCache.EntryCount(); i++ {
 		entry := it.Next()
 		if entry == nil {
 			break
 		}
-		timeLeft, err := apolloConfigCache.TTL([]byte(entry.Key))
+		timeLeft, err := defaultConfigCache.TTL([]byte(entry.Key))
 		test.Nil(t, err)
 		fmt.Printf("key:%s,time:%v \n", string(entry.Key), timeLeft)
 		test.Equal(t, timeLeft >= 110, true)
@@ -181,13 +182,13 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	err := autoSyncConfigServices(newAppConfig)
 
 	fmt.Println("checking agcache time left")
-	it1 := apolloConfigCache.NewIterator()
-	for i := int64(0); i < apolloConfigCache.EntryCount(); i++ {
+	it1 := defaultConfigCache.NewIterator()
+	for i := int64(0); i < defaultConfigCache.EntryCount(); i++ {
 		entry := it1.Next()
 		if entry == nil {
 			break
 		}
-		timeLeft, err := apolloConfigCache.TTL([]byte(entry.Key))
+		timeLeft, err := defaultConfigCache.TTL([]byte(entry.Key))
 		test.Nil(t, err)
 		fmt.Printf("key:%s,time:%v \n", string(entry.Key), timeLeft)
 		test.Equal(t, timeLeft >= 120, true)

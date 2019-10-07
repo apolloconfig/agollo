@@ -39,10 +39,11 @@ func TestTouchApolloConfigCache(t *testing.T) {
 }
 
 func checkCacheLeft(t *testing.T, excepted uint32) {
-	it := apolloConfigCache.NewIterator()
-	for i := int64(0); i < apolloConfigCache.EntryCount(); i++ {
+	defaultConfigCache := getDefaultConfigCache()
+	it := defaultConfigCache.NewIterator()
+	for i := int64(0); i < defaultConfigCache.EntryCount(); i++ {
 		entry := it.Next()
-		left, _ := apolloConfigCache.TTL(entry.Key)
+		left, _ := defaultConfigCache.TTL(entry.Key)
 		test.Equal(t, true, left == uint32(excepted))
 	}
 }
@@ -101,7 +102,8 @@ func TestGetConfigValueTimeout(t *testing.T) {
 
 func TestGetConfigValueNullApolloConfig(t *testing.T) {
 	//clear Configurations
-	apolloConfigCache.Clear()
+	defaultConfigCache := getDefaultConfigCache()
+	defaultConfigCache.Clear()
 
 	//test getValue
 	value := getValue("joe")
