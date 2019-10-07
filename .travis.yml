@@ -12,8 +12,8 @@ before_install:
     - Project=apollo
 
 install:
-    - go get github.com/cihub/seelog
-    - go get github.com/coocood/freecache
+    - chmod u+x depend.sh
+    - ./depend.sh
 
 script:
     - chmod u+x coverage.sh
