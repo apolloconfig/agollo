@@ -3,7 +3,7 @@ package agollo
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/test"
+	. "github.com/tevid/gohamcrest"
 	"testing"
 	"time"
 )
@@ -17,19 +17,19 @@ func TestListenChangeEvent(t *testing.T) {
 	bytes, _ := json.Marshal(changeEvent)
 	fmt.Println("event:", string(bytes))
 
-	test.Equal(t, "application", changeEvent.Namespace)
+	Assert(t, "application", Equal(changeEvent.Namespace))
 
-	test.Equal(t, "string", changeEvent.Changes["string"].NewValue)
-	test.Equal(t, "", changeEvent.Changes["string"].OldValue)
-	test.Equal(t, ADDED, changeEvent.Changes["string"].ChangeType)
+	Assert(t, "string", Equal(changeEvent.Changes["string"].NewValue))
+	Assert(t, "", Equal(changeEvent.Changes["string"].OldValue))
+	Assert(t, ADDED, Equal(changeEvent.Changes["string"].ChangeType))
 
-	test.Equal(t, "value1", changeEvent.Changes["key1"].NewValue)
-	test.Equal(t, "", changeEvent.Changes["key2"].OldValue)
-	test.Equal(t, ADDED, changeEvent.Changes["key1"].ChangeType)
+	Assert(t, "value1", Equal(changeEvent.Changes["key1"].NewValue))
+	Assert(t, "", Equal(changeEvent.Changes["key2"].OldValue))
+	Assert(t, ADDED, Equal(changeEvent.Changes["key1"].ChangeType))
 
-	test.Equal(t, "value2", changeEvent.Changes["key2"].NewValue)
-	test.Equal(t, "", changeEvent.Changes["key2"].OldValue)
-	test.Equal(t, ADDED, changeEvent.Changes["key2"].ChangeType)
+	Assert(t, "value2", Equal(changeEvent.Changes["key2"].NewValue))
+	Assert(t, "", Equal(changeEvent.Changes["key2"].OldValue))
+	Assert(t, ADDED, Equal(changeEvent.Changes["key2"].ChangeType))
 
 }
 
@@ -49,12 +49,12 @@ func buildNotifyResult(t *testing.T) {
 	err := autoSyncConfigServices(newAppConfig)
 	err = autoSyncConfigServices(newAppConfig)
 
-	test.Nil(t, err)
+	Assert(t, err,NilVal())
 
 	config := GetCurrentApolloConfig()
 
-	test.Equal(t, "100004458", config.AppId)
-	test.Equal(t, "default", config.Cluster)
-	test.Equal(t, "application", config.NamespaceName)
-	test.Equal(t, "20170430092936-dee2d58e74515ff3", config.ReleaseKey)
+	Assert(t, "100004458", Equal(config.AppId))
+	Assert(t, "default", Equal(config.Cluster))
+	Assert(t, "application", Equal(config.NamespaceName))
+	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
 }

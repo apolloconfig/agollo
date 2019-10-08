@@ -1,7 +1,7 @@
 package agollo
 
 import (
-	"github.com/tevid/gohamcrest"
+	. "github.com/tevid/gohamcrest"
 	"testing"
 	"time"
 )
@@ -9,16 +9,16 @@ import (
 func TestInit(t *testing.T) {
 	config := GetAppConfig(nil)
 
-	gohamcrest.Assert(t, config,gohamcrest.NotNilVal())
-	gohamcrest.Assert(t, "test", gohamcrest.Equal(config.AppId))
-	gohamcrest.Assert(t, "dev", gohamcrest.Equal(config.Cluster))
-	gohamcrest.Assert(t, "application", gohamcrest.Equal(config.NamespaceName))
-	gohamcrest.Assert(t, "localhost:8888", gohamcrest.Equal(config.Ip))
+	Assert(t, config,NotNilVal())
+	Assert(t, "test", Equal(config.AppId))
+	Assert(t, "dev", Equal(config.Cluster))
+	Assert(t, "application", Equal(config.NamespaceName))
+	Assert(t, "localhost:8888", Equal(config.Ip))
 
 	apolloConfig := GetCurrentApolloConfig()
-	gohamcrest.Assert(t, "test", gohamcrest.Equal(apolloConfig.AppId))
-	gohamcrest.Assert(t, "dev", gohamcrest.Equal(apolloConfig.Cluster))
-	gohamcrest.Assert(t, "application", gohamcrest.Equal(apolloConfig.NamespaceName))
+	Assert(t, "test", Equal(apolloConfig.AppId))
+	Assert(t, "dev", Equal(apolloConfig.Cluster))
+	Assert(t, "application", Equal(apolloConfig.NamespaceName))
 
 }
 
@@ -36,16 +36,16 @@ func TestStructInit(t *testing.T) {
 	})
 
 	config := GetAppConfig(nil)
-	gohamcrest.Assert(t, config, gohamcrest.NotNilVal())
-	gohamcrest.Assert(t, "test1", gohamcrest.Equal(config.AppId))
-	gohamcrest.Assert(t, "dev1", gohamcrest.Equal(config.Cluster))
-	gohamcrest.Assert(t, "application1", gohamcrest.Equal(config.NamespaceName))
-	gohamcrest.Assert(t, "localhost:8889", gohamcrest.Equal(config.Ip))
+	Assert(t, config, NotNilVal())
+	Assert(t, "test1", Equal(config.AppId))
+	Assert(t, "dev1", Equal(config.Cluster))
+	Assert(t, "application1", Equal(config.NamespaceName))
+	Assert(t, "localhost:8889", Equal(config.Ip))
 
 	apolloConfig := GetCurrentApolloConfig()
-	gohamcrest.Assert(t, "test1", gohamcrest.Equal(apolloConfig.AppId))
-	gohamcrest.Assert(t, "dev1", gohamcrest.Equal(apolloConfig.Cluster))
-	gohamcrest.Assert(t, "application1", gohamcrest.Equal(apolloConfig.NamespaceName))
+	Assert(t, "test1", Equal(apolloConfig.AppId))
+	Assert(t, "dev1", Equal(apolloConfig.Cluster))
+	Assert(t, "application1", Equal(apolloConfig.NamespaceName))
 
 	//revert file config
 	initFileConfig()
@@ -54,20 +54,20 @@ func TestStructInit(t *testing.T) {
 func TestGetConfigUrl(t *testing.T) {
 	appConfig := getTestAppConfig()
 	url := getConfigUrl(appConfig)
-	gohamcrest.Assert(t, url, gohamcrest.StartWith("http://localhost:8888/configs/test/dev/application?releaseKey=&ip="))
+	Assert(t, url, StartWith("http://localhost:8888/configs/test/dev/application?releaseKey=&ip="))
 }
 
 func TestGetConfigUrlByHost(t *testing.T) {
 	appConfig := getTestAppConfig()
 	url := getConfigUrlByHost(appConfig, "http://baidu.com/")
-	gohamcrest.Assert(t, url, gohamcrest.StartWith("http://baidu.com/configs/test/dev/application?releaseKey=&ip="))
+	Assert(t, url, StartWith("http://baidu.com/configs/test/dev/application?releaseKey=&ip="))
 }
 
 func TestGetServicesConfigUrl(t *testing.T) {
 	appConfig := getTestAppConfig()
 	url := getServicesConfigUrl(appConfig)
 	ip := getInternal()
-	gohamcrest.Assert(t, "http://localhost:8888/services/config?appId=test&ip="+ip, gohamcrest.Equal(url))
+	Assert(t, "http://localhost:8888/services/config?appId=test&ip="+ip, Equal(url))
 }
 
 func getTestAppConfig() *AppConfig {
@@ -95,9 +95,9 @@ func trySyncServerIpList(t *testing.T) {
 	newAppConfig.Ip = server.URL
 	err := syncServerIpList(newAppConfig)
 
-	gohamcrest.Assert(t, err,gohamcrest.NilVal())
+	Assert(t, err,NilVal())
 
-	gohamcrest.Assert(t, 10, gohamcrest.Equal(len(servers)))
+	Assert(t, 10, Equal(len(servers)))
 
 }
 
@@ -109,38 +109,38 @@ func TestSelectHost(t *testing.T) {
 	t.Log("appconfig select host:" + appConfig.selectHost())
 
 	host := "http://localhost:8888/"
-	gohamcrest.Assert(t, host, gohamcrest.Equal(appConfig.getHost()))
-	gohamcrest.Assert(t, host, gohamcrest.Equal(appConfig.selectHost()))
+	Assert(t, host, Equal(appConfig.getHost()))
+	Assert(t, host, Equal(appConfig.selectHost()))
 
 	//check select next time
 	appConfig.setNextTryConnTime(5)
-	gohamcrest.Assert(t, host, gohamcrest.NotEqual(appConfig.selectHost()))
+	Assert(t, host, NotEqual(appConfig.selectHost()))
 	time.Sleep(6 * time.Second)
-	gohamcrest.Assert(t, host, gohamcrest.Equal(appConfig.selectHost()))
+	Assert(t, host, Equal(appConfig.selectHost()))
 
 	//check servers
 	appConfig.setNextTryConnTime(5)
 	firstHost := appConfig.selectHost()
-	gohamcrest.Assert(t, host, gohamcrest.NotEqual(firstHost))
+	Assert(t, host, NotEqual(firstHost))
 	setDownNode(firstHost)
 
 	secondHost := appConfig.selectHost()
-	gohamcrest.Assert(t, host, gohamcrest.NotEqual(secondHost))
-	gohamcrest.Assert(t, firstHost, gohamcrest.NotEqual(secondHost))
+	Assert(t, host, NotEqual(secondHost))
+	Assert(t, firstHost, NotEqual(secondHost))
 	setDownNode(secondHost)
 
 	thirdHost := appConfig.selectHost()
-	gohamcrest.Assert(t, host, gohamcrest.NotEqual(thirdHost))
-	gohamcrest.Assert(t, firstHost, gohamcrest.NotEqual(thirdHost))
-	gohamcrest.Assert(t, secondHost, gohamcrest.NotEqual(thirdHost))
+	Assert(t, host, NotEqual(thirdHost))
+	Assert(t, firstHost, NotEqual(thirdHost))
+	Assert(t, secondHost, NotEqual(thirdHost))
 
 	for host := range servers {
 		setDownNode(host)
 	}
 
-	gohamcrest.Assert(t, "", gohamcrest.Equal(appConfig.selectHost()))
+	Assert(t, "", Equal(appConfig.selectHost()))
 
 	//no servers
 	servers = make(map[string]*serverInfo, 0)
-	gohamcrest.Assert(t, "", gohamcrest.Equal(appConfig.selectHost()))
+	Assert(t, "", Equal(appConfig.selectHost()))
 }
