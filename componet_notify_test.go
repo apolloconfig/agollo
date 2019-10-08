@@ -203,8 +203,8 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 func checkBackupFile(t *testing.T) {
 	newConfig, e := loadConfigFile(appConfig.getBackupConfigPath())
 	t.Log(newConfig.Configurations)
-	isNil(e)
-	isNotNil(newConfig.Configurations)
+	Assert(t,e,NilVal())
+	Assert(t,newConfig.Configurations,NotNilVal())
 	for k, v := range newConfig.Configurations {
 		Assert(t, getValue(k), Equal(v))
 	}
