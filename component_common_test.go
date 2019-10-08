@@ -1,7 +1,6 @@
 package agollo
 
 import (
-	"github.com/zouyx/agollo/test"
 	. "github.com/tevid/gohamcrest"
 	"testing"
 )
