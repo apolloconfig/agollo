@@ -2,6 +2,7 @@ package agollo
 
 import (
 	"github.com/zouyx/agollo/test"
+	. "github.com/tevid/gohamcrest"
 	"testing"
 )
 
@@ -19,15 +20,15 @@ func TestCreateApolloConfigWithJson(t *testing.T) {
 
 	config, err := createApolloConfigWithJson([]byte(jsonStr))
 
-	test.Nil(t, err)
-	test.NotNil(t, config)
+	Assert(t, err,NilVal())
+	Assert(t, config,NotNilVal())
 
-	test.Equal(t, "100004458", config.AppId)
-	test.Equal(t, "default", config.Cluster)
-	test.Equal(t, "application", config.NamespaceName)
-	test.Equal(t, "20170430092936-dee2d58e74515ff3", config.ReleaseKey)
-	test.Equal(t, "value1", config.Configurations["key1"])
-	test.Equal(t, "value2", config.Configurations["key2"])
+	Assert(t, "100004458", Equal(config.AppId))
+	Assert(t, "default", Equal(config.Cluster))
+	Assert(t, "application", Equal(config.NamespaceName))
+	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
+	Assert(t, "value1", Equal(config.Configurations["key1"]))
+	Assert(t, "value2", Equal(config.Configurations["key2"]))
 
 }
 
@@ -36,6 +37,6 @@ func TestCreateApolloConfigWithJsonError(t *testing.T) {
 
 	config, err := createApolloConfigWithJson([]byte(jsonStr))
 
-	test.NotNil(t, err)
-	test.Nil(t, config)
+	Assert(t, err,NotNilVal())
+	Assert(t, config,NilVal())
 }
