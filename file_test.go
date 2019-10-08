@@ -1,7 +1,7 @@
 package agollo
 
 import (
-	"github.com/zouyx/agollo/test"
+	. "github.com/tevid/gohamcrest"
 	"os"
 	"testing"
 )
@@ -22,9 +22,9 @@ func TestWriteConfigFile(t *testing.T) {
 
 	config, err := createApolloConfigWithJson([]byte(jsonStr))
 
-	isNil(err)
+	Assert(t,err,NilVal())
 	e := writeConfigFile(config, configPath)
-	isNil(e)
+	Assert(t,e,NilVal())
 }
 
 func TestLoadConfigFile(t *testing.T) {
@@ -41,13 +41,13 @@ func TestLoadConfigFile(t *testing.T) {
 
 	config, err := createApolloConfigWithJson([]byte(jsonStr))
 
-	isNil(err)
+	Assert(t,err,NilVal())
 	newConfig, e := loadConfigFile("")
 
 	t.Log(newConfig)
-	isNil(e)
-	test.Equal(t, config.AppId, newConfig.AppId)
-	test.Equal(t, config.ReleaseKey, newConfig.ReleaseKey)
-	test.Equal(t, config.Cluster, newConfig.Cluster)
-	test.Equal(t, config.NamespaceName, newConfig.NamespaceName)
+	Assert(t,e,NilVal())
+	Assert(t, config.AppId, Equal(newConfig.AppId))
+	Assert(t, config.ReleaseKey, Equal(newConfig.ReleaseKey))
+	Assert(t, config.Cluster, Equal(newConfig.Cluster))
+	Assert(t, config.NamespaceName, Equal(newConfig.NamespaceName))
 }

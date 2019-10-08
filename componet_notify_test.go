@@ -3,7 +3,7 @@ package agollo
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/test"
+	. "github.com/tevid/gohamcrest"
 	"testing"
 	"time"
 )
@@ -27,7 +27,7 @@ func TestGetRemoteConfig(t *testing.T) {
 		remoteConfigs, err = notifyRemoteConfig(newAppConfig)
 
 		//err keep nil
-		test.Nil(t, err)
+		Assert(t, err,NilVal())
 
 		//if remote config is nil then break
 		if remoteConfigs != nil && len(remoteConfigs) > 0 {
@@ -35,17 +35,17 @@ func TestGetRemoteConfig(t *testing.T) {
 		}
 	}
 
-	test.Equal(t, count > 1, true)
-	test.Nil(t, err)
-	test.NotNil(t, remoteConfigs)
-	test.Equal(t, 1, len(remoteConfigs))
+	Assert(t, count > 1, Equal(true))
+	Assert(t, err,NilVal())
+	Assert(t, remoteConfigs,NotNilVal())
+	Assert(t, 1, Equal(len(remoteConfigs)))
 	t.Log("remoteConfigs:", remoteConfigs)
 	t.Log("remoteConfigs size:", len(remoteConfigs))
 
 	notify := remoteConfigs[0]
 
-	test.Equal(t, "application", notify.NamespaceName)
-	test.Equal(t, true, notify.NotificationId > 0)
+	Assert(t, "application", Equal(notify.NamespaceName))
+	Assert(t, true, Equal(notify.NotificationId > 0))
 }
 
 func TestErrorGetRemoteConfig(t *testing.T) {
@@ -59,13 +59,13 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 	var err error
 	remoteConfigs, err = notifyRemoteConfig(nil)
 
-	test.NotNil(t, err)
-	test.Nil(t, remoteConfigs)
-	test.Equal(t, 0, len(remoteConfigs))
+	Assert(t, err,NotNilVal())
+	Assert(t, remoteConfigs,NilVal())
+	Assert(t, 0, Equal(len(remoteConfigs)))
 	t.Log("remoteConfigs:", remoteConfigs)
 	t.Log("remoteConfigs size:", len(remoteConfigs))
 
-	test.Equal(t, "Over Max Retry Still Error!", err.Error())
+	Assert(t, "Over Max Retry Still Error!", Equal(err.Error()))
 }
 
 func TestUpdateAllNotifications(t *testing.T) {
@@ -83,13 +83,13 @@ func TestUpdateAllNotifications(t *testing.T) {
 
 	err := json.Unmarshal([]byte(notifyJson), &notifies)
 
-	test.Nil(t, err)
-	test.Equal(t, true, len(notifies) > 0)
+	Assert(t, err,NilVal())
+	Assert(t, true, Equal(len(notifies) > 0))
 
 	updateAllNotifications(notifies)
 
-	test.Equal(t, true, len(allNotifications.notifications) > 0)
-	test.Equal(t, int64(101), allNotifications.notifications["application"])
+	Assert(t, true, Equal(len(allNotifications.notifications) > 0))
+	Assert(t, int64(101), Equal(allNotifications.notifications["application"]))
 }
 
 func TestUpdateAllNotificationsError(t *testing.T) {
@@ -103,19 +103,19 @@ func TestUpdateAllNotificationsError(t *testing.T) {
 
 	err := json.Unmarshal([]byte(notifyJson), &notifies)
 
-	test.NotNil(t, err)
-	test.Equal(t, true, len(notifies) == 0)
+	Assert(t, err,NotNilVal())
+	Assert(t, true, Equal(len(notifies) == 0))
 
 	updateAllNotifications(notifies)
 
-	test.Equal(t, true, len(allNotifications.notifications) == 0)
+	Assert(t, true, Equal(len(allNotifications.notifications) == 0))
 }
 
 func TestToApolloConfigError(t *testing.T) {
 
 	notified, err := toApolloConfig([]byte("jaskldfjaskl"))
-	test.Nil(t, notified)
-	test.NotNil(t, err)
+	Assert(t, notified,NilVal())
+	Assert(t, err,NotNilVal())
 }
 
 func TestAutoSyncConfigServices(t *testing.T) {
@@ -130,16 +130,16 @@ func TestAutoSyncConfigServices(t *testing.T) {
 	err := autoSyncConfigServices(newAppConfig)
 	err = autoSyncConfigServices(newAppConfig)
 
-	test.Nil(t, err)
+	Assert(t, err,NilVal())
 
 	config := GetCurrentApolloConfig()
 
-	test.Equal(t, "100004458", config.AppId)
-	test.Equal(t, "default", config.Cluster)
-	test.Equal(t, "application", config.NamespaceName)
-	test.Equal(t, "20170430092936-dee2d58e74515ff3", config.ReleaseKey)
-	//test.Equal(t,"value1",config.Configurations["key1"])
-	//test.Equal(t,"value2",config.Configurations["key2"])
+	Assert(t, "100004458", Equal(config.AppId))
+	Assert(t, "default", Equal(config.Cluster))
+	Assert(t, "application", Equal(config.NamespaceName))
+	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
+	//Assert(t,"value1",config.Configurations["key1"])
+	//Assert(t,"value2",config.Configurations["key2"])
 }
 
 func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
@@ -166,17 +166,17 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 			break
 		}
 		timeLeft, err := apolloConfigCache.TTL([]byte(entry.Key))
-		test.Nil(t, err)
+		Assert(t, err,NilVal())
 		fmt.Printf("key:%s,time:%v \n", string(entry.Key), timeLeft)
-		test.Equal(t, timeLeft >= 110, true)
+		Assert(t, timeLeft >= 110, Equal(true))
 	}
 
-	test.Equal(t, "100004458", config.AppId)
-	test.Equal(t, "default", config.Cluster)
-	test.Equal(t, "application", config.NamespaceName)
-	test.Equal(t, "20170430092936-dee2d58e74515ff3", config.ReleaseKey)
-	test.Equal(t, "value1", getValue("key1"))
-	test.Equal(t, "value2", getValue("key2"))
+	Assert(t, "100004458", Equal(config.AppId))
+	Assert(t, "default", Equal(config.Cluster))
+	Assert(t, "application", Equal(config.NamespaceName))
+	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
+	Assert(t, "value1", Equal(getValue("key1")))
+	Assert(t, "value2", Equal(getValue("key2")))
 
 	err := autoSyncConfigServices(newAppConfig)
 
@@ -188,9 +188,9 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 			break
 		}
 		timeLeft, err := apolloConfigCache.TTL([]byte(entry.Key))
-		test.Nil(t, err)
+		Assert(t, err,NilVal())
 		fmt.Printf("key:%s,time:%v \n", string(entry.Key), timeLeft)
-		test.Equal(t, timeLeft >= 120, true)
+		Assert(t, timeLeft >= 120, Equal(true))
 	}
 
 	fmt.Println(err)
@@ -203,10 +203,10 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 func checkBackupFile(t *testing.T) {
 	newConfig, e := loadConfigFile(appConfig.getBackupConfigPath())
 	t.Log(newConfig.Configurations)
-	isNil(e)
-	isNotNil(newConfig.Configurations)
+	Assert(t,e,NilVal())
+	Assert(t,newConfig.Configurations,NotNilVal())
 	for k, v := range newConfig.Configurations {
-		test.Equal(t, getValue(k), v)
+		Assert(t, getValue(k), Equal(v))
 	}
 }
 
@@ -226,19 +226,19 @@ func TestAutoSyncConfigServicesNotModify(t *testing.T) {
 
 	err = autoSyncConfigServices(newAppConfig)
 
-	test.Nil(t, err)
+	Assert(t, err,NilVal())
 
 	config := GetCurrentApolloConfig()
 
-	test.Equal(t, "100004458", config.AppId)
-	test.Equal(t, "default", config.Cluster)
-	test.Equal(t, "application", config.NamespaceName)
-	test.Equal(t, "20170430092936-dee2d58e74515ff3", config.ReleaseKey)
+	Assert(t, "100004458", Equal(config.AppId))
+	Assert(t, "default", Equal(config.Cluster))
+	Assert(t, "application", Equal(config.NamespaceName))
+	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
 
 	checkCacheLeft(t, configCacheExpireTime)
 
-	//test.Equal(t,"value1",config.Configurations["key1"])
-	//test.Equal(t,"value2",config.Configurations["key2"])
+	//Assert(t,"value1",config.Configurations["key1"])
+	//Assert(t,"value2",config.Configurations["key2"])
 }
 
 func TestAutoSyncConfigServicesError(t *testing.T) {
@@ -252,13 +252,13 @@ func TestAutoSyncConfigServicesError(t *testing.T) {
 
 	err := autoSyncConfigServices(nil)
 
-	test.NotNil(t, err)
+	Assert(t, err,NotNilVal())
 
 	config := GetCurrentApolloConfig()
 
 	//still properties config
-	test.Equal(t, "test", config.AppId)
-	test.Equal(t, "dev", config.Cluster)
-	test.Equal(t, "application", config.NamespaceName)
-	test.Equal(t, "", config.ReleaseKey)
+	Assert(t, "test", Equal(config.AppId))
+	Assert(t, "dev", Equal(config.Cluster))
+	Assert(t, "application", Equal(config.NamespaceName))
+	Assert(t, "", Equal(config.ReleaseKey))
 }

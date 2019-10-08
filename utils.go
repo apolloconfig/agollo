@@ -32,21 +32,6 @@ func getInternal() string {
 	return ""
 }
 
-//stringUtils
-func isEmpty(str string) bool {
-	return "" == str
-}
-
-func isNotEmpty(str string) bool {
-	return !isEmpty(str)
-}
-
-//objectUtils
-func isNil(object interface{}) bool {
-
-	return isNilObject(object)
-}
-
 func isNotNil(object interface{}) bool {
 	return !isNilObject(object)
 }

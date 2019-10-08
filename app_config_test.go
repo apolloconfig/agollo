@@ -1,7 +1,7 @@
 package agollo
 
 import (
-	"github.com/zouyx/agollo/test"
+	. "github.com/tevid/gohamcrest"
 	"testing"
 	"time"
 )
@@ -9,16 +9,16 @@ import (
 func TestInit(t *testing.T) {
 	config := GetAppConfig(nil)
 
-	test.NotNil(t, config)
-	test.Equal(t, "test", config.AppId)
-	test.Equal(t, "dev", config.Cluster)
-	test.Equal(t, "application", config.NamespaceName)
-	test.Equal(t, "localhost:8888", config.Ip)
+	Assert(t, config,NotNilVal())
+	Assert(t, "test", Equal(config.AppId))
+	Assert(t, "dev", Equal(config.Cluster))
+	Assert(t, "application", Equal(config.NamespaceName))
+	Assert(t, "localhost:8888", Equal(config.Ip))
 
 	apolloConfig := GetCurrentApolloConfig()
-	test.Equal(t, "test", apolloConfig.AppId)
-	test.Equal(t, "dev", apolloConfig.Cluster)
-	test.Equal(t, "application", apolloConfig.NamespaceName)
+	Assert(t, "test", Equal(apolloConfig.AppId))
+	Assert(t, "dev", Equal(apolloConfig.Cluster))
+	Assert(t, "application", Equal(apolloConfig.NamespaceName))
 
 }
 
@@ -36,16 +36,16 @@ func TestStructInit(t *testing.T) {
 	})
 
 	config := GetAppConfig(nil)
-	test.NotNil(t, config)
-	test.Equal(t, "test1", config.AppId)
-	test.Equal(t, "dev1", config.Cluster)
-	test.Equal(t, "application1", config.NamespaceName)
-	test.Equal(t, "localhost:8889", config.Ip)
+	Assert(t, config, NotNilVal())
+	Assert(t, "test1", Equal(config.AppId))
+	Assert(t, "dev1", Equal(config.Cluster))
+	Assert(t, "application1", Equal(config.NamespaceName))
+	Assert(t, "localhost:8889", Equal(config.Ip))
 
 	apolloConfig := GetCurrentApolloConfig()
-	test.Equal(t, "test1", apolloConfig.AppId)
-	test.Equal(t, "dev1", apolloConfig.Cluster)
-	test.Equal(t, "application1", apolloConfig.NamespaceName)
+	Assert(t, "test1", Equal(apolloConfig.AppId))
+	Assert(t, "dev1", Equal(apolloConfig.Cluster))
+	Assert(t, "application1", Equal(apolloConfig.NamespaceName))
 
 	//revert file config
 	initFileConfig()
@@ -54,20 +54,20 @@ func TestStructInit(t *testing.T) {
 func TestGetConfigUrl(t *testing.T) {
 	appConfig := getTestAppConfig()
 	url := getConfigUrl(appConfig)
-	test.StartWith(t, "http://localhost:8888/configs/test/dev/application?releaseKey=&ip=", url)
+	Assert(t, url, StartWith("http://localhost:8888/configs/test/dev/application?releaseKey=&ip="))
 }
 
 func TestGetConfigUrlByHost(t *testing.T) {
 	appConfig := getTestAppConfig()
 	url := getConfigUrlByHost(appConfig, "http://baidu.com/")
-	test.StartWith(t, "http://baidu.com/configs/test/dev/application?releaseKey=&ip=", url)
+	Assert(t, url, StartWith("http://baidu.com/configs/test/dev/application?releaseKey=&ip="))
 }
 
 func TestGetServicesConfigUrl(t *testing.T) {
 	appConfig := getTestAppConfig()
 	url := getServicesConfigUrl(appConfig)
 	ip := getInternal()
-	test.Equal(t, "http://localhost:8888/services/config?appId=test&ip="+ip, url)
+	Assert(t, "http://localhost:8888/services/config?appId=test&ip="+ip, Equal(url))
 }
 
 func getTestAppConfig() *AppConfig {
@@ -95,9 +95,9 @@ func trySyncServerIpList(t *testing.T) {
 	newAppConfig.Ip = server.URL
 	err := syncServerIpList(newAppConfig)
 
-	test.Nil(t, err)
+	Assert(t, err,NilVal())
 
-	test.Equal(t, 10, len(servers))
+	Assert(t, 10, Equal(len(servers)))
 
 }
 
@@ -109,38 +109,38 @@ func TestSelectHost(t *testing.T) {
 	t.Log("appconfig select host:" + appConfig.selectHost())
 
 	host := "http://localhost:8888/"
-	test.Equal(t, host, appConfig.getHost())
-	test.Equal(t, host, appConfig.selectHost())
+	Assert(t, host, Equal(appConfig.getHost()))
+	Assert(t, host, Equal(appConfig.selectHost()))
 
 	//check select next time
 	appConfig.setNextTryConnTime(5)
-	test.NotEqual(t, host, appConfig.selectHost())
+	Assert(t, host, NotEqual(appConfig.selectHost()))
 	time.Sleep(6 * time.Second)
-	test.Equal(t, host, appConfig.selectHost())
+	Assert(t, host, Equal(appConfig.selectHost()))
 
 	//check servers
 	appConfig.setNextTryConnTime(5)
 	firstHost := appConfig.selectHost()
-	test.NotEqual(t, host, firstHost)
+	Assert(t, host, NotEqual(firstHost))
 	setDownNode(firstHost)
 
 	secondHost := appConfig.selectHost()
-	test.NotEqual(t, host, secondHost)
-	test.NotEqual(t, firstHost, secondHost)
+	Assert(t, host, NotEqual(secondHost))
+	Assert(t, firstHost, NotEqual(secondHost))
 	setDownNode(secondHost)
 
 	thirdHost := appConfig.selectHost()
-	test.NotEqual(t, host, thirdHost)
-	test.NotEqual(t, firstHost, thirdHost)
-	test.NotEqual(t, secondHost, thirdHost)
+	Assert(t, host, NotEqual(thirdHost))
+	Assert(t, firstHost, NotEqual(thirdHost))
+	Assert(t, secondHost, NotEqual(thirdHost))
 
 	for host := range servers {
 		setDownNode(host)
 	}
 
-	test.Equal(t, "", appConfig.selectHost())
+	Assert(t, "", Equal(appConfig.selectHost()))
 
 	//no servers
 	servers = make(map[string]*serverInfo, 0)
-	test.Equal(t, "", appConfig.selectHost())
+	Assert(t, "", Equal(appConfig.selectHost()))
 }

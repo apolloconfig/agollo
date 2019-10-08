@@ -2,7 +2,7 @@ package agollo
 
 import (
 	"fmt"
-	"github.com/zouyx/agollo/test"
+	. "github.com/tevid/gohamcrest"
 	"testing"
 )
 
@@ -14,11 +14,11 @@ func TestFromString(t *testing.T) {
 		environment, err := fromString(key)
 		t.Log(fmt.Sprintf("对比:%s,期望值:%d,实际值:%d", key, value, environment))
 		if unknown == environment {
-			test.NotNil(t, err)
+			Assert(t, err,NotNilVal())
 		} else {
-			test.Nil(t, err)
+			Assert(t, err,NilVal())
 		}
-		test.Equal(t, value, environment)
+		Assert(t, value, Equal(environment))
 	}
 
 }
