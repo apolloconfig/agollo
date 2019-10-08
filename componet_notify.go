@@ -2,12 +2,14 @@ package agollo
 
 import (
 	"encoding/json"
+	"strings"
 	"sync"
 	"time"
 )
 
 const (
 	default_notification_id = -1
+	comma = ","
 )
 
 var (
@@ -34,6 +36,13 @@ func (this *notificationsMap) setNotify(namespaceName string, notificationId int
 	defer this.Unlock()
 	this.notifications[namespaceName] = notificationId
 }
+
+func (this *notificationsMap) getNotify(namespace string) int64 {
+	this.RLock()
+	defer this.RUnlock()
+	return this.notifications[namespace]
+}
+
 func (this *notificationsMap) getNotifies() string {
 	this.RLock()
 	defer this.RUnlock()
@@ -68,7 +77,11 @@ func initAllNotifications() {
 			notifications: make(map[string]int64, 1),
 		}
 
-		allNotifications.setNotify(appConfig.NamespaceName, default_notification_id)
+		namespaces := strings.Split(appConfig.NamespaceName, comma)
+
+		for _, v := range namespaces {
+			allNotifications.setNotify(v, default_notification_id)
+		}
 	}
 }
 
@@ -144,6 +157,9 @@ func notifyRemoteConfig(newAppConfig *AppConfig) ([]*apolloNotify, error) {
 func updateAllNotifications(remoteConfigs []*apolloNotify) {
 	for _, remoteConfig := range remoteConfigs {
 		if remoteConfig.NamespaceName == "" {
+			continue
+		}
+		if allNotifications.getNotify(remoteConfig.NamespaceName)==0{
 			continue
 		}
 

@@ -118,10 +118,11 @@ func TestGetConfigValueNullApolloConfig(t *testing.T) {
 
 	Assert(t, defaultValue, Equal(v))
 
-	createMockApolloConfig(configCacheExpireTime)
+
 }
 
 func TestGetIntValue(t *testing.T) {
+	createMockApolloConfig(configCacheExpireTime)
 	defaultValue := 100000
 
 	//test default
