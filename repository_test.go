@@ -2,7 +2,7 @@ package agollo
 
 import (
 	"encoding/json"
-	"github.com/zouyx/agollo/test"
+	. "github.com/tevid/gohamcrest"
 	"testing"
 	"time"
 )
@@ -44,7 +44,7 @@ func checkCacheLeft(t *testing.T, excepted uint32) {
 	for i := int64(0); i < defaultConfigCache.EntryCount(); i++ {
 		entry := it.Next()
 		left, _ := defaultConfigCache.TTL(entry.Key)
-		test.Equal(t, true, left == uint32(excepted))
+		Assert(t, true, Equal(left == uint32(excepted)))
 	}
 }
 
@@ -52,15 +52,15 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 	time.Sleep(1 * time.Second)
 	var currentConfig *ApolloConnConfig
 	currentJson, err := json.Marshal(currentConnApolloConfig)
-	test.Nil(t, err)
+	Assert(t, err,NilVal())
 
 	t.Log("currentJson:", string(currentJson))
 
-	test.Equal(t, false, string(currentJson) == "")
+	Assert(t, false, Equal(string(currentJson) == ""))
 
 	json.Unmarshal(currentJson, &currentConfig)
 
-	test.NotNil(t, currentConfig)
+	Assert(t, currentConfig,NotNilVal())
 
 	updateApolloConfig(nil, true)
 
@@ -69,20 +69,20 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 	config := currentConnApolloConfig.config
 
 	//make sure currentConnApolloConfig was not modified
-	//test.Equal(t, currentConfig.NamespaceName, config.NamespaceName)
-	//test.Equal(t, currentConfig.AppId, config.AppId)
-	//test.Equal(t, currentConfig.Cluster, config.Cluster)
-	//test.Equal(t, currentConfig.ReleaseKey, config.ReleaseKey)
-	test.Equal(t, "application", config.NamespaceName)
-	test.Equal(t, "test", config.AppId)
-	test.Equal(t, "dev", config.Cluster)
-	test.Equal(t, "", config.ReleaseKey)
+	//Assert(t, currentConfig.NamespaceName, config.NamespaceName)
+	//Assert(t, currentConfig.AppId, config.AppId)
+	//Assert(t, currentConfig.Cluster, config.Cluster)
+	//Assert(t, currentConfig.ReleaseKey, config.ReleaseKey)
+	Assert(t, "application", Equal(config.NamespaceName))
+	Assert(t, "test", Equal(config.AppId))
+	Assert(t, "dev", Equal(config.Cluster))
+	Assert(t, "", Equal(config.ReleaseKey))
 
 }
 
 func TestGetApolloConfigCache(t *testing.T) {
 	cache := GetApolloConfigCache()
-	test.NotNil(t, cache)
+	Assert(t, cache,NotNilVal())
 }
 
 func TestGetConfigValueTimeout(t *testing.T) {
@@ -90,13 +90,13 @@ func TestGetConfigValueTimeout(t *testing.T) {
 	configs := createMockApolloConfig(expireTime)
 
 	for k, v := range configs {
-		test.Equal(t, v, getValue(k))
+		Assert(t, v, Equal(getValue(k)))
 	}
 
 	time.Sleep(time.Duration(expireTime) * time.Second)
 
 	for k := range configs {
-		test.Equal(t, "", getValue(k))
+		Assert(t, "", Equal(getValue(k)))
 	}
 }
 
@@ -108,7 +108,7 @@ func TestGetConfigValueNullApolloConfig(t *testing.T) {
 	//test getValue
 	value := getValue("joe")
 
-	test.Equal(t, empty, value)
+	Assert(t, empty, Equal(value))
 
 	//test GetStringValue
 	defaultValue := "j"
@@ -116,7 +116,7 @@ func TestGetConfigValueNullApolloConfig(t *testing.T) {
 	//test default
 	v := GetStringValue("joe", defaultValue)
 
-	test.Equal(t, defaultValue, v)
+	Assert(t, defaultValue, Equal(v))
 
 	createMockApolloConfig(configCacheExpireTime)
 }
@@ -127,17 +127,17 @@ func TestGetIntValue(t *testing.T) {
 	//test default
 	v := GetIntValue("joe", defaultValue)
 
-	test.Equal(t, defaultValue, v)
+	Assert(t, defaultValue, Equal(v))
 
 	//normal value
 	v = GetIntValue("int", defaultValue)
 
-	test.Equal(t, 1, v)
+	Assert(t, 1, Equal(v))
 
 	//error type
 	v = GetIntValue("float", defaultValue)
 
-	test.Equal(t, defaultValue, v)
+	Assert(t, defaultValue, Equal(v))
 }
 
 func TestGetFloatValue(t *testing.T) {
@@ -146,17 +146,17 @@ func TestGetFloatValue(t *testing.T) {
 	//test default
 	v := GetFloatValue("joe", defaultValue)
 
-	test.Equal(t, defaultValue, v)
+	Assert(t, defaultValue, Equal(v))
 
 	//normal value
 	v = GetFloatValue("float", defaultValue)
 
-	test.Equal(t, 190.3, v)
+	Assert(t, 190.3, Equal(v))
 
 	//error type
 	v = GetFloatValue("int", defaultValue)
 
-	test.Equal(t, float64(1), v)
+	Assert(t, float64(1), Equal(v))
 }
 
 func TestGetBoolValue(t *testing.T) {
@@ -165,17 +165,17 @@ func TestGetBoolValue(t *testing.T) {
 	//test default
 	v := GetBoolValue("joe", defaultValue)
 
-	test.Equal(t, defaultValue, v)
+	Assert(t, defaultValue, Equal(v))
 
 	//normal value
 	v = GetBoolValue("bool", defaultValue)
 
-	test.Equal(t, true, v)
+	Assert(t, true, Equal(v))
 
 	//error type
 	v = GetBoolValue("float", defaultValue)
 
-	test.Equal(t, defaultValue, v)
+	Assert(t, defaultValue, Equal(v))
 }
 
 func TestGetStringValue(t *testing.T) {
@@ -184,10 +184,10 @@ func TestGetStringValue(t *testing.T) {
 	//test default
 	v := GetStringValue("joe", defaultValue)
 
-	test.Equal(t, defaultValue, v)
+	Assert(t, defaultValue, Equal(v))
 
 	//normal value
 	v = GetStringValue("string", defaultValue)
 
-	test.Equal(t, "value", v)
+	Assert(t, "value", Equal(v))
 }
