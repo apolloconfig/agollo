@@ -1,7 +1,7 @@
 package agollo
 
 import (
-	"github.com/zouyx/agollo/test"
+	. "github.com/tevid/gohamcrest"
 	"testing"
 	"time"
 )
@@ -22,8 +22,8 @@ func TestRequestRecovery(t *testing.T) {
 		SuccessCallBack: autoSyncConfigServicesSuccessCallBack,
 	})
 
-	test.Nil(t, err)
-	test.Nil(t, o)
+	Assert(t, err,NilVal())
+	Assert(t, o,NilVal())
 }
 
 func TestCustomTimeout(t *testing.T) {
@@ -48,9 +48,9 @@ func TestCustomTimeout(t *testing.T) {
 	t.Log("starttime:", startTime)
 	t.Log("endTime:", endTime)
 	t.Log("duration:", endTime-startTime)
-	test.Equal(t, 10, endTime-startTime)
-	test.Nil(t, err)
-	test.Nil(t, o)
+	Assert(t, 10, Equal(endTime-startTime))
+	Assert(t, err,NilVal())
+	Assert(t, o,NilVal())
 }
 
 func mockIpList(t *testing.T) {
@@ -62,7 +62,7 @@ func mockIpList(t *testing.T) {
 
 	err := syncServerIpList(newAppConfig)
 
-	test.Nil(t, err)
+	Assert(t, err,NilVal())
 
-	test.Equal(t, 2, len(servers))
+	Assert(t, 2, Equal(len(servers)))
 }

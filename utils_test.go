@@ -1,7 +1,7 @@
 package agollo
 
 import (
-	"github.com/zouyx/agollo/test"
+	. "github.com/tevid/gohamcrest"
 	"strings"
 	"testing"
 )
@@ -14,37 +14,13 @@ func TestGetInternal(t *testing.T) {
 	t.Log("Internal ip:", ip)
 	nums := strings.Split(ip, ".")
 
-	test.Equal(t, true, len(nums) > 0)
-}
-
-func TestIsEmpty(t *testing.T) {
-	flag := isEmpty("")
-	test.Equal(t, true, flag)
-
-	flag = isEmpty("abc")
-	test.Equal(t, false, flag)
-}
-
-func TestIsNotEmpty(t *testing.T) {
-	flag := isNotEmpty("")
-	test.Equal(t, false, flag)
-
-	flag = isNotEmpty("abc")
-	test.Equal(t, true, flag)
-}
-
-func TestIsNil(t *testing.T) {
-	flag := isNil(nil)
-	test.Equal(t, true, flag)
-
-	flag = isNil("")
-	test.Equal(t, false, flag)
+	Assert(t, true, Equal(len(nums) > 0))
 }
 
 func TestIsNotNil(t *testing.T) {
 	flag := isNotNil(nil)
-	test.Equal(t, false, flag)
+	Assert(t, false, Equal(flag))
 
 	flag = isNotNil("")
-	test.Equal(t, true, flag)
+	Assert(t, true, Equal(flag))
 }

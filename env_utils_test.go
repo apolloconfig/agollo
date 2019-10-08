@@ -2,7 +2,7 @@ package agollo
 
 import (
 	"fmt"
-	"github.com/zouyx/agollo/test"
+	. "github.com/tevid/gohamcrest"
 	"testing"
 )
 
@@ -40,7 +40,7 @@ func TestTransformEnv(t *testing.T) {
 	for key, value := range envMap {
 		env := transformEnv(key)
 		t.Log(fmt.Sprintf("对比:%s,期望值:%d,实际值:%d", key, +value, env))
-		test.Equal(t, value, env)
+		Assert(t, value, Equal(env))
 	}
 
 }

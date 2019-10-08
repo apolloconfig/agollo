@@ -1,7 +1,7 @@
 package agollo
 
 import (
-	"github.com/zouyx/agollo/test"
+	. "github.com/tevid/gohamcrest"
 	"testing"
 	"time"
 )
@@ -14,7 +14,7 @@ func TestStart(t *testing.T) {
 	Start()
 
 	value := getValue("key1")
-	test.Equal(t, "value1", value)
+	Assert(t, "value1", Equal(value))
 }
 
 func TestErrorStart(t *testing.T) {
@@ -27,9 +27,9 @@ func TestErrorStart(t *testing.T) {
 	Start()
 
 	value := getValue("key1")
-	test.Equal(t, "value1", value)
+	Assert(t, "value1", Equal(value))
 
 	value2 := getValue("key2")
-	test.Equal(t, "value2", value2)
+	Assert(t, "value2", Equal(value2))
 
 }
