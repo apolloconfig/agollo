@@ -33,7 +33,7 @@ var (
 	appConfig *AppConfig
 
 	//real servers ip
-	servers map[string]*serverInfo = make(map[string]*serverInfo, 0)
+	servers = make(map[string]*serverInfo, 0)
 
 	//next try connect period - 60 second
 	next_try_connect_period int64 = 60

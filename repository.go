@@ -130,8 +130,8 @@ func getDefaultConfigCache()agcache.CacheInterface{
 	if config!=nil{
 		return config.cache
 	}
-	defaultConfgi := initDefaultConfig()
-	return defaultConfgi.cache
+	defaultConfig := initDefaultConfig()
+	return defaultConfig.cache
 }
 
 func updateApolloConfig(apolloConfig *ApolloConfig, isBackupConfig bool) {
