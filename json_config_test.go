@@ -1,7 +1,7 @@
 package agollo
 
 import (
-	"github.com/zouyx/agollo/test"
+	. "github.com/tevid/gohamcrest"
 	"testing"
 )
 
@@ -9,29 +9,29 @@ func TestLoadJsonConfig(t *testing.T) {
 	config, err := loadJsonConfig(appConfigFileName)
 	t.Log(config)
 
-	test.Nil(t, err)
-	test.NotNil(t, config)
-	test.Equal(t, "test", config.AppId)
-	test.Equal(t, "dev", config.Cluster)
-	test.Equal(t, "application", config.NamespaceName)
-	test.Equal(t, "localhost:8888", config.Ip)
+	Assert(t, err,NilVal())
+	Assert(t, config,NotNilVal())
+	Assert(t, "test", Equal(config.AppId))
+	Assert(t, "dev", Equal(config.Cluster))
+	Assert(t, "application",Equal(config.NamespaceName))
+	Assert(t, "localhost:8888", Equal(config.Ip))
 
 }
 
 func TestLoadJsonConfigWrongFile(t *testing.T) {
 	config, err := loadJsonConfig("")
-	test.NotNil(t, err)
-	test.Nil(t, config)
+	Assert(t, err,NotNilVal())
+	Assert(t, config,NilVal())
 
-	test.StartWith(t, "Fail to read config file", err.Error())
+	Assert(t, err.Error(),StartWith("Fail to read config file", ))
 }
 
 func TestLoadJsonConfigWrongType(t *testing.T) {
 	config, err := loadJsonConfig("app_config.go")
-	test.NotNil(t, err)
-	test.Nil(t, config)
+	Assert(t, err,NotNilVal())
+	Assert(t, config,NilVal())
 
-	test.StartWith(t, "Load Json Config fail", err.Error())
+	Assert(t,  err.Error(),StartWith("Load Json Config fail"))
 }
 
 func TestCreateAppConfigWithJson(t *testing.T) {
@@ -45,12 +45,12 @@ func TestCreateAppConfigWithJson(t *testing.T) {
 	config, err := createAppConfigWithJson(jsonStr)
 	t.Log(config)
 
-	test.Nil(t, err)
-	test.NotNil(t, config)
-	test.Equal(t, "test", config.AppId)
-	test.Equal(t, "dev", config.Cluster)
-	test.Equal(t, "application", config.NamespaceName)
-	test.Equal(t, "localhost:8888", config.Ip)
+	Assert(t, err,NilVal())
+	Assert(t, config,NotNilVal())
+	Assert(t, "test", Equal(config.AppId))
+	Assert(t, "dev", Equal(config.Cluster))
+	Assert(t, "application", Equal(config.NamespaceName))
+	Assert(t, "localhost:8888", Equal(config.Ip))
 }
 
 //func TestCreateAppConfigWithJsonWrongEnv(t *testing.T) {
@@ -65,8 +65,8 @@ func TestCreateAppConfigWithJson(t *testing.T) {
 //	t.Log(config)
 //	t.Log(err)
 //
-//	test.NotNil(t,err)
-//	test.Nil(t,config)
+//	Assert(t,err)
+//	Assert(t,config)
 //	test.StartWith(t,"Env is wrong ,current env:joe",err.Error())
 //}
 
@@ -83,8 +83,8 @@ import (
 	config, err := createAppConfigWithJson(jsonStr)
 	t.Log(err)
 
-	test.NotNil(t, err)
-	test.Nil(t, config)
+	Assert(t, err,NotNilVal())
+	Assert(t, config,NilVal())
 }
 
 func TestCreateAppConfigWithJsonDefault(t *testing.T) {
@@ -95,10 +95,10 @@ func TestCreateAppConfigWithJsonDefault(t *testing.T) {
 	config, err := createAppConfigWithJson(jsonStr)
 	t.Log(err)
 
-	test.Nil(t, err)
-	test.NotNil(t, config)
-	test.Equal(t, "testDefault", config.AppId)
-	test.Equal(t, "default", config.Cluster)
-	test.Equal(t, "application", config.NamespaceName)
-	test.Equal(t, "localhost:9999", config.Ip)
+	Assert(t, err,NilVal())
+	Assert(t, config,NotNilVal())
+	Assert(t, "testDefault", Equal(config.AppId))
+	Assert(t, "default", Equal(config.Cluster))
+	Assert(t, "application", Equal(config.NamespaceName))
+	Assert(t, "localhost:9999", Equal(config.Ip))
 }
