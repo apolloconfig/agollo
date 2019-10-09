@@ -48,15 +48,30 @@ func checkCacheLeft(t *testing.T, excepted uint32) {
 	}
 }
 
-func TestUpdateApolloConfigNull(t *testing.T) {
-	time.Sleep(1 * time.Second)
-	var currentConfig *ApolloConnConfig
-	currentJson, err := json.Marshal(currentConnApolloConfig)
+func getFirstApolloConfig(t *testing.T,currentConfig map[string]*ApolloConnConfig)[]byte {
+	i:=0
+	var currentJson []byte
+	var err error
+	for _, v := range currentConfig {
+		if i > 0 {
+			break
+		}
+		currentJson, err = json.Marshal(v)
+		i++
+	}
 	Assert(t, err,NilVal())
 
 	t.Log("currentJson:", string(currentJson))
 
 	Assert(t, false, Equal(string(currentJson) == ""))
+	return currentJson
+}
+
+func TestUpdateApolloConfigNull(t *testing.T) {
+	time.Sleep(1 * time.Second)
+	var currentConfig *ApolloConnConfig
+	currentJson:=getFirstApolloConfig(t,currentConnApolloConfig.configs)
+
 
 	json.Unmarshal(currentJson, &currentConfig)
 
