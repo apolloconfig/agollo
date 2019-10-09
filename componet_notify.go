@@ -2,14 +2,12 @@ package agollo
 
 import (
 	"encoding/json"
-	"strings"
 	"sync"
 	"time"
 )
 
 const (
 	default_notification_id = -1
-	comma = ","
 )
 
 var (
@@ -73,14 +71,11 @@ func initAllNotifications() {
 	appConfig := GetAppConfig(nil)
 
 	if appConfig != nil {
+		apolloConfig := &ApolloConfig{}
+		apolloConfig.init(appConfig)
+
 		allNotifications = &notificationsMap{
-			notifications: make(map[string]int64, 1),
-		}
-
-		namespaces := strings.Split(appConfig.NamespaceName, comma)
-
-		for _, v := range namespaces {
-			allNotifications.setNotify(v, default_notification_id)
+			notifications: apolloConfig.Namespaces,
 		}
 	}
 }

@@ -70,9 +70,9 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 
 func TestUpdateAllNotifications(t *testing.T) {
 	//clear
-	allNotifications = &notificationsMap{
-		notifications: make(map[string]int64, 1),
-	}
+	//allNotifications = &notificationsMap{
+	//	notifications: make(map[string]int64, 1),
+	//}
 	notifyJson := `[
   {
     "namespaceName": "application",

@@ -146,9 +146,7 @@ func initConfig(loadAppConfig func() (*AppConfig, error)) {
 
 	func(appConfig *AppConfig) {
 		apolloConfig := &ApolloConfig{}
-		apolloConfig.AppId = appConfig.AppId
-		apolloConfig.Cluster = appConfig.Cluster
-		apolloConfig.NamespaceName = appConfig.NamespaceName
+		apolloConfig.init(appConfig)
 
 		updateApolloConfig(apolloConfig, false)
 	}(appConfig)
