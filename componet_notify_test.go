@@ -52,6 +52,7 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 	server := runErrorResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
+	appConfig.Ip=server.URL
 
 	time.Sleep(1 * time.Second)
 
@@ -68,12 +69,16 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 	Assert(t, "Over Max Retry Still Error!", Equal(err.Error()))
 }
 
-func TestUpdateAllNotifications(t *testing.T) {
-	//clear
+func initNotifications() {
 	allNotifications = &notificationsMap{
 		notifications: make(map[string]int64, 1),
 	}
 	allNotifications.notifications["application"]=-1
+}
+
+func TestUpdateAllNotifications(t *testing.T) {
+	//clear
+	initNotifications()
 
 	notifyJson := `[
   {
@@ -121,6 +126,7 @@ func TestToApolloConfigError(t *testing.T) {
 }
 
 func TestAutoSyncConfigServices(t *testing.T) {
+	initNotifications()
 	server := runNormalConfigResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
