@@ -132,7 +132,7 @@ func TestAutoSyncConfigServices(t *testing.T) {
 
 	Assert(t, err,NilVal())
 
-	config := GetCurrentApolloConfig()
+	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	Assert(t, "100004458", Equal(config.AppId))
 	Assert(t, "default", Equal(config.Cluster))
@@ -152,7 +152,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 
 	autoSyncConfigServicesSuccessCallBack([]byte(configResponseStr))
 
-	config := GetCurrentApolloConfig()
+	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	fmt.Println("sleeping 10s")
 
@@ -229,7 +229,7 @@ func TestAutoSyncConfigServicesNotModify(t *testing.T) {
 
 	Assert(t, err,NilVal())
 
-	config := GetCurrentApolloConfig()
+	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	Assert(t, "100004458", Equal(config.AppId))
 	Assert(t, "default", Equal(config.Cluster))
@@ -255,7 +255,7 @@ func TestAutoSyncConfigServicesError(t *testing.T) {
 
 	Assert(t, err,NotNilVal())
 
-	config := GetCurrentApolloConfig()
+	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	//still properties config
 	Assert(t, "test", Equal(config.AppId))

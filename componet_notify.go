@@ -181,14 +181,20 @@ func autoSyncConfigServices(newAppConfig *AppConfig) error {
 		panic("can not find apollo config!please confirm!")
 	}
 
-	urlSuffix := getConfigUrlSuffix(appConfig, newAppConfig)
+	var err error
+	for namespace := range allNotifications.notifications {
+		urlSuffix := getConfigUrlSuffix(appConfig, namespace)
 
-	_, err := requestRecovery(appConfig, &ConnectConfig{
-		Uri: urlSuffix,
-	}, &CallBack{
-		SuccessCallBack:   autoSyncConfigServicesSuccessCallBack,
-		NotModifyCallBack: touchApolloConfigCache,
-	})
+		_, err = requestRecovery(appConfig, &ConnectConfig{
+			Uri: urlSuffix,
+		}, &CallBack{
+			SuccessCallBack:   autoSyncConfigServicesSuccessCallBack,
+			NotModifyCallBack: touchApolloConfigCache,
+		})
+		if err!=nil{
+			return err
+		}
+	}
 
-	return err
+	return nil
 }

@@ -240,26 +240,24 @@ func getConfigUrl(config *AppConfig) string {
 }
 
 func getConfigUrlByHost(config *AppConfig, host string) string {
-	current := GetCurrentApolloConfig()
 	return fmt.Sprintf("%sconfigs/%s/%s/%s?releaseKey=%s&ip=%s",
 		host,
 		url.QueryEscape(config.AppId),
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(config.NamespaceName),
-		url.QueryEscape(current.ReleaseKey),
+		url.QueryEscape(getCurrentApolloConfigReleaseKey(config.NamespaceName)),
 		getInternal())
 }
 
-func getConfigUrlSuffix(config *AppConfig, newConfig *AppConfig) string {
-	if newConfig != nil {
+func getConfigUrlSuffix(config *AppConfig,namespaceName string) string {
+	if config == nil {
 		return ""
 	}
-	current := GetCurrentApolloConfig()
 	return fmt.Sprintf("configs/%s/%s/%s?releaseKey=%s&ip=%s",
 		url.QueryEscape(config.AppId),
 		url.QueryEscape(config.Cluster),
-		url.QueryEscape(config.NamespaceName),
-		url.QueryEscape(current.ReleaseKey),
+		url.QueryEscape(namespaceName),
+		url.QueryEscape(getCurrentApolloConfigReleaseKey(namespaceName)),
 		getInternal())
 }
 

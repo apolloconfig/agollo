@@ -66,13 +66,14 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 
 	currentConnApolloConfig.l.RLock()
 	defer currentConnApolloConfig.l.RUnlock()
-	config := currentConnApolloConfig.config
+	config := currentConnApolloConfig.configs[currentConfig.NamespaceName]
 
 	//make sure currentConnApolloConfig was not modified
 	//Assert(t, currentConfig.NamespaceName, config.NamespaceName)
 	//Assert(t, currentConfig.AppId, config.AppId)
 	//Assert(t, currentConfig.Cluster, config.Cluster)
 	//Assert(t, currentConfig.ReleaseKey, config.ReleaseKey)
+	Assert(t, config,NotNilVal())
 	Assert(t, "application", Equal(config.NamespaceName))
 	Assert(t, "test", Equal(config.AppId))
 	Assert(t, "dev", Equal(config.Cluster))

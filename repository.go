@@ -17,7 +17,9 @@ const (
 
 
 var (
-	currentConnApolloConfig = &currentApolloConfig{}
+	currentConnApolloConfig = &currentApolloConfig{
+		configs:make(map[string]*ApolloConnConfig,1),
+	}
 
 	//config from apollo
 	apolloConfigCache = make(map[string]*Config,0)
@@ -49,7 +51,7 @@ func createDefaultConfig(cacheInterface agcache.CacheInterface) (string,*Config)
 
 type currentApolloConfig struct {
 	l      sync.RWMutex
-	config *ApolloConnConfig
+	configs map[string]*ApolloConnConfig
 }
 
 type Config struct {
@@ -154,7 +156,7 @@ func updateApolloConfig(apolloConfig *ApolloConfig, isBackupConfig bool) {
 	currentConnApolloConfig.l.Lock()
 	defer currentConnApolloConfig.l.Unlock()
 
-	currentConnApolloConfig.config = &apolloConfig.ApolloConnConfig
+	currentConnApolloConfig.configs[apolloConfig.NamespaceName] = &apolloConfig.ApolloConnConfig
 
 	if isBackupConfig {
 		//write config file async
@@ -237,12 +239,22 @@ func GetApolloConfigCache() agcache.CacheInterface {
 	return getDefaultConfigCache()
 }
 
-func GetCurrentApolloConfig() *ApolloConnConfig {
+func GetCurrentApolloConfig() map[string]*ApolloConnConfig {
 	currentConnApolloConfig.l.RLock()
 	defer currentConnApolloConfig.l.RUnlock()
 
-	return currentConnApolloConfig.config
+	return currentConnApolloConfig.configs
+}
 
+func getCurrentApolloConfigReleaseKey(namespace string) string {
+	currentConnApolloConfig.l.RLock()
+	defer currentConnApolloConfig.l.RUnlock()
+	config:= currentConnApolloConfig.configs[namespace]
+	if config==nil{
+		return empty
+	}
+
+	return config.ReleaseKey
 }
 
 func getConfigValue(key string) interface{} {
