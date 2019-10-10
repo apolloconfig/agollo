@@ -12,7 +12,7 @@ const (
 	//1 minute
 	configCacheExpireTime = 120
 
-	defaultNamespace="DEFAULT"
+	defaultNamespace="application"
 )
 
 
