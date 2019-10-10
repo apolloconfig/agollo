@@ -2,6 +2,7 @@ package agcache
 
 import "github.com/coocood/freecache"
 
+//CacheInterface 自定义缓存组件接口
 type CacheInterface interface {
 	Set(key, value []byte, expireSeconds int) (err error)
 
@@ -26,10 +27,13 @@ const (
 	configCacheExpireTime = 120
 )
 
+//CacheFactory 缓存组件工厂接口
 type CacheFactory interface {
+	//Create 创建缓存组件
 	Create() CacheInterface
 }
 
+//DefaultCacheFactory 构造默认缓存组件工厂类
 type DefaultCacheFactory struct {
 
 }
