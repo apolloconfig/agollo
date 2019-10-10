@@ -50,30 +50,30 @@ func checkCacheLeft(t *testing.T, excepted uint32) {
 
 func getFirstApolloConfig(t *testing.T,currentConfig map[string]*ApolloConnConfig)[]byte {
 	i:=0
-	var currentJson []byte
+	var currentJSON []byte
 	var err error
 	for _, v := range currentConfig {
 		if i > 0 {
 			break
 		}
-		currentJson, err = json.Marshal(v)
+		currentJSON, err = json.Marshal(v)
 		i++
 	}
 	Assert(t, err,NilVal())
 
-	t.Log("currentJson:", string(currentJson))
+	t.Log("currentJSON:", string(currentJSON))
 
-	Assert(t, false, Equal(string(currentJson) == ""))
-	return currentJson
+	Assert(t, false, Equal(string(currentJSON) == ""))
+	return currentJSON
 }
 
 func TestUpdateApolloConfigNull(t *testing.T) {
 	time.Sleep(1 * time.Second)
 	var currentConfig *ApolloConnConfig
-	currentJson:=getFirstApolloConfig(t,currentConnApolloConfig.configs)
+	currentJSON:=getFirstApolloConfig(t,currentConnApolloConfig.configs)
 
 
-	json.Unmarshal(currentJson, &currentConfig)
+	json.Unmarshal(currentJSON, &currentConfig)
 
 	Assert(t, currentConfig,NotNilVal())
 

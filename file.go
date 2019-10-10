@@ -7,7 +7,7 @@ import (
 	"os"
 )
 
-const SUPFIX = ".json"
+const suffix = ".json"
 
 var configFileMap=make(map[string]string,1)
 
@@ -31,7 +31,7 @@ func writeConfigFile(config *ApolloConfig, configPath string) error {
 func getConfigFile(configDir string,namespace string) string {
 	fullPath := configFileMap[namespace]
 	if fullPath == "" {
-		filePath := fmt.Sprintf("%s%s", namespace, SUPFIX)
+		filePath := fmt.Sprintf("%s%s", namespace, suffix)
 		if configDir != "" {
 			configFileMap[namespace] = fmt.Sprintf("%s/%s", configDir, filePath)
 		} else {
