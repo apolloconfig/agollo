@@ -38,6 +38,7 @@ type DefaultCacheFactory struct {
 
 }
 
+//Create 创建默认缓存组件
 func (d *DefaultCacheFactory) Create()CacheInterface  {
 	return freecache.NewCache(apolloConfigCacheSize)
 }
