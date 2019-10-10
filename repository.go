@@ -29,24 +29,26 @@ func init() {
 	initDefaultConfig()
 }
 
-func initDefaultConfig() *Config {
+func initDefaultConfig() {
 	cacheFactory := &agcache.DefaultCacheFactory{}
-	return initConfigCache(cacheFactory.Create())
+	initConfigCache(cacheFactory)
 }
 
-func initConfigCache(cacheInterface agcache.CacheInterface) *Config {
-	s, i := createDefaultConfig(cacheInterface)
-	apolloConfigCache[s]=i
-	return i
+func initConfigCache(cacheFactory *agcache.DefaultCacheFactory)  {
+	createDefaultConfig(cacheFactory)
 }
 
-func createDefaultConfig(cacheInterface agcache.CacheInterface) (string,*Config) {
-	c:=&Config{
-		namespace:defaultNamespace,
-		cache:cacheInterface,
-	}
-
-	return c.namespace,c
+func createDefaultConfig(cacheFactory *agcache.DefaultCacheFactory){
+	splitNamespaces(appConfig.NamespaceName, func(namespace string) {
+		if apolloConfigCache[namespace]!=nil{
+			return
+		}
+		c:=&Config{
+			namespace:namespace,
+			cache:cacheFactory.Create(),
+		}
+		apolloConfigCache[namespace]=c
+	})
 }
 
 type currentApolloConfig struct {
@@ -139,8 +141,7 @@ func getDefaultConfigCache()agcache.CacheInterface{
 	if config!=nil{
 		return config.cache
 	}
-	defaultConfig := initDefaultConfig()
-	return defaultConfig.cache
+	return nil
 }
 
 func updateApolloConfig(apolloConfig *ApolloConfig, isBackupConfig bool) {
@@ -149,7 +150,7 @@ func updateApolloConfig(apolloConfig *ApolloConfig, isBackupConfig bool) {
 		return
 	}
 	//get change list
-	changeList := updateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime)
+	changeList := updateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime,apolloConfig.NamespaceName)
 
 	if len(changeList) > 0 {
 		//create config change event base on change list
@@ -171,14 +172,19 @@ func updateApolloConfig(apolloConfig *ApolloConfig, isBackupConfig bool) {
 	}
 }
 
-func updateApolloConfigCache(configurations map[string]string, expireTime int) map[string]*ConfigChange {
-	if (configurations == nil || len(configurations) == 0) && getDefaultConfigCache().EntryCount() == 0 {
+func updateApolloConfigCache(configurations map[string]string, expireTime int,namespace string) map[string]*ConfigChange {
+	config := GetConfig(namespace)
+	if config==nil{
+		return nil
+	}
+
+	if (configurations == nil || len(configurations) == 0) && config.cache.EntryCount() == 0 {
 		return nil
 	}
 
 	//get old keys
 	mp := map[string]bool{}
-	it := getDefaultConfigCache().NewIterator()
+	it := config.cache.NewIterator()
 	for en := it.Next(); en != nil; en = it.Next() {
 		mp[string(en.Key)] = true
 	}
@@ -195,13 +201,13 @@ func updateApolloConfigCache(configurations map[string]string, expireTime int) m
 				changes[key] = createAddConfigChange(value)
 			} else {
 				//update
-				oldValue, _ := getDefaultConfigCache().Get([]byte(key))
+				oldValue, _ := config.cache.Get([]byte(key))
 				if string(oldValue) != value {
 					changes[key] = createModifyConfigChange(string(oldValue), value)
 				}
 			}
 
-			getDefaultConfigCache().Set([]byte(key), []byte(value), expireTime)
+			config.cache.Set([]byte(key), []byte(value), expireTime)
 			delete(mp, string(key))
 		}
 	}
@@ -209,10 +215,10 @@ func updateApolloConfigCache(configurations map[string]string, expireTime int) m
 	// remove del keys
 	for key := range mp {
 		//get old value and del
-		oldValue, _ := getDefaultConfigCache().Get([]byte(key))
+		oldValue, _ :=config.cache.Get([]byte(key))
 		changes[key] = createDeletedConfigChange(string(oldValue))
 
-		getDefaultConfigCache().Del([]byte(key))
+		config.cache.Del([]byte(key))
 	}
 
 	return changes

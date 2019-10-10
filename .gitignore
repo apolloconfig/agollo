@@ -15,3 +15,5 @@
 /.idea/
 /apolloConfig.json
 /application.json
+application*.json
+/abc1.json

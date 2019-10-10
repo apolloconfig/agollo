@@ -74,6 +74,7 @@ func initNotifications() {
 		notifications: make(map[string]int64, 1),
 	}
 	allNotifications.notifications["application"]=-1
+	allNotifications.notifications["abc1"]=-1
 }
 
 func TestUpdateAllNotifications(t *testing.T) {

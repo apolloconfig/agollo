@@ -15,9 +15,9 @@ func SetLogger(loggerInterface LoggerInterface)  {
 }
 
 //SetCache 设置自定义cache组件
-func SetCache(cacheInterface agcache.CacheInterface)  {
-	if cacheInterface != nil {
-		initConfigCache(cacheInterface)
+func SetCache(cacheFactory *agcache.DefaultCacheFactory)  {
+	if cacheFactory != nil {
+		initConfigCache(cacheFactory)
 	}
 }
 
@@ -28,8 +28,8 @@ func StartWithLogger(loggerInterface LoggerInterface) error {
 }
 
 //StartWithCache 通过自定义cache启动agollo
-func StartWithCache(cacheInterface agcache.CacheInterface) error {
-	SetCache(cacheInterface)
+func StartWithCache(cacheFactory *agcache.DefaultCacheFactory) error {
+	SetCache(cacheFactory)
 	return startAgollo()
 }
 

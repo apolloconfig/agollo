@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"time"
 )
 
@@ -14,6 +15,17 @@ const configResponseStr = `{
   "configurations": {
     "key1":"value1",
     "key2":"value2"
+  },
+  "releaseKey": "20170430092936-dee2d58e74515ff3"
+}`
+
+const configSecondResponseStr = `{
+  "appId": "100004459",
+  "cluster": "default",
+  "namespaceName": "abc1",
+  "configurations": {
+    "key1-1":"value1-1",
+    "key1-2":"value2-1"
   },
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
@@ -31,24 +43,29 @@ const configChangeResponseStr = `{
 }`
 
 //run mock config server
-func runMockConfigServer(handler func(http.ResponseWriter, *http.Request)) {
+func runMockConfigServer(handlerMap map[string]func(http.ResponseWriter, *http.Request),
+	notifyHandler func(http.ResponseWriter, *http.Request)) *httptest.Server{
 	appConfig := GetAppConfig(nil)
-	uri := fmt.Sprintf("/configs/%s/%s/%s", appConfig.AppId, appConfig.Cluster, appConfig.NamespaceName)
-	http.HandleFunc(uri, handler)
-
-	if appConfig == nil {
-		panic("can not find apollo config!please confirm!")
+	uriHandlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 0)
+	for namespace, handler := range handlerMap {
+		uri := fmt.Sprintf("/configs/%s/%s/%s", appConfig.AppId, appConfig.Cluster, namespace)
+		uriHandlerMap[uri]=handler
 	}
+	uriHandlerMap["/notifications/v2"]=notifyHandler
 
-	err := http.ListenAndServe(fmt.Sprintf("%s", appConfig.Ip), nil)
-	if err != nil {
-		logger.Error("runMockConfigServer err:", err)
-	}
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		uri := r.RequestURI
+		for path, handler := range uriHandlerMap {
+			if strings.HasPrefix(uri,path){
+				handler(w,r)
+				break
+			}
+		}
+	}))
+
+	return ts
 }
 
-func closeMockConfigServer() {
-	http.DefaultServeMux = &http.ServeMux{}
-}
 
 var normalConfigCount = 1
 
@@ -90,7 +107,13 @@ func runChangeConfigResponse() *httptest.Server {
 }
 
 func onlyNormalConfigResponse(rw http.ResponseWriter, req *http.Request) {
+	rw.WriteHeader(http.StatusOK)
 	fmt.Fprintf(rw, configResponseStr)
+}
+
+func onlyNormalSecondConfigResponse(rw http.ResponseWriter, req *http.Request) {
+	rw.WriteHeader(http.StatusOK)
+	fmt.Fprintf(rw, configSecondResponseStr)
 }
 
 func runNotModifyConfigResponse() *httptest.Server {

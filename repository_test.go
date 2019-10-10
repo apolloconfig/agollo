@@ -22,7 +22,7 @@ func createMockApolloConfig(expireTime int) map[string]string {
 	//bool
 	configs["bool"] = "true"
 
-	updateApolloConfigCache(configs, expireTime)
+	updateApolloConfigCache(configs, expireTime,defaultNamespace)
 
 	return configs
 }
@@ -81,7 +81,7 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 
 	currentConnApolloConfig.l.RLock()
 	defer currentConnApolloConfig.l.RUnlock()
-	config := currentConnApolloConfig.configs[currentConfig.NamespaceName]
+	config := currentConnApolloConfig.configs[defaultNamespace]
 
 	//make sure currentConnApolloConfig was not modified
 	//Assert(t, currentConfig.NamespaceName, config.NamespaceName)
@@ -89,7 +89,7 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 	//Assert(t, currentConfig.Cluster, config.Cluster)
 	//Assert(t, currentConfig.ReleaseKey, config.ReleaseKey)
 	Assert(t, config,NotNilVal())
-	Assert(t, "application", Equal(config.NamespaceName))
+	Assert(t, defaultNamespace, Equal(config.NamespaceName))
 	Assert(t, "test", Equal(config.AppId))
 	Assert(t, "dev", Equal(config.Cluster))
 	Assert(t, "", Equal(config.ReleaseKey))
