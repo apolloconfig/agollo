@@ -54,12 +54,12 @@ type currentApolloConfig struct {
 	configs map[string]*ApolloConnConfig
 }
 
-//apollo配置项
+//Config apollo配置项
 type Config struct {
 	namespace string
 	cache agcache.CacheInterface
 }
-//获取配置值
+//getConfigValue 获取配置值
 func (this *Config) getConfigValue(key string) interface{} {
 	value, err := this.cache.Get([]byte(key))
 	if err != nil {
@@ -70,7 +70,7 @@ func (this *Config) getConfigValue(key string) interface{} {
 	return string(value)
 }
 
-//获取配置值（string）
+//getValue 获取配置值（string）
 func (this *Config) getValue(key string) string {
 	value := this.getConfigValue(key)
 	if value == nil {
@@ -80,7 +80,7 @@ func (this *Config) getValue(key string) string {
 	return value.(string)
 }
 
-//获取配置值（string），获取不到则取默认值
+//GetStringValue 获取配置值（string），获取不到则取默认值
 func (this *Config) GetStringValue(key string, defaultValue string) string {
 	value := this.getValue(key)
 	if value == empty {
@@ -90,7 +90,7 @@ func (this *Config) GetStringValue(key string, defaultValue string) string {
 	return value
 }
 
-//获取配置值（int），获取不到则取默认值
+//GetIntValue 获取配置值（int），获取不到则取默认值
 func (this *Config) GetIntValue(key string, defaultValue int) int {
 	value := this.getValue(key)
 
@@ -103,7 +103,7 @@ func (this *Config) GetIntValue(key string, defaultValue int) int {
 	return i
 }
 
-//获取配置值（float），获取不到则取默认值
+//GetFloatValue 获取配置值（float），获取不到则取默认值
 func (this *Config) GetFloatValue(key string, defaultValue float64) float64 {
 	value := this.getValue(key)
 
@@ -116,7 +116,7 @@ func (this *Config) GetFloatValue(key string, defaultValue float64) float64 {
 	return i
 }
 
-//获取配置值（bool），获取不到则取默认值
+//GetBoolValue 获取配置值（bool），获取不到则取默认值
 func (this *Config) GetBoolValue(key string, defaultValue bool) bool {
 	value := this.getValue(key)
 
@@ -129,7 +129,7 @@ func (this *Config) GetBoolValue(key string, defaultValue bool) bool {
 	return b
 }
 
-//根据namespace获取apollo配置
+//GetConfig 根据namespace获取apollo配置
 func GetConfig(namespace string) *Config{
 	return apolloConfigCache[namespace]
 }
@@ -242,7 +242,7 @@ func updateApolloConfigCacheTime(expireTime int) {
 	}
 }
 
-//获取默认namespace的apollo配置
+//GetApolloConfigCache 获取默认namespace的apollo配置
 func GetApolloConfigCache() agcache.CacheInterface {
 	return getDefaultConfigCache()
 }

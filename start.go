@@ -7,27 +7,27 @@ func Start() error {
 	return startAgollo()
 }
 
-//设置自定义logger组件
+//SetLogger 设置自定义logger组件
 func SetLogger(loggerInterface LoggerInterface)  {
 	if loggerInterface != nil {
 		initLogger(loggerInterface)
 	}
 }
 
-//设置自定义cache组件
+//SetCache 设置自定义cache组件
 func SetCache(cacheInterface agcache.CacheInterface)  {
 	if cacheInterface != nil {
 		initConfigCache(cacheInterface)
 	}
 }
 
-//通过自定义logger启动agollo
+//StartWithLogger 通过自定义logger启动agollo
 func StartWithLogger(loggerInterface LoggerInterface) error {
 	SetLogger(loggerInterface)
 	return startAgollo()
 }
 
-//通过自定义cache启动agollo
+//StartWithCache 通过自定义cache启动agollo
 func StartWithCache(cacheInterface agcache.CacheInterface) error {
 	SetCache(cacheInterface)
 	return startAgollo()
