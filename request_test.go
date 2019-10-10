@@ -14,7 +14,7 @@ func TestRequestRecovery(t *testing.T) {
 	newAppConfig.Ip = server.URL
 
 	appConfig := GetAppConfig(newAppConfig)
-	urlSuffix := getConfigUrlSuffix(appConfig, newAppConfig.NamespaceName)
+	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
 
 	o, err := requestRecovery(appConfig, &ConnectConfig{
 		Uri: urlSuffix,
@@ -35,7 +35,7 @@ func TestCustomTimeout(t *testing.T) {
 
 	startTime := time.Now().Unix()
 	appConfig := GetAppConfig(newAppConfig)
-	urlSuffix := getConfigUrlSuffix(appConfig, newAppConfig.NamespaceName)
+	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
 
 	o, err := requestRecovery(appConfig, &ConnectConfig{
 		Uri:     urlSuffix,

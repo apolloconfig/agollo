@@ -251,7 +251,7 @@ func getConfigUrlByHost(config *AppConfig, host string) string {
 		getInternal())
 }
 
-func getConfigUrlSuffix(config *AppConfig,namespaceName string) string {
+func getConfigURLSuffix(config *AppConfig,namespaceName string) string {
 	if config == nil {
 		return ""
 	}

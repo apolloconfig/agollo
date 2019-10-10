@@ -41,10 +41,10 @@ func splitNamespaces(namespacesStr string,callback func(namespace string))map[st
 	return namespaces
 }
 
-func (this *ApolloConfig) init(appConfig *AppConfig,namespace string) {
-	this.AppId = appConfig.AppId
-	this.Cluster = appConfig.Cluster
-	this.NamespaceName = namespace
+func (a *ApolloConfig) init(appConfig *AppConfig,namespace string) {
+	a.AppId = appConfig.AppId
+	a.Cluster = appConfig.Cluster
+	a.NamespaceName = namespace
 }
 
 func createApolloConfigWithJson(b []byte) (*ApolloConfig, error) {

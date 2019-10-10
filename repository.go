@@ -247,6 +247,7 @@ func GetApolloConfigCache() agcache.CacheInterface {
 	return getDefaultConfigCache()
 }
 
+//GetCurrentApolloConfig 获取Apollo链接配置
 func GetCurrentApolloConfig() map[string]*ApolloConnConfig {
 	currentConnApolloConfig.l.RLock()
 	defer currentConnApolloConfig.l.RUnlock()

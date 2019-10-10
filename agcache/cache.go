@@ -34,6 +34,6 @@ type DefaultCacheFactory struct {
 
 }
 
-func (this *DefaultCacheFactory) Create()CacheInterface  {
+func (d *DefaultCacheFactory) Create()CacheInterface  {
 	return freecache.NewCache(apolloConfigCacheSize)
 }

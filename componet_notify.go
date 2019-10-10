@@ -29,24 +29,24 @@ type apolloNotify struct {
 	NamespaceName  string `json:"namespaceName"`
 }
 
-func (this *notificationsMap) setNotify(namespaceName string, notificationId int64) {
-	this.Lock()
-	defer this.Unlock()
-	this.notifications[namespaceName] = notificationId
+func (n *notificationsMap) setNotify(namespaceName string, notificationId int64) {
+	n.Lock()
+	defer n.Unlock()
+	n.notifications[namespaceName] = notificationId
 }
 
-func (this *notificationsMap) getNotify(namespace string) int64 {
-	this.RLock()
-	defer this.RUnlock()
-	return this.notifications[namespace]
+func (n *notificationsMap) getNotify(namespace string) int64 {
+	n.RLock()
+	defer n.RUnlock()
+	return n.notifications[namespace]
 }
 
-func (this *notificationsMap) getNotifies() string {
-	this.RLock()
-	defer this.RUnlock()
+func (n *notificationsMap) getNotifies() string {
+	n.RLock()
+	defer n.RUnlock()
 
 	notificationArr := make([]*notification, 0)
-	for namespaceName, notificationId := range this.notifications {
+	for namespaceName, notificationId := range n.notifications {
 		notificationArr = append(notificationArr,
 			&notification{
 				NamespaceName:  namespaceName,
@@ -183,7 +183,7 @@ func autoSyncConfigServices(newAppConfig *AppConfig) error {
 
 	var err error
 	for namespace := range allNotifications.notifications {
-		urlSuffix := getConfigUrlSuffix(appConfig, namespace)
+		urlSuffix := getConfigURLSuffix(appConfig, namespace)
 
 		_, err = requestRecovery(appConfig, &ConnectConfig{
 			Uri: urlSuffix,
