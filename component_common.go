@@ -29,19 +29,22 @@ type ApolloConnConfig struct {
 type ApolloConfig struct {
 	ApolloConnConfig
 	Configurations map[string]string `json:"configurations"`
-	Namespaces map[string]int64
 }
 
-func (this *ApolloConfig) init(appConfig *AppConfig)  {
+func splitNamespaces(namespacesStr string,callback func(namespace string))map[string]int64{
+	namespaces:=make(map[string]int64,1)
+	split := strings.Split(namespacesStr, comma)
+	for _, namespace := range split {
+		callback(namespace)
+		namespaces[namespace]=default_notification_id
+	}
+	return namespaces
+}
+
+func (this *ApolloConfig) init(appConfig *AppConfig,namespace string) {
 	this.AppId = appConfig.AppId
 	this.Cluster = appConfig.Cluster
-	this.NamespaceName = appConfig.NamespaceName
-	this.Namespaces=make(map[string]int64,1)
-
-	namespaces := strings.Split(appConfig.NamespaceName, comma)
-	for _, v := range namespaces {
-		this.Namespaces[v]=default_notification_id
-	}
+	this.NamespaceName = namespace
 }
 
 func createApolloConfigWithJson(b []byte) (*ApolloConfig, error) {

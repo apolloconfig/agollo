@@ -38,10 +38,12 @@ func startAgollo() error {
 
 	//first sync fail then load config file
 	if err != nil {
-		config, _ := loadConfigFile(appConfig.BackupConfigPath)
-		if config != nil {
-			updateApolloConfig(config, false)
-		}
+		splitNamespaces(appConfig.NamespaceName, func(namespace string) {
+			config, _ := loadConfigFile(appConfig.BackupConfigPath,namespace)
+			if config != nil {
+				updateApolloConfig(config, false)
+			}
+		})
 	}
 
 	//start long poll sync config

@@ -145,10 +145,12 @@ func initConfig(loadAppConfig func() (*AppConfig, error)) {
 	}
 
 	func(appConfig *AppConfig) {
-		apolloConfig := &ApolloConfig{}
-		apolloConfig.init(appConfig)
+		splitNamespaces(appConfig.NamespaceName, func(namespace string) {
+			apolloConfig := &ApolloConfig{}
+			apolloConfig.init(appConfig,namespace)
 
-		updateApolloConfig(apolloConfig, false)
+			updateApolloConfig(apolloConfig, false)
+		})
 	}(appConfig)
 }
 

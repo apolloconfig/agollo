@@ -7,9 +7,9 @@ import (
 	"os"
 )
 
-const FILE = "apolloConfig.json"
+const SUPFIX = ".json"
 
-var configFile = ""
+var configFileMap=make(map[string]string,1)
 
 //write config to file
 func writeConfigFile(config *ApolloConfig, configPath string) error {
@@ -17,7 +17,7 @@ func writeConfigFile(config *ApolloConfig, configPath string) error {
 		logger.Error("apollo config is null can not write backup file")
 		return errors.New("apollo config is null can not write backup file")
 	}
-	file, e := os.Create(getConfigFile(configPath))
+	file, e := os.Create(getConfigFile(configPath,config.NamespaceName))
 	if e != nil {
 		logger.Errorf("writeConfigFile fail,error:", e)
 		return e
@@ -28,21 +28,23 @@ func writeConfigFile(config *ApolloConfig, configPath string) error {
 }
 
 //get real config file
-func getConfigFile(configDir string) string {
-	if configFile == "" {
+func getConfigFile(configDir string,namespace string) string {
+	fullPath := configFileMap[namespace]
+	if fullPath == "" {
+		filePath := fmt.Sprintf("%s%s", namespace, SUPFIX)
 		if configDir != "" {
-			configFile = fmt.Sprintf("%s/%s", configDir, FILE)
+			configFileMap[namespace] = fmt.Sprintf("%s/%s", configDir, filePath)
 		} else {
-			configFile = FILE
+			configFileMap[namespace] = filePath
 		}
 
 	}
-	return configFile
+	return fullPath
 }
 
 //load config from file
-func loadConfigFile(configDir string) (*ApolloConfig, error) {
-	configFilePath := getConfigFile(configDir)
+func loadConfigFile(configDir string,namespace string) (*ApolloConfig, error) {
+	configFilePath := getConfigFile(configDir,namespace)
 	logger.Info("load config file from :", configFilePath)
 	file, e := os.Open(configFilePath)
 	if e != nil {

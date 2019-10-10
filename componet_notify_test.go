@@ -210,7 +210,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 }
 
 func checkBackupFile(t *testing.T) {
-	newConfig, e := loadConfigFile(appConfig.getBackupConfigPath())
+	newConfig, e := loadConfigFile(appConfig.getBackupConfigPath(),"application")
 	t.Log(newConfig.Configurations)
 	Assert(t,e,NilVal())
 	Assert(t,newConfig.Configurations,NotNilVal())

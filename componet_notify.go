@@ -71,11 +71,11 @@ func initAllNotifications() {
 	appConfig := GetAppConfig(nil)
 
 	if appConfig != nil {
-		apolloConfig := &ApolloConfig{}
-		apolloConfig.init(appConfig)
+		namespaces := splitNamespaces(appConfig.NamespaceName,
+			func(namespace string) {})
 
 		allNotifications = &notificationsMap{
-			notifications: apolloConfig.Namespaces,
+			notifications: namespaces,
 		}
 	}
 }
