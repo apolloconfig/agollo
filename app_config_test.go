@@ -12,10 +12,10 @@ func TestInit(t *testing.T) {
 	Assert(t, config,NotNilVal())
 	Assert(t, "test", Equal(config.AppId))
 	Assert(t, "dev", Equal(config.Cluster))
-	Assert(t, "application", Equal(config.NamespaceName))
+	Assert(t, "application,abc1", Equal(config.NamespaceName))
 	Assert(t, "localhost:8888", Equal(config.Ip))
 
-	apolloConfig := GetCurrentApolloConfig()
+	apolloConfig := GetCurrentApolloConfig()[defaultNamespace]
 	Assert(t, "test", Equal(apolloConfig.AppId))
 	Assert(t, "dev", Equal(apolloConfig.Cluster))
 	Assert(t, "application", Equal(apolloConfig.NamespaceName))
@@ -42,7 +42,7 @@ func TestStructInit(t *testing.T) {
 	Assert(t, "application1", Equal(config.NamespaceName))
 	Assert(t, "localhost:8889", Equal(config.Ip))
 
-	apolloConfig := GetCurrentApolloConfig()
+	apolloConfig := GetCurrentApolloConfig()[config.NamespaceName]
 	Assert(t, "test1", Equal(apolloConfig.AppId))
 	Assert(t, "dev1", Equal(apolloConfig.Cluster))
 	Assert(t, "application1", Equal(apolloConfig.NamespaceName))

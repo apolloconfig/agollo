@@ -8,22 +8,7 @@ import (
 )
 
 const responseStr = `[{"namespaceName":"application","notificationId":%d}]`
-
-//run mock notify server
-func runMockNotifyServer(handler func(http.ResponseWriter, *http.Request)) {
-	http.HandleFunc("/notifications/v2", handler)
-
-	appConfig := GetAppConfig(nil)
-	if appConfig == nil {
-		panic("can not find apollo config!please confirm!")
-	}
-
-	logger.Info("runMockNotifyServer:", appConfig.Ip)
-	err := http.ListenAndServe(fmt.Sprintf("%s", appConfig.Ip), nil)
-	if err != nil {
-		logger.Error("runMockConfigServer err:", err)
-	}
-}
+const responseTwoStr = `[{"namespaceName":"application","notificationId":%d},{"namespaceName":"abc1","notificationId":%d}]`
 
 var normalNotifyCount = 1
 
@@ -49,6 +34,11 @@ func runNormalResponse() *httptest.Server {
 
 func onlyNormalResponse(rw http.ResponseWriter, req *http.Request) {
 	result := fmt.Sprintf(responseStr, 3)
+	fmt.Fprintf(rw, "%s", result)
+}
+
+func onlyNormalTwoResponse(rw http.ResponseWriter, req *http.Request) {
+	result := fmt.Sprintf(responseTwoStr, 3,3)
 	fmt.Fprintf(rw, "%s", result)
 }
 

@@ -1,29 +1,35 @@
 package agollo
 
+import "github.com/zouyx/agollo/agcache"
+
 //start apollo
 func Start() error {
 	return startAgollo()
 }
 
+//SetLogger 设置自定义logger组件
 func SetLogger(loggerInterface LoggerInterface)  {
 	if loggerInterface != nil {
 		initLogger(loggerInterface)
 	}
 }
 
-func SetCache(cacheInterface CacheInterface)  {
-	if cacheInterface != nil {
-		initCache(cacheInterface)
+//SetCache 设置自定义cache组件
+func SetCache(cacheFactory *agcache.DefaultCacheFactory)  {
+	if cacheFactory != nil {
+		initConfigCache(cacheFactory)
 	}
 }
 
+//StartWithLogger 通过自定义logger启动agollo
 func StartWithLogger(loggerInterface LoggerInterface) error {
 	SetLogger(loggerInterface)
 	return startAgollo()
 }
 
-func StartWithCache(cacheInterface CacheInterface) error {
-	SetCache(cacheInterface)
+//StartWithCache 通过自定义cache启动agollo
+func StartWithCache(cacheFactory *agcache.DefaultCacheFactory) error {
+	SetCache(cacheFactory)
 	return startAgollo()
 }
 
@@ -36,10 +42,12 @@ func startAgollo() error {
 
 	//first sync fail then load config file
 	if err != nil {
-		config, _ := loadConfigFile(appConfig.BackupConfigPath)
-		if config != nil {
-			updateApolloConfig(config, false)
-		}
+		splitNamespaces(appConfig.NamespaceName, func(namespace string) {
+			config, _ := loadConfigFile(appConfig.BackupConfigPath,namespace)
+			if config != nil {
+				updateApolloConfig(config, false)
+			}
+		})
 	}
 
 	//start long poll sync config

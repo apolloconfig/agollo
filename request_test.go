@@ -14,7 +14,7 @@ func TestRequestRecovery(t *testing.T) {
 	newAppConfig.Ip = server.URL
 
 	appConfig := GetAppConfig(newAppConfig)
-	urlSuffix := getConfigUrlSuffix(appConfig, newAppConfig)
+	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
 
 	o, err := requestRecovery(appConfig, &ConnectConfig{
 		Uri: urlSuffix,
@@ -33,9 +33,9 @@ func TestCustomTimeout(t *testing.T) {
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 
-	startTime := time.Now().Second()
+	startTime := time.Now().Unix()
 	appConfig := GetAppConfig(newAppConfig)
-	urlSuffix := getConfigUrlSuffix(appConfig, newAppConfig)
+	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
 
 	o, err := requestRecovery(appConfig, &ConnectConfig{
 		Uri:     urlSuffix,
@@ -44,11 +44,12 @@ func TestCustomTimeout(t *testing.T) {
 		SuccessCallBack: autoSyncConfigServicesSuccessCallBack,
 	})
 
-	endTime := time.Now().Second()
-	t.Log("starttime:", startTime)
+	endTime := time.Now().Unix()
+	duration := endTime - startTime
+	t.Log("start time:", startTime)
 	t.Log("endTime:", endTime)
-	t.Log("duration:", endTime-startTime)
-	Assert(t, 10, Equal(endTime-startTime))
+	t.Log("duration:", duration)
+	Assert(t, int64(10), Equal(duration))
 	Assert(t, err,NilVal())
 	Assert(t, o,NilVal())
 }

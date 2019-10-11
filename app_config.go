@@ -19,8 +19,8 @@ var (
 	nofity_connect_timeout = 10 * time.Minute //10m
 	//for on error retry
 	on_error_retry_interval = 1 * time.Second //1s
-	//for typed config cache of parser result, e.g. integer, double, long, etc.
-	//max_config_cache_size    = 500             //500 cache key
+	//for typed config agcache of parser result, e.g. integer, double, long, etc.
+	//max_config_cache_size    = 500             //500 agcache key
 	//config_cache_expire_time = 1 * time.Minute //1 minute
 
 	//max retries connect apollo
@@ -33,7 +33,7 @@ var (
 	appConfig *AppConfig
 
 	//real servers ip
-	servers map[string]*serverInfo = make(map[string]*serverInfo, 0)
+	servers = make(map[string]*serverInfo, 0)
 
 	//next try connect period - 60 second
 	next_try_connect_period int64 = 60
@@ -145,12 +145,12 @@ func initConfig(loadAppConfig func() (*AppConfig, error)) {
 	}
 
 	func(appConfig *AppConfig) {
-		apolloConfig := &ApolloConfig{}
-		apolloConfig.AppId = appConfig.AppId
-		apolloConfig.Cluster = appConfig.Cluster
-		apolloConfig.NamespaceName = appConfig.NamespaceName
+		splitNamespaces(appConfig.NamespaceName, func(namespace string) {
+			apolloConfig := &ApolloConfig{}
+			apolloConfig.init(appConfig,namespace)
 
-		updateApolloConfig(apolloConfig, false)
+			updateApolloConfig(apolloConfig, false)
+		})
 	}(appConfig)
 }
 
@@ -215,7 +215,7 @@ func syncServerIpListSuccessCallBack(responseBody []byte) (o interface{}, err er
 
 //sync ip list from server
 //then
-//1.update cache
+//1.update agcache
 //2.store in disk
 func syncServerIpList(newAppConfig *AppConfig) error {
 	appConfig := GetAppConfig(newAppConfig)
@@ -242,26 +242,24 @@ func getConfigUrl(config *AppConfig) string {
 }
 
 func getConfigUrlByHost(config *AppConfig, host string) string {
-	current := GetCurrentApolloConfig()
 	return fmt.Sprintf("%sconfigs/%s/%s/%s?releaseKey=%s&ip=%s",
 		host,
 		url.QueryEscape(config.AppId),
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(config.NamespaceName),
-		url.QueryEscape(current.ReleaseKey),
+		url.QueryEscape(getCurrentApolloConfigReleaseKey(config.NamespaceName)),
 		getInternal())
 }
 
-func getConfigUrlSuffix(config *AppConfig, newConfig *AppConfig) string {
-	if newConfig != nil {
+func getConfigURLSuffix(config *AppConfig,namespaceName string) string {
+	if config == nil {
 		return ""
 	}
-	current := GetCurrentApolloConfig()
 	return fmt.Sprintf("configs/%s/%s/%s?releaseKey=%s&ip=%s",
 		url.QueryEscape(config.AppId),
 		url.QueryEscape(config.Cluster),
-		url.QueryEscape(config.NamespaceName),
-		url.QueryEscape(current.ReleaseKey),
+		url.QueryEscape(namespaceName),
+		url.QueryEscape(getCurrentApolloConfigReleaseKey(namespaceName)),
 		getInternal())
 }
 

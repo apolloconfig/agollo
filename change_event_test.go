@@ -51,7 +51,7 @@ func buildNotifyResult(t *testing.T) {
 
 	Assert(t, err,NilVal())
 
-	config := GetCurrentApolloConfig()
+	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	Assert(t, "100004458", Equal(config.AppId))
 	Assert(t, "default", Equal(config.Cluster))
