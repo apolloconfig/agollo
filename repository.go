@@ -136,6 +136,15 @@ func GetConfig(namespace string) *Config{
 	return apolloConfigCache[namespace]
 }
 
+//GetConfigCache 根据namespace获取apollo配置的缓存
+func GetConfigCache(namespace string) agcache.CacheInterface{
+	config := apolloConfigCache[namespace]
+	if config==nil{
+		return nil
+	}
+	return config.cache
+}
+
 func getDefaultConfigCache()agcache.CacheInterface{
 	config := apolloConfigCache[defaultNamespace]
 	if config!=nil{
