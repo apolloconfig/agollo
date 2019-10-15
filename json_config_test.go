@@ -13,7 +13,7 @@ func TestLoadJsonConfig(t *testing.T) {
 	Assert(t, config,NotNilVal())
 	Assert(t, "test", Equal(config.AppId))
 	Assert(t, "dev", Equal(config.Cluster))
-	Assert(t, "application",Equal(config.NamespaceName))
+	Assert(t, "application,abc1",Equal(config.NamespaceName))
 	Assert(t, "localhost:8888", Equal(config.Ip))
 
 }

@@ -29,17 +29,24 @@ type apolloNotify struct {
 	NamespaceName  string `json:"namespaceName"`
 }
 
-func (this *notificationsMap) setNotify(namespaceName string, notificationId int64) {
-	this.Lock()
-	defer this.Unlock()
-	this.notifications[namespaceName] = notificationId
+func (n *notificationsMap) setNotify(namespaceName string, notificationId int64) {
+	n.Lock()
+	defer n.Unlock()
+	n.notifications[namespaceName] = notificationId
 }
-func (this *notificationsMap) getNotifies() string {
-	this.RLock()
-	defer this.RUnlock()
+
+func (n *notificationsMap) getNotify(namespace string) int64 {
+	n.RLock()
+	defer n.RUnlock()
+	return n.notifications[namespace]
+}
+
+func (n *notificationsMap) getNotifies() string {
+	n.RLock()
+	defer n.RUnlock()
 
 	notificationArr := make([]*notification, 0)
-	for namespaceName, notificationId := range this.notifications {
+	for namespaceName, notificationId := range n.notifications {
 		notificationArr = append(notificationArr,
 			&notification{
 				NamespaceName:  namespaceName,
@@ -64,11 +71,12 @@ func initAllNotifications() {
 	appConfig := GetAppConfig(nil)
 
 	if appConfig != nil {
-		allNotifications = &notificationsMap{
-			notifications: make(map[string]int64, 1),
-		}
+		namespaces := splitNamespaces(appConfig.NamespaceName,
+			func(namespace string) {})
 
-		allNotifications.setNotify(appConfig.NamespaceName, default_notification_id)
+		allNotifications = &notificationsMap{
+			notifications: namespaces,
+		}
 	}
 }
 
@@ -146,6 +154,9 @@ func updateAllNotifications(remoteConfigs []*apolloNotify) {
 		if remoteConfig.NamespaceName == "" {
 			continue
 		}
+		if allNotifications.getNotify(remoteConfig.NamespaceName)==0{
+			continue
+		}
 
 		allNotifications.setNotify(remoteConfig.NamespaceName, remoteConfig.NotificationId)
 	}
@@ -170,14 +181,20 @@ func autoSyncConfigServices(newAppConfig *AppConfig) error {
 		panic("can not find apollo config!please confirm!")
 	}
 
-	urlSuffix := getConfigUrlSuffix(appConfig, newAppConfig)
+	var err error
+	for namespace := range allNotifications.notifications {
+		urlSuffix := getConfigURLSuffix(appConfig, namespace)
 
-	_, err := requestRecovery(appConfig, &ConnectConfig{
-		Uri: urlSuffix,
-	}, &CallBack{
-		SuccessCallBack:   autoSyncConfigServicesSuccessCallBack,
-		NotModifyCallBack: touchApolloConfigCache,
-	})
+		_, err = requestRecovery(appConfig, &ConnectConfig{
+			Uri: urlSuffix,
+		}, &CallBack{
+			SuccessCallBack:   autoSyncConfigServicesSuccessCallBack,
+			NotModifyCallBack: touchApolloConfigCache,
+		})
+		if err!=nil{
+			return err
+		}
+	}
 
-	return err
+	return nil
 }

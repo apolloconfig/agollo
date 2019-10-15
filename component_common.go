@@ -2,7 +2,12 @@ package agollo
 
 import (
 	"encoding/json"
+	"strings"
 	"sync"
+)
+
+const (
+	comma = ","
 )
 
 type AbsComponent interface {
@@ -24,6 +29,22 @@ type ApolloConnConfig struct {
 type ApolloConfig struct {
 	ApolloConnConfig
 	Configurations map[string]string `json:"configurations"`
+}
+
+func splitNamespaces(namespacesStr string,callback func(namespace string))map[string]int64{
+	namespaces:=make(map[string]int64,1)
+	split := strings.Split(namespacesStr, comma)
+	for _, namespace := range split {
+		callback(namespace)
+		namespaces[namespace]=default_notification_id
+	}
+	return namespaces
+}
+
+func (a *ApolloConfig) init(appConfig *AppConfig,namespace string) {
+	a.AppId = appConfig.AppId
+	a.Cluster = appConfig.Cluster
+	a.NamespaceName = namespace
 }
 
 func createApolloConfigWithJson(b []byte) (*ApolloConfig, error) {

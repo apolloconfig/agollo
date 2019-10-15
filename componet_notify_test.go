@@ -52,6 +52,7 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 	server := runErrorResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
+	appConfig.Ip=server.URL
 
 	time.Sleep(1 * time.Second)
 
@@ -68,11 +69,18 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 	Assert(t, "Over Max Retry Still Error!", Equal(err.Error()))
 }
 
-func TestUpdateAllNotifications(t *testing.T) {
-	//clear
+func initNotifications() {
 	allNotifications = &notificationsMap{
 		notifications: make(map[string]int64, 1),
 	}
+	allNotifications.notifications["application"]=-1
+	allNotifications.notifications["abc1"]=-1
+}
+
+func TestUpdateAllNotifications(t *testing.T) {
+	//clear
+	initNotifications()
+
 	notifyJson := `[
   {
     "namespaceName": "application",
@@ -119,6 +127,7 @@ func TestToApolloConfigError(t *testing.T) {
 }
 
 func TestAutoSyncConfigServices(t *testing.T) {
+	initNotifications()
 	server := runNormalConfigResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
@@ -132,7 +141,7 @@ func TestAutoSyncConfigServices(t *testing.T) {
 
 	Assert(t, err,NilVal())
 
-	config := GetCurrentApolloConfig()
+	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	Assert(t, "100004458", Equal(config.AppId))
 	Assert(t, "default", Equal(config.Cluster))
@@ -152,20 +161,21 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 
 	autoSyncConfigServicesSuccessCallBack([]byte(configResponseStr))
 
-	config := GetCurrentApolloConfig()
+	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	fmt.Println("sleeping 10s")
 
 	time.Sleep(10 * time.Second)
 
-	fmt.Println("checking cache time left")
-	it := apolloConfigCache.NewIterator()
-	for i := int64(0); i < apolloConfigCache.EntryCount(); i++ {
+	fmt.Println("checking agcache time left")
+	defaultConfigCache := getDefaultConfigCache()
+	it := defaultConfigCache.NewIterator()
+	for i := int64(0); i < defaultConfigCache.EntryCount(); i++ {
 		entry := it.Next()
 		if entry == nil {
 			break
 		}
-		timeLeft, err := apolloConfigCache.TTL([]byte(entry.Key))
+		timeLeft, err := defaultConfigCache.TTL([]byte(entry.Key))
 		Assert(t, err,NilVal())
 		fmt.Printf("key:%s,time:%v \n", string(entry.Key), timeLeft)
 		Assert(t, timeLeft >= 110, Equal(true))
@@ -180,14 +190,14 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 
 	err := autoSyncConfigServices(newAppConfig)
 
-	fmt.Println("checking cache time left")
-	it1 := apolloConfigCache.NewIterator()
-	for i := int64(0); i < apolloConfigCache.EntryCount(); i++ {
+	fmt.Println("checking agcache time left")
+	it1 := defaultConfigCache.NewIterator()
+	for i := int64(0); i < defaultConfigCache.EntryCount(); i++ {
 		entry := it1.Next()
 		if entry == nil {
 			break
 		}
-		timeLeft, err := apolloConfigCache.TTL([]byte(entry.Key))
+		timeLeft, err := defaultConfigCache.TTL([]byte(entry.Key))
 		Assert(t, err,NilVal())
 		fmt.Printf("key:%s,time:%v \n", string(entry.Key), timeLeft)
 		Assert(t, timeLeft >= 120, Equal(true))
@@ -201,7 +211,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 }
 
 func checkBackupFile(t *testing.T) {
-	newConfig, e := loadConfigFile(appConfig.getBackupConfigPath())
+	newConfig, e := loadConfigFile(appConfig.getBackupConfigPath(),"application")
 	t.Log(newConfig.Configurations)
 	Assert(t,e,NilVal())
 	Assert(t,newConfig.Configurations,NotNilVal())
@@ -228,7 +238,7 @@ func TestAutoSyncConfigServicesNotModify(t *testing.T) {
 
 	Assert(t, err,NilVal())
 
-	config := GetCurrentApolloConfig()
+	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	Assert(t, "100004458", Equal(config.AppId))
 	Assert(t, "default", Equal(config.Cluster))
@@ -254,7 +264,7 @@ func TestAutoSyncConfigServicesError(t *testing.T) {
 
 	Assert(t, err,NotNilVal())
 
-	config := GetCurrentApolloConfig()
+	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	//still properties config
 	Assert(t, "test", Equal(config.AppId))
