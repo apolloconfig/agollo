@@ -24,7 +24,7 @@ Agollo - Go Client for Apollo
 
 ***使用Demo*** ：[agollo_demo](https://github.com/zouyx/agollo_demo)
 
-***其他语言*** ： 可使用 [agollo-agent](https://github.com/zouyx/agollo-agent.git) 做本地agent接入，如：PHP
+***其他语言*** ： [agollo-agent](https://github.com/zouyx/agollo-agent.git) 做本地agent接入，如：PHP
 
 欢迎查阅 [Wiki](https://github.com/zouyx/agollo/wiki) 或者 [godoc](http://godoc.org/github.com/zouyx/agollo) 获取更多有用的信息
   
