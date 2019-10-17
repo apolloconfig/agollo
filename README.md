@@ -13,7 +13,9 @@ Agollo - Go Client for Apollo
 
 方便Golang接入配置中心框架 [Apollo](https://github.com/ctripcorp/apollo) 所开发的Golang版本客户端。
 
-***其他语言*** ： 可使用 [agollo-agent](https://github.com/zouyx/agollo-agent.git) 做本地agent接入。
+***使用Demo*** ：[agollo_demo](https://github.com/zouyx/agollo_demo)
+
+***其他语言*** ： 可使用 [agollo-agent](https://github.com/zouyx/agollo-agent.git) 做本地agent接入，如：PHP
 
 # Features
 * 实时同步配置
