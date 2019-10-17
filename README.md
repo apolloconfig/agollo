@@ -13,10 +13,6 @@ Agollo - Go Client for Apollo
 
 方便Golang接入配置中心框架 [Apollo](https://github.com/ctripcorp/apollo) 所开发的Golang版本客户端。
 
-***使用Demo*** ：[agollo_demo](https://github.com/zouyx/agollo_demo)
-
-***其他语言*** ： 可使用 [agollo-agent](https://github.com/zouyx/agollo-agent.git) 做本地agent接入，如：PHP
-
 # Features
 * 实时同步配置
 * 灰度配置
@@ -25,6 +21,10 @@ Agollo - Go Client for Apollo
 * 自定义日志组件 （因开源协议原因，从v1.8.0不再存在默认日志组件。如还需使用seelog，请参考：[如何使用seelog](https://github.com/zouyx/agollo/wiki/%E4%BD%BF%E7%94%A8seelog%E6%97%A5%E5%BF%97%E7%BB%84%E4%BB%B6)）
  
 # Usage
+
+***使用Demo*** ：[agollo_demo](https://github.com/zouyx/agollo_demo)
+
+***其他语言*** ： 可使用 [agollo-agent](https://github.com/zouyx/agollo-agent.git) 做本地agent接入，如：PHP
 
 欢迎查阅 [Wiki](https://github.com/zouyx/agollo/wiki) 或者 [godoc](http://godoc.org/github.com/zouyx/agollo) 获取更多有用的信息
   
