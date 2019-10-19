@@ -12,7 +12,8 @@ before_install:
     - Project=apollo
 
 install:
-    - go get
+  - chmod u+x depend.sh
+  - ./depend.sh
 
 script:
     - chmod u+x coverage.sh
