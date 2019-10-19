@@ -2,7 +2,7 @@ language: go
 sudo: required
 
 go:
-  - 1.9
+  - 1.12
 
 env:
     - GO15VENDOREXPERIMENT="1"
@@ -12,8 +12,8 @@ before_install:
     - Project=apollo
 
 install:
-    - chmod u+x depend.sh
-    - ./depend.sh
+  - chmod u+x depend.sh
+  - ./depend.sh
 
 script:
     - chmod u+x coverage.sh
