@@ -21,6 +21,7 @@ func TestStart(t *testing.T) {
 }
 
 func TestStartWithMultiNamespace(t *testing.T) {
+	t.SkipNow()
 	initDefaultConfig()
 	initNotifications()
 	app1 := "abc1"

@@ -5,15 +5,14 @@ go:
   - 1.12
 
 env:
-    - GO15VENDOREXPERIMENT="1"
+    - GO111MODULE=on
 
 before_install:
     - go get github.com/mattn/goveralls
     - Project=apollo
 
 install:
-  - chmod u+x depend.sh
-  - ./depend.sh
+  - go mod vendor
 
 script:
     - chmod u+x coverage.sh
