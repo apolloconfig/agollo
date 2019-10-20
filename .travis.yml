@@ -12,7 +12,7 @@ before_install:
     - Project=apollo
 
 install:
-  - go get
+  - go mod download
 
 script:
     - chmod u+x coverage.sh
