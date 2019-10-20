@@ -5,14 +5,14 @@ go:
   - 1.12
 
 env:
-    - GO111MODULE=auto
+    - GO111MODULE=on
 
 before_install:
     - go get github.com/mattn/goveralls
     - Project=apollo
 
 install:
-  - go mod download
+  - go mod vendor
 
 script:
     - chmod u+x coverage.sh
