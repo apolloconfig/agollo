@@ -4,37 +4,52 @@ import (
 	"encoding/json"
 	"fmt"
 	. "github.com/tevid/gohamcrest"
+	"sync"
 	"testing"
 	"time"
 )
 
-func TestListenChangeEvent(t *testing.T) {
-	go buildNotifyResult(t)
+type CustomChangeListener struct {
+	t *testing.T
+	group *sync.WaitGroup
+}
 
-	event := ListenChangeEvent()
-	defer clearChannel()
-	changeEvent := <-event
+func (c *CustomChangeListener) OnChange(changeEvent *ChangeEvent) {
+	if c.group==nil{
+		return
+	}
+	defer c.group.Done()
 	bytes, _ := json.Marshal(changeEvent)
 	fmt.Println("event:", string(bytes))
 
-	Assert(t, "application", Equal(changeEvent.Namespace))
+	Assert(c.t, "application", Equal(changeEvent.Namespace))
 
-	Assert(t, "string", Equal(changeEvent.Changes["string"].NewValue))
-	Assert(t, "", Equal(changeEvent.Changes["string"].OldValue))
-	Assert(t, ADDED, Equal(changeEvent.Changes["string"].ChangeType))
+	Assert(c.t, "string", Equal(changeEvent.Changes["string"].NewValue))
+	Assert(c.t, "", Equal(changeEvent.Changes["string"].OldValue))
+	Assert(c.t, ADDED, Equal(changeEvent.Changes["string"].ChangeType))
 
-	Assert(t, "value1", Equal(changeEvent.Changes["key1"].NewValue))
-	Assert(t, "", Equal(changeEvent.Changes["key2"].OldValue))
-	Assert(t, ADDED, Equal(changeEvent.Changes["key1"].ChangeType))
+	Assert(c.t, "value1", Equal(changeEvent.Changes["key1"].NewValue))
+	Assert(c.t, "", Equal(changeEvent.Changes["key2"].OldValue))
+	Assert(c.t, ADDED, Equal(changeEvent.Changes["key1"].ChangeType))
 
-	Assert(t, "value2", Equal(changeEvent.Changes["key2"].NewValue))
-	Assert(t, "", Equal(changeEvent.Changes["key2"].OldValue))
-	Assert(t, ADDED, Equal(changeEvent.Changes["key2"].ChangeType))
-
+	Assert(c.t, "value2", Equal(changeEvent.Changes["key2"].NewValue))
+	Assert(c.t, "", Equal(changeEvent.Changes["key2"].OldValue))
+	Assert(c.t, ADDED, Equal(changeEvent.Changes["key2"].ChangeType))
 }
 
-func clearChannel() {
-	notifyChan = nil
+func TestListenChangeEvent(t *testing.T) {
+	go buildNotifyResult(t)
+	group:= sync.WaitGroup{}
+	group.Add(1)
+
+	listener := &CustomChangeListener{
+		t:t,
+		group:&group,
+	}
+	AddChangeListener(listener)
+	group.Wait()
+	//运行完清空变更队列
+	changeListeners=nil
 }
 
 func buildNotifyResult(t *testing.T) {
