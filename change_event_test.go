@@ -15,6 +15,9 @@ type CustomChangeListener struct {
 }
 
 func (c *CustomChangeListener) OnChange(changeEvent *ChangeEvent) {
+	if c.group==nil{
+		return
+	}
 	defer c.group.Done()
 	bytes, _ := json.Marshal(changeEvent)
 	fmt.Println("event:", string(bytes))
@@ -45,6 +48,8 @@ func TestListenChangeEvent(t *testing.T) {
 	}
 	AddChangeListener(listener)
 	group.Wait()
+	//运行完清空变更队列
+	changeListeners=nil
 }
 
 func buildNotifyResult(t *testing.T) {
