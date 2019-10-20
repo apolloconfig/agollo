@@ -7,8 +7,19 @@ const (
 )
 
 var (
-	notifyChan chan *ChangeEvent
+	changeListeners []ChangeListener
 )
+
+func init() {
+	changeListeners=make([]ChangeListener,0)
+}
+
+//ChangeListener 监听器
+type ChangeListener interface {
+	//OnChange 增加变更监控
+	OnChange(event *ChangeEvent)
+}
+
 
 //config change type
 type ConfigChangeType int
@@ -25,22 +36,22 @@ type ConfigChange struct {
 	ChangeType ConfigChangeType
 }
 
-//list config change event
-func ListenChangeEvent() <-chan *ChangeEvent {
-	if notifyChan == nil {
-		notifyChan = make(chan *ChangeEvent, 1)
-	}
-	return notifyChan
+//AddChangeListener 增加变更监控
+func AddChangeListener(listener ChangeListener)  {
+	changeListeners=append(changeListeners, listener)
 }
 
 //push config change event
 func pushChangeEvent(event *ChangeEvent) {
 	// if channel is null ,mean no listener,don't need to push msg
-	if notifyChan == nil {
+	if changeListeners == nil|| len(changeListeners)==0 {
 		return
 	}
 
-	notifyChan <- event
+	for i := range changeListeners {
+		listener:= changeListeners[i]
+		go listener.OnChange(event)
+	}
 }
 
 //create modify config change
