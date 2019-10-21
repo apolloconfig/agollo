@@ -11,17 +11,16 @@ install:
   - go mod vendor
 stages:
   - Test
-  - Build
   - Github Release
-script:
-  - chmod u+x coverage.sh
-  - "./coverage.sh --coveralls"
 jobs:
   include:
-    - stage: Build
+    - stage: Test
       if: tag IS blank
       go: 1.12
       script:
+        - echo "Test apps ..."
+        - chmod u+x coverage.sh
+        - "./coverage.sh --coveralls"
         - echo "Build apps ..."
         - go build -o "$Project"
     - stage: Github Release
