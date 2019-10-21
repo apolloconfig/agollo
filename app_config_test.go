@@ -97,7 +97,9 @@ func trySyncServerIpList(t *testing.T) {
 
 	Assert(t, err,NilVal())
 
-	Assert(t, 10, Equal(len(servers)))
+	serverLen:=getServersLen()
+
+	Assert(t, 10, Equal(serverLen))
 
 }
 
@@ -134,13 +136,31 @@ func TestSelectHost(t *testing.T) {
 	Assert(t, firstHost, NotEqual(thirdHost))
 	Assert(t, secondHost, NotEqual(thirdHost))
 
-	for host := range servers {
-		setDownNode(host)
-	}
+	servers.Range(func(k, v interface{}) bool {
+		setDownNode(k.(string))
+		return true
+	})
 
 	Assert(t, "", Equal(appConfig.selectHost()))
 
 	//no servers
-	servers = make(map[string]*serverInfo, 0)
+	//servers = make(map[string]*serverInfo, 0)
+	deleteServers()
 	Assert(t, "", Equal(appConfig.selectHost()))
+}
+
+func deleteServers() {
+	servers.Range(func(k, v interface{}) bool {
+		servers.Delete(k)
+		return true
+	})
+}
+
+func getServersLen() int {
+	len:=0
+	servers.Range(func(k, v interface{}) bool {
+		len++
+		return true
+	})
+	return len
 }

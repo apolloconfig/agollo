@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -33,7 +34,7 @@ var (
 	appConfig *AppConfig
 
 	//real servers ip
-	servers = make(map[string]*serverInfo, 0)
+	servers sync.Map
 
 	//next try connect period - 60 second
 	next_try_connect_period int64 = 60
@@ -83,15 +84,19 @@ func (this *AppConfig) selectHost() string {
 		return this.getHost()
 	}
 
-	for host, server := range servers {
+	host:=""
+
+	servers.Range(func(k, v interface{}) bool {
+		server:=v.(*serverInfo)
 		// if some node has down then select next node
 		if server.IsDown {
-			continue
+			return true
 		}
-		return host
-	}
+		host=k.(string)
+		return false
+	})
 
-	return ""
+	return host
 }
 
 func setDownNode(host string) {
@@ -103,12 +108,15 @@ func setDownNode(host string) {
 		appConfig.setNextTryConnTime(next_try_connect_period)
 	}
 
-	for key, server := range servers {
-		if key == host {
+	servers.Range(func(k, v interface{}) bool {
+		server:=v.(*serverInfo)
+		// if some node has down then select next node
+		if k.(string) == host {
 			server.IsDown = true
-			break
+			return false
 		}
-	}
+		return true
+	})
 }
 
 type serverInfo struct {
@@ -208,7 +216,7 @@ func syncServerIpListSuccessCallBack(responseBody []byte) (o interface{}, err er
 		if server == nil {
 			continue
 		}
-		servers[server.HomepageUrl] = server
+		servers.Store(server.HomepageUrl,server)
 	}
 	return
 }
