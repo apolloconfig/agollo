@@ -65,5 +65,6 @@ func mockIpList(t *testing.T) {
 
 	Assert(t, err,NilVal())
 
-	Assert(t, 2, Equal(len(servers)))
+	serverLen:=getServersLen()
+	Assert(t, 2, Equal(serverLen))
 }
