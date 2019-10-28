@@ -63,7 +63,7 @@ type Config struct {
 }
 //getConfigValue 获取配置值
 func (this *Config) getConfigValue(key string) interface{} {
-	value, err := this.cache.Get([]byte(key))
+	value, err := this.cache.Get(key)
 	if err != nil {
 		logger.Errorf("get config value fail!key:%s,err:%s", key, err)
 		return empty
@@ -193,10 +193,10 @@ func updateApolloConfigCache(configurations map[string]string, expireTime int,na
 
 	//get old keys
 	mp := map[string]bool{}
-	it := config.cache.NewIterator()
-	for en := it.Next(); en != nil; en = it.Next() {
-		mp[string(en.Key)] = true
-	}
+	config.cache.Range(func(key, value interface{}) bool {
+		mp[key.(string)] = true
+		return true
+	})
 
 	changes := make(map[string]*ConfigChange)
 
@@ -210,13 +210,13 @@ func updateApolloConfigCache(configurations map[string]string, expireTime int,na
 				changes[key] = createAddConfigChange(value)
 			} else {
 				//update
-				oldValue, _ := config.cache.Get([]byte(key))
+				oldValue, _ := config.cache.Get(key)
 				if string(oldValue) != value {
 					changes[key] = createModifyConfigChange(string(oldValue), value)
 				}
 			}
 
-			config.cache.Set([]byte(key), []byte(value), expireTime)
+			config.cache.Set(key, []byte(value), expireTime)
 			delete(mp, string(key))
 		}
 	}
@@ -224,10 +224,10 @@ func updateApolloConfigCache(configurations map[string]string, expireTime int,na
 	// remove del keys
 	for key := range mp {
 		//get old value and del
-		oldValue, _ :=config.cache.Get([]byte(key))
+		oldValue, _ :=config.cache.Get(key)
 		changes[key] = createDeletedConfigChange(string(oldValue))
 
-		config.cache.Del([]byte(key))
+		config.cache.Del(key)
 	}
 
 	return changes
@@ -242,19 +242,7 @@ func createConfigChangeEvent(changes map[string]*ConfigChange, nameSpace string)
 }
 
 func touchApolloConfigCache() error {
-	updateApolloConfigCacheTime(configCacheExpireTime)
 	return nil
-}
-
-func updateApolloConfigCacheTime(expireTime int) {
-	it := getDefaultConfigCache().NewIterator()
-	for i := int64(0); i < getDefaultConfigCache().EntryCount(); i++ {
-		entry := it.Next()
-		if entry == nil {
-			break
-		}
-		getDefaultConfigCache().Set([]byte(entry.Key), []byte(entry.Value), expireTime)
-	}
 }
 
 //GetApolloConfigCache 获取默认namespace的apollo配置
@@ -282,7 +270,7 @@ func getCurrentApolloConfigReleaseKey(namespace string) string {
 }
 
 func getConfigValue(key string) interface{} {
-	value, err := getDefaultConfigCache().Get([]byte(key))
+	value, err := getDefaultConfigCache().Get(key)
 	if err != nil {
 		logger.Errorf("get config value fail!key:%s,err:%s", key, err)
 		return empty
