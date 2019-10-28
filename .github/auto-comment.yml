@@ -1,17 +1,10 @@
-# Number of days of inactivity before an issue becomes stale
-daysUntilStale: 60
-# Number of days of inactivity before a stale issue is closed
-daysUntilClose: 30
-# Issues with these labels will never be considered stale
-exemptLabels:
-- pinned
-- security
-# Label to use when marking an issue as stale
-staleLabel: stale
-# Comment to post when marking an issue as stale. Set to `false` to disable
-markComment: >
-  This issue has been automatically marked as stale because it has not had
-  recent activity. It will be closed if no further activity occurs. Thank you
-  for your contributions.
-# Comment to post when closing a stale issue. Set to `false` to disable
-closeComment: false
+# Comment to a new issue.
+issueOpened: >
+  谢谢你提出一个问题。
+
+  我会在1-2日内进行查看或者回复，如果遇到节假日可能会处理较慢，敬请谅解。
+
+  请确保你给了我们尽可能多的背景。
+
+pullRequestOpened: >
+  感谢您提出Pull Request，我会尽快Review。
