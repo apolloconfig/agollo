@@ -39,6 +39,10 @@ func initConfigCache(cacheFactory *agcache.DefaultCacheFactory)  {
 }
 
 func createDefaultConfig(cacheFactory *agcache.DefaultCacheFactory){
+	if appConfig==nil{
+		logger.Warn("Config is nil,can not init agollo.")
+		return
+	}
 	splitNamespaces(appConfig.NamespaceName, func(namespace string) {
 		if apolloConfigCache[namespace]!=nil{
 			return
