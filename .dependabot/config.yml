@@ -1,0 +1,13 @@
+version: 1
+update_configs:
+# Keep package.json (& lockfiles) up to date as soon as
+# new versions are published to the npm registry
+- package_manager: "go:modules"
+  directory: "/"
+  update_schedule: "daily"
+  target_branch: "develop"
+  default_assignees:
+  - "zouyx"
+  default_labels:
+  - "dependencies"
+  - "dependabot"
