@@ -27,27 +27,6 @@ func createMockApolloConfig(expireTime int) map[string]string {
 	return configs
 }
 
-func TestTouchApolloConfigCache(t *testing.T) {
-	createMockApolloConfig(10)
-
-	time.Sleep(5 * time.Second)
-	checkCacheLeft(t, 5)
-
-	updateApolloConfigCacheTime(10)
-
-	checkCacheLeft(t, 10)
-}
-
-func checkCacheLeft(t *testing.T, excepted uint32) {
-	defaultConfigCache := getDefaultConfigCache()
-	it := defaultConfigCache.NewIterator()
-	for i := int64(0); i < defaultConfigCache.EntryCount(); i++ {
-		entry := it.Next()
-		left, _ := defaultConfigCache.TTL(entry.Key)
-		Assert(t, true, Equal(left == uint32(excepted)))
-	}
-}
-
 func getFirstApolloConfig(t *testing.T,currentConfig map[string]*ApolloConnConfig)[]byte {
 	i:=0
 	var currentJSON []byte
@@ -99,21 +78,6 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 func TestGetApolloConfigCache(t *testing.T) {
 	cache := GetApolloConfigCache()
 	Assert(t, cache,NotNilVal())
-}
-
-func TestGetConfigValueTimeout(t *testing.T) {
-	expireTime := 5
-	configs := createMockApolloConfig(expireTime)
-
-	for k, v := range configs {
-		Assert(t, v, Equal(getValue(k)))
-	}
-
-	time.Sleep(time.Duration(expireTime) * time.Second)
-
-	for k := range configs {
-		Assert(t, "", Equal(getValue(k)))
-	}
 }
 
 func TestGetConfigValueNullApolloConfig(t *testing.T) {
