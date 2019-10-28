@@ -169,17 +169,11 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 
 	fmt.Println("checking agcache time left")
 	defaultConfigCache := getDefaultConfigCache()
-	it := defaultConfigCache.NewIterator()
-	for i := int64(0); i < defaultConfigCache.EntryCount(); i++ {
-		entry := it.Next()
-		if entry == nil {
-			break
-		}
-		timeLeft, err := defaultConfigCache.TTL([]byte(entry.Key))
-		Assert(t, err,NilVal())
-		fmt.Printf("key:%s,time:%v \n", string(entry.Key), timeLeft)
-		Assert(t, timeLeft >= 110, Equal(true))
-	}
+
+	defaultConfigCache.Range(func(key, value interface{}) bool {
+		Assert(t, string(value.([]byte)),NotNilVal())
+		return true
+	})
 
 	Assert(t, "100004458", Equal(config.AppId))
 	Assert(t, "default", Equal(config.Cluster))
@@ -191,17 +185,10 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	err := autoSyncConfigServices(newAppConfig)
 
 	fmt.Println("checking agcache time left")
-	it1 := defaultConfigCache.NewIterator()
-	for i := int64(0); i < defaultConfigCache.EntryCount(); i++ {
-		entry := it1.Next()
-		if entry == nil {
-			break
-		}
-		timeLeft, err := defaultConfigCache.TTL([]byte(entry.Key))
-		Assert(t, err,NilVal())
-		fmt.Printf("key:%s,time:%v \n", string(entry.Key), timeLeft)
-		Assert(t, timeLeft >= 120, Equal(true))
-	}
+	defaultConfigCache.Range(func(key, value interface{}) bool {
+		Assert(t, string(value.([]byte)),NotNilVal())
+		return true
+	})
 
 	fmt.Println(err)
 
@@ -218,37 +205,6 @@ func checkBackupFile(t *testing.T) {
 	for k, v := range newConfig.Configurations {
 		Assert(t, getValue(k), Equal(v))
 	}
-}
-
-//test if not modify
-func TestAutoSyncConfigServicesNotModify(t *testing.T) {
-	server := runNotModifyConfigResponse()
-	newAppConfig := getTestAppConfig()
-	newAppConfig.Ip = server.URL
-
-	apolloConfig, err := createApolloConfigWithJson([]byte(configResponseStr))
-	updateApolloConfig(apolloConfig, true)
-
-	time.Sleep(10 * time.Second)
-	checkCacheLeft(t, configCacheExpireTime-10)
-
-	appConfig.NextTryConnTime = 0
-
-	err = autoSyncConfigServices(newAppConfig)
-
-	Assert(t, err,NilVal())
-
-	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
-
-	Assert(t, "100004458", Equal(config.AppId))
-	Assert(t, "default", Equal(config.Cluster))
-	Assert(t, "application", Equal(config.NamespaceName))
-	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
-
-	checkCacheLeft(t, configCacheExpireTime)
-
-	//Assert(t,"value1",config.Configurations["key1"])
-	//Assert(t,"value2",config.Configurations["key2"])
 }
 
 func TestAutoSyncConfigServicesError(t *testing.T) {
