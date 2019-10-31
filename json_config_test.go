@@ -1,12 +1,14 @@
 package agollo
 
 import (
+	"encoding/json"
 	. "github.com/tevid/gohamcrest"
+	"os"
 	"testing"
 )
 
 func TestLoadJsonConfig(t *testing.T) {
-	config, err := loadJsonConfig(appConfigFileName)
+	config, err := loadJsonConfig(APP_CONFIG_FILE_NAME)
 	t.Log(config)
 
 	Assert(t, err,NilVal())
@@ -15,6 +17,38 @@ func TestLoadJsonConfig(t *testing.T) {
 	Assert(t, "dev", Equal(config.Cluster))
 	Assert(t, "application,abc1",Equal(config.NamespaceName))
 	Assert(t, "localhost:8888", Equal(config.Ip))
+
+}
+
+
+func TestLoadEnvConfig(t *testing.T) {
+	envConfigFile:="env_test.properties"
+	config, _ := loadJsonConfig(APP_CONFIG_FILE_NAME)
+	config.Ip="123"
+	config.AppId="1111"
+	config.NamespaceName="nsabbda"
+	file, err := os.Create(envConfigFile)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	defer file.Close()
+	err = json.NewEncoder(file).Encode(config)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	err = os.Setenv(ENV_CONFIG_FILE_PATH, envConfigFile)
+	envConfig, envConfigErr := getLoadAppConfig(nil)
+	t.Log(config)
+
+	Assert(t, envConfigErr,NilVal())
+	Assert(t, envConfig,NotNilVal())
+	Assert(t, envConfig.AppId, Equal(config.AppId))
+	Assert(t, envConfig.Cluster, Equal(config.Cluster))
+	Assert(t, envConfig.NamespaceName,Equal(config.NamespaceName))
+	Assert(t, envConfig.Ip, Equal(config.Ip))
 
 }
 
