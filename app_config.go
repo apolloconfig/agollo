@@ -4,12 +4,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"os"
 	"strings"
 	"sync"
 	"time"
 )
 
-const appConfigFileName = "app.properties"
+const (
+	APP_CONFIG_FILE_NAME = "app.properties"
+	ENV_CONFIG_FILE_PATH = "AGOLLO_CONF"
+)
 
 var (
 	long_poll_interval        = 2 * time.Second //2s
@@ -177,7 +181,11 @@ func getLoadAppConfig(loadAppConfig func() (*AppConfig, error)) (*AppConfig, err
 	if loadAppConfig != nil {
 		return loadAppConfig()
 	}
-	return loadJsonConfig(appConfigFileName)
+	configPath := os.Getenv(ENV_CONFIG_FILE_PATH)
+	if configPath==""{
+		configPath=APP_CONFIG_FILE_NAME
+	}
+	return loadJsonConfig(configPath)
 }
 
 //set timer for update ip list
