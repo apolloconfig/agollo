@@ -1,10 +1,10 @@
 # Comment to a new issue.
 issueOpened: >
-  谢谢你提出一个问题。
+  Thank your for raising a issue. We will try and get back to you as soon as possible.
 
-  我会在1-2日内进行查看或者回复，如果遇到节假日可能会处理较慢，敬请谅解。
-
-  请确保你给了我们尽可能多的背景。
+  Please make sure you have given us as much context as possible.
 
 pullRequestOpened: >
-  感谢您提出Pull Request，我会尽快Review。
+  Thank your for raising your pull request.
+
+  Please make sure you have followed our contributing guidelines. We will review it as soon as possible.
