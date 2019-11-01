@@ -6,13 +6,28 @@ import (
 	"sync"
 )
 
+
+type ConfigFileFormat string
+
 const (
+	Properties ConfigFileFormat = "Properties"
+	XML        ConfigFileFormat = "xml"
+	JSON       ConfigFileFormat = "json"
+	YML        ConfigFileFormat = "yml"
+	YAML       ConfigFileFormat = "yaml"
+
+)
+
+const (
+	apolloConfigFormat = "%s.%s"
+
 	empty = ""
 
 	//1 minute
 	configCacheExpireTime = 120
 
 	defaultNamespace="application"
+	defaultContentKey="content"
 )
 
 
@@ -335,4 +350,8 @@ func GetBoolValue(key string, defaultValue bool) bool {
 	}
 
 	return b
+}
+
+func (c *Config)GetContent() string {
+	return c.getValue(defaultContentKey)
 }

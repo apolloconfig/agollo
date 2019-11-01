@@ -192,6 +192,7 @@ func getLoadAppConfig(loadAppConfig func() (*AppConfig, error)) (*AppConfig, err
 //interval : 20m
 func initServerIpList() {
 	syncServerIpList(nil)
+	logger.Debug("syncServerIpList started")
 
 	t2 := time.NewTimer(refresh_ip_list_interval)
 	for {
