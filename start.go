@@ -8,7 +8,7 @@ func init() {
 	//init config
 	initFileConfig()
 
-
+	initCommon()
 }
 
 func initCommon()  {
