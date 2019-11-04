@@ -354,6 +354,7 @@ func GetBoolValue(key string, defaultValue bool) bool {
 	return b
 }
 
+//GetContent 获取配置文件内容
 func (c *Config)GetContent(format ConfigFileFormat) string {
 	parser := formatParser[format]
 	if parser==nil{

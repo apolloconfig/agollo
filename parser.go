@@ -7,10 +7,12 @@ import (
 
 const propertiesFormat ="%s=%s\n"
 
+//ContentParser 内容转换
 type ContentParser interface {
 	parse(cache agcache.CacheInterface) (string,error)
 }
 
+//DefaultParser 默认内容转换器
 type DefaultParser struct {
 
 }
@@ -23,6 +25,7 @@ func (d *DefaultParser)parse(cache agcache.CacheInterface) (string,error){
 	return string(value),nil
 }
 
+//PropertiesParser properties转换器
 type PropertiesParser struct {
 
 }

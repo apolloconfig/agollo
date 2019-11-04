@@ -17,7 +17,7 @@ func initCommon()  {
 	initAllNotifications()
 }
 
-//init config by custom
+//InitCustomConfig init config by custom
 func InitCustomConfig(loadAppConfig func() (*AppConfig, error)) {
 
 	initConfig(loadAppConfig)
