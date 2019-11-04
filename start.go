@@ -4,6 +4,27 @@ import (
 	"github.com/zouyx/agollo/agcache"
 )
 
+func init() {
+	//init config
+	initFileConfig()
+
+
+}
+
+func initCommon()  {
+	initDefaultConfig()
+
+	initAllNotifications()
+}
+
+//init config by custom
+func InitCustomConfig(loadAppConfig func() (*AppConfig, error)) {
+
+	initConfig(loadAppConfig)
+
+	initCommon()
+}
+
 //start apollo
 func Start() error {
 	return startAgollo()

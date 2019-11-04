@@ -15,7 +15,6 @@ const (
 	JSON       ConfigFileFormat = "json"
 	YML        ConfigFileFormat = "yml"
 	YAML       ConfigFileFormat = "yaml"
-
 )
 
 const (
@@ -38,10 +37,13 @@ var (
 
 	//config from apollo
 	apolloConfigCache = make(map[string]*Config,0)
+
+	formatParser = make(map[ConfigFileFormat]ContentParser,0)
+	defaultFormatParser =&DefaultParser{}
 )
 
-func init() {
-	initDefaultConfig()
+func init(){
+	formatParser[Properties]=&PropertiesParser{}
 }
 
 func initDefaultConfig() {
@@ -352,6 +354,14 @@ func GetBoolValue(key string, defaultValue bool) bool {
 	return b
 }
 
-func (c *Config)GetContent() string {
-	return c.getValue(defaultContentKey)
+func (c *Config)GetContent(format ConfigFileFormat) string {
+	parser := formatParser[format]
+	if parser==nil{
+		parser=defaultFormatParser
+	}
+	s, err:= parser.parse(c.cache)
+	if err!=nil{
+		logger.Debug("GetContent fail ! error:", err)
+	}
+	return s
 }

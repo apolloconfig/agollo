@@ -130,18 +130,6 @@ type serverInfo struct {
 	IsDown      bool   `json:"-"`
 }
 
-func init() {
-	//init config
-	initFileConfig()
-
-	//init common
-	initCommon()
-}
-
-func initCommon() {
-
-}
-
 func initFileConfig() {
 	// default use application.properties
 	initConfig(nil)
@@ -164,16 +152,6 @@ func initConfig(loadAppConfig func() (*AppConfig, error)) {
 			updateApolloConfig(apolloConfig, false)
 		})
 	}(appConfig)
-}
-
-//init config by custom
-func InitCustomConfig(loadAppConfig func() (*AppConfig, error)) {
-
-	initConfig(loadAppConfig)
-
-	//init all notification
-	initAllNotifications()
-
 }
 
 // set load app config's function
