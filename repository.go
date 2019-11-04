@@ -7,13 +7,19 @@ import (
 )
 
 
+//ConfigFileFormat 配置文件类型
 type ConfigFileFormat string
 
 const (
+	//Properties
 	Properties ConfigFileFormat = "Properties"
+	//XML
 	XML        ConfigFileFormat = "xml"
+	//JSON
 	JSON       ConfigFileFormat = "json"
+	//YML
 	YML        ConfigFileFormat = "yml"
+	//YAML
 	YAML       ConfigFileFormat = "yaml"
 )
 
