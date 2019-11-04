@@ -130,18 +130,6 @@ type serverInfo struct {
 	IsDown      bool   `json:"-"`
 }
 
-func init() {
-	//init config
-	initFileConfig()
-
-	//init common
-	initCommon()
-}
-
-func initCommon() {
-
-}
-
 func initFileConfig() {
 	// default use application.properties
 	initConfig(nil)
@@ -166,16 +154,6 @@ func initConfig(loadAppConfig func() (*AppConfig, error)) {
 	}(appConfig)
 }
 
-//init config by custom
-func InitCustomConfig(loadAppConfig func() (*AppConfig, error)) {
-
-	initConfig(loadAppConfig)
-
-	//init all notification
-	initAllNotifications()
-
-}
-
 // set load app config's function
 func getLoadAppConfig(loadAppConfig func() (*AppConfig, error)) (*AppConfig, error) {
 	if loadAppConfig != nil {
@@ -192,6 +170,7 @@ func getLoadAppConfig(loadAppConfig func() (*AppConfig, error)) (*AppConfig, err
 //interval : 20m
 func initServerIpList() {
 	syncServerIpList(nil)
+	logger.Debug("syncServerIpList started")
 
 	t2 := time.NewTimer(refresh_ip_list_interval)
 	for {

@@ -63,10 +63,6 @@ func (n *notificationsMap) getNotifies() string {
 	return string(j)
 }
 
-func init() {
-	initAllNotifications()
-}
-
 func initAllNotifications() {
 	appConfig := GetAppConfig(nil)
 
