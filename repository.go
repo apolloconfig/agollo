@@ -6,13 +6,27 @@ import (
 	"sync"
 )
 
+
+type ConfigFileFormat string
+
 const (
+	Properties ConfigFileFormat = "Properties"
+	XML        ConfigFileFormat = "xml"
+	JSON       ConfigFileFormat = "json"
+	YML        ConfigFileFormat = "yml"
+	YAML       ConfigFileFormat = "yaml"
+)
+
+const (
+	apolloConfigFormat = "%s.%s"
+
 	empty = ""
 
 	//1 minute
 	configCacheExpireTime = 120
 
 	defaultNamespace="application"
+	defaultContentKey="content"
 )
 
 
@@ -23,10 +37,13 @@ var (
 
 	//config from apollo
 	apolloConfigCache = make(map[string]*Config,0)
+
+	formatParser = make(map[ConfigFileFormat]ContentParser,0)
+	defaultFormatParser =&DefaultParser{}
 )
 
-func init() {
-	initDefaultConfig()
+func init(){
+	formatParser[Properties]=&PropertiesParser{}
 }
 
 func initDefaultConfig() {
@@ -335,4 +352,17 @@ func GetBoolValue(key string, defaultValue bool) bool {
 	}
 
 	return b
+}
+
+//GetContent 获取配置文件内容
+func (c *Config)GetContent(format ConfigFileFormat) string {
+	parser := formatParser[format]
+	if parser==nil{
+		parser=defaultFormatParser
+	}
+	s, err:= parser.parse(c.cache)
+	if err!=nil{
+		logger.Debug("GetContent fail ! error:", err)
+	}
+	return s
 }

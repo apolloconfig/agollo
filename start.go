@@ -1,6 +1,29 @@
 package agollo
 
-import "github.com/zouyx/agollo/agcache"
+import (
+	"github.com/zouyx/agollo/agcache"
+)
+
+func init() {
+	//init config
+	initFileConfig()
+
+	initCommon()
+}
+
+func initCommon()  {
+	initDefaultConfig()
+
+	initAllNotifications()
+}
+
+//InitCustomConfig init config by custom
+func InitCustomConfig(loadAppConfig func() (*AppConfig, error)) {
+
+	initConfig(loadAppConfig)
+
+	initCommon()
+}
 
 //start apollo
 func Start() error {
@@ -8,14 +31,14 @@ func Start() error {
 }
 
 //SetLogger 设置自定义logger组件
-func SetLogger(loggerInterface LoggerInterface)  {
+func SetLogger(loggerInterface LoggerInterface) {
 	if loggerInterface != nil {
 		initLogger(loggerInterface)
 	}
 }
 
 //SetCache 设置自定义cache组件
-func SetCache(cacheFactory *agcache.DefaultCacheFactory)  {
+func SetCache(cacheFactory *agcache.DefaultCacheFactory) {
 	if cacheFactory != nil {
 		initConfigCache(cacheFactory)
 	}
@@ -36,14 +59,14 @@ func StartWithCache(cacheFactory *agcache.DefaultCacheFactory) error {
 func startAgollo() error {
 	//init server ip list
 	go initServerIpList()
-
 	//first sync
 	err := notifySyncConfigServices()
+	logger.Debug("init notifySyncConfigServices finished")
 
 	//first sync fail then load config file
 	if err != nil {
 		splitNamespaces(appConfig.NamespaceName, func(namespace string) {
-			config, _ := loadConfigFile(appConfig.BackupConfigPath,namespace)
+			config, _ := loadConfigFile(appConfig.BackupConfigPath, namespace)
 			if config != nil {
 				updateApolloConfig(config, false)
 			}
