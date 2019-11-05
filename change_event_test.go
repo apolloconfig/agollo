@@ -1,6 +1,7 @@
 package agollo
 
 import (
+	"container/list"
 	"encoding/json"
 	"fmt"
 	. "github.com/tevid/gohamcrest"
@@ -49,7 +50,7 @@ func TestListenChangeEvent(t *testing.T) {
 	AddChangeListener(listener)
 	group.Wait()
 	//运行完清空变更队列
-	changeListeners=nil
+	changeListeners=list.New()
 }
 
 func buildNotifyResult(t *testing.T) {
@@ -72,4 +73,18 @@ func buildNotifyResult(t *testing.T) {
 	Assert(t, "default", Equal(config.Cluster))
 	Assert(t, "application", Equal(config.NamespaceName))
 	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
+}
+
+func TestRemoveChangeListener(t *testing.T) {
+	go buildNotifyResult(t)
+
+	listener := &CustomChangeListener{
+	}
+	AddChangeListener(listener)
+	Assert(t, 1, Equal(changeListeners.Len()))
+	removeChangeListener(listener)
+	Assert(t, 0, Equal(changeListeners.Len()))
+
+	//运行完清空变更队列
+	changeListeners=list.New()
 }
