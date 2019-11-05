@@ -23,8 +23,6 @@ jobs:
         - "./coverage.sh --coveralls"
         - echo "Build apps ..."
         - go build -o "$Project"
-      after_success:
-        - bash <(curl -s https://codecov.io/bash)
     - stage: Github Release
       if: tag =~ ^v
       go: 1.12
