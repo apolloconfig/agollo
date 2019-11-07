@@ -31,7 +31,7 @@ assignees: zouyx
 **Agollo 版本 :**
  - Version [e.g. 22]
 
-**日志信息
+**日志信息**
 
 **其他上下文**
 如有
