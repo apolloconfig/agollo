@@ -24,7 +24,7 @@ func TestGetRemoteConfig(t *testing.T) {
 	var err error
 	for {
 		count++
-		remoteConfigs, err = notifyRemoteConfig(newAppConfig)
+		remoteConfigs, err = notifyRemoteConfig(newAppConfig,EMPTY)
 
 		//err keep nil
 		Assert(t, err,NilVal())
@@ -58,7 +58,7 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 
 	var remoteConfigs []*apolloNotify
 	var err error
-	remoteConfigs, err = notifyRemoteConfig(nil)
+	remoteConfigs, err = notifyRemoteConfig(nil,EMPTY)
 
 	Assert(t, err,NotNilVal())
 	Assert(t, remoteConfigs,NilVal())

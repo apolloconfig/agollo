@@ -24,8 +24,6 @@ const (
 )
 
 const (
-	apolloConfigFormat = "%s.%s"
-
 	empty = ""
 
 	//1 minute
@@ -46,6 +44,8 @@ var (
 
 	formatParser = make(map[ConfigFileFormat]ContentParser,0)
 	defaultFormatParser =&DefaultParser{}
+
+	cacheFactory = &agcache.DefaultCacheFactory{}
 )
 
 func init(){
@@ -53,20 +53,29 @@ func init(){
 }
 
 func initDefaultConfig() {
-	cacheFactory := &agcache.DefaultCacheFactory{}
 	initConfigCache(cacheFactory)
 }
 
-func initConfigCache(cacheFactory *agcache.DefaultCacheFactory)  {
-	createDefaultConfig(cacheFactory)
+//initNamespaceConfig 根据namespace创建缓存
+func initNamespaceConfig(namespace string){
+
+	initApolloConfigCache(namespace)
+
+	createNamespaceConfig(cacheFactory,namespace)
+
+	initNamespaceNotifications(namespace)
 }
 
-func createDefaultConfig(cacheFactory *agcache.DefaultCacheFactory){
+func initConfigCache(cacheFactory *agcache.DefaultCacheFactory)  {
 	if appConfig==nil{
 		logger.Warn("Config is nil,can not init agollo.")
 		return
 	}
-	splitNamespaces(appConfig.NamespaceName, func(namespace string) {
+	createNamespaceConfig(cacheFactory,appConfig.NamespaceName)
+}
+
+func createNamespaceConfig(cacheFactory *agcache.DefaultCacheFactory,namespace string){
+	splitNamespaces(namespace, func(namespace string) {
 		if apolloConfigCache[namespace]!=nil{
 			return
 		}
@@ -90,6 +99,11 @@ type Config struct {
 }
 //getConfigValue 获取配置值
 func (this *Config) getConfigValue(key string) interface{} {
+	if this.cache==nil{
+		logger.Errorf("get config value fail!namespace:%s is not exist!", this.namespace)
+		return empty
+	}
+
 	value, err := this.cache.Get(key)
 	if err != nil {
 		logger.Errorf("get config value fail!key:%s,err:%s", key, err)
@@ -163,9 +177,19 @@ func GetConfig(namespace string) *Config{
 	return apolloConfigCache[namespace]
 }
 
+//GetConfig 根据namespace获取apollo配置
+func GetConfigAndInit(namespace string) *Config{
+	if apolloConfigCache[namespace]==nil{
+		initNamespaceConfig(namespace)
+
+		notifySimpleSyncConfigServices(namespace)
+	}
+	return apolloConfigCache[namespace]
+}
+
 //GetConfigCache 根据namespace获取apollo配置的缓存
 func GetConfigCache(namespace string) agcache.CacheInterface{
-	config := apolloConfigCache[namespace]
+	config := GetConfigAndInit(namespace)
 	if config==nil{
 		return nil
 	}
@@ -173,7 +197,7 @@ func GetConfigCache(namespace string) agcache.CacheInterface{
 }
 
 func getDefaultConfigCache()agcache.CacheInterface{
-	config := apolloConfigCache[defaultNamespace]
+	config := GetConfigAndInit(defaultNamespace)
 	if config!=nil{
 		return config.cache
 	}

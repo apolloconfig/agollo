@@ -41,18 +41,28 @@ func (n *notificationsMap) getNotify(namespace string) int64 {
 	return n.notifications[namespace]
 }
 
-func (n *notificationsMap) getNotifies() string {
+func (n *notificationsMap) getNotifies(namespace string) string {
 	n.RLock()
 	defer n.RUnlock()
 
 	notificationArr := make([]*notification, 0)
-	for namespaceName, notificationId := range n.notifications {
+	if namespace==""{
+		for namespaceName, notificationId := range n.notifications {
+			notificationArr = append(notificationArr,
+				&notification{
+					NamespaceName:  namespaceName,
+					NotificationId: notificationId,
+				})
+		}
+	}else{
+		n := n.notifications[namespace]
 		notificationArr = append(notificationArr,
 			&notification{
-				NamespaceName:  namespaceName,
-				NotificationId: notificationId,
+				NamespaceName:  namespace,
+				NotificationId: n,
 			})
 	}
+
 
 	j, err := json.Marshal(notificationArr)
 
@@ -66,13 +76,21 @@ func (n *notificationsMap) getNotifies() string {
 func initAllNotifications() {
 	appConfig := GetAppConfig(nil)
 
-	if appConfig != nil {
-		namespaces := splitNamespaces(appConfig.NamespaceName,
-			func(namespace string) {})
+	if appConfig == nil {
+		return
+	}
+	initNamespaceNotifications(appConfig.NamespaceName)
+}
 
-		allNotifications = &notificationsMap{
-			notifications: namespaces,
-		}
+func initNamespaceNotifications(namespace string)  {
+	if namespace == empty {
+		return
+	}
+	namespaces := splitNamespaces(namespace,
+		func(namespace string) {})
+
+	allNotifications = &notificationsMap{
+		notifications: namespaces,
 	}
 }
 
@@ -93,7 +111,7 @@ func (this *NotifyConfigComponent) Start() {
 
 func notifySyncConfigServices() error {
 
-	remoteConfigs, err := notifyRemoteConfig(nil)
+	remoteConfigs, err := notifyRemoteConfig(nil,empty)
 
 	if err != nil || len(remoteConfigs) == 0 {
 		return err
@@ -103,6 +121,24 @@ func notifySyncConfigServices() error {
 
 	//sync all config
 	autoSyncConfigServices(nil)
+
+	return nil
+}
+
+func notifySimpleSyncConfigServices(namespace string) error {
+
+	remoteConfigs, err := notifyRemoteConfig(nil,namespace)
+
+	if err != nil || len(remoteConfigs) == 0 {
+		return err
+	}
+
+	updateAllNotifications(remoteConfigs)
+
+	//sync all config
+	notifications:=make(map[string]int64)
+	notifications[remoteConfigs[0].NamespaceName]=remoteConfigs[0].NotificationId
+	autoSyncNamespaceConfigServices(nil,notifications)
 
 	return nil
 }
@@ -119,12 +155,12 @@ func toApolloConfig(resBody []byte) ([]*apolloNotify, error) {
 	return remoteConfig, nil
 }
 
-func notifyRemoteConfig(newAppConfig *AppConfig) ([]*apolloNotify, error) {
+func notifyRemoteConfig(newAppConfig *AppConfig,namespace string) ([]*apolloNotify, error) {
 	appConfig := GetAppConfig(newAppConfig)
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}
-	urlSuffix := getNotifyUrlSuffix(allNotifications.getNotifies(), appConfig, newAppConfig)
+	urlSuffix := getNotifyUrlSuffix(allNotifications.getNotifies(namespace), appConfig, newAppConfig)
 
 	//seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
 
@@ -172,13 +208,17 @@ func autoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, 
 }
 
 func autoSyncConfigServices(newAppConfig *AppConfig) error {
+	return autoSyncNamespaceConfigServices(newAppConfig,allNotifications.notifications)
+}
+
+func autoSyncNamespaceConfigServices(newAppConfig *AppConfig,notifications map[string]int64) error {
 	appConfig := GetAppConfig(newAppConfig)
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}
 
 	var err error
-	for namespace := range allNotifications.notifications {
+	for namespace := range notifications {
 		urlSuffix := getConfigURLSuffix(appConfig, namespace)
 
 		_, err = requestRecovery(appConfig, &ConnectConfig{
@@ -191,6 +231,5 @@ func autoSyncConfigServices(newAppConfig *AppConfig) error {
 			return err
 		}
 	}
-
-	return nil
+	return err
 }

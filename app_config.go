@@ -144,8 +144,12 @@ func initConfig(loadAppConfig func() (*AppConfig, error)) {
 		return
 	}
 
+	initApolloConfigCache(appConfig.NamespaceName)
+}
+//initApolloConfigCache 根据namespace初始化apollo配置
+func initApolloConfigCache(namespace string)  {
 	func(appConfig *AppConfig) {
-		splitNamespaces(appConfig.NamespaceName, func(namespace string) {
+		splitNamespaces(namespace, func(namespace string) {
 			apolloConfig := &ApolloConfig{}
 			apolloConfig.init(appConfig,namespace)
 
