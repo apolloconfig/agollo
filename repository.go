@@ -59,8 +59,6 @@ func initDefaultConfig() {
 //initNamespaceConfig 根据namespace创建缓存
 func initNamespaceConfig(namespace string){
 
-	initApolloConfigCache(namespace)
-
 	createNamespaceConfig(cacheFactory,namespace)
 
 	initNamespaceNotifications(namespace)

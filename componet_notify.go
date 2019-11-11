@@ -120,9 +120,7 @@ func notifySyncConfigServices() error {
 	updateAllNotifications(remoteConfigs)
 
 	//sync all config
-	autoSyncConfigServices(nil)
-
-	return nil
+	return autoSyncConfigServices(nil)
 }
 
 func notifySimpleSyncConfigServices(namespace string) error {
@@ -138,9 +136,8 @@ func notifySimpleSyncConfigServices(namespace string) error {
 	//sync all config
 	notifications:=make(map[string]int64)
 	notifications[remoteConfigs[0].NamespaceName]=remoteConfigs[0].NotificationId
-	autoSyncNamespaceConfigServices(nil,notifications)
 
-	return nil
+	return autoSyncNamespaceConfigServices(nil,notifications)
 }
 
 func toApolloConfig(resBody []byte) ([]*apolloNotify, error) {
