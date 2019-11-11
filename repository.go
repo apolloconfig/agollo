@@ -6,7 +6,6 @@ import (
 	"sync"
 )
 
-
 //ConfigFileFormat 配置文件类型
 type ConfigFileFormat string
 
@@ -14,13 +13,13 @@ const (
 	//Properties
 	Properties ConfigFileFormat = "Properties"
 	//XML
-	XML        ConfigFileFormat = "xml"
+	XML ConfigFileFormat = "xml"
 	//JSON
-	JSON       ConfigFileFormat = "json"
+	JSON ConfigFileFormat = "json"
 	//YML
-	YML        ConfigFileFormat = "yml"
+	YML ConfigFileFormat = "yml"
 	//YAML
-	YAML       ConfigFileFormat = "yaml"
+	YAML ConfigFileFormat = "yaml"
 )
 
 const (
@@ -29,27 +28,26 @@ const (
 	//1 minute
 	configCacheExpireTime = 120
 
-	defaultNamespace="application"
-	defaultContentKey="content"
+	defaultNamespace  = "application"
+	defaultContentKey = "content"
 )
-
 
 var (
 	currentConnApolloConfig = &currentApolloConfig{
-		configs:make(map[string]*ApolloConnConfig,1),
+		configs: make(map[string]*ApolloConnConfig, 1),
 	}
 
 	//config from apollo
-	apolloConfigCache = make(map[string]*Config,0)
+	apolloConfigCache = make(map[string]*Config, 0)
 
-	formatParser = make(map[ConfigFileFormat]ContentParser,0)
-	defaultFormatParser =&DefaultParser{}
+	formatParser        = make(map[ConfigFileFormat]ContentParser, 0)
+	defaultFormatParser = &DefaultParser{}
 
 	cacheFactory = &agcache.DefaultCacheFactory{}
 )
 
-func init(){
-	formatParser[Properties]=&PropertiesParser{}
+func init() {
+	formatParser[Properties] = &PropertiesParser{}
 }
 
 func initDefaultConfig() {
@@ -57,47 +55,48 @@ func initDefaultConfig() {
 }
 
 //initNamespaceConfig 根据namespace创建缓存
-func initNamespaceConfig(namespace string){
+func initNamespaceConfig(namespace string) {
 
-	createNamespaceConfig(cacheFactory,namespace)
+	createNamespaceConfig(cacheFactory, namespace)
 
 	initNamespaceNotifications(namespace)
 }
 
-func initConfigCache(cacheFactory *agcache.DefaultCacheFactory)  {
-	if appConfig==nil{
+func initConfigCache(cacheFactory *agcache.DefaultCacheFactory) {
+	if appConfig == nil {
 		logger.Warn("Config is nil,can not init agollo.")
 		return
 	}
-	createNamespaceConfig(cacheFactory,appConfig.NamespaceName)
+	createNamespaceConfig(cacheFactory, appConfig.NamespaceName)
 }
 
-func createNamespaceConfig(cacheFactory *agcache.DefaultCacheFactory,namespace string){
+func createNamespaceConfig(cacheFactory *agcache.DefaultCacheFactory, namespace string) {
 	splitNamespaces(namespace, func(namespace string) {
-		if apolloConfigCache[namespace]!=nil{
+		if apolloConfigCache[namespace] != nil {
 			return
 		}
-		c:=&Config{
-			namespace:namespace,
-			cache:cacheFactory.Create(),
+		c := &Config{
+			namespace: namespace,
+			cache:     cacheFactory.Create(),
 		}
-		apolloConfigCache[namespace]=c
+		apolloConfigCache[namespace] = c
 	})
 }
 
 type currentApolloConfig struct {
-	l      sync.RWMutex
+	l       sync.RWMutex
 	configs map[string]*ApolloConnConfig
 }
 
 //Config apollo配置项
 type Config struct {
 	namespace string
-	cache agcache.CacheInterface
+	cache     agcache.CacheInterface
 }
+
 //getConfigValue 获取配置值
 func (this *Config) getConfigValue(key string) interface{} {
-	if this.cache==nil{
+	if this.cache == nil {
 		logger.Errorf("get config value fail!namespace:%s is not exist!", this.namespace)
 		return empty
 	}
@@ -171,13 +170,13 @@ func (this *Config) GetBoolValue(key string, defaultValue bool) bool {
 }
 
 //GetConfig 根据namespace获取apollo配置
-func GetConfig(namespace string) *Config{
+func GetConfig(namespace string) *Config {
 	return apolloConfigCache[namespace]
 }
 
-//GetConfig 根据namespace获取apollo配置
-func GetConfigAndInit(namespace string) *Config{
-	if apolloConfigCache[namespace]==nil{
+//GetConfigAndInit 根据namespace获取apollo配置
+func GetConfigAndInit(namespace string) *Config {
+	if apolloConfigCache[namespace] == nil {
 		initNamespaceConfig(namespace)
 
 		notifySimpleSyncConfigServices(namespace)
@@ -186,17 +185,17 @@ func GetConfigAndInit(namespace string) *Config{
 }
 
 //GetConfigCache 根据namespace获取apollo配置的缓存
-func GetConfigCache(namespace string) agcache.CacheInterface{
+func GetConfigCache(namespace string) agcache.CacheInterface {
 	config := GetConfigAndInit(namespace)
-	if config==nil{
+	if config == nil {
 		return nil
 	}
 	return config.cache
 }
 
-func getDefaultConfigCache()agcache.CacheInterface{
+func getDefaultConfigCache() agcache.CacheInterface {
 	config := GetConfigAndInit(defaultNamespace)
-	if config!=nil{
+	if config != nil {
 		return config.cache
 	}
 	return nil
@@ -208,7 +207,7 @@ func updateApolloConfig(apolloConfig *ApolloConfig, isBackupConfig bool) {
 		return
 	}
 	//get change list
-	changeList := updateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime,apolloConfig.NamespaceName)
+	changeList := updateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime, apolloConfig.NamespaceName)
 
 	if len(changeList) > 0 {
 		//create config change event base on change list
@@ -230,9 +229,9 @@ func updateApolloConfig(apolloConfig *ApolloConfig, isBackupConfig bool) {
 	}
 }
 
-func updateApolloConfigCache(configurations map[string]string, expireTime int,namespace string) map[string]*ConfigChange {
+func updateApolloConfigCache(configurations map[string]string, expireTime int, namespace string) map[string]*ConfigChange {
 	config := GetConfig(namespace)
-	if config==nil{
+	if config == nil {
 		return nil
 	}
 
@@ -273,7 +272,7 @@ func updateApolloConfigCache(configurations map[string]string, expireTime int,na
 	// remove del keys
 	for key := range mp {
 		//get old value and del
-		oldValue, _ :=config.cache.Get(key)
+		oldValue, _ := config.cache.Get(key)
 		changes[key] = createDeletedConfigChange(string(oldValue))
 
 		config.cache.Del(key)
@@ -310,8 +309,8 @@ func GetCurrentApolloConfig() map[string]*ApolloConnConfig {
 func getCurrentApolloConfigReleaseKey(namespace string) string {
 	currentConnApolloConfig.l.RLock()
 	defer currentConnApolloConfig.l.RUnlock()
-	config:= currentConnApolloConfig.configs[namespace]
-	if config==nil{
+	config := currentConnApolloConfig.configs[namespace]
+	if config == nil {
 		return empty
 	}
 
@@ -383,13 +382,13 @@ func GetBoolValue(key string, defaultValue bool) bool {
 }
 
 //GetContent 获取配置文件内容
-func (c *Config)GetContent(format ConfigFileFormat) string {
+func (c *Config) GetContent(format ConfigFileFormat) string {
 	parser := formatParser[format]
-	if parser==nil{
-		parser=defaultFormatParser
+	if parser == nil {
+		parser = defaultFormatParser
 	}
-	s, err:= parser.parse(c.cache)
-	if err!=nil{
+	s, err := parser.parse(c.cache)
+	if err != nil {
 		logger.Debug("GetContent fail ! error:", err)
 	}
 	return s
