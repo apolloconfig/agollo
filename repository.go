@@ -11,7 +11,7 @@ type ConfigFileFormat string
 
 const (
 	//Properties
-	Properties ConfigFileFormat = "Properties"
+	Properties ConfigFileFormat = "properties"
 	//XML
 	XML ConfigFileFormat = "xml"
 	//JSON

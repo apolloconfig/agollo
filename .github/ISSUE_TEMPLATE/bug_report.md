@@ -7,26 +7,31 @@ assignees: zouyx
 
 ---
 
-**Describe the bug**
-A clear and concise description of what the bug is.
+**请简单描述bug的场景**
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+**如何重现**
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+再现行为的步骤：
 
-**Agollo version (please complete the following information):**
+1.跳到“…”
+
+2.点击“…”
+
+3.向下滚动到“…”
+
+4.见错误
+
+**期望**
+请描述期望发生什么
+
+**截图**
+如有
+
+**Agollo 版本 :**
  - Version [e.g. 22]
 
-**Log info (file or info)
+**日志信息**
 
-**Additional context**
-Add any other context about the problem here.
+**其他上下文**
+如有

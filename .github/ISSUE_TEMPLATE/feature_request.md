@@ -7,14 +7,11 @@ assignees: zouyx
 
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+**功能适用的场景？**
+该功能适用于xxx场景
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+**你需要的功能是否有关联问题？**
+简明扼要地描述你需要的功能，当 [...]
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
-
-**Additional context**
-Add any other context or screenshots about the feature request here.
+**你期望的解决方案是？**
+我期望改造xxx后，实现xxx

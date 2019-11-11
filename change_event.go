@@ -1,5 +1,9 @@
 package agollo
 
+import (
+	"container/list"
+)
+
 const (
 	ADDED ConfigChangeType = iota
 	MODIFIED
@@ -7,11 +11,11 @@ const (
 )
 
 var (
-	changeListeners []ChangeListener
+	changeListeners *list.List
 )
 
 func init() {
-	changeListeners=make([]ChangeListener,0)
+	changeListeners=list.New()
 }
 
 //ChangeListener 监听器
@@ -38,18 +42,34 @@ type ConfigChange struct {
 
 //AddChangeListener 增加变更监控
 func AddChangeListener(listener ChangeListener)  {
-	changeListeners=append(changeListeners, listener)
+	if listener==nil{
+		return
+	}
+	changeListeners.PushBack(listener)
+}
+
+//RemoveChangeListener 增加变更监控
+func removeChangeListener(listener ChangeListener)  {
+	if listener==nil{
+		return
+	}
+	for i := changeListeners.Front(); i != nil; i = i.Next() {
+		apolloListener:= i.Value.(ChangeListener)
+		if listener==apolloListener{
+			changeListeners.Remove(i)
+		}
+	}
 }
 
 //push config change event
 func pushChangeEvent(event *ChangeEvent) {
 	// if channel is null ,mean no listener,don't need to push msg
-	if changeListeners == nil|| len(changeListeners)==0 {
+	if changeListeners == nil||changeListeners.Len()==0 {
 		return
 	}
 
-	for i := range changeListeners {
-		listener:= changeListeners[i]
+	for i := changeListeners.Front(); i != nil; i = i.Next() {
+		listener:= i.Value.(ChangeListener)
 		go listener.OnChange(event)
 	}
 }
