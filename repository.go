@@ -171,7 +171,7 @@ func (this *Config) GetBoolValue(key string, defaultValue bool) bool {
 
 //GetConfig 根据namespace获取apollo配置
 func GetConfig(namespace string) *Config {
-	return apolloConfigCache[namespace]
+	return GetConfigAndInit(namespace)
 }
 
 //GetConfigAndInit 根据namespace获取apollo配置
