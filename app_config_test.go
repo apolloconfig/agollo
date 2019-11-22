@@ -8,6 +8,7 @@ import (
 
 func TestInit(t *testing.T) {
 	config := GetAppConfig(nil)
+	time.Sleep(1 * time.Second)
 
 	Assert(t, config, NotNilVal())
 	Assert(t, "test", Equal(config.AppId))
