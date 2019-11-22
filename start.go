@@ -11,7 +11,7 @@ func init() {
 	initCommon()
 }
 
-func initCommon()  {
+func initCommon() {
 	initDefaultConfig()
 
 	initAllNotifications()
@@ -60,23 +60,13 @@ func startAgollo() error {
 	//init server ip list
 	go initServerIpList()
 	//first sync
-	err := notifySyncConfigServices()
+	go notifySyncConfigServices()
 	logger.Debug("init notifySyncConfigServices finished")
-
-	//first sync fail then load config file
-	if err != nil {
-		splitNamespaces(appConfig.NamespaceName, func(namespace string) {
-			config, _ := loadConfigFile(appConfig.BackupConfigPath, namespace)
-			if config != nil {
-				updateApolloConfig(config, false)
-			}
-		})
-	}
 
 	//start long poll sync config
 	go StartRefreshConfig(&NotifyConfigComponent{})
 
-	logger.Info("agollo start finished , error:", err)
+	logger.Info("agollo start finished ! ")
 
-	return err
+	return nil
 }

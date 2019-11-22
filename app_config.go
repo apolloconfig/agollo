@@ -88,15 +88,15 @@ func (this *AppConfig) selectHost() string {
 		return this.getHost()
 	}
 
-	host:=""
+	host := ""
 
 	servers.Range(func(k, v interface{}) bool {
-		server:=v.(*serverInfo)
+		server := v.(*serverInfo)
 		// if some node has down then select next node
 		if server.IsDown {
 			return true
 		}
-		host=k.(string)
+		host = k.(string)
 		return false
 	})
 
@@ -113,7 +113,7 @@ func setDownNode(host string) {
 	}
 
 	servers.Range(func(k, v interface{}) bool {
-		server:=v.(*serverInfo)
+		server := v.(*serverInfo)
 		// if some node has down then select next node
 		if k.(string) == host {
 			server.IsDown = true
@@ -146,14 +146,15 @@ func initConfig(loadAppConfig func() (*AppConfig, error)) {
 
 	initApolloConfigCache(appConfig.NamespaceName)
 }
+
 //initApolloConfigCache 根据namespace初始化apollo配置
-func initApolloConfigCache(namespace string)  {
+func initApolloConfigCache(namespace string) {
 	func(appConfig *AppConfig) {
 		splitNamespaces(namespace, func(namespace string) {
 			apolloConfig := &ApolloConfig{}
-			apolloConfig.init(appConfig,namespace)
+			apolloConfig.init(appConfig, namespace)
 
-			updateApolloConfig(apolloConfig, false)
+			go updateApolloConfig(apolloConfig, false)
 		})
 	}(appConfig)
 }
@@ -164,8 +165,8 @@ func getLoadAppConfig(loadAppConfig func() (*AppConfig, error)) (*AppConfig, err
 		return loadAppConfig()
 	}
 	configPath := os.Getenv(ENV_CONFIG_FILE_PATH)
-	if configPath==""{
-		configPath=APP_CONFIG_FILE_NAME
+	if configPath == "" {
+		configPath = APP_CONFIG_FILE_NAME
 	}
 	return loadJsonConfig(configPath)
 }
@@ -207,7 +208,7 @@ func syncServerIpListSuccessCallBack(responseBody []byte) (o interface{}, err er
 		if server == nil {
 			continue
 		}
-		servers.Store(server.HomepageUrl,server)
+		servers.Store(server.HomepageUrl, server)
 	}
 	return
 }
@@ -250,7 +251,7 @@ func getConfigUrlByHost(config *AppConfig, host string) string {
 		getInternal())
 }
 
-func getConfigURLSuffix(config *AppConfig,namespaceName string) string {
+func getConfigURLSuffix(config *AppConfig, namespaceName string) string {
 	if config == nil {
 		return ""
 	}
