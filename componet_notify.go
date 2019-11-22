@@ -46,7 +46,7 @@ func (n *notificationsMap) getNotifies(namespace string) string {
 	defer n.RUnlock()
 
 	notificationArr := make([]*notification, 0)
-	if namespace==""{
+	if namespace == "" {
 		for namespaceName, notificationId := range n.notifications {
 			notificationArr = append(notificationArr,
 				&notification{
@@ -54,7 +54,7 @@ func (n *notificationsMap) getNotifies(namespace string) string {
 					NotificationId: notificationId,
 				})
 		}
-	}else{
+	} else {
 		n := n.notifications[namespace]
 		notificationArr = append(notificationArr,
 			&notification{
@@ -62,7 +62,6 @@ func (n *notificationsMap) getNotifies(namespace string) string {
 				NotificationId: n,
 			})
 	}
-
 
 	j, err := json.Marshal(notificationArr)
 
@@ -82,7 +81,7 @@ func initAllNotifications() {
 	initNamespaceNotifications(appConfig.NamespaceName)
 }
 
-func initNamespaceNotifications(namespace string)  {
+func initNamespaceNotifications(namespace string) {
 	if namespace == empty {
 		return
 	}
@@ -111,7 +110,7 @@ func (this *NotifyConfigComponent) Start() {
 
 func notifySyncConfigServices() error {
 
-	remoteConfigs, err := notifyRemoteConfig(nil,empty)
+	remoteConfigs, err := notifyRemoteConfig(nil, empty)
 
 	if err != nil || len(remoteConfigs) == 0 {
 		return err
@@ -120,12 +119,24 @@ func notifySyncConfigServices() error {
 	updateAllNotifications(remoteConfigs)
 
 	//sync all config
-	return autoSyncConfigServices(nil)
+	err = autoSyncConfigServices(nil)
+
+	//first sync fail then load config file
+	if err != nil {
+		splitNamespaces(appConfig.NamespaceName, func(namespace string) {
+			config, _ := loadConfigFile(appConfig.BackupConfigPath, namespace)
+			if config != nil {
+				updateApolloConfig(config, false)
+			}
+		})
+	}
+	//sync all config
+	return nil
 }
 
 func notifySimpleSyncConfigServices(namespace string) error {
 
-	remoteConfigs, err := notifyRemoteConfig(nil,namespace)
+	remoteConfigs, err := notifyRemoteConfig(nil, namespace)
 
 	if err != nil || len(remoteConfigs) == 0 {
 		return err
@@ -134,10 +145,10 @@ func notifySimpleSyncConfigServices(namespace string) error {
 	updateAllNotifications(remoteConfigs)
 
 	//sync all config
-	notifications:=make(map[string]int64)
-	notifications[remoteConfigs[0].NamespaceName]=remoteConfigs[0].NotificationId
+	notifications := make(map[string]int64)
+	notifications[remoteConfigs[0].NamespaceName] = remoteConfigs[0].NotificationId
 
-	return autoSyncNamespaceConfigServices(nil,notifications)
+	return autoSyncNamespaceConfigServices(nil, notifications)
 }
 
 func toApolloConfig(resBody []byte) ([]*apolloNotify, error) {
@@ -152,7 +163,7 @@ func toApolloConfig(resBody []byte) ([]*apolloNotify, error) {
 	return remoteConfig, nil
 }
 
-func notifyRemoteConfig(newAppConfig *AppConfig,namespace string) ([]*apolloNotify, error) {
+func notifyRemoteConfig(newAppConfig *AppConfig, namespace string) ([]*apolloNotify, error) {
 	appConfig := GetAppConfig(newAppConfig)
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
@@ -183,7 +194,7 @@ func updateAllNotifications(remoteConfigs []*apolloNotify) {
 		if remoteConfig.NamespaceName == "" {
 			continue
 		}
-		if allNotifications.getNotify(remoteConfig.NamespaceName)==0{
+		if allNotifications.getNotify(remoteConfig.NamespaceName) == 0 {
 			continue
 		}
 
@@ -205,10 +216,10 @@ func autoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, 
 }
 
 func autoSyncConfigServices(newAppConfig *AppConfig) error {
-	return autoSyncNamespaceConfigServices(newAppConfig,allNotifications.notifications)
+	return autoSyncNamespaceConfigServices(newAppConfig, allNotifications.notifications)
 }
 
-func autoSyncNamespaceConfigServices(newAppConfig *AppConfig,notifications map[string]int64) error {
+func autoSyncNamespaceConfigServices(newAppConfig *AppConfig, notifications map[string]int64) error {
 	appConfig := GetAppConfig(newAppConfig)
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
@@ -224,7 +235,7 @@ func autoSyncNamespaceConfigServices(newAppConfig *AppConfig,notifications map[s
 			SuccessCallBack:   autoSyncConfigServicesSuccessCallBack,
 			NotModifyCallBack: touchApolloConfigCache,
 		})
-		if err!=nil{
+		if err != nil {
 			return err
 		}
 	}

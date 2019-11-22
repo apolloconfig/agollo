@@ -8,8 +8,9 @@ import (
 
 func TestInit(t *testing.T) {
 	config := GetAppConfig(nil)
+	time.Sleep(1 * time.Second)
 
-	Assert(t, config,NotNilVal())
+	Assert(t, config, NotNilVal())
 	Assert(t, "test", Equal(config.AppId))
 	Assert(t, "dev", Equal(config.Cluster))
 	Assert(t, "application,abc1", Equal(config.NamespaceName))
@@ -34,6 +35,8 @@ func TestStructInit(t *testing.T) {
 	InitCustomConfig(func() (*AppConfig, error) {
 		return readyConfig, nil
 	})
+
+	time.Sleep(1 * time.Second)
 
 	config := GetAppConfig(nil)
 	Assert(t, config, NotNilVal())
@@ -95,9 +98,9 @@ func trySyncServerIpList(t *testing.T) {
 	newAppConfig.Ip = server.URL
 	err := syncServerIpList(newAppConfig)
 
-	Assert(t, err,NilVal())
+	Assert(t, err, NilVal())
 
-	serverLen:=getServersLen()
+	serverLen := getServersLen()
 
 	Assert(t, 10, Equal(serverLen))
 
@@ -157,7 +160,7 @@ func deleteServers() {
 }
 
 func getServersLen() int {
-	len:=0
+	len := 0
 	servers.Range(func(k, v interface{}) bool {
 		len++
 		return true

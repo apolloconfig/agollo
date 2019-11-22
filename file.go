@@ -37,9 +37,8 @@ func getConfigFile(configDir string,namespace string) string {
 		} else {
 			configFileMap[namespace] = filePath
 		}
-
 	}
-	return fullPath
+	return configFileMap[namespace]
 }
 
 //load config from file
