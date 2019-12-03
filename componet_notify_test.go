@@ -3,9 +3,11 @@ package agollo
 import (
 	"encoding/json"
 	"fmt"
-	. "github.com/tevid/gohamcrest"
+	"os"
 	"testing"
 	"time"
+
+	. "github.com/tevid/gohamcrest"
 )
 
 func TestSyncConfigServices(t *testing.T) {
@@ -24,10 +26,10 @@ func TestGetRemoteConfig(t *testing.T) {
 	var err error
 	for {
 		count++
-		remoteConfigs, err = notifyRemoteConfig(newAppConfig,EMPTY)
+		remoteConfigs, err = notifyRemoteConfig(newAppConfig, EMPTY)
 
 		//err keep nil
-		Assert(t, err,NilVal())
+		Assert(t, err, NilVal())
 
 		//if remote config is nil then break
 		if remoteConfigs != nil && len(remoteConfigs) > 0 {
@@ -36,8 +38,8 @@ func TestGetRemoteConfig(t *testing.T) {
 	}
 
 	Assert(t, count > 1, Equal(true))
-	Assert(t, err,NilVal())
-	Assert(t, remoteConfigs,NotNilVal())
+	Assert(t, err, NilVal())
+	Assert(t, remoteConfigs, NotNilVal())
 	Assert(t, 1, Equal(len(remoteConfigs)))
 	t.Log("remoteConfigs:", remoteConfigs)
 	t.Log("remoteConfigs size:", len(remoteConfigs))
@@ -52,16 +54,16 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 	server := runErrorResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
-	appConfig.Ip=server.URL
+	appConfig.Ip = server.URL
 
 	time.Sleep(1 * time.Second)
 
 	var remoteConfigs []*apolloNotify
 	var err error
-	remoteConfigs, err = notifyRemoteConfig(nil,EMPTY)
+	remoteConfigs, err = notifyRemoteConfig(nil, EMPTY)
 
-	Assert(t, err,NotNilVal())
-	Assert(t, remoteConfigs,NilVal())
+	Assert(t, err, NotNilVal())
+	Assert(t, remoteConfigs, NilVal())
 	Assert(t, 0, Equal(len(remoteConfigs)))
 	t.Log("remoteConfigs:", remoteConfigs)
 	t.Log("remoteConfigs size:", len(remoteConfigs))
@@ -73,8 +75,8 @@ func initNotifications() {
 	allNotifications = &notificationsMap{
 		notifications: make(map[string]int64, 1),
 	}
-	allNotifications.notifications["application"]=-1
-	allNotifications.notifications["abc1"]=-1
+	allNotifications.notifications["application"] = -1
+	allNotifications.notifications["abc1"] = -1
 }
 
 func TestUpdateAllNotifications(t *testing.T) {
@@ -91,7 +93,7 @@ func TestUpdateAllNotifications(t *testing.T) {
 
 	err := json.Unmarshal([]byte(notifyJson), &notifies)
 
-	Assert(t, err,NilVal())
+	Assert(t, err, NilVal())
 	Assert(t, true, Equal(len(notifies) > 0))
 
 	updateAllNotifications(notifies)
@@ -111,7 +113,7 @@ func TestUpdateAllNotificationsError(t *testing.T) {
 
 	err := json.Unmarshal([]byte(notifyJson), &notifies)
 
-	Assert(t, err,NotNilVal())
+	Assert(t, err, NotNilVal())
 	Assert(t, true, Equal(len(notifies) == 0))
 
 	updateAllNotifications(notifies)
@@ -122,8 +124,8 @@ func TestUpdateAllNotificationsError(t *testing.T) {
 func TestToApolloConfigError(t *testing.T) {
 
 	notified, err := toApolloConfig([]byte("jaskldfjaskl"))
-	Assert(t, notified,NilVal())
-	Assert(t, err,NotNilVal())
+	Assert(t, notified, NilVal())
+	Assert(t, err, NotNilVal())
 }
 
 func TestAutoSyncConfigServices(t *testing.T) {
@@ -139,7 +141,7 @@ func TestAutoSyncConfigServices(t *testing.T) {
 	err := autoSyncConfigServices(newAppConfig)
 	err = autoSyncConfigServices(newAppConfig)
 
-	Assert(t, err,NilVal())
+	Assert(t, err, NilVal())
 
 	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
@@ -149,6 +151,26 @@ func TestAutoSyncConfigServices(t *testing.T) {
 	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
 	//Assert(t,"value1",config.Configurations["key1"])
 	//Assert(t,"value2",config.Configurations["key2"])
+}
+
+func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
+	initNotifications()
+	server := runNormalConfigResponse()
+	newAppConfig := getTestAppConfig()
+	newAppConfig.Ip = server.URL
+	appConfig.IsBackupConfig = false
+	configFilePath := getConfigFile(newAppConfig.getBackupConfigPath(), "application")
+	err := os.Remove(configFilePath)
+
+	time.Sleep(1 * time.Second)
+
+	appConfig.NextTryConnTime = 0
+
+	err = autoSyncConfigServices(newAppConfig)
+
+	Assert(t, err, NilVal())
+	checkNilBackupFile(t)
+	appConfig.IsBackupConfig = true
 }
 
 func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
@@ -171,7 +193,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	defaultConfigCache := getDefaultConfigCache()
 
 	defaultConfigCache.Range(func(key, value interface{}) bool {
-		Assert(t, string(value.([]byte)),NotNilVal())
+		Assert(t, string(value.([]byte)), NotNilVal())
 		return true
 	})
 
@@ -186,7 +208,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 
 	fmt.Println("checking agcache time left")
 	defaultConfigCache.Range(func(key, value interface{}) bool {
-		Assert(t, string(value.([]byte)),NotNilVal())
+		Assert(t, string(value.([]byte)), NotNilVal())
 		return true
 	})
 
@@ -197,11 +219,17 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	checkBackupFile(t)
 }
 
+func checkNilBackupFile(t *testing.T) {
+	newConfig, e := loadConfigFile(appConfig.getBackupConfigPath(), "application")
+	Assert(t, e, NotNilVal())
+	Assert(t, newConfig, NilVal())
+}
+
 func checkBackupFile(t *testing.T) {
-	newConfig, e := loadConfigFile(appConfig.getBackupConfigPath(),"application")
+	newConfig, e := loadConfigFile(appConfig.getBackupConfigPath(), "application")
 	t.Log(newConfig.Configurations)
-	Assert(t,e,NilVal())
-	Assert(t,newConfig.Configurations,NotNilVal())
+	Assert(t, e, NilVal())
+	Assert(t, newConfig.Configurations, NotNilVal())
 	for k, v := range newConfig.Configurations {
 		Assert(t, getValue(k), Equal(v))
 	}
@@ -218,7 +246,7 @@ func TestAutoSyncConfigServicesError(t *testing.T) {
 
 	err := autoSyncConfigServices(nil)
 
-	Assert(t, err,NotNilVal())
+	Assert(t, err, NotNilVal())
 
 	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 

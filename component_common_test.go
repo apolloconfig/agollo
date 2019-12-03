@@ -19,8 +19,8 @@ func TestCreateApolloConfigWithJson(t *testing.T) {
 
 	config, err := createApolloConfigWithJson([]byte(jsonStr))
 
-	Assert(t, err,NilVal())
-	Assert(t, config,NotNilVal())
+	Assert(t, err, NilVal())
+	Assert(t, config, NotNilVal())
 
 	Assert(t, "100004458", Equal(config.AppId))
 	Assert(t, "default", Equal(config.Cluster))
@@ -36,6 +36,6 @@ func TestCreateApolloConfigWithJsonError(t *testing.T) {
 
 	config, err := createApolloConfigWithJson([]byte(jsonStr))
 
-	Assert(t, err,NotNilVal())
-	Assert(t, config,NilVal())
+	Assert(t, err, NotNilVal())
+	Assert(t, config, NilVal())
 }

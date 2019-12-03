@@ -43,7 +43,7 @@ func request(requestUrl string, connectionConfig *ConnectConfig, callBack *CallB
 		res, err = client.Get(requestUrl)
 
 		if res == nil || err != nil {
-			logger.Error("Connect Apollo Server Fail,url:%s,Error:%s",requestUrl, err)
+			logger.Error("Connect Apollo Server Fail,url:%s,Error:%s", requestUrl, err)
 			continue
 		}
 
@@ -52,7 +52,7 @@ func request(requestUrl string, connectionConfig *ConnectConfig, callBack *CallB
 		case http.StatusOK:
 			responseBody, err = ioutil.ReadAll(res.Body)
 			if err != nil {
-				logger.Error("Connect Apollo Server Fail,url:%s,Error:",requestUrl, err)
+				logger.Error("Connect Apollo Server Fail,url:%s,Error:", requestUrl, err)
 				continue
 			}
 
@@ -69,9 +69,9 @@ func request(requestUrl string, connectionConfig *ConnectConfig, callBack *CallB
 				return nil, nil
 			}
 		default:
-			logger.Error("Connect Apollo Server Fail,url:%s,Error:%s",requestUrl, err)
+			logger.Error("Connect Apollo Server Fail,url:%s,Error:%s", requestUrl, err)
 			if res != nil {
-				logger.Error("Connect Apollo Server Fail,url:%s,StatusCode:%s",requestUrl, res.StatusCode)
+				logger.Error("Connect Apollo Server Fail,url:%s,StatusCode:%s", requestUrl, res.StatusCode)
 			}
 			err = errors.New("Connect Apollo Server Fail!")
 			// if error then sleep

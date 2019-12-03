@@ -20,11 +20,11 @@ func TestWriteConfigFile(t *testing.T) {
 }`
 
 	config, err := createApolloConfigWithJson([]byte(jsonStr))
-	os.Remove(getConfigFile(configPath,config.NamespaceName))
+	os.Remove(getConfigFile(configPath, config.NamespaceName))
 
-	Assert(t,err,NilVal())
+	Assert(t, err, NilVal())
 	e := writeConfigFile(config, configPath)
-	Assert(t,e,NilVal())
+	Assert(t, e, NilVal())
 }
 
 func TestLoadConfigFile(t *testing.T) {
@@ -41,11 +41,11 @@ func TestLoadConfigFile(t *testing.T) {
 
 	config, err := createApolloConfigWithJson([]byte(jsonStr))
 
-	Assert(t,err,NilVal())
-	newConfig, e := loadConfigFile("",config.NamespaceName)
+	Assert(t, err, NilVal())
+	newConfig, e := loadConfigFile("", config.NamespaceName)
 
 	t.Log(newConfig)
-	Assert(t,e,NilVal())
+	Assert(t, e, NilVal())
 	Assert(t, config.AppId, Equal(newConfig.AppId))
 	Assert(t, config.ReleaseKey, Equal(newConfig.ReleaseKey))
 	Assert(t, config.Cluster, Equal(newConfig.Cluster))

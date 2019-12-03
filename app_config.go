@@ -50,7 +50,15 @@ type AppConfig struct {
 	NamespaceName    string `json:"namespaceName"`
 	Ip               string `json:"ip"`
 	NextTryConnTime  int64  `json:"-"`
+	IsBackupConfig   bool   `default:"true" json:"isBackupConfig"`
 	BackupConfigPath string `json:"backupConfigPath"`
+}
+
+//getIsBackupConfig whether backup config after fetch config from apollo
+//false : no
+//true : yes (default)
+func (this *AppConfig) getIsBackupConfig() bool {
+	return this.IsBackupConfig
 }
 
 func (this *AppConfig) getBackupConfigPath() string {
