@@ -38,7 +38,7 @@ func onlyNormalResponse(rw http.ResponseWriter, req *http.Request) {
 }
 
 func onlyNormalTwoResponse(rw http.ResponseWriter, req *http.Request) {
-	result := fmt.Sprintf(responseTwoStr, 3,3)
+	result := fmt.Sprintf(responseTwoStr, 3, 3)
 	fmt.Fprintf(rw, "%s", result)
 }
 

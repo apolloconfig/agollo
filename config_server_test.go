@@ -44,20 +44,20 @@ const configChangeResponseStr = `{
 
 //run mock config server
 func runMockConfigServer(handlerMap map[string]func(http.ResponseWriter, *http.Request),
-	notifyHandler func(http.ResponseWriter, *http.Request)) *httptest.Server{
+	notifyHandler func(http.ResponseWriter, *http.Request)) *httptest.Server {
 	appConfig := GetAppConfig(nil)
 	uriHandlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 0)
 	for namespace, handler := range handlerMap {
 		uri := fmt.Sprintf("/configs/%s/%s/%s", appConfig.AppId, appConfig.Cluster, namespace)
-		uriHandlerMap[uri]=handler
+		uriHandlerMap[uri] = handler
 	}
-	uriHandlerMap["/notifications/v2"]=notifyHandler
+	uriHandlerMap["/notifications/v2"] = notifyHandler
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		uri := r.RequestURI
 		for path, handler := range uriHandlerMap {
-			if strings.HasPrefix(uri,path){
-				handler(w,r)
+			if strings.HasPrefix(uri, path) {
+				handler(w, r)
 				break
 			}
 		}
@@ -65,7 +65,6 @@ func runMockConfigServer(handlerMap map[string]func(http.ResponseWriter, *http.R
 
 	return ts
 }
-
 
 var normalConfigCount = 1
 

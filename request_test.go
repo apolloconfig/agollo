@@ -22,8 +22,8 @@ func TestRequestRecovery(t *testing.T) {
 		SuccessCallBack: autoSyncConfigServicesSuccessCallBack,
 	})
 
-	Assert(t, err,NilVal())
-	Assert(t, o,NilVal())
+	Assert(t, err, NilVal())
+	Assert(t, o, NilVal())
 }
 
 func TestCustomTimeout(t *testing.T) {
@@ -50,8 +50,8 @@ func TestCustomTimeout(t *testing.T) {
 	t.Log("endTime:", endTime)
 	t.Log("duration:", duration)
 	Assert(t, int64(10), Equal(duration))
-	Assert(t, err,NilVal())
-	Assert(t, o,NilVal())
+	Assert(t, err, NilVal())
+	Assert(t, o, NilVal())
 }
 
 func mockIpList(t *testing.T) {
@@ -63,8 +63,8 @@ func mockIpList(t *testing.T) {
 
 	err := syncServerIpList(newAppConfig)
 
-	Assert(t, err,NilVal())
+	Assert(t, err, NilVal())
 
-	serverLen:=getServersLen()
+	serverLen := getServersLen()
 	Assert(t, 2, Equal(serverLen))
 }
