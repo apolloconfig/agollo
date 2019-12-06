@@ -1,7 +1,7 @@
 package agollo
 
 import (
-	"github.com/zouyx/agollo/agcache"
+	"github.com/zouyx/agollo/v2/agcache"
 	"strconv"
 	"sync"
 )
