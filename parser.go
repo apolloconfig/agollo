@@ -2,7 +2,7 @@ package agollo
 
 import (
 	"fmt"
-	"github.com/zouyx/agollo/agcache"
+	"github.com/zouyx/agollo/v2/agcache"
 )
 
 const propertiesFormat = "%s=%s\n"
