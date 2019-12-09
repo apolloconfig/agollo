@@ -3,7 +3,7 @@ package agollo
 var logger LoggerInterface
 
 func init() {
-	logger=&DefaultLogger{}
+	logger = &DefaultLogger{}
 }
 
 func initLogger(ILogger LoggerInterface) {
@@ -31,35 +31,33 @@ type LoggerInterface interface {
 type DefaultLogger struct {
 }
 
-func (this *DefaultLogger)Debugf(format string, params ...interface{})  {
-	
-}
-
-func (this *DefaultLogger)Infof(format string, params ...interface{}) {
+func (this *DefaultLogger) Debugf(format string, params ...interface{}) {
 
 }
 
+func (this *DefaultLogger) Infof(format string, params ...interface{}) {
 
-func (this *DefaultLogger)Warnf(format string, params ...interface{}) error {
+}
+
+func (this *DefaultLogger) Warnf(format string, params ...interface{}) error {
 	return nil
 }
 
-func (this *DefaultLogger)Errorf(format string, params ...interface{}) error {
+func (this *DefaultLogger) Errorf(format string, params ...interface{}) error {
 	return nil
 }
 
-
-func (this *DefaultLogger)Debug(v ...interface{}) {
-
-}
-func (this *DefaultLogger)Info(v ...interface{}){
+func (this *DefaultLogger) Debug(v ...interface{}) {
 
 }
+func (this *DefaultLogger) Info(v ...interface{}) {
 
-func (this *DefaultLogger)Warn(v ...interface{}) error{
+}
+
+func (this *DefaultLogger) Warn(v ...interface{}) error {
 	return nil
 }
 
-func (this *DefaultLogger)Error(v ...interface{}) error{
+func (this *DefaultLogger) Error(v ...interface{}) error {
 	return nil
 }

@@ -210,7 +210,7 @@ func autoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, 
 		return nil, err
 	}
 
-	updateApolloConfig(apolloConfig, true)
+	updateApolloConfig(apolloConfig, appConfig.getIsBackupConfig())
 
 	return nil, nil
 }

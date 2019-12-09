@@ -15,7 +15,7 @@ var (
 )
 
 func init() {
-	changeListeners=list.New()
+	changeListeners = list.New()
 }
 
 //ChangeListener 监听器
@@ -23,7 +23,6 @@ type ChangeListener interface {
 	//OnChange 增加变更监控
 	OnChange(event *ChangeEvent)
 }
-
 
 //config change type
 type ConfigChangeType int
@@ -41,21 +40,21 @@ type ConfigChange struct {
 }
 
 //AddChangeListener 增加变更监控
-func AddChangeListener(listener ChangeListener)  {
-	if listener==nil{
+func AddChangeListener(listener ChangeListener) {
+	if listener == nil {
 		return
 	}
 	changeListeners.PushBack(listener)
 }
 
 //RemoveChangeListener 增加变更监控
-func removeChangeListener(listener ChangeListener)  {
-	if listener==nil{
+func removeChangeListener(listener ChangeListener) {
+	if listener == nil {
 		return
 	}
 	for i := changeListeners.Front(); i != nil; i = i.Next() {
-		apolloListener:= i.Value.(ChangeListener)
-		if listener==apolloListener{
+		apolloListener := i.Value.(ChangeListener)
+		if listener == apolloListener {
 			changeListeners.Remove(i)
 		}
 	}
@@ -64,12 +63,12 @@ func removeChangeListener(listener ChangeListener)  {
 //push config change event
 func pushChangeEvent(event *ChangeEvent) {
 	// if channel is null ,mean no listener,don't need to push msg
-	if changeListeners == nil||changeListeners.Len()==0 {
+	if changeListeners == nil || changeListeners.Len() == 0 {
 		return
 	}
 
 	for i := changeListeners.Front(); i != nil; i = i.Next() {
-		listener:= i.Value.(ChangeListener)
+		listener := i.Value.(ChangeListener)
 		go listener.OnChange(event)
 	}
 }

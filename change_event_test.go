@@ -11,12 +11,12 @@ import (
 )
 
 type CustomChangeListener struct {
-	t *testing.T
+	t     *testing.T
 	group *sync.WaitGroup
 }
 
 func (c *CustomChangeListener) OnChange(changeEvent *ChangeEvent) {
-	if c.group==nil{
+	if c.group == nil {
 		return
 	}
 	defer c.group.Done()
@@ -40,17 +40,17 @@ func (c *CustomChangeListener) OnChange(changeEvent *ChangeEvent) {
 
 func TestListenChangeEvent(t *testing.T) {
 	go buildNotifyResult(t)
-	group:= sync.WaitGroup{}
+	group := sync.WaitGroup{}
 	group.Add(1)
 
 	listener := &CustomChangeListener{
-		t:t,
-		group:&group,
+		t:     t,
+		group: &group,
 	}
 	AddChangeListener(listener)
 	group.Wait()
 	//运行完清空变更队列
-	changeListeners=list.New()
+	changeListeners = list.New()
 }
 
 func buildNotifyResult(t *testing.T) {
@@ -65,7 +65,7 @@ func buildNotifyResult(t *testing.T) {
 	err := autoSyncConfigServices(newAppConfig)
 	err = autoSyncConfigServices(newAppConfig)
 
-	Assert(t, err,NilVal())
+	Assert(t, err, NilVal())
 
 	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
@@ -78,13 +78,12 @@ func buildNotifyResult(t *testing.T) {
 func TestRemoveChangeListener(t *testing.T) {
 	go buildNotifyResult(t)
 
-	listener := &CustomChangeListener{
-	}
+	listener := &CustomChangeListener{}
 	AddChangeListener(listener)
 	Assert(t, 1, Equal(changeListeners.Len()))
 	removeChangeListener(listener)
 	Assert(t, 0, Equal(changeListeners.Len()))
 
 	//运行完清空变更队列
-	changeListeners=list.New()
+	changeListeners = list.New()
 }

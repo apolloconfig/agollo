@@ -22,13 +22,13 @@ func createMockApolloConfig(expireTime int) map[string]string {
 	//bool
 	configs["bool"] = "true"
 
-	updateApolloConfigCache(configs, expireTime,defaultNamespace)
+	updateApolloConfigCache(configs, expireTime, defaultNamespace)
 
 	return configs
 }
 
-func getFirstApolloConfig(t *testing.T,currentConfig map[string]*ApolloConnConfig)[]byte {
-	i:=0
+func getFirstApolloConfig(t *testing.T, currentConfig map[string]*ApolloConnConfig) []byte {
+	i := 0
 	var currentJSON []byte
 	var err error
 	for _, v := range currentConfig {
@@ -38,7 +38,7 @@ func getFirstApolloConfig(t *testing.T,currentConfig map[string]*ApolloConnConfi
 		currentJSON, err = json.Marshal(v)
 		i++
 	}
-	Assert(t, err,NilVal())
+	Assert(t, err, NilVal())
 
 	t.Log("currentJSON:", string(currentJSON))
 
@@ -49,12 +49,11 @@ func getFirstApolloConfig(t *testing.T,currentConfig map[string]*ApolloConnConfi
 func TestUpdateApolloConfigNull(t *testing.T) {
 	time.Sleep(1 * time.Second)
 	var currentConfig *ApolloConnConfig
-	currentJSON:=getFirstApolloConfig(t,currentConnApolloConfig.configs)
-
+	currentJSON := getFirstApolloConfig(t, currentConnApolloConfig.configs)
 
 	json.Unmarshal(currentJSON, &currentConfig)
 
-	Assert(t, currentConfig,NotNilVal())
+	Assert(t, currentConfig, NotNilVal())
 
 	updateApolloConfig(nil, true)
 
@@ -67,7 +66,7 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 	//Assert(t, currentConfig.AppId, config.AppId)
 	//Assert(t, currentConfig.Cluster, config.Cluster)
 	//Assert(t, currentConfig.ReleaseKey, config.ReleaseKey)
-	Assert(t, config,NotNilVal())
+	Assert(t, config, NotNilVal())
 	Assert(t, defaultNamespace, Equal(config.NamespaceName))
 	Assert(t, "test", Equal(config.AppId))
 	Assert(t, "dev", Equal(config.Cluster))
@@ -77,7 +76,7 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 
 func TestGetApolloConfigCache(t *testing.T) {
 	cache := GetApolloConfigCache()
-	Assert(t, cache,NotNilVal())
+	Assert(t, cache, NotNilVal())
 }
 
 func TestGetConfigValueNullApolloConfig(t *testing.T) {
@@ -97,7 +96,6 @@ func TestGetConfigValueNullApolloConfig(t *testing.T) {
 	v := GetStringValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
-
 
 }
 
@@ -178,9 +176,8 @@ func TestConfig_GetStringValue(t *testing.T) {
 
 	defaultValue := "j"
 	//test default
-	v:=config.GetStringValue("joe", defaultValue)
+	v := config.GetStringValue("joe", defaultValue)
 	Assert(t, defaultValue, Equal(v))
-
 
 	//normal value
 	v = config.GetStringValue("string", defaultValue)

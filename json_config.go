@@ -28,8 +28,9 @@ func loadJsonConfig(fileName string) (*AppConfig, error) {
 
 func createAppConfigWithJson(str string) (*AppConfig, error) {
 	appConfig := &AppConfig{
-		Cluster:       default_cluster,
-		NamespaceName: default_namespace,
+		Cluster:        default_cluster,
+		NamespaceName:  default_namespace,
+		IsBackupConfig: true,
 	}
 	err := json.Unmarshal([]byte(str), appConfig)
 	if isNotNil(err) {

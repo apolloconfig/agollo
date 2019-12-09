@@ -31,17 +31,17 @@ type ApolloConfig struct {
 	Configurations map[string]string `json:"configurations"`
 }
 
-func splitNamespaces(namespacesStr string,callback func(namespace string))map[string]int64{
-	namespaces:=make(map[string]int64,1)
+func splitNamespaces(namespacesStr string, callback func(namespace string)) map[string]int64 {
+	namespaces := make(map[string]int64, 1)
 	split := strings.Split(namespacesStr, comma)
 	for _, namespace := range split {
 		callback(namespace)
-		namespaces[namespace]=default_notification_id
+		namespaces[namespace] = default_notification_id
 	}
 	return namespaces
 }
 
-func (a *ApolloConfig) init(appConfig *AppConfig,namespace string) {
+func (a *ApolloConfig) init(appConfig *AppConfig, namespace string) {
 	a.AppId = appConfig.AppId
 	a.Cluster = appConfig.Cluster
 	a.NamespaceName = namespace
