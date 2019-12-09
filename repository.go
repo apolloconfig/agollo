@@ -4,6 +4,7 @@ import (
 	"github.com/zouyx/agollo/v2/agcache"
 	"strconv"
 	"sync"
+	"sync/atomic"
 )
 
 //ConfigFileFormat 配置文件类型
@@ -79,6 +80,8 @@ func createNamespaceConfig(cacheFactory *agcache.DefaultCacheFactory, namespace 
 			namespace: namespace,
 			cache:     cacheFactory.Create(),
 		}
+		c.isInit.Store(false)
+		c.waitInit.Add(1)
 		apolloConfigCache[namespace] = c
 	})
 }
@@ -92,10 +95,21 @@ type currentApolloConfig struct {
 type Config struct {
 	namespace string
 	cache     agcache.CacheInterface
+	isInit    atomic.Value
+	waitInit  sync.WaitGroup
+}
+
+//getIsInit 获取标志
+func (this *Config) getIsInit() bool {
+	return this.isInit.Load().(bool)
 }
 
 //getConfigValue 获取配置值
 func (this *Config) getConfigValue(key string) interface{} {
+	b := this.getIsInit()
+	if !b {
+		this.waitInit.Wait()
+	}
 	if this.cache == nil {
 		logger.Errorf("get config value fail!namespace:%s is not exist!", this.namespace)
 		return empty
@@ -176,6 +190,10 @@ func GetConfig(namespace string) *Config {
 
 //GetConfigAndInit 根据namespace获取apollo配置
 func GetConfigAndInit(namespace string) *Config {
+	if namespace == "" {
+		return nil
+	}
+
 	if apolloConfigCache[namespace] == nil {
 		initNamespaceConfig(namespace)
 
@@ -190,6 +208,10 @@ func GetConfigCache(namespace string) agcache.CacheInterface {
 	if config == nil {
 		return nil
 	}
+	if !config.getIsInit() {
+		config.waitInit.Wait()
+	}
+
 	return config.cache
 }
 
@@ -235,6 +257,19 @@ func updateApolloConfigCache(configurations map[string]string, expireTime int, n
 		return nil
 	}
 
+	isInit := false
+	defer func(c *Config) {
+		if !isInit {
+			return
+		}
+		b := c.getIsInit()
+		if b {
+			return
+		}
+		c.isInit.Store(isInit)
+		c.waitInit.Done()
+	}(config)
+
 	if (configurations == nil || len(configurations) == 0) && config.cache.EntryCount() == 0 {
 		return nil
 	}
@@ -277,6 +312,7 @@ func updateApolloConfigCache(configurations map[string]string, expireTime int, n
 
 		config.cache.Del(key)
 	}
+	isInit = true
 
 	return changes
 }
