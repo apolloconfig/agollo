@@ -1,7 +1,7 @@
 package agollo
 
 import (
-	"github.com/zouyx/agollo/agcache"
+	"github.com/zouyx/agollo/v2/agcache"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -39,7 +39,8 @@ var (
 	}
 
 	//config from apollo
-	apolloConfigCache = make(map[string]*Config, 0)
+	apolloConfigCache sync.Map
+	//apolloConfigCache = make(map[string]*Config, 0)
 
 	formatParser        = make(map[ConfigFileFormat]ContentParser, 0)
 	defaultFormatParser = &DefaultParser{}
@@ -73,7 +74,7 @@ func initConfigCache(cacheFactory *agcache.DefaultCacheFactory) {
 
 func createNamespaceConfig(cacheFactory *agcache.DefaultCacheFactory, namespace string) {
 	splitNamespaces(namespace, func(namespace string) {
-		if apolloConfigCache[namespace] != nil {
+		if _, ok := apolloConfigCache.Load(namespace);ok {
 			return
 		}
 		c := &Config{
@@ -82,7 +83,7 @@ func createNamespaceConfig(cacheFactory *agcache.DefaultCacheFactory, namespace 
 		}
 		c.isInit.Store(false)
 		c.waitInit.Add(1)
-		apolloConfigCache[namespace] = c
+		apolloConfigCache.Store(namespace,c)
 	})
 }
 
@@ -194,12 +195,19 @@ func GetConfigAndInit(namespace string) *Config {
 		return nil
 	}
 
-	if apolloConfigCache[namespace] == nil {
+	config, ok := apolloConfigCache.Load(namespace)
+
+	if !ok {
 		initNamespaceConfig(namespace)
 
 		notifySimpleSyncConfigServices(namespace)
 	}
-	return apolloConfigCache[namespace]
+
+	if config, ok = apolloConfigCache.Load(namespace);!ok{
+		return nil
+	}
+
+	return config.(*Config)
 }
 
 //GetConfigCache 根据namespace获取apollo配置的缓存
