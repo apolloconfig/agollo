@@ -202,6 +202,11 @@ func GetConfigAndInit(namespace string) *Config {
 
 		notifySimpleSyncConfigServices(namespace)
 	}
+
+	if config, ok = apolloConfigCache.Load(namespace);!ok{
+		return nil
+	}
+
 	return config.(*Config)
 }
 
