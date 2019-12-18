@@ -152,6 +152,7 @@ func initConfig(loadAppConfig func() (*AppConfig, error)) {
 		return
 	}
 
+	initAllNotifications()
 	initApolloConfigCache(appConfig.NamespaceName)
 }
 
