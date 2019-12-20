@@ -74,10 +74,11 @@ func (n *notificationsMap) getNotifies(namespace string) string {
 }
 
 func initAllNotifications() {
-	appConfig := GetAppConfig(nil)
-
 	if appConfig == nil {
-		panic("initAllNotifications: app config empty")
+		allNotifications = &notificationsMap{
+			notifications: make(map[string]int64, 0),
+		}
+		return
 	}
 	namespaces := splitNamespaces(appConfig.NamespaceName,
 		func(namespace string) {})
