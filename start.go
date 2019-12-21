@@ -8,13 +8,7 @@ func init() {
 	//init config
 	initFileConfig()
 
-	initCommon()
-}
-
-func initCommon() {
 	initDefaultConfig()
-
-	initAllNotifications()
 }
 
 //InitCustomConfig init config by custom
@@ -22,7 +16,7 @@ func InitCustomConfig(loadAppConfig func() (*AppConfig, error)) {
 
 	initConfig(loadAppConfig)
 
-	initCommon()
+	initDefaultConfig()
 }
 
 //start apollo
@@ -60,7 +54,9 @@ func startAgollo() error {
 	//init server ip list
 	go initServerIpList()
 	//first sync
-	go notifySyncConfigServices()
+	if err := notifySyncConfigServices(); err != nil {
+		return err
+	}
 	logger.Debug("init notifySyncConfigServices finished")
 
 	//start long poll sync config

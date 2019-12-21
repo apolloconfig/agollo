@@ -2,6 +2,7 @@ package agollo
 
 import (
 	"encoding/json"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -73,19 +74,13 @@ func (n *notificationsMap) getNotifies(namespace string) string {
 }
 
 func initAllNotifications() {
-	appConfig := GetAppConfig(nil)
-
 	if appConfig == nil {
+		allNotifications = &notificationsMap{
+			notifications: make(map[string]int64, 0),
+		}
 		return
 	}
-	initNamespaceNotifications(appConfig.NamespaceName)
-}
-
-func initNamespaceNotifications(namespace string) {
-	if namespace == empty {
-		return
-	}
-	namespaces := splitNamespaces(namespace,
+	namespaces := splitNamespaces(appConfig.NamespaceName,
 		func(namespace string) {})
 
 	allNotifications = &notificationsMap{
@@ -112,8 +107,11 @@ func notifySyncConfigServices() error {
 
 	remoteConfigs, err := notifyRemoteConfig(nil, empty)
 
-	if err != nil || len(remoteConfigs) == 0 {
-		return err
+	if err != nil {
+		return fmt.Errorf("notifySyncConfigServices: %s", err)
+	}
+	if len(remoteConfigs) == 0 {
+		return fmt.Errorf("notifySyncConfigServices: empty remote config")
 	}
 
 	updateAllNotifications(remoteConfigs)

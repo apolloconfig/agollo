@@ -56,14 +56,6 @@ func initDefaultConfig() {
 	initConfigCache(cacheFactory)
 }
 
-//initNamespaceConfig 根据namespace创建缓存
-func initNamespaceConfig(namespace string) {
-
-	createNamespaceConfig(cacheFactory, namespace)
-
-	initNamespaceNotifications(namespace)
-}
-
 func initConfigCache(cacheFactory *agcache.DefaultCacheFactory) {
 	if appConfig == nil {
 		logger.Warn("Config is nil,can not init agollo.")
@@ -74,7 +66,7 @@ func initConfigCache(cacheFactory *agcache.DefaultCacheFactory) {
 
 func createNamespaceConfig(cacheFactory *agcache.DefaultCacheFactory, namespace string) {
 	splitNamespaces(namespace, func(namespace string) {
-		if _, ok := apolloConfigCache.Load(namespace);ok {
+		if _, ok := apolloConfigCache.Load(namespace); ok {
 			return
 		}
 		c := &Config{
@@ -83,7 +75,7 @@ func createNamespaceConfig(cacheFactory *agcache.DefaultCacheFactory, namespace 
 		}
 		c.isInit.Store(false)
 		c.waitInit.Add(1)
-		apolloConfigCache.Store(namespace,c)
+		apolloConfigCache.Store(namespace, c)
 	})
 }
 
@@ -198,12 +190,12 @@ func GetConfigAndInit(namespace string) *Config {
 	config, ok := apolloConfigCache.Load(namespace)
 
 	if !ok {
-		initNamespaceConfig(namespace)
+		createNamespaceConfig(cacheFactory, namespace)
 
 		notifySimpleSyncConfigServices(namespace)
 	}
 
-	if config, ok = apolloConfigCache.Load(namespace);!ok{
+	if config, ok = apolloConfigCache.Load(namespace); !ok {
 		return nil
 	}
 
