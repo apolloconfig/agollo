@@ -1,4 +1,4 @@
-package agollo
+package utils
 
 import (
 	. "github.com/tevid/gohamcrest"

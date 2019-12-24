@@ -2,6 +2,7 @@ package agollo
 
 import (
 	"github.com/zouyx/agollo/v2/agcache"
+	. "github.com/zouyx/agollo/v2/component/log"
 )
 
 func init() {
@@ -57,12 +58,12 @@ func startAgollo() error {
 	if err := notifySyncConfigServices(); err != nil {
 		return err
 	}
-	logger.Debug("init notifySyncConfigServices finished")
+	Logger.Debug("init notifySyncConfigServices finished")
 
 	//start long poll sync config
 	go StartRefreshConfig(&NotifyConfigComponent{})
 
-	logger.Info("agollo start finished ! ")
+	Logger.Info("agollo start finished ! ")
 
 	return nil
 }

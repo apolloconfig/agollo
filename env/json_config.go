@@ -1,8 +1,9 @@
-package agollo
+package env
 
 import (
 	"encoding/json"
 	"errors"
+	"github.com/zouyx/agollo/v2/utils"
 	"io/ioutil"
 )
 
@@ -19,7 +20,7 @@ func loadJsonConfig(fileName string) (*AppConfig, error) {
 
 	appConfig, loadErr := createAppConfigWithJson(string(fs))
 
-	if isNotNil(loadErr) {
+	if utils.IsNotNil(loadErr) {
 		return nil, errors.New("Load Json Config fail:" + loadErr.Error())
 	}
 
@@ -33,7 +34,7 @@ func createAppConfigWithJson(str string) (*AppConfig, error) {
 		IsBackupConfig: true,
 	}
 	err := json.Unmarshal([]byte(str), appConfig)
-	if isNotNil(err) {
+	if utils.IsNotNil(err) {
 		return nil, err
 	}
 

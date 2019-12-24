@@ -2,9 +2,13 @@ package agollo
 
 import (
 	"github.com/zouyx/agollo/v2/agcache"
+	"github.com/zouyx/agollo/v2/component/notify"
+	"github.com/zouyx/agollo/v2/utils"
 	"strconv"
 	"sync"
 	"sync/atomic"
+
+	. "github.com/zouyx/agollo/v2/component/log"
 )
 
 //ConfigFileFormat 配置文件类型
@@ -24,7 +28,6 @@ const (
 )
 
 const (
-	empty = ""
 
 	//1 minute
 	configCacheExpireTime = 120
@@ -34,9 +37,6 @@ const (
 )
 
 var (
-	currentConnApolloConfig = &currentApolloConfig{
-		configs: make(map[string]*ApolloConnConfig, 1),
-	}
 
 	//config from apollo
 	apolloConfigCache sync.Map
@@ -58,14 +58,14 @@ func initDefaultConfig() {
 
 func initConfigCache(cacheFactory *agcache.DefaultCacheFactory) {
 	if appConfig == nil {
-		logger.Warn("Config is nil,can not init agollo.")
+		Logger.Warn("Config is nil,can not init agollo.")
 		return
 	}
 	createNamespaceConfig(cacheFactory, appConfig.NamespaceName)
 }
 
 func createNamespaceConfig(cacheFactory *agcache.DefaultCacheFactory, namespace string) {
-	splitNamespaces(namespace, func(namespace string) {
+	notify.SplitNamespaces(namespace, func(namespace string) {
 		if _, ok := apolloConfigCache.Load(namespace); ok {
 			return
 		}
@@ -77,11 +77,6 @@ func createNamespaceConfig(cacheFactory *agcache.DefaultCacheFactory, namespace 
 		c.waitInit.Add(1)
 		apolloConfigCache.Store(namespace, c)
 	})
-}
-
-type currentApolloConfig struct {
-	l       sync.RWMutex
-	configs map[string]*ApolloConnConfig
 }
 
 //Config apollo配置项
@@ -104,14 +99,14 @@ func (this *Config) getConfigValue(key string) interface{} {
 		this.waitInit.Wait()
 	}
 	if this.cache == nil {
-		logger.Errorf("get config value fail!namespace:%s is not exist!", this.namespace)
-		return empty
+		Logger.Errorf("get config value fail!namespace:%s is not exist!", this.namespace)
+		return utils.Empty
 	}
 
 	value, err := this.cache.Get(key)
 	if err != nil {
-		logger.Errorf("get config value fail!key:%s,err:%s", key, err)
-		return empty
+		Logger.Errorf("get config value fail!key:%s,err:%s", key, err)
+		return utils.Empty
 	}
 
 	return string(value)
@@ -121,7 +116,7 @@ func (this *Config) getConfigValue(key string) interface{} {
 func (this *Config) getValue(key string) string {
 	value := this.getConfigValue(key)
 	if value == nil {
-		return empty
+		return utils.Empty
 	}
 
 	return value.(string)
@@ -130,7 +125,7 @@ func (this *Config) getValue(key string) string {
 //GetStringValue 获取配置值（string），获取不到则取默认值
 func (this *Config) GetStringValue(key string, defaultValue string) string {
 	value := this.getValue(key)
-	if value == empty {
+	if value == utils.Empty {
 		return defaultValue
 	}
 
@@ -143,7 +138,7 @@ func (this *Config) GetIntValue(key string, defaultValue int) int {
 
 	i, err := strconv.Atoi(value)
 	if err != nil {
-		logger.Debug("convert to int fail!error:", err)
+		Logger.Debug("convert to int fail!error:", err)
 		return defaultValue
 	}
 
@@ -156,7 +151,7 @@ func (this *Config) GetFloatValue(key string, defaultValue float64) float64 {
 
 	i, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		logger.Debug("convert to float fail!error:", err)
+		Logger.Debug("convert to float fail!error:", err)
 		return defaultValue
 	}
 
@@ -169,7 +164,7 @@ func (this *Config) GetBoolValue(key string, defaultValue bool) bool {
 
 	b, err := strconv.ParseBool(value)
 	if err != nil {
-		logger.Debug("convert to bool fail!error:", err)
+		Logger.Debug("convert to bool fail!error:", err)
 		return defaultValue
 	}
 
@@ -225,7 +220,7 @@ func getDefaultConfigCache() agcache.CacheInterface {
 
 func updateApolloConfig(apolloConfig *ApolloConfig, isBackupConfig bool) {
 	if apolloConfig == nil {
-		logger.Error("apolloConfig is null,can't update!")
+		Logger.Error("apolloConfig is null,can't update!")
 		return
 	}
 	//get change list
@@ -334,30 +329,11 @@ func GetApolloConfigCache() agcache.CacheInterface {
 	return getDefaultConfigCache()
 }
 
-//GetCurrentApolloConfig 获取Apollo链接配置
-func GetCurrentApolloConfig() map[string]*ApolloConnConfig {
-	currentConnApolloConfig.l.RLock()
-	defer currentConnApolloConfig.l.RUnlock()
-
-	return currentConnApolloConfig.configs
-}
-
-func getCurrentApolloConfigReleaseKey(namespace string) string {
-	currentConnApolloConfig.l.RLock()
-	defer currentConnApolloConfig.l.RUnlock()
-	config := currentConnApolloConfig.configs[namespace]
-	if config == nil {
-		return empty
-	}
-
-	return config.ReleaseKey
-}
-
 func getConfigValue(key string) interface{} {
 	value, err := getDefaultConfigCache().Get(key)
 	if err != nil {
-		logger.Errorf("get config value fail!key:%s,err:%s", key, err)
-		return empty
+		Logger.Errorf("get config value fail!key:%s,err:%s", key, err)
+		return utils.Empty
 	}
 
 	return string(value)
@@ -366,7 +342,7 @@ func getConfigValue(key string) interface{} {
 func getValue(key string) string {
 	value := getConfigValue(key)
 	if value == nil {
-		return empty
+		return utils.Empty
 	}
 
 	return value.(string)
@@ -374,7 +350,7 @@ func getValue(key string) string {
 
 func GetStringValue(key string, defaultValue string) string {
 	value := getValue(key)
-	if value == empty {
+	if value == utils.Empty {
 		return defaultValue
 	}
 
@@ -386,7 +362,7 @@ func GetIntValue(key string, defaultValue int) int {
 
 	i, err := strconv.Atoi(value)
 	if err != nil {
-		logger.Debug("convert to int fail!error:", err)
+		Logger.Debug("convert to int fail!error:", err)
 		return defaultValue
 	}
 
@@ -398,7 +374,7 @@ func GetFloatValue(key string, defaultValue float64) float64 {
 
 	i, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		logger.Debug("convert to float fail!error:", err)
+		Logger.Debug("convert to float fail!error:", err)
 		return defaultValue
 	}
 
@@ -410,7 +386,7 @@ func GetBoolValue(key string, defaultValue bool) bool {
 
 	b, err := strconv.ParseBool(value)
 	if err != nil {
-		logger.Debug("convert to bool fail!error:", err)
+		Logger.Debug("convert to bool fail!error:", err)
 		return defaultValue
 	}
 
@@ -425,7 +401,7 @@ func (c *Config) GetContent(format ConfigFileFormat) string {
 	}
 	s, err := parser.parse(c.cache)
 	if err != nil {
-		logger.Debug("GetContent fail ! error:", err)
+		Logger.Debug("GetContent fail ! error:", err)
 	}
 	return s
 }

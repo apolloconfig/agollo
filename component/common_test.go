@@ -1,4 +1,4 @@
-package agollo
+package component
 
 import (
 	. "github.com/tevid/gohamcrest"

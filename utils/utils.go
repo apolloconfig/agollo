@@ -1,4 +1,4 @@
-package agollo
+package utils
 
 import (
 	"net"
@@ -6,12 +6,16 @@ import (
 	"reflect"
 )
 
+const (
+	Empty = ""
+)
+
 var (
 	internalIp string
 )
 
 //ips
-func getInternal() string {
+func GetInternal() string {
 	if internalIp != "" {
 		return internalIp
 	}
@@ -32,11 +36,11 @@ func getInternal() string {
 	return ""
 }
 
-func isNotNil(object interface{}) bool {
-	return !isNilObject(object)
+func IsNotNil(object interface{}) bool {
+	return !IsNilObject(object)
 }
 
-func isNilObject(object interface{}) bool {
+func IsNilObject(object interface{}) bool {
 	if object == nil {
 		return true
 	}

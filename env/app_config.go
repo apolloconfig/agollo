@@ -1,8 +1,12 @@
-package agollo
+package env
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zouyx/agollo/v2/component"
+	. "github.com/zouyx/agollo/v2/component/log"
+	"github.com/zouyx/agollo/v2/component/notify"
+	"github.com/zouyx/agollo/v2/utils"
 	"net/url"
 	"os"
 	"strings"
@@ -16,7 +20,6 @@ const (
 )
 
 var (
-	long_poll_interval        = 2 * time.Second //2s
 	long_poll_connect_timeout = 1 * time.Minute //1m
 
 	connect_timeout = 1 * time.Second //1s
@@ -159,9 +162,12 @@ func initConfig(loadAppConfig func() (*AppConfig, error)) {
 //initApolloConfigCache 根据namespace初始化apollo配置
 func initApolloConfigCache(namespace string) {
 	func(appConfig *AppConfig) {
-		splitNamespaces(namespace, func(namespace string) {
-			apolloConfig := &ApolloConfig{}
-			apolloConfig.init(appConfig, namespace)
+		notify.SplitNamespaces(namespace, func(namespace string) {
+			apolloConfig := &component.ApolloConfig{}
+			apolloConfig.Init(
+				appConfig.AppId,
+				appConfig.Cluster,
+				namespace)
 
 			go updateApolloConfig(apolloConfig, false)
 		})
@@ -184,7 +190,7 @@ func getLoadAppConfig(loadAppConfig func() (*AppConfig, error)) (*AppConfig, err
 //interval : 20m
 func initServerIpList() {
 	syncServerIpList(nil)
-	logger.Debug("syncServerIpList started")
+	Logger.Debug("syncServerIpList started")
 
 	t2 := time.NewTimer(refresh_ip_list_interval)
 	for {
@@ -197,19 +203,19 @@ func initServerIpList() {
 }
 
 func syncServerIpListSuccessCallBack(responseBody []byte) (o interface{}, err error) {
-	logger.Debug("get all server info:", string(responseBody))
+	Logger.Debug("get all server info:", string(responseBody))
 
 	tmpServerInfo := make([]*serverInfo, 0)
 
 	err = json.Unmarshal(responseBody, &tmpServerInfo)
 
 	if err != nil {
-		logger.Error("Unmarshal json Fail,Error:", err)
+		Logger.Error("Unmarshal json Fail,Error:", err)
 		return
 	}
 
 	if len(tmpServerInfo) == 0 {
-		logger.Info("get no real server!")
+		Logger.Info("get no real server!")
 		return
 	}
 
@@ -256,8 +262,8 @@ func getConfigUrlByHost(config *AppConfig, host string) string {
 		url.QueryEscape(config.AppId),
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(config.NamespaceName),
-		url.QueryEscape(getCurrentApolloConfigReleaseKey(config.NamespaceName)),
-		getInternal())
+		url.QueryEscape(component.GetCurrentApolloConfigReleaseKey(config.NamespaceName)),
+		utils.GetInternal())
 }
 
 func getConfigURLSuffix(config *AppConfig, namespaceName string) string {
@@ -268,8 +274,8 @@ func getConfigURLSuffix(config *AppConfig, namespaceName string) string {
 		url.QueryEscape(config.AppId),
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(namespaceName),
-		url.QueryEscape(getCurrentApolloConfigReleaseKey(namespaceName)),
-		getInternal())
+		url.QueryEscape(component.GetCurrentApolloConfigReleaseKey(namespaceName)),
+		utils.GetInternal())
 }
 
 func getNotifyUrlSuffix(notifications string, config *AppConfig, newConfig *AppConfig) string {
@@ -286,5 +292,5 @@ func getServicesConfigUrl(config *AppConfig) string {
 	return fmt.Sprintf("%sservices/config?appId=%s&ip=%s",
 		config.getHost(),
 		url.QueryEscape(config.AppId),
-		getInternal())
+		utils.GetInternal())
 }

@@ -1,14 +1,20 @@
-package agollo
+package notify
 
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zouyx/agollo/v2/utils"
+	. "github.com/zouyx/agollo/v2/component/log"
+	"strings"
 	"sync"
 	"time"
 )
 
 const (
 	default_notification_id = -1
+	comma = ","
+
+	long_poll_interval        = 2 * time.Second //2s
 )
 
 var (
@@ -80,7 +86,7 @@ func initAllNotifications() {
 		}
 		return
 	}
-	namespaces := splitNamespaces(appConfig.NamespaceName,
+	namespaces := SplitNamespaces(appConfig.NamespaceName,
 		func(namespace string) {})
 
 	allNotifications = &notificationsMap{
@@ -105,7 +111,7 @@ func (this *NotifyConfigComponent) Start() {
 
 func notifySyncConfigServices() error {
 
-	remoteConfigs, err := notifyRemoteConfig(nil, empty)
+	remoteConfigs, err := notifyRemoteConfig(nil, utils.Empty)
 
 	if err != nil {
 		return fmt.Errorf("notifySyncConfigServices: %s", err)
@@ -121,7 +127,7 @@ func notifySyncConfigServices() error {
 
 	//first sync fail then load config file
 	if err != nil {
-		splitNamespaces(appConfig.NamespaceName, func(namespace string) {
+		SplitNamespaces(appConfig.NamespaceName, func(namespace string) {
 			config, _ := loadConfigFile(appConfig.BackupConfigPath, namespace)
 			if config != nil {
 				updateApolloConfig(config, false)
@@ -155,7 +161,7 @@ func toApolloConfig(resBody []byte) ([]*apolloNotify, error) {
 	err := json.Unmarshal(resBody, &remoteConfig)
 
 	if err != nil {
-		logger.Error("Unmarshal Msg Fail,Error:", err)
+		Logger.Error("Unmarshal Msg Fail,Error:", err)
 		return nil, err
 	}
 	return remoteConfig, nil
@@ -204,7 +210,7 @@ func autoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, 
 	apolloConfig, err := createApolloConfigWithJson(responseBody)
 
 	if err != nil {
-		logger.Error("Unmarshal Msg Fail,Error:", err)
+		Logger.Error("Unmarshal Msg Fail,Error:", err)
 		return nil, err
 	}
 
@@ -238,4 +244,14 @@ func autoSyncNamespaceConfigServices(newAppConfig *AppConfig, notifications map[
 		}
 	}
 	return err
+}
+
+func SplitNamespaces(namespacesStr string, callback func(namespace string)) map[string]int64 {
+	namespaces := make(map[string]int64, 1)
+	split := strings.Split(namespacesStr, comma)
+	for _, namespace := range split {
+		callback(namespace)
+		namespaces[namespace] = default_notification_id
+	}
+	return namespaces
 }

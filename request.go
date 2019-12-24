@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+	. "github.com/zouyx/agollo/v2/component/log"
 )
 
 type CallBack struct {
@@ -43,7 +44,7 @@ func request(requestUrl string, connectionConfig *ConnectConfig, callBack *CallB
 		res, err = client.Get(requestUrl)
 
 		if res == nil || err != nil {
-			logger.Error("Connect Apollo Server Fail,url:%s,Error:%s", requestUrl, err)
+			Logger.Error("Connect Apollo Server Fail,url:%s,Error:%s", requestUrl, err)
 			continue
 		}
 
@@ -52,7 +53,7 @@ func request(requestUrl string, connectionConfig *ConnectConfig, callBack *CallB
 		case http.StatusOK:
 			responseBody, err = ioutil.ReadAll(res.Body)
 			if err != nil {
-				logger.Error("Connect Apollo Server Fail,url:%s,Error:", requestUrl, err)
+				Logger.Error("Connect Apollo Server Fail,url:%s,Error:", requestUrl, err)
 				continue
 			}
 
@@ -62,16 +63,16 @@ func request(requestUrl string, connectionConfig *ConnectConfig, callBack *CallB
 				return nil, nil
 			}
 		case http.StatusNotModified:
-			logger.Info("Config Not Modified:", err)
+			Logger.Info("Config Not Modified:", err)
 			if callBack != nil && callBack.NotModifyCallBack != nil {
 				return nil, callBack.NotModifyCallBack()
 			} else {
 				return nil, nil
 			}
 		default:
-			logger.Error("Connect Apollo Server Fail,url:%s,Error:%s", requestUrl, err)
+			Logger.Error("Connect Apollo Server Fail,url:%s,Error:%s", requestUrl, err)
 			if res != nil {
-				logger.Error("Connect Apollo Server Fail,url:%s,StatusCode:%s", requestUrl, res.StatusCode)
+				Logger.Error("Connect Apollo Server Fail,url:%s,StatusCode:%s", requestUrl, res.StatusCode)
 			}
 			err = errors.New("Connect Apollo Server Fail!")
 			// if error then sleep
@@ -80,7 +81,7 @@ func request(requestUrl string, connectionConfig *ConnectConfig, callBack *CallB
 		}
 	}
 
-	logger.Error("Over Max Retry Still Error,Error:", err)
+	Logger.Error("Over Max Retry Still Error,Error:", err)
 	if err != nil {
 		err = errors.New("Over Max Retry Still Error!")
 	}

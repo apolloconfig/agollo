@@ -1,13 +1,13 @@
-package agollo
+package log
 
-var logger LoggerInterface
+var Logger LoggerInterface
 
 func init() {
-	logger = &DefaultLogger{}
+	Logger = &DefaultLogger{}
 }
 
 func initLogger(ILogger LoggerInterface) {
-	logger = ILogger
+	Logger = ILogger
 }
 
 type LoggerInterface interface {

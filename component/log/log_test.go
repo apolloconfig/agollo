@@ -1,4 +1,4 @@
-package agollo
+package log
 
 import "testing"
 
