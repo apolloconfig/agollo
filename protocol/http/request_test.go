@@ -1,10 +1,26 @@
-package agollo
+package http
 
 import (
-	. "github.com/tevid/gohamcrest"
 	"testing"
 	"time"
+
+	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v2/component"
+	"github.com/zouyx/agollo/v2/env"
 )
+
+func getTestAppConfig() *env.AppConfig {
+	jsonStr := `{
+    "appId": "test",
+    "cluster": "dev",
+    "namespaceName": "application",
+    "ip": "localhost:8888",
+    "releaseKey": "1"
+	}`
+	config, _ := env.CreateAppConfigWithJson(jsonStr)
+
+	return config
+}
 
 func TestRequestRecovery(t *testing.T) {
 	time.Sleep(1 * time.Second)
@@ -13,8 +29,8 @@ func TestRequestRecovery(t *testing.T) {
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 
-	appConfig := GetAppConfig(newAppConfig)
-	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
+	appConfig := env.GetAppConfig(newAppConfig)
+	urlSuffix := component.GetConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
 
 	o, err := requestRecovery(appConfig, &ConnectConfig{
 		Uri: urlSuffix,
@@ -34,7 +50,7 @@ func TestCustomTimeout(t *testing.T) {
 	newAppConfig.Ip = server.URL
 
 	startTime := time.Now().Unix()
-	appConfig := GetAppConfig(newAppConfig)
+	appConfig := env.GetAppConfig(newAppConfig)
 	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
 
 	o, err := requestRecovery(appConfig, &ConnectConfig{

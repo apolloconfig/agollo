@@ -3,15 +3,16 @@ package env
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/v2/component"
-	. "github.com/zouyx/agollo/v2/component/log"
-	"github.com/zouyx/agollo/v2/component/notify"
-	"github.com/zouyx/agollo/v2/utils"
 	"net/url"
 	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/zouyx/agollo/v2/component"
+	. "github.com/zouyx/agollo/v2/component/log"
+	"github.com/zouyx/agollo/v2/component/notify"
+	"github.com/zouyx/agollo/v2/utils"
 )
 
 const (
@@ -19,20 +20,17 @@ const (
 	ENV_CONFIG_FILE_PATH = "AGOLLO_CONF"
 )
 
+func init() {
+	//init config
+	initFileConfig()
+}
+
 var (
 	long_poll_connect_timeout = 1 * time.Minute //1m
 
-	connect_timeout = 1 * time.Second //1s
-	//notify timeout
-	nofity_connect_timeout = 10 * time.Minute //10m
-	//for on error retry
-	on_error_retry_interval = 1 * time.Second //1s
 	//for typed config agcache of parser result, e.g. integer, double, long, etc.
 	//max_config_cache_size    = 500             //500 agcache key
 	//config_cache_expire_time = 1 * time.Minute //1 minute
-
-	//max retries connect apollo
-	max_retries = 5
 
 	//refresh ip list
 	refresh_ip_list_interval = 20 * time.Minute //20m
@@ -60,11 +58,11 @@ type AppConfig struct {
 //getIsBackupConfig whether backup config after fetch config from apollo
 //false : no
 //true : yes (default)
-func (this *AppConfig) getIsBackupConfig() bool {
+func (this *AppConfig) GetIsBackupConfig() bool {
 	return this.IsBackupConfig
 }
 
-func (this *AppConfig) getBackupConfigPath() string {
+func (this *AppConfig) GetBackupConfigPath() string {
 	return this.BackupConfigPath
 }
 
@@ -94,7 +92,7 @@ func (this *AppConfig) isConnectDirectly() bool {
 	return false
 }
 
-func (this *AppConfig) selectHost() string {
+func (this *AppConfig) SelectHost() string {
 	if !this.isConnectDirectly() {
 		return this.getHost()
 	}
@@ -114,7 +112,7 @@ func (this *AppConfig) selectHost() string {
 	return host
 }
 
-func setDownNode(host string) {
+func SetDownNode(host string) {
 	if host == "" || appConfig == nil {
 		return
 	}
@@ -143,10 +141,10 @@ type serverInfo struct {
 
 func initFileConfig() {
 	// default use application.properties
-	initConfig(nil)
+	InitConfig(nil)
 }
 
-func initConfig(loadAppConfig func() (*AppConfig, error)) {
+func InitConfig(loadAppConfig func() (*AppConfig, error)) {
 	var err error
 	//init config file
 	appConfig, err = getLoadAppConfig(loadAppConfig)
@@ -154,8 +152,6 @@ func initConfig(loadAppConfig func() (*AppConfig, error)) {
 	if err != nil {
 		return
 	}
-
-	initAllNotifications()
 	initApolloConfigCache(appConfig.NamespaceName)
 }
 
@@ -266,31 +262,13 @@ func getConfigUrlByHost(config *AppConfig, host string) string {
 		utils.GetInternal())
 }
 
-func getConfigURLSuffix(config *AppConfig, namespaceName string) string {
-	if config == nil {
-		return ""
-	}
-	return fmt.Sprintf("configs/%s/%s/%s?releaseKey=%s&ip=%s",
-		url.QueryEscape(config.AppId),
-		url.QueryEscape(config.Cluster),
-		url.QueryEscape(namespaceName),
-		url.QueryEscape(component.GetCurrentApolloConfigReleaseKey(namespaceName)),
-		utils.GetInternal())
-}
-
-func getNotifyUrlSuffix(notifications string, config *AppConfig, newConfig *AppConfig) string {
-	if newConfig != nil {
-		return ""
-	}
-	return fmt.Sprintf("notifications/v2?appId=%s&cluster=%s&notifications=%s",
-		url.QueryEscape(config.AppId),
-		url.QueryEscape(config.Cluster),
-		url.QueryEscape(notifications))
-}
-
 func getServicesConfigUrl(config *AppConfig) string {
 	return fmt.Sprintf("%sservices/config?appId=%s&ip=%s",
 		config.getHost(),
 		url.QueryEscape(config.AppId),
 		utils.GetInternal())
+}
+
+func GetPlainAppConfig() *AppConfig {
+	return appConfig
 }

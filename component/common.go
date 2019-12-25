@@ -2,11 +2,15 @@ package component
 
 import (
 	"encoding/json"
-	"github.com/zouyx/agollo/v2/utils"
+	"fmt"
+	"net/url"
 	"sync"
+
+	"github.com/zouyx/agollo/v2/env"
+	"github.com/zouyx/agollo/v2/utils"
 )
 
-var(
+var (
 	currentConnApolloConfig = &currentApolloConfig{
 		configs: make(map[string]*ApolloConnConfig, 1),
 	}
@@ -38,19 +42,26 @@ type ApolloConfig struct {
 	Configurations map[string]string `json:"configurations"`
 }
 
-func (a *ApolloConfig) Init(appId string,cluster string, namespace string) {
+func (a *ApolloConfig) Init(appId string, cluster string, namespace string) {
 	a.AppId = appId
 	a.Cluster = cluster
 	a.NamespaceName = namespace
 }
 
-func createApolloConfigWithJson(b []byte) (*ApolloConfig, error) {
+func CreateApolloConfigWithJson(b []byte) (*ApolloConfig, error) {
 	apolloConfig := &ApolloConfig{}
 	err := json.Unmarshal(b, apolloConfig)
 	if utils.IsNotNil(err) {
 		return nil, err
 	}
 	return apolloConfig, nil
+}
+
+func SetCurrentApolloConfig(namespace string, connConfig *ApolloConnConfig) {
+	currentConnApolloConfig.l.Lock()
+	defer currentConnApolloConfig.l.Unlock()
+
+	currentConnApolloConfig.configs[namespace] = connConfig
 }
 
 //GetCurrentApolloConfig 获取Apollo链接配置
@@ -70,4 +81,16 @@ func GetCurrentApolloConfigReleaseKey(namespace string) string {
 	}
 
 	return config.ReleaseKey
+}
+
+func GetConfigURLSuffix(config *env.AppConfig, namespaceName string) string {
+	if config == nil {
+		return ""
+	}
+	return fmt.Sprintf("configs/%s/%s/%s?releaseKey=%s&ip=%s",
+		url.QueryEscape(config.AppId),
+		url.QueryEscape(config.Cluster),
+		url.QueryEscape(namespaceName),
+		url.QueryEscape(GetCurrentApolloConfigReleaseKey(namespaceName)),
+		utils.GetInternal())
 }

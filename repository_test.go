@@ -2,7 +2,10 @@ package agollo
 
 import (
 	"encoding/json"
+
 	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v2/component"
+
 	"testing"
 	"time"
 )
@@ -27,7 +30,7 @@ func createMockApolloConfig(expireTime int) map[string]string {
 	return configs
 }
 
-func getFirstApolloConfig(t *testing.T, currentConfig map[string]*ApolloConnConfig) []byte {
+func getFirstApolloConfig(t *testing.T, currentConfig map[string]*component.ApolloConnConfig) []byte {
 	i := 0
 	var currentJSON []byte
 	var err error
@@ -48,18 +51,18 @@ func getFirstApolloConfig(t *testing.T, currentConfig map[string]*ApolloConnConf
 
 func TestUpdateApolloConfigNull(t *testing.T) {
 	time.Sleep(1 * time.Second)
-	var currentConfig *ApolloConnConfig
-	currentJSON := getFirstApolloConfig(t, currentConnApolloConfig.configs)
+	var currentConfig *component.ApolloConnConfig
+
+	currentConnApolloConfig := component.GetCurrentApolloConfig()
+	currentJSON := getFirstApolloConfig(t, currentConnApolloConfig)
 
 	json.Unmarshal(currentJSON, &currentConfig)
 
 	Assert(t, currentConfig, NotNilVal())
 
-	updateApolloConfig(nil, true)
+	UpdateApolloConfig(nil, true)
 
-	currentConnApolloConfig.l.RLock()
-	defer currentConnApolloConfig.l.RUnlock()
-	config := currentConnApolloConfig.configs[defaultNamespace]
+	config := currentConnApolloConfig[defaultNamespace]
 
 	//make sure currentConnApolloConfig was not modified
 	//Assert(t, currentConfig.NamespaceName, config.NamespaceName)
@@ -81,13 +84,13 @@ func TestGetApolloConfigCache(t *testing.T) {
 
 func TestGetConfigValueNullApolloConfig(t *testing.T) {
 	//clear Configurations
-	defaultConfigCache := getDefaultConfigCache()
+	defaultConfigCache := GetDefaultConfigCache()
 	defaultConfigCache.Clear()
 
 	//test getValue
 	value := getValue("joe")
 
-	Assert(t, empty, Equal(value))
+	Assert(t, "", Equal(value))
 
 	//test GetStringValue
 	defaultValue := "j"

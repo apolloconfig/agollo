@@ -1,12 +1,15 @@
 package agollo
 
 import (
-	"github.com/zouyx/agollo/v2/agcache"
-	"github.com/zouyx/agollo/v2/component/notify"
-	"github.com/zouyx/agollo/v2/utils"
 	"strconv"
 	"sync"
 	"sync/atomic"
+
+	"github.com/zouyx/agollo/v2/agcache"
+	"github.com/zouyx/agollo/v2/component"
+	"github.com/zouyx/agollo/v2/component/notify"
+	"github.com/zouyx/agollo/v2/env"
+	"github.com/zouyx/agollo/v2/utils"
 
 	. "github.com/zouyx/agollo/v2/component/log"
 )
@@ -57,11 +60,11 @@ func initDefaultConfig() {
 }
 
 func initConfigCache(cacheFactory *agcache.DefaultCacheFactory) {
-	if appConfig == nil {
+	if env.GetPlainAppConfig() == nil {
 		Logger.Warn("Config is nil,can not init agollo.")
 		return
 	}
-	createNamespaceConfig(cacheFactory, appConfig.NamespaceName)
+	createNamespaceConfig(cacheFactory, env.GetPlainAppConfig().NamespaceName)
 }
 
 func createNamespaceConfig(cacheFactory *agcache.DefaultCacheFactory, namespace string) {
@@ -187,7 +190,7 @@ func GetConfigAndInit(namespace string) *Config {
 	if !ok {
 		createNamespaceConfig(cacheFactory, namespace)
 
-		notifySimpleSyncConfigServices(namespace)
+		notify.NotifySimpleSyncConfigServices(namespace)
 	}
 
 	if config, ok = apolloConfigCache.Load(namespace); !ok {
@@ -210,7 +213,7 @@ func GetConfigCache(namespace string) agcache.CacheInterface {
 	return config.cache
 }
 
-func getDefaultConfigCache() agcache.CacheInterface {
+func GetDefaultConfigCache() agcache.CacheInterface {
 	config := GetConfigAndInit(defaultNamespace)
 	if config != nil {
 		return config.cache
@@ -218,7 +221,7 @@ func getDefaultConfigCache() agcache.CacheInterface {
 	return nil
 }
 
-func updateApolloConfig(apolloConfig *ApolloConfig, isBackupConfig bool) {
+func UpdateApolloConfig(apolloConfig *component.ApolloConfig, isBackupConfig bool) {
 	if apolloConfig == nil {
 		Logger.Error("apolloConfig is null,can't update!")
 		return
@@ -235,14 +238,11 @@ func updateApolloConfig(apolloConfig *ApolloConfig, isBackupConfig bool) {
 	}
 
 	//update apollo connection config
-	currentConnApolloConfig.l.Lock()
-	defer currentConnApolloConfig.l.Unlock()
-
-	currentConnApolloConfig.configs[apolloConfig.NamespaceName] = &apolloConfig.ApolloConnConfig
+	component.SetCurrentApolloConfig(apolloConfig.NamespaceName, &apolloConfig.ApolloConnConfig)
 
 	if isBackupConfig {
 		//write config file async
-		go writeConfigFile(apolloConfig, appConfig.getBackupConfigPath())
+		go env.WriteConfigFile(apolloConfig, env.GetPlainAppConfig().GetBackupConfigPath())
 	}
 }
 
@@ -320,17 +320,13 @@ func createConfigChangeEvent(changes map[string]*ConfigChange, nameSpace string)
 	}
 }
 
-func touchApolloConfigCache() error {
-	return nil
-}
-
 //GetApolloConfigCache 获取默认namespace的apollo配置
 func GetApolloConfigCache() agcache.CacheInterface {
-	return getDefaultConfigCache()
+	return GetDefaultConfigCache()
 }
 
 func getConfigValue(key string) interface{} {
-	value, err := getDefaultConfigCache().Get(key)
+	value, err := GetDefaultConfigCache().Get(key)
 	if err != nil {
 		Logger.Errorf("get config value fail!key:%s,err:%s", key, err)
 		return utils.Empty

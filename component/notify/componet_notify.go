@@ -3,18 +3,27 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/v2/utils"
-	. "github.com/zouyx/agollo/v2/component/log"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/zouyx/agollo/v2"
+	"github.com/zouyx/agollo/v2/component"
+	. "github.com/zouyx/agollo/v2/component/log"
+	"github.com/zouyx/agollo/v2/env"
+	"github.com/zouyx/agollo/v2/protocol/http"
+	"github.com/zouyx/agollo/v2/utils"
 )
 
 const (
 	default_notification_id = -1
-	comma = ","
+	comma                   = ","
 
-	long_poll_interval        = 2 * time.Second //2s
+	long_poll_interval = 2 * time.Second //2s
+
+	//notify timeout
+	nofity_connect_timeout = 10 * time.Minute //10m
 )
 
 var (
@@ -80,6 +89,7 @@ func (n *notificationsMap) getNotifies(namespace string) string {
 }
 
 func initAllNotifications() {
+	appConfig := env.GetPlainAppConfig()
 	if appConfig == nil {
 		allNotifications = &notificationsMap{
 			notifications: make(map[string]int64, 0),
@@ -126,11 +136,12 @@ func notifySyncConfigServices() error {
 	err = autoSyncConfigServices(nil)
 
 	//first sync fail then load config file
+	appConfig := env.GetPlainAppConfig()
 	if err != nil {
 		SplitNamespaces(appConfig.NamespaceName, func(namespace string) {
-			config, _ := loadConfigFile(appConfig.BackupConfigPath, namespace)
+			config, _ := env.LoadConfigFile(appConfig.BackupConfigPath, namespace)
 			if config != nil {
-				updateApolloConfig(config, false)
+				agollo.UpdateApolloConfig(config, false)
 			}
 		})
 	}
@@ -138,7 +149,7 @@ func notifySyncConfigServices() error {
 	return nil
 }
 
-func notifySimpleSyncConfigServices(namespace string) error {
+func NotifySimpleSyncConfigServices(namespace string) error {
 
 	remoteConfigs, err := notifyRemoteConfig(nil, namespace)
 
@@ -167,8 +178,8 @@ func toApolloConfig(resBody []byte) ([]*apolloNotify, error) {
 	return remoteConfig, nil
 }
 
-func notifyRemoteConfig(newAppConfig *AppConfig, namespace string) ([]*apolloNotify, error) {
-	appConfig := GetAppConfig(newAppConfig)
+func notifyRemoteConfig(newAppConfig *env.AppConfig, namespace string) ([]*apolloNotify, error) {
+	appConfig := env.GetAppConfig(newAppConfig)
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}
@@ -176,10 +187,10 @@ func notifyRemoteConfig(newAppConfig *AppConfig, namespace string) ([]*apolloNot
 
 	//seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
 
-	notifies, err := requestRecovery(appConfig, &ConnectConfig{
+	notifies, err := http.RequestRecovery(appConfig, &env.ConnectConfig{
 		Uri:     urlSuffix,
 		Timeout: nofity_connect_timeout,
-	}, &CallBack{
+	}, &http.CallBack{
 		SuccessCallBack: func(responseBody []byte) (interface{}, error) {
 			return toApolloConfig(responseBody)
 		},
@@ -191,6 +202,9 @@ func notifyRemoteConfig(newAppConfig *AppConfig, namespace string) ([]*apolloNot
 	}
 
 	return notifies.([]*apolloNotify), err
+}
+func touchApolloConfigCache() error {
+	return nil
 }
 
 func updateAllNotifications(remoteConfigs []*apolloNotify) {
@@ -207,35 +221,36 @@ func updateAllNotifications(remoteConfigs []*apolloNotify) {
 }
 
 func autoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, err error) {
-	apolloConfig, err := createApolloConfigWithJson(responseBody)
+	apolloConfig, err := component.CreateApolloConfigWithJson(responseBody)
 
 	if err != nil {
 		Logger.Error("Unmarshal Msg Fail,Error:", err)
 		return nil, err
 	}
+	appConfig := env.GetPlainAppConfig()
 
-	updateApolloConfig(apolloConfig, appConfig.getIsBackupConfig())
+	agollo.UpdateApolloConfig(apolloConfig, appConfig.GetIsBackupConfig())
 
 	return nil, nil
 }
 
-func autoSyncConfigServices(newAppConfig *AppConfig) error {
+func autoSyncConfigServices(newAppConfig *env.AppConfig) error {
 	return autoSyncNamespaceConfigServices(newAppConfig, allNotifications.notifications)
 }
 
-func autoSyncNamespaceConfigServices(newAppConfig *AppConfig, notifications map[string]int64) error {
-	appConfig := GetAppConfig(newAppConfig)
+func autoSyncNamespaceConfigServices(newAppConfig *env.AppConfig, notifications map[string]int64) error {
+	appConfig := env.GetAppConfig(newAppConfig)
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}
 
 	var err error
 	for namespace := range notifications {
-		urlSuffix := getConfigURLSuffix(appConfig, namespace)
+		urlSuffix := component.GetConfigURLSuffix(appConfig, namespace)
 
-		_, err = requestRecovery(appConfig, &ConnectConfig{
+		_, err = http.RequestRecovery(appConfig, &env.ConnectConfig{
 			Uri: urlSuffix,
-		}, &CallBack{
+		}, &http.CallBack{
 			SuccessCallBack:   autoSyncConfigServicesSuccessCallBack,
 			NotModifyCallBack: touchApolloConfigCache,
 		})
@@ -254,4 +269,14 @@ func SplitNamespaces(namespacesStr string, callback func(namespace string)) map[
 		namespaces[namespace] = default_notification_id
 	}
 	return namespaces
+}
+
+func getNotifyUrlSuffix(notifications string, config *env.AppConfig, newConfig *env.AppConfig) string {
+	if newConfig != nil {
+		return ""
+	}
+	return fmt.Sprintf("notifications/v2?appId=%s&cluster=%s&notifications=%s",
+		url.QueryEscape(config.AppId),
+		url.QueryEscape(config.Cluster),
+		url.QueryEscape(notifications))
 }

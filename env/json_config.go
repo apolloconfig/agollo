@@ -3,8 +3,9 @@ package env
 import (
 	"encoding/json"
 	"errors"
-	"github.com/zouyx/agollo/v2/utils"
 	"io/ioutil"
+
+	"github.com/zouyx/agollo/v2/utils"
 )
 
 var (
@@ -18,7 +19,7 @@ func loadJsonConfig(fileName string) (*AppConfig, error) {
 		return nil, errors.New("Fail to read config file:" + err.Error())
 	}
 
-	appConfig, loadErr := createAppConfigWithJson(string(fs))
+	appConfig, loadErr := CreateAppConfigWithJson(string(fs))
 
 	if utils.IsNotNil(loadErr) {
 		return nil, errors.New("Load Json Config fail:" + loadErr.Error())
@@ -27,7 +28,7 @@ func loadJsonConfig(fileName string) (*AppConfig, error) {
 	return appConfig, nil
 }
 
-func createAppConfigWithJson(str string) (*AppConfig, error) {
+func CreateAppConfigWithJson(str string) (*AppConfig, error) {
 	appConfig := &AppConfig{
 		Cluster:        default_cluster,
 		NamespaceName:  default_namespace,

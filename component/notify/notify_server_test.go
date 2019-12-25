@@ -1,4 +1,4 @@
-package agollo
+package notify
 
 import (
 	"fmt"
@@ -8,7 +8,6 @@ import (
 )
 
 const responseStr = `[{"namespaceName":"application","notificationId":%d}]`
-const responseTwoStr = `[{"namespaceName":"application","notificationId":%d},{"namespaceName":"abc1","notificationId":%d}]`
 
 var normalNotifyCount = 1
 
@@ -27,26 +26,6 @@ func runNormalResponse() *httptest.Server {
 			time.Sleep(5 * time.Second)
 			w.WriteHeader(http.StatusNotModified)
 		}
-	}))
-
-	return ts
-}
-
-func onlyNormalResponse(rw http.ResponseWriter, req *http.Request) {
-	result := fmt.Sprintf(responseStr, 3)
-	fmt.Fprintf(rw, "%s", result)
-}
-
-func onlyNormalTwoResponse(rw http.ResponseWriter, req *http.Request) {
-	result := fmt.Sprintf(responseTwoStr, 3, 3)
-	fmt.Fprintf(rw, "%s", result)
-}
-
-//Error response
-//will hold 5s and keep response 404
-func runErrorResponse() *httptest.Server {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNotFound)
 	}))
 
 	return ts

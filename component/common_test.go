@@ -2,6 +2,7 @@ package component
 
 import (
 	. "github.com/tevid/gohamcrest"
+
 	"testing"
 )
 
@@ -17,7 +18,7 @@ func TestCreateApolloConfigWithJson(t *testing.T) {
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
-	config, err := createApolloConfigWithJson([]byte(jsonStr))
+	config, err := CreateApolloConfigWithJson([]byte(jsonStr))
 
 	Assert(t, err, NilVal())
 	Assert(t, config, NotNilVal())
@@ -34,7 +35,7 @@ func TestCreateApolloConfigWithJson(t *testing.T) {
 func TestCreateApolloConfigWithJsonError(t *testing.T) {
 	jsonStr := `jklasdjflasjdfa`
 
-	config, err := createApolloConfigWithJson([]byte(jsonStr))
+	config, err := CreateApolloConfigWithJson([]byte(jsonStr))
 
 	Assert(t, err, NotNilVal())
 	Assert(t, config, NilVal())

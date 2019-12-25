@@ -6,7 +6,7 @@ func init() {
 	Logger = &DefaultLogger{}
 }
 
-func initLogger(ILogger LoggerInterface) {
+func InitLogger(ILogger LoggerInterface) {
 	Logger = ILogger
 }
 

@@ -8,6 +8,9 @@ import (
 	"time"
 
 	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v2"
+	"github.com/zouyx/agollo/v2/component"
+	"github.com/zouyx/agollo/v2/env"
 )
 
 func TestSyncConfigServices(t *testing.T) {
@@ -15,7 +18,7 @@ func TestSyncConfigServices(t *testing.T) {
 }
 
 func TestGetRemoteConfig(t *testing.T) {
-	server := runNormalResponse()
+	server := mock.runNormalResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 
@@ -51,7 +54,8 @@ func TestGetRemoteConfig(t *testing.T) {
 }
 
 func TestErrorGetRemoteConfig(t *testing.T) {
-	server := runErrorResponse()
+	appConfig := env.GetPlainAppConfig()
+	server := mock.runErrorResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 	appConfig.Ip = server.URL
@@ -130,20 +134,20 @@ func TestToApolloConfigError(t *testing.T) {
 
 func TestAutoSyncConfigServices(t *testing.T) {
 	initNotifications()
-	server := runNormalConfigResponse()
+	server := mock.runNormalConfigResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 
 	time.Sleep(1 * time.Second)
 
-	appConfig.NextTryConnTime = 0
+	env.GetPlainAppConfig().NextTryConnTime = 0
 
 	err := autoSyncConfigServices(newAppConfig)
 	err = autoSyncConfigServices(newAppConfig)
 
 	Assert(t, err, NilVal())
 
-	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
+	config := component.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	Assert(t, "100004458", Equal(config.AppId))
 	Assert(t, "default", Equal(config.Cluster))
@@ -158,8 +162,9 @@ func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
 	server := runNormalConfigResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
+	appConfig := env.GetPlainAppConfig()
 	appConfig.IsBackupConfig = false
-	configFilePath := getConfigFile(newAppConfig.getBackupConfigPath(), "application")
+	configFilePath := env.GetConfigFile(newAppConfig.GetBackupConfigPath(), "application")
 	err := os.Remove(configFilePath)
 
 	time.Sleep(1 * time.Second)
@@ -174,23 +179,23 @@ func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
 }
 
 func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
-	server := runLongNotmodifiedConfigResponse()
+	server := mock.runLongNotmodifiedConfigResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 	time.Sleep(1 * time.Second)
-
+	appConfig := env.GetPlainAppConfig()
 	appConfig.NextTryConnTime = 0
 
-	autoSyncConfigServicesSuccessCallBack([]byte(configResponseStr))
+	autoSyncConfigServicesSuccessCallBack([]byte(mock.configResponseStr))
 
-	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
+	config := component.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	fmt.Println("sleeping 10s")
 
 	time.Sleep(10 * time.Second)
 
 	fmt.Println("checking agcache time left")
-	defaultConfigCache := getDefaultConfigCache()
+	defaultConfigCache := agollo.GetDefaultConfigCache()
 
 	defaultConfigCache.Range(func(key, value interface{}) bool {
 		Assert(t, string(value.([]byte)), NotNilVal())
@@ -201,8 +206,8 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	Assert(t, "default", Equal(config.Cluster))
 	Assert(t, "application", Equal(config.NamespaceName))
 	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
-	Assert(t, "value1", Equal(getValue("key1")))
-	Assert(t, "value2", Equal(getValue("key2")))
+	Assert(t, "value1", Equal(agollo.GetStringValue("key1", "")))
+	Assert(t, "value2", Equal(agollo.GetStringValue("key2", "")))
 
 	err := autoSyncConfigServices(newAppConfig)
 
@@ -220,25 +225,27 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 }
 
 func checkNilBackupFile(t *testing.T) {
-	newConfig, e := loadConfigFile(appConfig.getBackupConfigPath(), "application")
+	appConfig := env.GetPlainAppConfig()
+	newConfig, e := env.LoadConfigFile(appConfig.GetBackupConfigPath(), "application")
 	Assert(t, e, NotNilVal())
 	Assert(t, newConfig, NilVal())
 }
 
 func checkBackupFile(t *testing.T) {
-	newConfig, e := loadConfigFile(appConfig.getBackupConfigPath(), "application")
+	appConfig := env.GetPlainAppConfig()
+	newConfig, e := env.LoadConfigFile(appConfig.GetBackupConfigPath(), "application")
 	t.Log(newConfig.Configurations)
 	Assert(t, e, NilVal())
 	Assert(t, newConfig.Configurations, NotNilVal())
 	for k, v := range newConfig.Configurations {
-		Assert(t, getValue(k), Equal(v))
+		Assert(t, agollo.GetStringValue(k, ""), Equal(v))
 	}
 }
 
 func TestAutoSyncConfigServicesError(t *testing.T) {
 	//reload app properties
-	go initFileConfig()
-	server := runErrorConfigResponse()
+	go env.InitConfig(nil)
+	server := mock.runErrorConfigResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 
@@ -248,11 +255,24 @@ func TestAutoSyncConfigServicesError(t *testing.T) {
 
 	Assert(t, err, NotNilVal())
 
-	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
+	config := component.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	//still properties config
 	Assert(t, "test", Equal(config.AppId))
 	Assert(t, "dev", Equal(config.Cluster))
 	Assert(t, "application", Equal(config.NamespaceName))
 	Assert(t, "", Equal(config.ReleaseKey))
+}
+
+func getTestAppConfig() *env.AppConfig {
+	jsonStr := `{
+    "appId": "test",
+    "cluster": "dev",
+    "namespaceName": "application",
+    "ip": "localhost:8888",
+    "releaseKey": "1"
+	}`
+	config, _ := env.CreateAppConfigWithJson(jsonStr)
+
+	return config
 }

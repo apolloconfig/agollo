@@ -1,4 +1,4 @@
-package agollo
+package notify
 
 import (
 	"fmt"
@@ -6,6 +6,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"time"
+
+	"github.com/zouyx/agollo/v2/env"
 )
 
 const configResponseStr = `{
@@ -15,17 +17,6 @@ const configResponseStr = `{
   "configurations": {
     "key1":"value1",
     "key2":"value2"
-  },
-  "releaseKey": "20170430092936-dee2d58e74515ff3"
-}`
-
-const configSecondResponseStr = `{
-  "appId": "100004459",
-  "cluster": "default",
-  "namespaceName": "abc1",
-  "configurations": {
-    "key1-1":"value1-1",
-    "key1-2":"value2-1"
   },
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
@@ -45,7 +36,7 @@ const configChangeResponseStr = `{
 //run mock config server
 func runMockConfigServer(handlerMap map[string]func(http.ResponseWriter, *http.Request),
 	notifyHandler func(http.ResponseWriter, *http.Request)) *httptest.Server {
-	appConfig := GetAppConfig(nil)
+	appConfig := env.GetPlainAppConfig()
 	uriHandlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 0)
 	for namespace, handler := range handlerMap {
 		uri := fmt.Sprintf("/configs/%s/%s/%s", appConfig.AppId, appConfig.Cluster, namespace)
@@ -82,54 +73,6 @@ func runNormalConfigResponse() *httptest.Server {
 			time.Sleep(500 * time.Microsecond)
 			w.WriteHeader(http.StatusNotModified)
 		}
-	}))
-
-	return ts
-}
-
-func runLongNotmodifiedConfigResponse() *httptest.Server {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(500 * time.Microsecond)
-		w.WriteHeader(http.StatusNotModified)
-	}))
-
-	return ts
-}
-
-func runChangeConfigResponse() *httptest.Server {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(configChangeResponseStr))
-	}))
-
-	return ts
-}
-
-func onlyNormalConfigResponse(rw http.ResponseWriter, req *http.Request) {
-	rw.WriteHeader(http.StatusOK)
-	fmt.Fprintf(rw, configResponseStr)
-}
-
-func onlyNormalSecondConfigResponse(rw http.ResponseWriter, req *http.Request) {
-	rw.WriteHeader(http.StatusOK)
-	fmt.Fprintf(rw, configSecondResponseStr)
-}
-
-func runNotModifyConfigResponse() *httptest.Server {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(800 * time.Microsecond)
-		w.WriteHeader(http.StatusNotModified)
-	}))
-
-	return ts
-}
-
-//Error response
-//will hold 5s and keep response 404
-func runErrorConfigResponse() *httptest.Server {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		time.Sleep(500 * time.Microsecond)
-		w.WriteHeader(http.StatusNotFound)
 	}))
 
 	return ts

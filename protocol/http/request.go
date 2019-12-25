@@ -1,4 +1,4 @@
-package agollo
+package http
 
 import (
 	"errors"
@@ -6,7 +6,19 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+
 	. "github.com/zouyx/agollo/v2/component/log"
+	"github.com/zouyx/agollo/v2/env"
+)
+
+var (
+	//for on error retry
+	on_error_retry_interval = 1 * time.Second //1s
+
+	connect_timeout = 1 * time.Second //1s
+
+	//max retries connect apollo
+	max_retries = 5
 )
 
 type CallBack struct {
@@ -14,14 +26,7 @@ type CallBack struct {
 	NotModifyCallBack func() error
 }
 
-type ConnectConfig struct {
-	//设置到http.client中timeout字段
-	Timeout time.Duration
-	//连接接口的uri
-	Uri string
-}
-
-func request(requestUrl string, connectionConfig *ConnectConfig, callBack *CallBack) (interface{}, error) {
+func request(requestUrl string, connectionConfig *env.ConnectConfig, callBack *CallBack) (interface{}, error) {
 	client := &http.Client{}
 	//如有设置自定义超时时间即使用
 	if connectionConfig != nil && connectionConfig.Timeout != 0 {
@@ -88,15 +93,15 @@ func request(requestUrl string, connectionConfig *ConnectConfig, callBack *CallB
 	return nil, err
 }
 
-func requestRecovery(appConfig *AppConfig,
-	connectConfig *ConnectConfig,
+func RequestRecovery(appConfig *env.AppConfig,
+	connectConfig *env.ConnectConfig,
 	callBack *CallBack) (interface{}, error) {
 	format := "%s%s"
 	var err error
 	var response interface{}
 
 	for {
-		host := appConfig.selectHost()
+		host := appConfig.SelectHost()
 		if host == "" {
 			return nil, err
 		}
@@ -107,7 +112,7 @@ func requestRecovery(appConfig *AppConfig,
 			return response, err
 		}
 
-		setDownNode(host)
+		env.SetDownNode(host)
 	}
 
 	return nil, errors.New("Try all Nodes Still Error!")

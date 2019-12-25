@@ -1,10 +1,21 @@
-package agollo
+package http
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"time"
 )
+
+const configResponseStr = `{
+  "appId": "100004458",
+  "cluster": "default",
+  "namespaceName": "application",
+  "configurations": {
+    "key1":"value1",
+    "key2":"value2"
+  },
+  "releaseKey": "20170430092936-dee2d58e74515ff3"
+}`
 
 var IP1 = "localhost:7080"
 var IP2 = "localhost:7081"

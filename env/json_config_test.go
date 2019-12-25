@@ -2,9 +2,10 @@ package env
 
 import (
 	"encoding/json"
-	. "github.com/tevid/gohamcrest"
 	"os"
 	"testing"
+
+	. "github.com/tevid/gohamcrest"
 )
 
 func TestLoadJsonConfig(t *testing.T) {
@@ -75,7 +76,7 @@ func TestCreateAppConfigWithJson(t *testing.T) {
     "ip": "localhost:8888",
     "releaseKey": ""
 	}`
-	config, err := createAppConfigWithJson(jsonStr)
+	config, err := CreateAppConfigWithJson(jsonStr)
 	t.Log(config)
 
 	Assert(t, err, NilVal())
@@ -113,7 +114,7 @@ import (
 	"fmt"
 	"net/url"
 )`
-	config, err := createAppConfigWithJson(jsonStr)
+	config, err := CreateAppConfigWithJson(jsonStr)
 	t.Log(err)
 
 	Assert(t, err, NotNilVal())
@@ -125,7 +126,7 @@ func TestCreateAppConfigWithJsonDefault(t *testing.T) {
     "appId": "testDefault",
     "ip": "localhost:9999"
 	}`
-	config, err := createAppConfigWithJson(jsonStr)
+	config, err := CreateAppConfigWithJson(jsonStr)
 	t.Log(err)
 
 	Assert(t, err, NilVal())

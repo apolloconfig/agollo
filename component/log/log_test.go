@@ -3,37 +3,37 @@ package log
 import "testing"
 
 func TestDebugf(t *testing.T) {
-	logger.Debugf("")
+	Logger.Debugf("")
 }
 
 func TestInfof(t *testing.T) {
-	logger.Infof("")
+	Logger.Infof("")
 }
 
 func TestErrorf(t *testing.T) {
-	logger.Errorf("")
+	Logger.Errorf("")
 }
 
 func TestWarnf(t *testing.T) {
-	logger.Warnf("")
+	Logger.Warnf("")
 }
 
 func TestDebug(t *testing.T) {
-	logger.Debug("")
+	Logger.Debug("")
 }
 
 func TestInfo(t *testing.T) {
-	logger.Info("")
+	Logger.Info("")
 }
 
 func TestError(t *testing.T) {
-	logger.Error("")
+	Logger.Error("")
 }
 
 func TestWarn(t *testing.T) {
-	logger.Warn("")
+	Logger.Warn("")
 }
 
 func TestInitLogger(t *testing.T) {
-	initLogger(logger)
+	InitLogger(Logger)
 }

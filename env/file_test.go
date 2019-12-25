@@ -1,9 +1,11 @@
-package agollo
+package env
 
 import (
-	. "github.com/tevid/gohamcrest"
 	"os"
 	"testing"
+
+	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v2/component"
 )
 
 func TestWriteConfigFile(t *testing.T) {
@@ -19,11 +21,11 @@ func TestWriteConfigFile(t *testing.T) {
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
-	config, err := createApolloConfigWithJson([]byte(jsonStr))
-	os.Remove(getConfigFile(configPath, config.NamespaceName))
+	config, err := component.CreateApolloConfigWithJson([]byte(jsonStr))
+	os.Remove(GetConfigFile(configPath, config.NamespaceName))
 
 	Assert(t, err, NilVal())
-	e := writeConfigFile(config, configPath)
+	e := WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
 }
 
@@ -39,10 +41,10 @@ func TestLoadConfigFile(t *testing.T) {
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
-	config, err := createApolloConfigWithJson([]byte(jsonStr))
+	config, err := component.CreateApolloConfigWithJson([]byte(jsonStr))
 
 	Assert(t, err, NilVal())
-	newConfig, e := loadConfigFile("", config.NamespaceName)
+	newConfig, e := LoadConfigFile("", config.NamespaceName)
 
 	t.Log(newConfig)
 	Assert(t, e, NilVal())

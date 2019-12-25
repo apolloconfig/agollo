@@ -2,8 +2,16 @@ package env
 
 import (
 	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v2"
+	"github.com/zouyx/agollo/v2/component"
+	"github.com/zouyx/agollo/v2/utils"
+
 	"testing"
 	"time"
+)
+
+var (
+	defaultNamespace = "application"
 )
 
 func TestInit(t *testing.T) {
@@ -16,7 +24,7 @@ func TestInit(t *testing.T) {
 	Assert(t, "application,abc1", Equal(config.NamespaceName))
 	Assert(t, "localhost:8888", Equal(config.Ip))
 
-	apolloConfig := GetCurrentApolloConfig()[defaultNamespace]
+	apolloConfig := component.GetCurrentApolloConfig()[defaultNamespace]
 	Assert(t, "test", Equal(apolloConfig.AppId))
 	Assert(t, "dev", Equal(apolloConfig.Cluster))
 	Assert(t, "application", Equal(apolloConfig.NamespaceName))
@@ -32,7 +40,7 @@ func TestStructInit(t *testing.T) {
 		Ip:            "localhost:8889",
 	}
 
-	InitCustomConfig(func() (*AppConfig, error) {
+	agollo.InitCustomConfig(func() (*AppConfig, error) {
 		return readyConfig, nil
 	})
 
@@ -45,7 +53,7 @@ func TestStructInit(t *testing.T) {
 	Assert(t, "application1", Equal(config.NamespaceName))
 	Assert(t, "localhost:8889", Equal(config.Ip))
 
-	apolloConfig := GetCurrentApolloConfig()[config.NamespaceName]
+	apolloConfig := component.GetCurrentApolloConfig()[config.NamespaceName]
 	Assert(t, "test1", Equal(apolloConfig.AppId))
 	Assert(t, "dev1", Equal(apolloConfig.Cluster))
 	Assert(t, "application1", Equal(apolloConfig.NamespaceName))
@@ -69,7 +77,7 @@ func TestGetConfigUrlByHost(t *testing.T) {
 func TestGetServicesConfigUrl(t *testing.T) {
 	appConfig := getTestAppConfig()
 	url := getServicesConfigUrl(appConfig)
-	ip := getInternal()
+	ip := utils.GetInternal()
 	Assert(t, "http://localhost:8888/services/config?appId=test&ip="+ip, Equal(url))
 }
 
@@ -81,7 +89,7 @@ func getTestAppConfig() *AppConfig {
     "ip": "localhost:8888",
     "releaseKey": "1"
 	}`
-	config, _ := createAppConfigWithJson(jsonStr)
+	config, _ := CreateAppConfigWithJson(jsonStr)
 
 	return config
 }
@@ -111,45 +119,45 @@ func TestSelectHost(t *testing.T) {
 	trySyncServerIpList(t)
 
 	t.Log("appconfig host:" + appConfig.getHost())
-	t.Log("appconfig select host:" + appConfig.selectHost())
+	t.Log("appconfig select host:" + appConfig.SelectHost())
 
 	host := "http://localhost:8888/"
 	Assert(t, host, Equal(appConfig.getHost()))
-	Assert(t, host, Equal(appConfig.selectHost()))
+	Assert(t, host, Equal(appConfig.SelectHost()))
 
 	//check select next time
 	appConfig.setNextTryConnTime(5)
-	Assert(t, host, NotEqual(appConfig.selectHost()))
+	Assert(t, host, NotEqual(appConfig.SelectHost()))
 	time.Sleep(6 * time.Second)
-	Assert(t, host, Equal(appConfig.selectHost()))
+	Assert(t, host, Equal(appConfig.SelectHost()))
 
 	//check servers
 	appConfig.setNextTryConnTime(5)
-	firstHost := appConfig.selectHost()
+	firstHost := appConfig.SelectHost()
 	Assert(t, host, NotEqual(firstHost))
-	setDownNode(firstHost)
+	SetDownNode(firstHost)
 
-	secondHost := appConfig.selectHost()
+	secondHost := appConfig.SelectHost()
 	Assert(t, host, NotEqual(secondHost))
 	Assert(t, firstHost, NotEqual(secondHost))
-	setDownNode(secondHost)
+	SetDownNode(secondHost)
 
-	thirdHost := appConfig.selectHost()
+	thirdHost := appConfig.SelectHost()
 	Assert(t, host, NotEqual(thirdHost))
 	Assert(t, firstHost, NotEqual(thirdHost))
 	Assert(t, secondHost, NotEqual(thirdHost))
 
 	servers.Range(func(k, v interface{}) bool {
-		setDownNode(k.(string))
+		SetDownNode(k.(string))
 		return true
 	})
 
-	Assert(t, "", Equal(appConfig.selectHost()))
+	Assert(t, "", Equal(appConfig.SelectHost()))
 
 	//no servers
 	//servers = make(map[string]*serverInfo, 0)
 	deleteServers()
-	Assert(t, "", Equal(appConfig.selectHost()))
+	Assert(t, "", Equal(appConfig.SelectHost()))
 }
 
 func deleteServers() {

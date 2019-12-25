@@ -4,10 +4,12 @@ import (
 	"container/list"
 	"encoding/json"
 	"fmt"
-	. "github.com/tevid/gohamcrest"
 	"sync"
 	"testing"
 	"time"
+
+	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v2/component"
 )
 
 type CustomChangeListener struct {
@@ -54,7 +56,7 @@ func TestListenChangeEvent(t *testing.T) {
 }
 
 func buildNotifyResult(t *testing.T) {
-	server := runChangeConfigResponse()
+	server := notify.runChangeConfigResponse()
 	defer server.Close()
 
 	time.Sleep(1 * time.Second)
@@ -67,7 +69,7 @@ func buildNotifyResult(t *testing.T) {
 
 	Assert(t, err, NilVal())
 
-	config := GetCurrentApolloConfig()[newAppConfig.NamespaceName]
+	config := component.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	Assert(t, "100004458", Equal(config.AppId))
 	Assert(t, "default", Equal(config.Cluster))

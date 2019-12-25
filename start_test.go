@@ -2,6 +2,8 @@ package agollo
 
 import (
 	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v2/env"
+
 	"net/http"
 	"testing"
 	"time"
@@ -12,6 +14,7 @@ func TestStart(t *testing.T) {
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
 	server := runMockConfigServer(handlerMap, onlyNormalResponse)
+	appConfig := env.GetPlainAppConfig()
 	appConfig.Ip = server.URL
 
 	Start()
@@ -26,6 +29,7 @@ func TestStartWithMultiNamespace(t *testing.T) {
 	initNotifications()
 	app1 := "abc1"
 
+	appConfig := env.GetPlainAppConfig()
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap[defaultNamespace] = onlyNormalConfigResponse
 	handlerMap[app1] = onlyNormalSecondConfigResponse
@@ -59,4 +63,17 @@ func TestErrorStart(t *testing.T) {
 	value2 := getValue("key2")
 	Assert(t, "value2", Equal(value2))
 
+}
+
+func getTestAppConfig() *env.AppConfig {
+	jsonStr := `{
+    "appId": "test",
+    "cluster": "dev",
+    "namespaceName": "application",
+    "ip": "localhost:8888",
+    "releaseKey": "1"
+	}`
+	config, _ := env.CreateAppConfigWithJson(jsonStr)
+
+	return config
 }
