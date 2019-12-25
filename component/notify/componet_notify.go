@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
-	"strings"
 	"sync"
 	"time"
 
@@ -17,8 +16,6 @@ import (
 )
 
 const (
-	default_notification_id = -1
-	comma                   = ","
 
 	long_poll_interval = 2 * time.Second //2s
 
@@ -88,7 +85,7 @@ func (n *notificationsMap) getNotifies(namespace string) string {
 	return string(j)
 }
 
-func initAllNotifications() {
+func InitAllNotifications() {
 	appConfig := env.GetPlainAppConfig()
 	if appConfig == nil {
 		allNotifications = &notificationsMap{
@@ -96,7 +93,7 @@ func initAllNotifications() {
 		}
 		return
 	}
-	namespaces := SplitNamespaces(appConfig.NamespaceName,
+	namespaces := env.SplitNamespaces(appConfig.NamespaceName,
 		func(namespace string) {})
 
 	allNotifications = &notificationsMap{
@@ -113,13 +110,13 @@ func (this *NotifyConfigComponent) Start() {
 	for {
 		select {
 		case <-t2.C:
-			notifySyncConfigServices()
+			NotifySyncConfigServices()
 			t2.Reset(long_poll_interval)
 		}
 	}
 }
 
-func notifySyncConfigServices() error {
+func NotifySyncConfigServices() error {
 
 	remoteConfigs, err := notifyRemoteConfig(nil, utils.Empty)
 
@@ -133,12 +130,12 @@ func notifySyncConfigServices() error {
 	updateAllNotifications(remoteConfigs)
 
 	//sync all config
-	err = autoSyncConfigServices(nil)
+	err = AutoSyncConfigServices(nil)
 
 	//first sync fail then load config file
 	appConfig := env.GetPlainAppConfig()
 	if err != nil {
-		SplitNamespaces(appConfig.NamespaceName, func(namespace string) {
+		env.SplitNamespaces(appConfig.NamespaceName, func(namespace string) {
 			config, _ := env.LoadConfigFile(appConfig.BackupConfigPath, namespace)
 			if config != nil {
 				agollo.UpdateApolloConfig(config, false)
@@ -220,8 +217,8 @@ func updateAllNotifications(remoteConfigs []*apolloNotify) {
 	}
 }
 
-func autoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, err error) {
-	apolloConfig, err := component.CreateApolloConfigWithJson(responseBody)
+func AutoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, err error) {
+	apolloConfig, err := env.CreateApolloConfigWithJson(responseBody)
 
 	if err != nil {
 		Logger.Error("Unmarshal Msg Fail,Error:", err)
@@ -234,7 +231,7 @@ func autoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, 
 	return nil, nil
 }
 
-func autoSyncConfigServices(newAppConfig *env.AppConfig) error {
+func AutoSyncConfigServices(newAppConfig *env.AppConfig) error {
 	return autoSyncNamespaceConfigServices(newAppConfig, allNotifications.notifications)
 }
 
@@ -251,7 +248,7 @@ func autoSyncNamespaceConfigServices(newAppConfig *env.AppConfig, notifications 
 		_, err = http.RequestRecovery(appConfig, &env.ConnectConfig{
 			Uri: urlSuffix,
 		}, &http.CallBack{
-			SuccessCallBack:   autoSyncConfigServicesSuccessCallBack,
+			SuccessCallBack:   AutoSyncConfigServicesSuccessCallBack,
 			NotModifyCallBack: touchApolloConfigCache,
 		})
 		if err != nil {
@@ -259,16 +256,6 @@ func autoSyncNamespaceConfigServices(newAppConfig *env.AppConfig, notifications 
 		}
 	}
 	return err
-}
-
-func SplitNamespaces(namespacesStr string, callback func(namespace string)) map[string]int64 {
-	namespaces := make(map[string]int64, 1)
-	split := strings.Split(namespacesStr, comma)
-	for _, namespace := range split {
-		callback(namespace)
-		namespaces[namespace] = default_notification_id
-	}
-	return namespaces
 }
 
 func getNotifyUrlSuffix(notifications string, config *env.AppConfig, newConfig *env.AppConfig) string {

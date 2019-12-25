@@ -2,6 +2,7 @@ package agollo
 
 import (
 	"encoding/json"
+	"github.com/zouyx/agollo/v2/env"
 
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v2/component"
@@ -30,7 +31,7 @@ func createMockApolloConfig(expireTime int) map[string]string {
 	return configs
 }
 
-func getFirstApolloConfig(t *testing.T, currentConfig map[string]*component.ApolloConnConfig) []byte {
+func getFirstApolloConfig(t *testing.T, currentConfig map[string]*env.ApolloConnConfig) []byte {
 	i := 0
 	var currentJSON []byte
 	var err error
@@ -51,7 +52,7 @@ func getFirstApolloConfig(t *testing.T, currentConfig map[string]*component.Apol
 
 func TestUpdateApolloConfigNull(t *testing.T) {
 	time.Sleep(1 * time.Second)
-	var currentConfig *component.ApolloConnConfig
+	var currentConfig *env.ApolloConnConfig
 
 	currentConnApolloConfig := component.GetCurrentApolloConfig()
 	currentJSON := getFirstApolloConfig(t, currentConnApolloConfig)

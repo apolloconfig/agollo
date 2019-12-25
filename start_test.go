@@ -2,6 +2,7 @@ package agollo
 
 import (
 	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v2/component/notify"
 	"github.com/zouyx/agollo/v2/env"
 
 	"net/http"
@@ -26,7 +27,7 @@ func TestStart(t *testing.T) {
 func TestStartWithMultiNamespace(t *testing.T) {
 	t.SkipNow()
 	initDefaultConfig()
-	initNotifications()
+	notify.InitAllNotifications()
 	app1 := "abc1"
 
 	appConfig := env.GetPlainAppConfig()

@@ -9,7 +9,19 @@ import (
 	"github.com/zouyx/agollo/v2/env"
 )
 
-const configResponseStr = `{
+const (
+	configSecondResponseStr = `{
+  "appId": "100004459",
+  "cluster": "default",
+  "namespaceName": "abc1",
+  "configurations": {
+    "key1-1":"value1-1",
+    "key1-2":"value2-1"
+  },
+  "releaseKey": "20170430092936-dee2d58e74515ff3"
+}`
+	
+	configResponseStr = `{
   "appId": "100004458",
   "cluster": "default",
   "namespaceName": "application",
@@ -19,8 +31,7 @@ const configResponseStr = `{
   },
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
-
-const configChangeResponseStr = `{
+	configChangeResponseStr = `{
   "appId": "100004458",
   "cluster": "default",
   "namespaceName": "application",
@@ -31,6 +42,11 @@ const configChangeResponseStr = `{
   },
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
+
+	responseStr = `[{"namespaceName":"application","notificationId":%d}]`
+	responseTwoStr = `[{"namespaceName":"application","notificationId":%d},{"namespaceName":"abc1","notificationId":%d}]`
+
+)
 
 //run mock config server
 func runMockConfigServer(handlerMap map[string]func(http.ResponseWriter, *http.Request),
@@ -66,9 +82,32 @@ func runErrorResponse() *httptest.Server {
 	return ts
 }
 
-const responseTwoStr = `[{"namespaceName":"application","notificationId":%d},{"namespaceName":"abc1","notificationId":%d}]`
-
 func onlyNormalTwoResponse(rw http.ResponseWriter, req *http.Request) {
 	result := fmt.Sprintf(responseTwoStr, 3, 3)
 	fmt.Fprintf(rw, "%s", result)
+}
+
+
+func onlyNormalConfigResponse(rw http.ResponseWriter, req *http.Request) {
+	rw.WriteHeader(http.StatusOK)
+	fmt.Fprintf(rw, configResponseStr)
+}
+
+func onlyNormalSecondConfigResponse(rw http.ResponseWriter, req *http.Request) {
+	rw.WriteHeader(http.StatusOK)
+	fmt.Fprintf(rw, configSecondResponseStr)
+}
+
+func onlyNormalResponse(rw http.ResponseWriter, req *http.Request) {
+	result := fmt.Sprintf(responseStr, 3)
+	fmt.Fprintf(rw, "%s", result)
+}
+
+func runChangeConfigResponse() *httptest.Server {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(configChangeResponseStr))
+	}))
+
+	return ts
 }

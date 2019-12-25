@@ -1,6 +1,7 @@
 package http
 
 import (
+	"github.com/zouyx/agollo/v2/component/notify"
 	"testing"
 	"time"
 
@@ -32,10 +33,10 @@ func TestRequestRecovery(t *testing.T) {
 	appConfig := env.GetAppConfig(newAppConfig)
 	urlSuffix := component.GetConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
 
-	o, err := requestRecovery(appConfig, &ConnectConfig{
+	o, err := RequestRecovery(appConfig, &env.ConnectConfig{
 		Uri: urlSuffix,
 	}, &CallBack{
-		SuccessCallBack: autoSyncConfigServicesSuccessCallBack,
+		SuccessCallBack: notify.AutoSyncConfigServicesSuccessCallBack,
 	})
 
 	Assert(t, err, NilVal())
@@ -51,13 +52,13 @@ func TestCustomTimeout(t *testing.T) {
 
 	startTime := time.Now().Unix()
 	appConfig := env.GetAppConfig(newAppConfig)
-	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
+	urlSuffix := component.GetConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
 
-	o, err := requestRecovery(appConfig, &ConnectConfig{
+	o, err := RequestRecovery(appConfig, &env.ConnectConfig{
 		Uri:     urlSuffix,
 		Timeout: 11 * time.Second,
 	}, &CallBack{
-		SuccessCallBack: autoSyncConfigServicesSuccessCallBack,
+		SuccessCallBack: notify.AutoSyncConfigServicesSuccessCallBack,
 	})
 
 	endTime := time.Now().Unix()
@@ -77,10 +78,16 @@ func mockIpList(t *testing.T) {
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 
-	err := syncServerIpList(newAppConfig)
+	err := env.SyncServerIpList(newAppConfig)
 
 	Assert(t, err, NilVal())
 
-	serverLen := getServersLen()
+	servers := env.GetServers()
+	serverLen := 0
+	servers.Range(func(k, v interface{}) bool {
+		serverLen++
+		return true
+	})
+
 	Assert(t, 2, Equal(serverLen))
 }

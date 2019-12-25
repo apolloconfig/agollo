@@ -68,7 +68,7 @@ func initConfigCache(cacheFactory *agcache.DefaultCacheFactory) {
 }
 
 func createNamespaceConfig(cacheFactory *agcache.DefaultCacheFactory, namespace string) {
-	notify.SplitNamespaces(namespace, func(namespace string) {
+	env.SplitNamespaces(namespace, func(namespace string) {
 		if _, ok := apolloConfigCache.Load(namespace); ok {
 			return
 		}
@@ -221,7 +221,7 @@ func GetDefaultConfigCache() agcache.CacheInterface {
 	return nil
 }
 
-func UpdateApolloConfig(apolloConfig *component.ApolloConfig, isBackupConfig bool) {
+func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 	if apolloConfig == nil {
 		Logger.Error("apolloConfig is null,can't update!")
 		return

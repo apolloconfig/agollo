@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/zouyx/agollo/v2/component"
 	. "github.com/zouyx/agollo/v2/component/log"
 )
 
@@ -15,7 +14,7 @@ const suffix = ".json"
 var configFileMap = make(map[string]string, 1)
 
 //write config to file
-func WriteConfigFile(config *component.ApolloConfig, configPath string) error {
+func WriteConfigFile(config *ApolloConfig, configPath string) error {
 	if config == nil {
 		Logger.Error("apollo config is null can not write backup file")
 		return errors.New("apollo config is null can not write backup file")
@@ -45,7 +44,7 @@ func GetConfigFile(configDir string, namespace string) string {
 }
 
 //load config from file
-func LoadConfigFile(configDir string, namespace string) (*component.ApolloConfig, error) {
+func LoadConfigFile(configDir string, namespace string) (*ApolloConfig, error) {
 	configFilePath := GetConfigFile(configDir, namespace)
 	Logger.Info("load config file from :", configFilePath)
 	file, e := os.Open(configFilePath)
@@ -54,7 +53,7 @@ func LoadConfigFile(configDir string, namespace string) (*component.ApolloConfig
 		return nil, e
 	}
 	defer file.Close()
-	config := &component.ApolloConfig{}
+	config := &ApolloConfig{}
 	e = json.NewDecoder(file).Decode(config)
 
 	if e != nil {

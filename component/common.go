@@ -1,20 +1,48 @@
 package component
 
 import (
-	"encoding/json"
+	. "github.com/zouyx/agollo/v2/component/log"
 	"fmt"
+	"github.com/zouyx/agollo/v2/protocol/http"
 	"net/url"
 	"sync"
+	"time"
 
 	"github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/utils"
 )
 
+const (
+	//refresh ip list
+	refresh_ip_list_interval = 20 * time.Minute //20m
+)
+
 var (
 	currentConnApolloConfig = &currentApolloConfig{
-		configs: make(map[string]*ApolloConnConfig, 1),
+		configs: make(map[string]*env.ApolloConnConfig, 1),
 	}
 )
+
+func init() {
+	InitServerIpList()
+}
+
+
+//set timer for update ip list
+//interval : 20m
+func InitServerIpList() {
+	SyncServerIpList(nil)
+	Logger.Debug("syncServerIpList started")
+
+	t2 := time.NewTimer(refresh_ip_list_interval)
+	for {
+		select {
+		case <-t2.C:
+			SyncServerIpList(nil)
+			t2.Reset(refresh_ip_list_interval)
+		}
+	}
+}
 
 type AbsComponent interface {
 	Start()
@@ -26,38 +54,10 @@ func StartRefreshConfig(component AbsComponent) {
 
 type currentApolloConfig struct {
 	l       sync.RWMutex
-	configs map[string]*ApolloConnConfig
+	configs map[string]*env.ApolloConnConfig
 }
 
-type ApolloConnConfig struct {
-	AppId         string `json:"appId"`
-	Cluster       string `json:"cluster"`
-	NamespaceName string `json:"namespaceName"`
-	ReleaseKey    string `json:"releaseKey"`
-	sync.RWMutex
-}
-
-type ApolloConfig struct {
-	ApolloConnConfig
-	Configurations map[string]string `json:"configurations"`
-}
-
-func (a *ApolloConfig) Init(appId string, cluster string, namespace string) {
-	a.AppId = appId
-	a.Cluster = cluster
-	a.NamespaceName = namespace
-}
-
-func CreateApolloConfigWithJson(b []byte) (*ApolloConfig, error) {
-	apolloConfig := &ApolloConfig{}
-	err := json.Unmarshal(b, apolloConfig)
-	if utils.IsNotNil(err) {
-		return nil, err
-	}
-	return apolloConfig, nil
-}
-
-func SetCurrentApolloConfig(namespace string, connConfig *ApolloConnConfig) {
+func SetCurrentApolloConfig(namespace string, connConfig *env.ApolloConnConfig) {
 	currentConnApolloConfig.l.Lock()
 	defer currentConnApolloConfig.l.Unlock()
 
@@ -65,7 +65,7 @@ func SetCurrentApolloConfig(namespace string, connConfig *ApolloConnConfig) {
 }
 
 //GetCurrentApolloConfig 获取Apollo链接配置
-func GetCurrentApolloConfig() map[string]*ApolloConnConfig {
+func GetCurrentApolloConfig() map[string]*env.ApolloConnConfig {
 	currentConnApolloConfig.l.RLock()
 	defer currentConnApolloConfig.l.RUnlock()
 
@@ -93,4 +93,22 @@ func GetConfigURLSuffix(config *env.AppConfig, namespaceName string) string {
 		url.QueryEscape(namespaceName),
 		url.QueryEscape(GetCurrentApolloConfigReleaseKey(namespaceName)),
 		utils.GetInternal())
+}
+
+
+//sync ip list from server
+//then
+//1.update agcache
+//2.store in disk
+func SyncServerIpList(newAppConfig *env.AppConfig) error {
+	appConfig := env.GetAppConfig(newAppConfig)
+	if appConfig == nil {
+		panic("can not find apollo config!please confirm!")
+	}
+
+	_, err := http.Request(env.GetServicesConfigUrl(appConfig), &env.ConnectConfig{}, &http.CallBack{
+		SuccessCallBack: env.SyncServerIpListSuccessCallBack,
+	})
+
+	return err
 }

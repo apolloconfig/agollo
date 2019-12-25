@@ -62,18 +62,6 @@ func TestStructInit(t *testing.T) {
 	initFileConfig()
 }
 
-func TestGetConfigUrl(t *testing.T) {
-	appConfig := getTestAppConfig()
-	url := getConfigUrl(appConfig)
-	Assert(t, url, StartWith("http://localhost:8888/configs/test/dev/application?releaseKey=&ip="))
-}
-
-func TestGetConfigUrlByHost(t *testing.T) {
-	appConfig := getTestAppConfig()
-	url := getConfigUrlByHost(appConfig, "http://baidu.com/")
-	Assert(t, url, StartWith("http://baidu.com/configs/test/dev/application?releaseKey=&ip="))
-}
-
 func TestGetServicesConfigUrl(t *testing.T) {
 	appConfig := getTestAppConfig()
 	url := getServicesConfigUrl(appConfig)
@@ -104,11 +92,16 @@ func trySyncServerIpList(t *testing.T) {
 
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
-	err := syncServerIpList(newAppConfig)
+	err := SyncServerIpList(newAppConfig)
 
 	Assert(t, err, NilVal())
 
-	serverLen := getServersLen()
+	servers := GetServers()
+	serverLen := 0
+	servers.Range(func(k, v interface{}) bool {
+		serverLen++
+		return true
+	})
 
 	Assert(t, 10, Equal(serverLen))
 
@@ -165,13 +158,4 @@ func deleteServers() {
 		servers.Delete(k)
 		return true
 	})
-}
-
-func getServersLen() int {
-	len := 0
-	servers.Range(func(k, v interface{}) bool {
-		len++
-		return true
-	})
-	return len
 }

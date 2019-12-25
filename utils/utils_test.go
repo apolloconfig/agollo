@@ -9,7 +9,7 @@ import (
 func TestGetInternal(t *testing.T) {
 	//fmt.Println("Usage of ./getmyip --get_ip=(external|internal)")
 	//flag.Parse()
-	ip := getInternal()
+	ip := GetInternal()
 
 	t.Log("Internal ip:", ip)
 	nums := strings.Split(ip, ".")
@@ -18,9 +18,9 @@ func TestGetInternal(t *testing.T) {
 }
 
 func TestIsNotNil(t *testing.T) {
-	flag := isNotNil(nil)
+	flag := IsNotNil(nil)
 	Assert(t, false, Equal(flag))
 
-	flag = isNotNil("")
+	flag = IsNotNil("")
 	Assert(t, true, Equal(flag))
 }

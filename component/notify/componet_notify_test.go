@@ -14,11 +14,11 @@ import (
 )
 
 func TestSyncConfigServices(t *testing.T) {
-	notifySyncConfigServices()
+	NotifySyncConfigServices()
 }
 
 func TestGetRemoteConfig(t *testing.T) {
-	server := mock.runNormalResponse()
+	server := runNormalResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 
@@ -55,7 +55,7 @@ func TestGetRemoteConfig(t *testing.T) {
 
 func TestErrorGetRemoteConfig(t *testing.T) {
 	appConfig := env.GetPlainAppConfig()
-	server := mock.runErrorResponse()
+	server := runErrorResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 	appConfig.Ip = server.URL
@@ -134,7 +134,7 @@ func TestToApolloConfigError(t *testing.T) {
 
 func TestAutoSyncConfigServices(t *testing.T) {
 	initNotifications()
-	server := mock.runNormalConfigResponse()
+	server := runNormalConfigResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 
@@ -142,8 +142,8 @@ func TestAutoSyncConfigServices(t *testing.T) {
 
 	env.GetPlainAppConfig().NextTryConnTime = 0
 
-	err := autoSyncConfigServices(newAppConfig)
-	err = autoSyncConfigServices(newAppConfig)
+	err := AutoSyncConfigServices(newAppConfig)
+	err = AutoSyncConfigServices(newAppConfig)
 
 	Assert(t, err, NilVal())
 
@@ -171,7 +171,7 @@ func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
 
 	appConfig.NextTryConnTime = 0
 
-	err = autoSyncConfigServices(newAppConfig)
+	err = AutoSyncConfigServices(newAppConfig)
 
 	Assert(t, err, NilVal())
 	checkNilBackupFile(t)
@@ -179,14 +179,14 @@ func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
 }
 
 func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
-	server := mock.runLongNotmodifiedConfigResponse()
+	server := runLongNotmodifiedConfigResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 	time.Sleep(1 * time.Second)
 	appConfig := env.GetPlainAppConfig()
 	appConfig.NextTryConnTime = 0
 
-	autoSyncConfigServicesSuccessCallBack([]byte(mock.configResponseStr))
+	AutoSyncConfigServicesSuccessCallBack([]byte(configResponseStr))
 
 	config := component.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
@@ -209,7 +209,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	Assert(t, "value1", Equal(agollo.GetStringValue("key1", "")))
 	Assert(t, "value2", Equal(agollo.GetStringValue("key2", "")))
 
-	err := autoSyncConfigServices(newAppConfig)
+	err := AutoSyncConfigServices(newAppConfig)
 
 	fmt.Println("checking agcache time left")
 	defaultConfigCache.Range(func(key, value interface{}) bool {
@@ -245,13 +245,13 @@ func checkBackupFile(t *testing.T) {
 func TestAutoSyncConfigServicesError(t *testing.T) {
 	//reload app properties
 	go env.InitConfig(nil)
-	server := mock.runErrorConfigResponse()
+	server := runErrorConfigResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 
 	time.Sleep(1 * time.Second)
 
-	err := autoSyncConfigServices(nil)
+	err := AutoSyncConfigServices(nil)
 
 	Assert(t, err, NotNilVal())
 

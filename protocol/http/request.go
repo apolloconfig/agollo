@@ -26,7 +26,7 @@ type CallBack struct {
 	NotModifyCallBack func() error
 }
 
-func request(requestUrl string, connectionConfig *env.ConnectConfig, callBack *CallBack) (interface{}, error) {
+func Request(requestUrl string, connectionConfig *env.ConnectConfig, callBack *CallBack) (interface{}, error) {
 	client := &http.Client{}
 	//如有设置自定义超时时间即使用
 	if connectionConfig != nil && connectionConfig.Timeout != 0 {
@@ -107,7 +107,7 @@ func RequestRecovery(appConfig *env.AppConfig,
 		}
 
 		requestUrl := fmt.Sprintf(format, host, connectConfig.Uri)
-		response, err = request(requestUrl, connectConfig, callBack)
+		response, err = Request(requestUrl, connectConfig, callBack)
 		if err == nil {
 			return response, err
 		}

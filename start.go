@@ -2,6 +2,7 @@ package agollo
 
 import (
 	"github.com/zouyx/agollo/v2/agcache"
+	"github.com/zouyx/agollo/v2/component"
 	. "github.com/zouyx/agollo/v2/component/log"
 	"github.com/zouyx/agollo/v2/component/notify"
 	"github.com/zouyx/agollo/v2/env"
@@ -49,15 +50,15 @@ func StartWithCache(cacheFactory *agcache.DefaultCacheFactory) error {
 
 func startAgollo() error {
 	//init server ip list
-	go initServerIpList()
+	go env.InitServerIpList()
 	//first sync
-	if err := notifySyncConfigServices(); err != nil {
+	if err := notify.NotifySyncConfigServices(); err != nil {
 		return err
 	}
 	Logger.Debug("init notifySyncConfigServices finished")
 
 	//start long poll sync config
-	go StartRefreshConfig(&notify.NotifyConfigComponent{})
+	go component.StartRefreshConfig(&notify.NotifyConfigComponent{})
 
 	Logger.Info("agollo start finished ! ")
 

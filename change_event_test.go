@@ -4,6 +4,7 @@ import (
 	"container/list"
 	"encoding/json"
 	"fmt"
+	"github.com/zouyx/agollo/v2/component/notify"
 	"sync"
 	"testing"
 	"time"
@@ -56,7 +57,7 @@ func TestListenChangeEvent(t *testing.T) {
 }
 
 func buildNotifyResult(t *testing.T) {
-	server := notify.runChangeConfigResponse()
+	server := runChangeConfigResponse()
 	defer server.Close()
 
 	time.Sleep(1 * time.Second)
@@ -64,8 +65,8 @@ func buildNotifyResult(t *testing.T) {
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 
-	err := autoSyncConfigServices(newAppConfig)
-	err = autoSyncConfigServices(newAppConfig)
+	err := notify.AutoSyncConfigServices(newAppConfig)
+	err = notify.AutoSyncConfigServices(newAppConfig)
 
 	Assert(t, err, NilVal())
 

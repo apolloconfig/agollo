@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v2/component"
 )
 
 func TestWriteConfigFile(t *testing.T) {
@@ -21,7 +20,7 @@ func TestWriteConfigFile(t *testing.T) {
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
-	config, err := component.CreateApolloConfigWithJson([]byte(jsonStr))
+	config, err := CreateApolloConfigWithJson([]byte(jsonStr))
 	os.Remove(GetConfigFile(configPath, config.NamespaceName))
 
 	Assert(t, err, NilVal())
@@ -41,7 +40,7 @@ func TestLoadConfigFile(t *testing.T) {
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
-	config, err := component.CreateApolloConfigWithJson([]byte(jsonStr))
+	config, err := CreateApolloConfigWithJson([]byte(jsonStr))
 
 	Assert(t, err, NilVal())
 	newConfig, e := LoadConfigFile("", config.NamespaceName)

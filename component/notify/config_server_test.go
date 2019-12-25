@@ -77,3 +77,33 @@ func runNormalConfigResponse() *httptest.Server {
 
 	return ts
 }
+
+//Error response
+//will hold 5s and keep response 404
+func runErrorResponse() *httptest.Server {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	}))
+
+	return ts
+}
+
+func runLongNotmodifiedConfigResponse() *httptest.Server {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(500 * time.Microsecond)
+		w.WriteHeader(http.StatusNotModified)
+	}))
+
+	return ts
+}
+
+//Error response
+//will hold 5s and keep response 404
+func runErrorConfigResponse() *httptest.Server {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(500 * time.Microsecond)
+		w.WriteHeader(http.StatusNotFound)
+	}))
+
+	return ts
+}
