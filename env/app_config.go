@@ -23,7 +23,7 @@ const (
 
 func init() {
 	//init config
-	initFileConfig()
+	InitFileConfig()
 }
 
 var (
@@ -60,7 +60,7 @@ func (this *AppConfig) GetBackupConfigPath() string {
 	return this.BackupConfigPath
 }
 
-func (this *AppConfig) getHost() string {
+func (this *AppConfig) GetHost() string {
 	if strings.HasPrefix(this.Ip, "http") {
 		if !strings.HasSuffix(this.Ip, "/") {
 			return this.Ip + "/"
@@ -71,7 +71,7 @@ func (this *AppConfig) getHost() string {
 }
 
 //if this connect is fail will set this time
-func (this *AppConfig) setNextTryConnTime(nextTryConnectPeriod int64) {
+func (this *AppConfig) SetNextTryConnTime(nextTryConnectPeriod int64) {
 	this.NextTryConnTime = time.Now().Unix() + nextTryConnectPeriod
 }
 
@@ -88,7 +88,7 @@ func (this *AppConfig) isConnectDirectly() bool {
 
 func (this *AppConfig) SelectHost() string {
 	if !this.isConnectDirectly() {
-		return this.getHost()
+		return this.GetHost()
 	}
 
 	host := ""
@@ -111,8 +111,8 @@ func SetDownNode(host string) {
 		return
 	}
 
-	if host == appConfig.getHost() {
-		appConfig.setNextTryConnTime(next_try_connect_period)
+	if host == appConfig.GetHost() {
+		appConfig.SetNextTryConnTime(next_try_connect_period)
 	}
 
 	servers.Range(func(k, v interface{}) bool {
@@ -133,7 +133,7 @@ type serverInfo struct {
 	IsDown      bool   `json:"-"`
 }
 
-func initFileConfig() {
+func InitFileConfig() {
 	// default use application.properties
 	InitConfig(nil)
 }
@@ -147,7 +147,6 @@ func InitConfig(loadAppConfig func() (*AppConfig, error)) {
 		return
 	}
 }
-
 
 func SplitNamespaces(namespacesStr string, callback func(namespace string)) map[string]int64 {
 	namespaces := make(map[string]int64, 1)
@@ -197,7 +196,6 @@ func SyncServerIpListSuccessCallBack(responseBody []byte) (o interface{}, err er
 	return
 }
 
-
 func GetAppConfig(newAppConfig *AppConfig) *AppConfig {
 	if newAppConfig != nil {
 		return newAppConfig
@@ -205,10 +203,9 @@ func GetAppConfig(newAppConfig *AppConfig) *AppConfig {
 	return appConfig
 }
 
-
 func GetServicesConfigUrl(config *AppConfig) string {
 	return fmt.Sprintf("%sservices/config?appId=%s&ip=%s",
-		config.getHost(),
+		config.GetHost(),
 		url.QueryEscape(config.AppId),
 		utils.GetInternal())
 }

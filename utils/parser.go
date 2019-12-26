@@ -1,22 +1,27 @@
-package agollo
+package utils
 
 import (
 	"fmt"
+
 	"github.com/zouyx/agollo/v2/agcache"
 )
 
-const propertiesFormat = "%s=%s\n"
+const (
+	propertiesFormat = "%s=%s\n"
+
+	defaultContentKey = "content"
+)
 
 //ContentParser 内容转换
 type ContentParser interface {
-	parse(cache agcache.CacheInterface) (string, error)
+	Parse(cache agcache.CacheInterface) (string, error)
 }
 
 //DefaultParser 默认内容转换器
 type DefaultParser struct {
 }
 
-func (d *DefaultParser) parse(cache agcache.CacheInterface) (string, error) {
+func (d *DefaultParser) Parse(cache agcache.CacheInterface) (string, error) {
 	value, err := cache.Get(defaultContentKey)
 	if err != nil {
 		return "", err
@@ -28,7 +33,7 @@ func (d *DefaultParser) parse(cache agcache.CacheInterface) (string, error) {
 type PropertiesParser struct {
 }
 
-func (d *PropertiesParser) parse(cache agcache.CacheInterface) (string, error) {
+func (d *PropertiesParser) Parse(cache agcache.CacheInterface) (string, error) {
 	properties := convertToProperties(cache)
 	return properties, nil
 }

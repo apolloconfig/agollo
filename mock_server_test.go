@@ -20,7 +20,7 @@ const (
   },
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
-	
+
 	configResponseStr = `{
   "appId": "100004458",
   "cluster": "default",
@@ -31,21 +31,8 @@ const (
   },
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
-	configChangeResponseStr = `{
-  "appId": "100004458",
-  "cluster": "default",
-  "namespaceName": "application",
-  "configurations": {
-    "key1":"value1",
-    "key2":"value2",
-    "string":"string"
-  },
-  "releaseKey": "20170430092936-dee2d58e74515ff3"
-}`
-
-	responseStr = `[{"namespaceName":"application","notificationId":%d}]`
+	responseStr    = `[{"namespaceName":"application","notificationId":%d}]`
 	responseTwoStr = `[{"namespaceName":"application","notificationId":%d},{"namespaceName":"abc1","notificationId":%d}]`
-
 )
 
 //run mock config server
@@ -87,7 +74,6 @@ func onlyNormalTwoResponse(rw http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(rw, "%s", result)
 }
 
-
 func onlyNormalConfigResponse(rw http.ResponseWriter, req *http.Request) {
 	rw.WriteHeader(http.StatusOK)
 	fmt.Fprintf(rw, configResponseStr)
@@ -101,13 +87,4 @@ func onlyNormalSecondConfigResponse(rw http.ResponseWriter, req *http.Request) {
 func onlyNormalResponse(rw http.ResponseWriter, req *http.Request) {
 	result := fmt.Sprintf(responseStr, 3)
 	fmt.Fprintf(rw, "%s", result)
-}
-
-func runChangeConfigResponse() *httptest.Server {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(configChangeResponseStr))
-	}))
-
-	return ts
 }

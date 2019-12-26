@@ -1,14 +1,13 @@
-package agollo
+package storage
 
 import (
 	"encoding/json"
+	"testing"
+	"time"
+
 	"github.com/zouyx/agollo/v2/env"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v2/component"
-
-	"testing"
-	"time"
 )
 
 //init param
@@ -54,7 +53,7 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 	time.Sleep(1 * time.Second)
 	var currentConfig *env.ApolloConnConfig
 
-	currentConnApolloConfig := component.GetCurrentApolloConfig()
+	currentConnApolloConfig := env.GetCurrentApolloConfig()
 	currentJSON := getFirstApolloConfig(t, currentConnApolloConfig)
 
 	json.Unmarshal(currentJSON, &currentConfig)

@@ -1,4 +1,4 @@
-package agollo
+package storage
 
 import (
 	"container/list"

@@ -7,16 +7,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/zouyx/agollo/v2"
 	"github.com/zouyx/agollo/v2/component"
 	. "github.com/zouyx/agollo/v2/component/log"
 	"github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/protocol/http"
+	"github.com/zouyx/agollo/v2/storage"
 	"github.com/zouyx/agollo/v2/utils"
 )
 
 const (
-
 	long_poll_interval = 2 * time.Second //2s
 
 	//notify timeout
@@ -138,7 +137,7 @@ func NotifySyncConfigServices() error {
 		env.SplitNamespaces(appConfig.NamespaceName, func(namespace string) {
 			config, _ := env.LoadConfigFile(appConfig.BackupConfigPath, namespace)
 			if config != nil {
-				agollo.UpdateApolloConfig(config, false)
+				storage.UpdateApolloConfig(config, false)
 			}
 		})
 	}
@@ -226,7 +225,7 @@ func AutoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, 
 	}
 	appConfig := env.GetPlainAppConfig()
 
-	agollo.UpdateApolloConfig(apolloConfig, appConfig.GetIsBackupConfig())
+	storage.UpdateApolloConfig(apolloConfig, appConfig.GetIsBackupConfig())
 
 	return nil, nil
 }

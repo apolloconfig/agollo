@@ -1,12 +1,12 @@
 package component
 
 import (
-	. "github.com/zouyx/agollo/v2/component/log"
 	"fmt"
-	"github.com/zouyx/agollo/v2/protocol/http"
 	"net/url"
-	"sync"
 	"time"
+
+	. "github.com/zouyx/agollo/v2/component/log"
+	"github.com/zouyx/agollo/v2/protocol/http"
 
 	"github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/utils"
@@ -17,16 +17,9 @@ const (
 	refresh_ip_list_interval = 20 * time.Minute //20m
 )
 
-var (
-	currentConnApolloConfig = &currentApolloConfig{
-		configs: make(map[string]*env.ApolloConnConfig, 1),
-	}
-)
-
 func init() {
-	InitServerIpList()
+	go InitServerIpList()
 }
-
 
 //set timer for update ip list
 //interval : 20m
@@ -52,37 +45,6 @@ func StartRefreshConfig(component AbsComponent) {
 	component.Start()
 }
 
-type currentApolloConfig struct {
-	l       sync.RWMutex
-	configs map[string]*env.ApolloConnConfig
-}
-
-func SetCurrentApolloConfig(namespace string, connConfig *env.ApolloConnConfig) {
-	currentConnApolloConfig.l.Lock()
-	defer currentConnApolloConfig.l.Unlock()
-
-	currentConnApolloConfig.configs[namespace] = connConfig
-}
-
-//GetCurrentApolloConfig 获取Apollo链接配置
-func GetCurrentApolloConfig() map[string]*env.ApolloConnConfig {
-	currentConnApolloConfig.l.RLock()
-	defer currentConnApolloConfig.l.RUnlock()
-
-	return currentConnApolloConfig.configs
-}
-
-func GetCurrentApolloConfigReleaseKey(namespace string) string {
-	currentConnApolloConfig.l.RLock()
-	defer currentConnApolloConfig.l.RUnlock()
-	config := currentConnApolloConfig.configs[namespace]
-	if config == nil {
-		return utils.Empty
-	}
-
-	return config.ReleaseKey
-}
-
 func GetConfigURLSuffix(config *env.AppConfig, namespaceName string) string {
 	if config == nil {
 		return ""
@@ -91,10 +53,9 @@ func GetConfigURLSuffix(config *env.AppConfig, namespaceName string) string {
 		url.QueryEscape(config.AppId),
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(namespaceName),
-		url.QueryEscape(GetCurrentApolloConfigReleaseKey(namespaceName)),
+		url.QueryEscape(env.GetCurrentApolloConfigReleaseKey(namespaceName)),
 		utils.GetInternal())
 }
-
 
 //sync ip list from server
 //then

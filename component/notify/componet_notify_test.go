@@ -8,9 +8,8 @@ import (
 	"time"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v2"
-	"github.com/zouyx/agollo/v2/component"
 	"github.com/zouyx/agollo/v2/env"
+	"github.com/zouyx/agollo/v2/storage"
 )
 
 func TestSyncConfigServices(t *testing.T) {
@@ -147,7 +146,7 @@ func TestAutoSyncConfigServices(t *testing.T) {
 
 	Assert(t, err, NilVal())
 
-	config := component.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
+	config := env.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	Assert(t, "100004458", Equal(config.AppId))
 	Assert(t, "default", Equal(config.Cluster))
@@ -188,14 +187,14 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 
 	AutoSyncConfigServicesSuccessCallBack([]byte(configResponseStr))
 
-	config := component.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
+	config := env.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	fmt.Println("sleeping 10s")
 
 	time.Sleep(10 * time.Second)
 
 	fmt.Println("checking agcache time left")
-	defaultConfigCache := agollo.GetDefaultConfigCache()
+	defaultConfigCache := storage.GetDefaultConfigCache()
 
 	defaultConfigCache.Range(func(key, value interface{}) bool {
 		Assert(t, string(value.([]byte)), NotNilVal())
@@ -206,8 +205,8 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	Assert(t, "default", Equal(config.Cluster))
 	Assert(t, "application", Equal(config.NamespaceName))
 	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
-	Assert(t, "value1", Equal(agollo.GetStringValue("key1", "")))
-	Assert(t, "value2", Equal(agollo.GetStringValue("key2", "")))
+	Assert(t, "value1", Equal(storage.GetStringValue("key1", "")))
+	Assert(t, "value2", Equal(storage.GetStringValue("key2", "")))
 
 	err := AutoSyncConfigServices(newAppConfig)
 
@@ -238,7 +237,7 @@ func checkBackupFile(t *testing.T) {
 	Assert(t, e, NilVal())
 	Assert(t, newConfig.Configurations, NotNilVal())
 	for k, v := range newConfig.Configurations {
-		Assert(t, agollo.GetStringValue(k, ""), Equal(v))
+		Assert(t, storage.GetStringValue(k, ""), Equal(v))
 	}
 }
 
@@ -255,7 +254,7 @@ func TestAutoSyncConfigServicesError(t *testing.T) {
 
 	Assert(t, err, NotNilVal())
 
-	config := component.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
+	config := env.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	//still properties config
 	Assert(t, "test", Equal(config.AppId))

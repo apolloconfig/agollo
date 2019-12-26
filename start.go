@@ -7,6 +7,7 @@ import (
 	"github.com/zouyx/agollo/v2/component/notify"
 	"github.com/zouyx/agollo/v2/env"
 	_ "github.com/zouyx/agollo/v2/env"
+	"github.com/zouyx/agollo/v2/storage"
 )
 
 //InitCustomConfig init config by custom
@@ -14,7 +15,7 @@ func InitCustomConfig(loadAppConfig func() (*env.AppConfig, error)) {
 
 	env.InitConfig(loadAppConfig)
 
-	initDefaultConfig()
+	storage.InitDefaultConfig()
 }
 
 //start apollo
@@ -32,7 +33,7 @@ func SetLogger(loggerInterface LoggerInterface) {
 //SetCache 设置自定义cache组件
 func SetCache(cacheFactory *agcache.DefaultCacheFactory) {
 	if cacheFactory != nil {
-		initConfigCache(cacheFactory)
+		storage.InitConfigCache(cacheFactory)
 	}
 }
 
@@ -50,7 +51,7 @@ func StartWithCache(cacheFactory *agcache.DefaultCacheFactory) error {
 
 func startAgollo() error {
 	//init server ip list
-	go env.InitServerIpList()
+	go component.InitServerIpList()
 	//first sync
 	if err := notify.NotifySyncConfigServices(); err != nil {
 		return err

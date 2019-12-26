@@ -1,4 +1,4 @@
-package agollo
+package storage
 
 import (
 	"strconv"
@@ -6,8 +6,6 @@ import (
 	"sync/atomic"
 
 	"github.com/zouyx/agollo/v2/agcache"
-	"github.com/zouyx/agollo/v2/component"
-	"github.com/zouyx/agollo/v2/component/notify"
 	"github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/utils"
 
@@ -35,8 +33,7 @@ const (
 	//1 minute
 	configCacheExpireTime = 120
 
-	defaultNamespace  = "application"
-	defaultContentKey = "content"
+	defaultNamespace = "application"
 )
 
 var (
@@ -45,21 +42,21 @@ var (
 	apolloConfigCache sync.Map
 	//apolloConfigCache = make(map[string]*Config, 0)
 
-	formatParser        = make(map[ConfigFileFormat]ContentParser, 0)
-	defaultFormatParser = &DefaultParser{}
+	formatParser        = make(map[ConfigFileFormat]utils.ContentParser, 0)
+	defaultFormatParser = &utils.DefaultParser{}
 
 	cacheFactory = &agcache.DefaultCacheFactory{}
 )
 
 func init() {
-	formatParser[Properties] = &PropertiesParser{}
+	formatParser[Properties] = &utils.PropertiesParser{}
 }
 
-func initDefaultConfig() {
-	initConfigCache(cacheFactory)
+func InitDefaultConfig() {
+	InitConfigCache(cacheFactory)
 }
 
-func initConfigCache(cacheFactory *agcache.DefaultCacheFactory) {
+func InitConfigCache(cacheFactory *agcache.DefaultCacheFactory) {
 	if env.GetPlainAppConfig() == nil {
 		Logger.Warn("Config is nil,can not init agollo.")
 		return
@@ -115,8 +112,8 @@ func (this *Config) getConfigValue(key string) interface{} {
 	return string(value)
 }
 
-//getValue 获取配置值（string）
-func (this *Config) getValue(key string) string {
+//GetValue 获取配置值（string）
+func (this *Config) GetValue(key string) string {
 	value := this.getConfigValue(key)
 	if value == nil {
 		return utils.Empty
@@ -127,7 +124,7 @@ func (this *Config) getValue(key string) string {
 
 //GetStringValue 获取配置值（string），获取不到则取默认值
 func (this *Config) GetStringValue(key string, defaultValue string) string {
-	value := this.getValue(key)
+	value := this.GetValue(key)
 	if value == utils.Empty {
 		return defaultValue
 	}
@@ -137,7 +134,7 @@ func (this *Config) GetStringValue(key string, defaultValue string) string {
 
 //GetIntValue 获取配置值（int），获取不到则取默认值
 func (this *Config) GetIntValue(key string, defaultValue int) int {
-	value := this.getValue(key)
+	value := this.GetValue(key)
 
 	i, err := strconv.Atoi(value)
 	if err != nil {
@@ -150,7 +147,7 @@ func (this *Config) GetIntValue(key string, defaultValue int) int {
 
 //GetFloatValue 获取配置值（float），获取不到则取默认值
 func (this *Config) GetFloatValue(key string, defaultValue float64) float64 {
-	value := this.getValue(key)
+	value := this.GetValue(key)
 
 	i, err := strconv.ParseFloat(value, 64)
 	if err != nil {
@@ -163,7 +160,7 @@ func (this *Config) GetFloatValue(key string, defaultValue float64) float64 {
 
 //GetBoolValue 获取配置值（bool），获取不到则取默认值
 func (this *Config) GetBoolValue(key string, defaultValue bool) bool {
-	value := this.getValue(key)
+	value := this.GetValue(key)
 
 	b, err := strconv.ParseBool(value)
 	if err != nil {
@@ -190,7 +187,7 @@ func GetConfigAndInit(namespace string) *Config {
 	if !ok {
 		createNamespaceConfig(cacheFactory, namespace)
 
-		notify.NotifySimpleSyncConfigServices(namespace)
+		//notify.NotifySimpleSyncConfigServices(namespace)
 	}
 
 	if config, ok = apolloConfigCache.Load(namespace); !ok {
@@ -238,7 +235,7 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 	}
 
 	//update apollo connection config
-	component.SetCurrentApolloConfig(apolloConfig.NamespaceName, &apolloConfig.ApolloConnConfig)
+	env.SetCurrentApolloConfig(apolloConfig.NamespaceName, &apolloConfig.ApolloConnConfig)
 
 	if isBackupConfig {
 		//write config file async
@@ -335,7 +332,7 @@ func getConfigValue(key string) interface{} {
 	return string(value)
 }
 
-func getValue(key string) string {
+func GetValue(key string) string {
 	value := getConfigValue(key)
 	if value == nil {
 		return utils.Empty
@@ -345,7 +342,7 @@ func getValue(key string) string {
 }
 
 func GetStringValue(key string, defaultValue string) string {
-	value := getValue(key)
+	value := GetValue(key)
 	if value == utils.Empty {
 		return defaultValue
 	}
@@ -354,7 +351,7 @@ func GetStringValue(key string, defaultValue string) string {
 }
 
 func GetIntValue(key string, defaultValue int) int {
-	value := getValue(key)
+	value := GetValue(key)
 
 	i, err := strconv.Atoi(value)
 	if err != nil {
@@ -366,7 +363,7 @@ func GetIntValue(key string, defaultValue int) int {
 }
 
 func GetFloatValue(key string, defaultValue float64) float64 {
-	value := getValue(key)
+	value := GetValue(key)
 
 	i, err := strconv.ParseFloat(value, 64)
 	if err != nil {
@@ -378,7 +375,7 @@ func GetFloatValue(key string, defaultValue float64) float64 {
 }
 
 func GetBoolValue(key string, defaultValue bool) bool {
-	value := getValue(key)
+	value := GetValue(key)
 
 	b, err := strconv.ParseBool(value)
 	if err != nil {
@@ -395,7 +392,7 @@ func (c *Config) GetContent(format ConfigFileFormat) string {
 	if parser == nil {
 		parser = defaultFormatParser
 	}
-	s, err := parser.parse(c.cache)
+	s, err := parser.Parse(c.cache)
 	if err != nil {
 		Logger.Debug("GetContent fail ! error:", err)
 	}

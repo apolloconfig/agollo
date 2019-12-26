@@ -1,16 +1,17 @@
-package agollo
+package storage
 
 import (
 	"container/list"
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/v2/component/notify"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/zouyx/agollo/v2/component/notify"
+	"github.com/zouyx/agollo/v2/env"
+
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v2/component"
 )
 
 type CustomChangeListener struct {
@@ -70,7 +71,7 @@ func buildNotifyResult(t *testing.T) {
 
 	Assert(t, err, NilVal())
 
-	config := component.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
+	config := env.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	Assert(t, "100004458", Equal(config.AppId))
 	Assert(t, "default", Equal(config.Cluster))

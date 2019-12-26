@@ -1,8 +1,7 @@
-package env
+package component
 
 import (
 	"net/http"
-	//"time"
 	"net/http/httptest"
 )
 

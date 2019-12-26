@@ -1,9 +1,10 @@
 package http
 
 import (
-	"github.com/zouyx/agollo/v2/component/notify"
 	"testing"
 	"time"
+
+	"github.com/zouyx/agollo/v2/component/notify"
 
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v2/component"
@@ -78,7 +79,7 @@ func mockIpList(t *testing.T) {
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 
-	err := env.SyncServerIpList(newAppConfig)
+	err := component.SyncServerIpList(newAppConfig)
 
 	Assert(t, err, NilVal())
 
