@@ -145,23 +145,6 @@ func NotifySyncConfigServices() error {
 	return nil
 }
 
-func NotifySimpleSyncConfigServices(namespace string) error {
-
-	remoteConfigs, err := notifyRemoteConfig(nil, namespace)
-
-	if err != nil || len(remoteConfigs) == 0 {
-		return err
-	}
-
-	updateAllNotifications(remoteConfigs)
-
-	//sync all config
-	notifications := make(map[string]int64)
-	notifications[remoteConfigs[0].NamespaceName] = remoteConfigs[0].NotificationId
-
-	return autoSyncNamespaceConfigServices(nil, notifications)
-}
-
 func toApolloConfig(resBody []byte) ([]*apolloNotify, error) {
 	remoteConfig := make([]*apolloNotify, 0)
 

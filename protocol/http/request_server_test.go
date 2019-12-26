@@ -31,16 +31,6 @@ var servicesResponseStr = `[{
 "homepageUrl": "http://` + IP2 + `/"
 }]`
 
-//Normal response
-func runNormalServicesResponse() *httptest.Server {
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(servicesResponseStr))
-	}))
-
-	return ts
-}
-
 var normalBackupConfigCount = 0
 
 //Normal response

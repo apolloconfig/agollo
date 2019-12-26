@@ -13,33 +13,29 @@ import (
 )
 
 func TestSyncConfigServices(t *testing.T) {
-	NotifySyncConfigServices()
+	//clear
+	initNotifications()
+	err := NotifySyncConfigServices()
+	//err keep nil
+	Assert(t, err, NilVal())
 }
 
 func TestGetRemoteConfig(t *testing.T) {
+	//clear
+	initNotifications()
 	server := runNormalResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 
 	time.Sleep(1 * time.Second)
 
-	count := 1
 	var remoteConfigs []*apolloNotify
 	var err error
-	for {
-		count++
-		remoteConfigs, err = notifyRemoteConfig(newAppConfig, EMPTY)
+	remoteConfigs, err = notifyRemoteConfig(nil, EMPTY)
 
-		//err keep nil
-		Assert(t, err, NilVal())
+	//err keep nil
+	Assert(t, err, NilVal())
 
-		//if remote config is nil then break
-		if remoteConfigs != nil && len(remoteConfigs) > 0 {
-			break
-		}
-	}
-
-	Assert(t, count > 1, Equal(true))
 	Assert(t, err, NilVal())
 	Assert(t, remoteConfigs, NotNilVal())
 	Assert(t, 1, Equal(len(remoteConfigs)))

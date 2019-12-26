@@ -1,14 +1,14 @@
 package http
 
 import (
+	"fmt"
+	"net/url"
 	"testing"
 	"time"
 
-	"github.com/zouyx/agollo/v2/component/notify"
-
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v2/component"
 	"github.com/zouyx/agollo/v2/env"
+	"github.com/zouyx/agollo/v2/utils"
 )
 
 func getTestAppConfig() *env.AppConfig {
@@ -32,12 +32,12 @@ func TestRequestRecovery(t *testing.T) {
 	newAppConfig.Ip = server.URL
 
 	appConfig := env.GetAppConfig(newAppConfig)
-	urlSuffix := component.GetConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
+	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
 
 	o, err := RequestRecovery(appConfig, &env.ConnectConfig{
 		Uri: urlSuffix,
 	}, &CallBack{
-		SuccessCallBack: notify.AutoSyncConfigServicesSuccessCallBack,
+		SuccessCallBack: nil,
 	})
 
 	Assert(t, err, NilVal())
@@ -53,13 +53,13 @@ func TestCustomTimeout(t *testing.T) {
 
 	startTime := time.Now().Unix()
 	appConfig := env.GetAppConfig(newAppConfig)
-	urlSuffix := component.GetConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
+	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
 
 	o, err := RequestRecovery(appConfig, &env.ConnectConfig{
 		Uri:     urlSuffix,
 		Timeout: 11 * time.Second,
 	}, &CallBack{
-		SuccessCallBack: notify.AutoSyncConfigServicesSuccessCallBack,
+		SuccessCallBack: nil,
 	})
 
 	endTime := time.Now().Unix()
@@ -73,13 +73,9 @@ func TestCustomTimeout(t *testing.T) {
 }
 
 func mockIpList(t *testing.T) {
-	server := runNormalServicesResponse()
-	defer server.Close()
 	time.Sleep(1 * time.Second)
-	newAppConfig := getTestAppConfig()
-	newAppConfig.Ip = server.URL
 
-	err := component.SyncServerIpList(newAppConfig)
+	_, err := env.SyncServerIpListSuccessCallBack([]byte(servicesResponseStr))
 
 	Assert(t, err, NilVal())
 
@@ -91,4 +87,16 @@ func mockIpList(t *testing.T) {
 	})
 
 	Assert(t, 2, Equal(serverLen))
+}
+
+func getConfigURLSuffix(config *env.AppConfig, namespaceName string) string {
+	if config == nil {
+		return ""
+	}
+	return fmt.Sprintf("configs/%s/%s/%s?releaseKey=%s&ip=%s",
+		url.QueryEscape(config.AppId),
+		url.QueryEscape(config.Cluster),
+		url.QueryEscape(namespaceName),
+		url.QueryEscape(env.GetCurrentApolloConfigReleaseKey(namespaceName)),
+		utils.GetInternal())
 }
