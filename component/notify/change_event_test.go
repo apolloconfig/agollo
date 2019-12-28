@@ -1,14 +1,13 @@
-package storage
+package notify
 
 import (
-	"container/list"
 	"encoding/json"
 	"fmt"
+	"github.com/zouyx/agollo/v2/storage"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/zouyx/agollo/v2/component/notify"
 	"github.com/zouyx/agollo/v2/env"
 
 	. "github.com/tevid/gohamcrest"
@@ -19,7 +18,7 @@ type CustomChangeListener struct {
 	group *sync.WaitGroup
 }
 
-func (c *CustomChangeListener) OnChange(changeEvent *ChangeEvent) {
+func (c *CustomChangeListener) OnChange(changeEvent *storage.ChangeEvent) {
 	if c.group == nil {
 		return
 	}
@@ -31,15 +30,15 @@ func (c *CustomChangeListener) OnChange(changeEvent *ChangeEvent) {
 
 	Assert(c.t, "string", Equal(changeEvent.Changes["string"].NewValue))
 	Assert(c.t, "", Equal(changeEvent.Changes["string"].OldValue))
-	Assert(c.t, ADDED, Equal(changeEvent.Changes["string"].ChangeType))
+	Assert(c.t, storage.ADDED, Equal(changeEvent.Changes["string"].ChangeType))
 
 	Assert(c.t, "value1", Equal(changeEvent.Changes["key1"].NewValue))
 	Assert(c.t, "", Equal(changeEvent.Changes["key2"].OldValue))
-	Assert(c.t, ADDED, Equal(changeEvent.Changes["key1"].ChangeType))
+	Assert(c.t, storage.ADDED, Equal(changeEvent.Changes["key1"].ChangeType))
 
 	Assert(c.t, "value2", Equal(changeEvent.Changes["key2"].NewValue))
 	Assert(c.t, "", Equal(changeEvent.Changes["key2"].OldValue))
-	Assert(c.t, ADDED, Equal(changeEvent.Changes["key2"].ChangeType))
+	Assert(c.t, storage.ADDED, Equal(changeEvent.Changes["key2"].ChangeType))
 }
 
 func TestListenChangeEvent(t *testing.T) {
@@ -51,13 +50,14 @@ func TestListenChangeEvent(t *testing.T) {
 		t:     t,
 		group: &group,
 	}
-	AddChangeListener(listener)
+	storage.AddChangeListener(listener)
 	group.Wait()
 	//运行完清空变更队列
-	changeListeners = list.New()
+	storage.RemoveChangeListener(listener)
 }
 
 func buildNotifyResult(t *testing.T) {
+	initNotifications()
 	server := runChangeConfigResponse()
 	defer server.Close()
 
@@ -66,8 +66,8 @@ func buildNotifyResult(t *testing.T) {
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
 
-	err := notify.AutoSyncConfigServices(newAppConfig)
-	err = notify.AutoSyncConfigServices(newAppConfig)
+	err := AutoSyncConfigServices(newAppConfig)
+	err = AutoSyncConfigServices(newAppConfig)
 
 	Assert(t, err, NilVal())
 
@@ -83,11 +83,11 @@ func TestRemoveChangeListener(t *testing.T) {
 	go buildNotifyResult(t)
 
 	listener := &CustomChangeListener{}
-	AddChangeListener(listener)
-	Assert(t, 1, Equal(changeListeners.Len()))
-	removeChangeListener(listener)
-	Assert(t, 0, Equal(changeListeners.Len()))
+	storage.AddChangeListener(listener)
+	Assert(t, 1, Equal(storage.GetChangeListeners().Len()))
+	storage.RemoveChangeListener(listener)
+	Assert(t, 0, Equal(storage.GetChangeListeners().Len()))
 
 	//运行完清空变更队列
-	changeListeners = list.New()
+	storage.RemoveChangeListener(listener)
 }

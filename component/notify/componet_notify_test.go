@@ -3,6 +3,7 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -12,20 +13,39 @@ import (
 	"github.com/zouyx/agollo/v2/storage"
 )
 
-func TestSyncConfigServices(t *testing.T) {
+func onlyNormalConfigResponse(rw http.ResponseWriter, req *http.Request) {
+	rw.WriteHeader(http.StatusOK)
+	fmt.Fprintf(rw, configResponseStr)
+}
+
+func onlyNormalResponse(rw http.ResponseWriter, req *http.Request) {
+	result := fmt.Sprintf(responseStr, 3)
+	fmt.Fprintf(rw, "%s", result)
+}
+
+func initMockNotifyAndConfigServer(){
 	//clear
 	initNotifications()
+	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
+	handlerMap["application"] = onlyNormalConfigResponse
+	server := runMockConfigServer(handlerMap, onlyNormalResponse)
+	appConfig := env.GetPlainAppConfig()
+	env.InitConfig(func() (*env.AppConfig, error) {
+		appConfig.Ip=server.URL
+		return appConfig,nil
+	})
+}
+
+func TestSyncConfigServices(t *testing.T) {
+	initMockNotifyAndConfigServer()
+
 	err := NotifySyncConfigServices()
 	//err keep nil
 	Assert(t, err, NilVal())
 }
 
 func TestGetRemoteConfig(t *testing.T) {
-	//clear
-	initNotifications()
-	server := runNormalResponse()
-	newAppConfig := getTestAppConfig()
-	newAppConfig.Ip = server.URL
+	initMockNotifyAndConfigServer()
 
 	time.Sleep(1 * time.Second)
 
@@ -49,11 +69,15 @@ func TestGetRemoteConfig(t *testing.T) {
 }
 
 func TestErrorGetRemoteConfig(t *testing.T) {
+	//clear
+	initNotifications()
 	appConfig := env.GetPlainAppConfig()
 	server := runErrorResponse()
-	newAppConfig := getTestAppConfig()
-	newAppConfig.Ip = server.URL
 	appConfig.Ip = server.URL
+	env.InitConfig(func() (*env.AppConfig, error) {
+		appConfig.Ip=server.URL
+		return appConfig,nil
+	})
 
 	time.Sleep(1 * time.Second)
 

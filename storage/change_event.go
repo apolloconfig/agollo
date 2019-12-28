@@ -48,7 +48,7 @@ func AddChangeListener(listener ChangeListener) {
 }
 
 //RemoveChangeListener 增加变更监控
-func removeChangeListener(listener ChangeListener) {
+func RemoveChangeListener(listener ChangeListener) {
 	if listener == nil {
 		return
 	}
@@ -58,6 +58,10 @@ func removeChangeListener(listener ChangeListener) {
 			changeListeners.Remove(i)
 		}
 	}
+}
+
+func GetChangeListeners() *list.List {
+	return changeListeners
 }
 
 //push config change event

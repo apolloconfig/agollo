@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"encoding/json"
 	"testing"
 	"time"
 
@@ -30,49 +29,23 @@ func createMockApolloConfig(expireTime int) map[string]string {
 	return configs
 }
 
-func getFirstApolloConfig(t *testing.T, currentConfig map[string]*env.ApolloConnConfig) []byte {
-	i := 0
-	var currentJSON []byte
-	var err error
-	for _, v := range currentConfig {
-		if i > 0 {
-			break
-		}
-		currentJSON, err = json.Marshal(v)
-		i++
-	}
-	Assert(t, err, NilVal())
-
-	t.Log("currentJSON:", string(currentJSON))
-
-	Assert(t, false, Equal(string(currentJSON) == ""))
-	return currentJSON
-}
-
 func TestUpdateApolloConfigNull(t *testing.T) {
 	time.Sleep(1 * time.Second)
-	var currentConfig *env.ApolloConnConfig
+
+	apolloConfig := &env.ApolloConfig{
+	}
+	apolloConfig.NamespaceName=defaultNamespace
+	apolloConfig.AppId="test"
+	apolloConfig.Cluster="dev"
+	UpdateApolloConfig(apolloConfig, true)
 
 	currentConnApolloConfig := env.GetCurrentApolloConfig()
-	currentJSON := getFirstApolloConfig(t, currentConnApolloConfig)
-
-	json.Unmarshal(currentJSON, &currentConfig)
-
-	Assert(t, currentConfig, NotNilVal())
-
-	UpdateApolloConfig(nil, true)
-
 	config := currentConnApolloConfig[defaultNamespace]
 
-	//make sure currentConnApolloConfig was not modified
-	//Assert(t, currentConfig.NamespaceName, config.NamespaceName)
-	//Assert(t, currentConfig.AppId, config.AppId)
-	//Assert(t, currentConfig.Cluster, config.Cluster)
-	//Assert(t, currentConfig.ReleaseKey, config.ReleaseKey)
 	Assert(t, config, NotNilVal())
 	Assert(t, defaultNamespace, Equal(config.NamespaceName))
-	Assert(t, "test", Equal(config.AppId))
-	Assert(t, "dev", Equal(config.Cluster))
+	Assert(t, apolloConfig.AppId, Equal(config.AppId))
+	Assert(t, apolloConfig.Cluster, Equal(config.Cluster))
 	Assert(t, "", Equal(config.ReleaseKey))
 
 }
@@ -88,7 +61,7 @@ func TestGetConfigValueNullApolloConfig(t *testing.T) {
 	defaultConfigCache.Clear()
 
 	//test getValue
-	value := getValue("joe")
+	value := GetValue("joe")
 
 	Assert(t, "", Equal(value))
 

@@ -50,6 +50,7 @@ func TestLoadEnvConfig(t *testing.T) {
 	Assert(t, envConfig.NamespaceName, Equal(config.NamespaceName))
 	Assert(t, envConfig.Ip, Equal(config.Ip))
 
+	os.Remove(envConfigFile)
 }
 
 func TestLoadJsonConfigWrongFile(t *testing.T) {

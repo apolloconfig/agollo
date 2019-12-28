@@ -1,4 +1,4 @@
-package storage
+package notify
 
 import (
 	"net/http"

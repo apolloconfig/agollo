@@ -14,7 +14,7 @@ import (
 )
 
 const (
-	APP_CONFIG_FILE_NAME = "app.properties"
+	APP_CONFIG_FILE_NAME = "../app.properties"
 	ENV_CONFIG_FILE_PATH = "AGOLLO_CONF"
 
 	default_notification_id = -1
