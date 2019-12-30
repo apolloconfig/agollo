@@ -81,6 +81,16 @@ func getTestAppConfig() *env.AppConfig {
 	return config
 }
 
+func TestSelectOnlyOneHost(t *testing.T) {
+	appConfig := env.GetPlainAppConfig()
+	t.Log("appconfig host:" + appConfig.GetHost())
+	t.Log("appconfig select host:" + appConfig.SelectHost())
+
+	host := "http://localhost:8888/"
+	Assert(t, host, Equal(appConfig.GetHost()))
+	Assert(t, host, Equal(appConfig.SelectHost()))
+}
+
 func TestSelectHost(t *testing.T) {
 	//mock ip data
 	trySyncServerIpList(t)

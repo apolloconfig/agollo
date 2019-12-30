@@ -79,12 +79,7 @@ func mockIpList(t *testing.T) {
 
 	Assert(t, err, NilVal())
 
-	servers := env.GetServers()
-	serverLen := 0
-	servers.Range(func(k, v interface{}) bool {
-		serverLen++
-		return true
-	})
+	serverLen := env.GetServersLen()
 
 	Assert(t, 2, Equal(serverLen))
 }

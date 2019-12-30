@@ -93,7 +93,7 @@ func (this *AppConfig) SelectHost() string {
 
 	host := ""
 
-	servers.Range(func(k, v interface{}) bool {
+	GetServers().Range(func(k, v interface{}) bool {
 		server := v.(*serverInfo)
 		// if some node has down then select next node
 		if server.IsDown {
@@ -214,6 +214,16 @@ func GetPlainAppConfig() *AppConfig {
 	return appConfig
 }
 
-func GetServers() sync.Map {
-	return servers
+func GetServers() *sync.Map {
+	return &servers
+}
+
+func GetServersLen()int  {
+	s := GetServers()
+	l := 0
+	s.Range(func(k, v interface{}) bool {
+		l++
+		return true
+	})
+	return l
 }

@@ -18,6 +18,11 @@ func onlyNormalConfigResponse(rw http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(rw, configResponseStr)
 }
 
+func onlyNormalTwoConfigResponse(rw http.ResponseWriter, req *http.Request) {
+	rw.WriteHeader(http.StatusOK)
+	fmt.Fprintf(rw, configAbc1ResponseStr)
+}
+
 func onlyNormalResponse(rw http.ResponseWriter, req *http.Request) {
 	result := fmt.Sprintf(responseStr, 3)
 	fmt.Fprintf(rw, "%s", result)
@@ -28,10 +33,12 @@ func initMockNotifyAndConfigServer(){
 	initNotifications()
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
+	handlerMap["abc1"] = onlyNormalTwoConfigResponse
 	server := runMockConfigServer(handlerMap, onlyNormalResponse)
 	appConfig := env.GetPlainAppConfig()
 	env.InitConfig(func() (*env.AppConfig, error) {
 		appConfig.Ip=server.URL
+		appConfig.NextTryConnTime=0
 		return appConfig,nil
 	})
 }
@@ -76,6 +83,7 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 	appConfig.Ip = server.URL
 	env.InitConfig(func() (*env.AppConfig, error) {
 		appConfig.Ip=server.URL
+		appConfig.NextTryConnTime=0
 		return appConfig,nil
 	})
 
@@ -277,10 +285,10 @@ func TestAutoSyncConfigServicesError(t *testing.T) {
 	config := env.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
 	//still properties config
-	Assert(t, "test", Equal(config.AppId))
-	Assert(t, "dev", Equal(config.Cluster))
+	Assert(t, "100004458", Equal(config.AppId))
+	Assert(t, "default", Equal(config.Cluster))
 	Assert(t, "application", Equal(config.NamespaceName))
-	Assert(t, "", Equal(config.ReleaseKey))
+	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
 }
 
 func getTestAppConfig() *env.AppConfig {

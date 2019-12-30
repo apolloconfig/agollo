@@ -21,6 +21,17 @@ const configResponseStr = `{
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
+const configAbc1ResponseStr = `{
+  "appId": "100004458",
+  "cluster": "default",
+  "namespaceName": "abc1",
+  "configurations": {
+    "key1":"value1",
+    "key2":"value2"
+  },
+  "releaseKey": "20170430092936-dee2d58e74515ff3"
+}`
+
 
 //run mock config server
 func runMockConfigServer(handlerMap map[string]func(http.ResponseWriter, *http.Request),
