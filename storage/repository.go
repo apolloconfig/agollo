@@ -61,10 +61,10 @@ func InitConfigCache(cacheFactory *agcache.DefaultCacheFactory) {
 		Logger.Warn("Config is nil,can not init agollo.")
 		return
 	}
-	createNamespaceConfig(cacheFactory, env.GetPlainAppConfig().NamespaceName)
+	CreateNamespaceConfig(cacheFactory, env.GetPlainAppConfig().NamespaceName)
 }
 
-func createNamespaceConfig(cacheFactory *agcache.DefaultCacheFactory, namespace string) {
+func CreateNamespaceConfig(cacheFactory *agcache.DefaultCacheFactory, namespace string) {
 	env.SplitNamespaces(namespace, func(namespace string) {
 		if _, ok := apolloConfigCache.Load(namespace); ok {
 			return
@@ -88,13 +88,23 @@ type Config struct {
 }
 
 //getIsInit 获取标志
-func (this *Config) getIsInit() bool {
+func (this *Config) GetIsInit() bool {
 	return this.isInit.Load().(bool)
+}
+
+//GetWaitInit 获取标志
+func (this *Config) GetWaitInit() *sync.WaitGroup {
+	return &this.waitInit
+}
+
+//GetCache 获取cache
+func (this *Config) GetCache() agcache.CacheInterface {
+	return this.cache
 }
 
 //getConfigValue 获取配置值
 func (this *Config) getConfigValue(key string) interface{} {
-	b := this.getIsInit()
+	b := this.GetIsInit()
 	if !b {
 		this.waitInit.Wait()
 	}
@@ -171,52 +181,6 @@ func (this *Config) GetBoolValue(key string, defaultValue bool) bool {
 	return b
 }
 
-//GetConfig 根据namespace获取apollo配置
-func GetConfig(namespace string) *Config {
-	return GetConfigAndInit(namespace)
-}
-
-//GetConfigAndInit 根据namespace获取apollo配置
-func GetConfigAndInit(namespace string) *Config {
-	if namespace == "" {
-		return nil
-	}
-
-	config, ok := apolloConfigCache.Load(namespace)
-
-	if !ok {
-		createNamespaceConfig(cacheFactory, namespace)
-
-		//notify.NotifySimpleSyncConfigServices(namespace)
-	}
-
-	if config, ok = apolloConfigCache.Load(namespace); !ok {
-		return nil
-	}
-
-	return config.(*Config)
-}
-
-//GetConfigCache 根据namespace获取apollo配置的缓存
-func GetConfigCache(namespace string) agcache.CacheInterface {
-	config := GetConfigAndInit(namespace)
-	if config == nil {
-		return nil
-	}
-	if !config.getIsInit() {
-		config.waitInit.Wait()
-	}
-
-	return config.cache
-}
-
-func GetDefaultConfigCache() agcache.CacheInterface {
-	config := GetConfigAndInit(defaultNamespace)
-	if config != nil {
-		return config.cache
-	}
-	return nil
-}
 
 func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 	if apolloConfig == nil {
@@ -224,7 +188,7 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 		return
 	}
 	//get change list
-	changeList := updateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime, apolloConfig.NamespaceName)
+	changeList := UpdateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime, apolloConfig.NamespaceName)
 
 	if len(changeList) > 0 {
 		//create config change event base on change list
@@ -243,7 +207,7 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 	}
 }
 
-func updateApolloConfigCache(configurations map[string]string, expireTime int, namespace string) map[string]*ConfigChange {
+func UpdateApolloConfigCache(configurations map[string]string, expireTime int, namespace string) map[string]*ConfigChange {
 	config := GetConfig(namespace)
 	if config == nil {
 		return nil
@@ -254,7 +218,7 @@ func updateApolloConfigCache(configurations map[string]string, expireTime int, n
 		if !isInit {
 			return
 		}
-		b := c.getIsInit()
+		b := c.GetIsInit()
 		if b {
 			return
 		}
@@ -317,75 +281,6 @@ func createConfigChangeEvent(changes map[string]*ConfigChange, nameSpace string)
 	}
 }
 
-//GetApolloConfigCache 获取默认namespace的apollo配置
-func GetApolloConfigCache() agcache.CacheInterface {
-	return GetDefaultConfigCache()
-}
-
-func getConfigValue(key string) interface{} {
-	value, err := GetDefaultConfigCache().Get(key)
-	if err != nil {
-		Logger.Errorf("get config value fail!key:%s,err:%s", key, err)
-		return utils.Empty
-	}
-
-	return string(value)
-}
-
-func GetValue(key string) string {
-	value := getConfigValue(key)
-	if value == nil {
-		return utils.Empty
-	}
-
-	return value.(string)
-}
-
-func GetStringValue(key string, defaultValue string) string {
-	value := GetValue(key)
-	if value == utils.Empty {
-		return defaultValue
-	}
-
-	return value
-}
-
-func GetIntValue(key string, defaultValue int) int {
-	value := GetValue(key)
-
-	i, err := strconv.Atoi(value)
-	if err != nil {
-		Logger.Debug("convert to int fail!error:", err)
-		return defaultValue
-	}
-
-	return i
-}
-
-func GetFloatValue(key string, defaultValue float64) float64 {
-	value := GetValue(key)
-
-	i, err := strconv.ParseFloat(value, 64)
-	if err != nil {
-		Logger.Debug("convert to float fail!error:", err)
-		return defaultValue
-	}
-
-	return i
-}
-
-func GetBoolValue(key string, defaultValue bool) bool {
-	value := GetValue(key)
-
-	b, err := strconv.ParseBool(value)
-	if err != nil {
-		Logger.Debug("convert to bool fail!error:", err)
-		return defaultValue
-	}
-
-	return b
-}
-
 //GetContent 获取配置文件内容
 func (c *Config) GetContent(format ConfigFileFormat) string {
 	parser := formatParser[format]
@@ -397,4 +292,33 @@ func (c *Config) GetContent(format ConfigFileFormat) string {
 		Logger.Debug("GetContent fail ! error:", err)
 	}
 	return s
+}
+
+func GetApolloConfigCache()*sync.Map{
+	return &apolloConfigCache
+}
+
+func GetDefaultNamespace()string{
+	return defaultNamespace
+}
+
+
+func GetDefaultCacheFactory()*agcache.DefaultCacheFactory{
+	return cacheFactory
+}
+
+
+//GetConfig 根据namespace获取apollo配置
+func GetConfig(namespace string) *Config {
+	if namespace == "" {
+		return nil
+	}
+
+	config, ok := GetApolloConfigCache().Load(namespace)
+
+	if config, ok = GetApolloConfigCache().Load(namespace); !ok {
+		return nil
+	}
+
+	return config.(*Config)
 }

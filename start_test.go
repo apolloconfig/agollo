@@ -20,7 +20,7 @@ func TestStart(t *testing.T) {
 
 	Start()
 
-	value := storage.GetValue("key1")
+	value := GetValue("key1")
 	Assert(t, "value1", Equal(value))
 }
 
@@ -41,7 +41,7 @@ func TestStartWithMultiNamespace(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	value := storage.GetValue("key1")
+	value := GetValue("key1")
 	Assert(t, "value1", Equal(value))
 
 	config := storage.GetConfig(app1)
@@ -58,10 +58,10 @@ func TestErrorStart(t *testing.T) {
 
 	Start()
 
-	value := storage.GetValue("key1")
+	value := GetValue("key1")
 	Assert(t, "value1", Equal(value))
 
-	value2 := storage.GetValue("key2")
+	value2 := GetValue("key2")
 	Assert(t, "value2", Equal(value2))
 
 }

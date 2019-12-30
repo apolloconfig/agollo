@@ -10,7 +10,6 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v2/env"
-	"github.com/zouyx/agollo/v2/storage"
 )
 
 func onlyNormalConfigResponse(rw http.ResponseWriter, req *http.Request) {
@@ -205,68 +204,11 @@ func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
 	appConfig.IsBackupConfig = true
 }
 
-func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
-	server := runLongNotmodifiedConfigResponse()
-	newAppConfig := getTestAppConfig()
-	newAppConfig.Ip = server.URL
-	time.Sleep(1 * time.Second)
-	appConfig := env.GetPlainAppConfig()
-	appConfig.NextTryConnTime = 0
-
-	AutoSyncConfigServicesSuccessCallBack([]byte(configResponseStr))
-
-	config := env.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
-
-	fmt.Println("sleeping 10s")
-
-	time.Sleep(10 * time.Second)
-
-	fmt.Println("checking agcache time left")
-	defaultConfigCache := storage.GetDefaultConfigCache()
-
-	defaultConfigCache.Range(func(key, value interface{}) bool {
-		Assert(t, string(value.([]byte)), NotNilVal())
-		return true
-	})
-
-	Assert(t, "100004458", Equal(config.AppId))
-	Assert(t, "default", Equal(config.Cluster))
-	Assert(t, "application", Equal(config.NamespaceName))
-	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
-	Assert(t, "value1", Equal(storage.GetStringValue("key1", "")))
-	Assert(t, "value2", Equal(storage.GetStringValue("key2", "")))
-
-	err := AutoSyncConfigServices(newAppConfig)
-
-	fmt.Println("checking agcache time left")
-	defaultConfigCache.Range(func(key, value interface{}) bool {
-		Assert(t, string(value.([]byte)), NotNilVal())
-		return true
-	})
-
-	fmt.Println(err)
-
-	//sleep for async
-	time.Sleep(1 * time.Second)
-	checkBackupFile(t)
-}
-
 func checkNilBackupFile(t *testing.T) {
 	appConfig := env.GetPlainAppConfig()
 	newConfig, e := env.LoadConfigFile(appConfig.GetBackupConfigPath(), "application")
 	Assert(t, e, NotNilVal())
 	Assert(t, newConfig, NilVal())
-}
-
-func checkBackupFile(t *testing.T) {
-	appConfig := env.GetPlainAppConfig()
-	newConfig, e := env.LoadConfigFile(appConfig.GetBackupConfigPath(), "application")
-	t.Log(newConfig.Configurations)
-	Assert(t, e, NilVal())
-	Assert(t, newConfig.Configurations, NotNilVal())
-	for k, v := range newConfig.Configurations {
-		Assert(t, storage.GetStringValue(k, ""), Equal(v))
-	}
 }
 
 func TestAutoSyncConfigServicesError(t *testing.T) {

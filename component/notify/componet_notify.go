@@ -249,3 +249,20 @@ func getNotifyUrlSuffix(notifications string, config *env.AppConfig, newConfig *
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(notifications))
 }
+
+func NotifySimpleSyncConfigServices(namespace string) error {
+
+	remoteConfigs, err := notifyRemoteConfig(nil, namespace)
+
+	if err != nil || len(remoteConfigs) == 0 {
+		return err
+	}
+
+	updateAllNotifications(remoteConfigs)
+
+	//sync all config
+	notifications := make(map[string]int64)
+	notifications[remoteConfigs[0].NamespaceName] = remoteConfigs[0].NotificationId
+
+	return autoSyncNamespaceConfigServices(nil, notifications)
+}
