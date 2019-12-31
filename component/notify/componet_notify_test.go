@@ -12,6 +12,8 @@ import (
 	"github.com/zouyx/agollo/v2/env"
 )
 
+const responseStr = `[{"namespaceName":"application","notificationId":%d}]`
+
 func onlyNormalConfigResponse(rw http.ResponseWriter, req *http.Request) {
 	rw.WriteHeader(http.StatusOK)
 	fmt.Fprintf(rw, configResponseStr)
@@ -27,7 +29,7 @@ func onlyNormalResponse(rw http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(rw, "%s", result)
 }
 
-func initMockNotifyAndConfigServer(){
+func initMockNotifyAndConfigServer() {
 	//clear
 	initNotifications()
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
@@ -36,9 +38,9 @@ func initMockNotifyAndConfigServer(){
 	server := runMockConfigServer(handlerMap, onlyNormalResponse)
 	appConfig := env.GetPlainAppConfig()
 	env.InitConfig(func() (*env.AppConfig, error) {
-		appConfig.Ip=server.URL
-		appConfig.NextTryConnTime=0
-		return appConfig,nil
+		appConfig.Ip = server.URL
+		appConfig.NextTryConnTime = 0
+		return appConfig, nil
 	})
 }
 
@@ -81,9 +83,9 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 	server := runErrorResponse()
 	appConfig.Ip = server.URL
 	env.InitConfig(func() (*env.AppConfig, error) {
-		appConfig.Ip=server.URL
-		appConfig.NextTryConnTime=0
-		return appConfig,nil
+		appConfig.Ip = server.URL
+		appConfig.NextTryConnTime = 0
+		return appConfig, nil
 	})
 
 	time.Sleep(1 * time.Second)

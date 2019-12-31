@@ -241,12 +241,13 @@ func autoSyncNamespaceConfigServices(newAppConfig *env.AppConfig, notifications 
 }
 
 func getNotifyUrlSuffix(notifications string, config *env.AppConfig, newConfig *env.AppConfig) string {
+	c := config
 	if newConfig != nil {
-		return ""
+		c = newConfig
 	}
 	return fmt.Sprintf("notifications/v2?appId=%s&cluster=%s&notifications=%s",
-		url.QueryEscape(config.AppId),
-		url.QueryEscape(config.Cluster),
+		url.QueryEscape(c.AppId),
+		url.QueryEscape(c.Cluster),
 		url.QueryEscape(notifications))
 }
 

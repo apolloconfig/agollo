@@ -2,20 +2,22 @@ package agollo
 
 import (
 	"fmt"
-	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v2/component/notify"
-	"github.com/zouyx/agollo/v2/env"
-	"github.com/zouyx/agollo/v2/storage"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v2/component/notify"
+	"github.com/zouyx/agollo/v2/env"
+	"github.com/zouyx/agollo/v2/storage"
 )
+
+const testDefaultNamespace = "application"
 
 //init param
 func init() {
 }
-
 
 func createMockApolloConfig(expireTime int) map[string]string {
 	configs := make(map[string]string, 0)
@@ -33,8 +35,8 @@ func createMockApolloConfig(expireTime int) map[string]string {
 	return configs
 }
 
-
 func TestGetConfigValueNullApolloConfig(t *testing.T) {
+	createMockApolloConfig(120)
 	//clear Configurations
 	defaultConfigCache := GetDefaultConfigCache()
 	defaultConfigCache.Clear()
@@ -126,7 +128,6 @@ func TestGetStringValue(t *testing.T) {
 	Assert(t, "value", Equal(v))
 }
 
-
 func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	server := runLongNotmodifiedConfigResponse()
 	newAppConfig := getTestAppConfig()
@@ -153,30 +154,16 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 
 	Assert(t, "100004458", Equal(config.AppId))
 	Assert(t, "default", Equal(config.Cluster))
-	Assert(t, "application", Equal(config.NamespaceName))
+	Assert(t, testDefaultNamespace, Equal(config.NamespaceName))
 	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
 	Assert(t, "value1", Equal(GetStringValue("key1", "")))
 	Assert(t, "value2", Equal(GetStringValue("key2", "")))
-
-	err := notify.AutoSyncConfigServices(newAppConfig)
-
-	fmt.Println("checking agcache time left")
-	defaultConfigCache.Range(func(key, value interface{}) bool {
-		Assert(t, string(value.([]byte)), NotNilVal())
-		return true
-	})
-
-	fmt.Println(err)
-
-	//sleep for async
-	time.Sleep(1 * time.Second)
 	checkBackupFile(t)
 }
 
-
 func checkBackupFile(t *testing.T) {
 	appConfig := env.GetPlainAppConfig()
-	newConfig, e := env.LoadConfigFile(appConfig.GetBackupConfigPath(), "application")
+	newConfig, e := env.LoadConfigFile(appConfig.GetBackupConfigPath(), testDefaultNamespace)
 	t.Log(newConfig.Configurations)
 	Assert(t, e, NilVal())
 	Assert(t, newConfig.Configurations, NotNilVal())
@@ -185,7 +172,6 @@ func checkBackupFile(t *testing.T) {
 	}
 }
 
-
 func runLongNotmodifiedConfigResponse() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(500 * time.Microsecond)
@@ -193,4 +179,82 @@ func runLongNotmodifiedConfigResponse() *httptest.Server {
 	}))
 
 	return ts
+}
+
+func TestConfig_GetStringValue(t *testing.T) {
+	createMockApolloConfig(120)
+	config := GetConfig(testDefaultNamespace)
+
+	defaultValue := "j"
+	//test default
+	v := config.GetStringValue("joe", defaultValue)
+	Assert(t, defaultValue, Equal(v))
+
+	//normal value
+	v = config.GetStringValue("string", defaultValue)
+
+	Assert(t, "value", Equal(v))
+}
+
+func TestConfig_GetBoolValue(t *testing.T) {
+	createMockApolloConfig(120)
+	defaultValue := false
+	config := GetConfig(testDefaultNamespace)
+
+	//test default
+	v := config.GetBoolValue("joe", defaultValue)
+
+	Assert(t, defaultValue, Equal(v))
+
+	//normal value
+	v = config.GetBoolValue("bool", defaultValue)
+
+	Assert(t, true, Equal(v))
+
+	//error type
+	v = config.GetBoolValue("float", defaultValue)
+
+	Assert(t, defaultValue, Equal(v))
+}
+
+func TestConfig_GetFloatValue(t *testing.T) {
+	createMockApolloConfig(120)
+	defaultValue := 100000.1
+	config := GetConfig(testDefaultNamespace)
+
+	//test default
+	v := config.GetFloatValue("joe", defaultValue)
+
+	Assert(t, defaultValue, Equal(v))
+
+	//normal value
+	v = config.GetFloatValue("float", defaultValue)
+
+	Assert(t, 190.3, Equal(v))
+
+	//error type
+	v = config.GetFloatValue("int", defaultValue)
+
+	Assert(t, float64(1), Equal(v))
+}
+
+func TestConfig_GetIntValue(t *testing.T) {
+	createMockApolloConfig(120)
+	defaultValue := 100000
+	config := GetConfig(testDefaultNamespace)
+
+	//test default
+	v := config.GetIntValue("joe", defaultValue)
+
+	Assert(t, defaultValue, Equal(v))
+
+	//normal value
+	v = config.GetIntValue("int", defaultValue)
+
+	Assert(t, 1, Equal(v))
+
+	//error type
+	v = config.GetIntValue("float", defaultValue)
+
+	Assert(t, defaultValue, Equal(v))
 }

@@ -1,12 +1,12 @@
 package agollo
 
 import (
+	"strconv"
+
 	"github.com/zouyx/agollo/v2/agcache"
-	"github.com/zouyx/agollo/v2/component/notify"
+	. "github.com/zouyx/agollo/v2/component/log"
 	"github.com/zouyx/agollo/v2/storage"
 	"github.com/zouyx/agollo/v2/utils"
-	"strconv"
-	. "github.com/zouyx/agollo/v2/component/log"
 )
 
 //GetConfig 根据namespace获取apollo配置
@@ -23,12 +23,6 @@ func GetConfigAndInit(namespace string) *storage.Config {
 	config, ok := storage.GetApolloConfigCache().Load(namespace)
 
 	if !ok {
-		storage.CreateNamespaceConfig(storage.GetDefaultCacheFactory(), namespace)
-
-		notify.NotifySimpleSyncConfigServices(namespace)
-	}
-
-	if config, ok = storage.GetApolloConfigCache().Load(namespace); !ok {
 		return nil
 	}
 
@@ -48,7 +42,6 @@ func GetConfigCache(namespace string) agcache.CacheInterface {
 	return config.GetCache()
 }
 
-
 func GetDefaultConfigCache() agcache.CacheInterface {
 	config := GetConfigAndInit(storage.GetDefaultNamespace())
 	if config != nil {
@@ -57,12 +50,10 @@ func GetDefaultConfigCache() agcache.CacheInterface {
 	return nil
 }
 
-
 //GetApolloConfigCache 获取默认namespace的apollo配置
 func GetApolloConfigCache() agcache.CacheInterface {
 	return GetDefaultConfigCache()
 }
-
 
 func GetValue(key string) string {
 	value := getConfigValue(key)
@@ -118,9 +109,13 @@ func GetBoolValue(key string, defaultValue bool) bool {
 	return b
 }
 
-
 func getConfigValue(key string) interface{} {
-	value, err := GetDefaultConfigCache().Get(key)
+	cache := GetDefaultConfigCache()
+	if cache == nil {
+		return utils.Empty
+	}
+
+	value, err := cache.Get(key)
 	if err != nil {
 		Logger.Errorf("get config value fail!key:%s,err:%s", key, err)
 		return utils.Empty

@@ -69,14 +69,19 @@ func CreateNamespaceConfig(cacheFactory *agcache.DefaultCacheFactory, namespace 
 		if _, ok := apolloConfigCache.Load(namespace); ok {
 			return
 		}
-		c := &Config{
-			namespace: namespace,
-			cache:     cacheFactory.Create(),
-		}
-		c.isInit.Store(false)
-		c.waitInit.Add(1)
+		c := initConfig(namespace, cacheFactory)
 		apolloConfigCache.Store(namespace, c)
 	})
+}
+
+func initConfig(namespace string, factory *agcache.DefaultCacheFactory) *Config {
+	c := &Config{
+		namespace: namespace,
+		cache:     factory.Create(),
+	}
+	c.isInit.Store(false)
+	c.waitInit.Add(1)
+	return c
 }
 
 //Config apollo配置项
@@ -181,7 +186,6 @@ func (this *Config) GetBoolValue(key string, defaultValue bool) bool {
 	return b
 }
 
-
 func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 	if apolloConfig == nil {
 		Logger.Error("apolloConfig is null,can't update!")
@@ -210,7 +214,8 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 func UpdateApolloConfigCache(configurations map[string]string, expireTime int, namespace string) map[string]*ConfigChange {
 	config := GetConfig(namespace)
 	if config == nil {
-		return nil
+		config = initConfig(namespace, cacheFactory)
+		apolloConfigCache.Store(namespace, config)
 	}
 
 	isInit := false
@@ -294,19 +299,17 @@ func (c *Config) GetContent(format ConfigFileFormat) string {
 	return s
 }
 
-func GetApolloConfigCache()*sync.Map{
+func GetApolloConfigCache() *sync.Map {
 	return &apolloConfigCache
 }
 
-func GetDefaultNamespace()string{
+func GetDefaultNamespace() string {
 	return defaultNamespace
 }
 
-
-func GetDefaultCacheFactory()*agcache.DefaultCacheFactory{
+func GetDefaultCacheFactory() *agcache.DefaultCacheFactory {
 	return cacheFactory
 }
-
 
 //GetConfig 根据namespace获取apollo配置
 func GetConfig(namespace string) *Config {
@@ -316,7 +319,7 @@ func GetConfig(namespace string) *Config {
 
 	config, ok := GetApolloConfigCache().Load(namespace)
 
-	if config, ok = GetApolloConfigCache().Load(namespace); !ok {
+	if !ok {
 		return nil
 	}
 
