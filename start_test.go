@@ -4,11 +4,17 @@ import (
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v2/component/notify"
 	"github.com/zouyx/agollo/v2/env"
+	"github.com/zouyx/agollo/v2/env/config"
+	"github.com/zouyx/agollo/v2/env/config/json_config"
 	"github.com/zouyx/agollo/v2/storage"
 
 	"net/http"
 	"testing"
 	"time"
+)
+
+var(
+	jsonConfigFile = &json_config.JSONConfigFile{}
 )
 
 func TestStart(t *testing.T) {
@@ -68,7 +74,7 @@ func TestErrorStart(t *testing.T) {
 
 }
 
-func getTestAppConfig() *env.AppConfig {
+func getTestAppConfig() *config.AppConfig {
 	jsonStr := `{
     "appId": "test",
     "cluster": "dev",
@@ -76,21 +82,21 @@ func getTestAppConfig() *env.AppConfig {
     "ip": "localhost:8888",
     "releaseKey": "1"
 	}`
-	config, _ := env.CreateAppConfigWithJson(jsonStr)
+	config, _ := jsonConfigFile.Unmarshal(jsonStr)
 
 	return config
 }
 
 func TestStructInit(t *testing.T) {
 	t.SkipNow()
-	readyConfig := &env.AppConfig{
+	readyConfig := &config.AppConfig{
 		AppId:         "test1",
 		Cluster:       "dev1",
 		NamespaceName: "application1",
 		Ip:            "localhost:8889",
 	}
 
-	InitCustomConfig(func() (*env.AppConfig, error) {
+	InitCustomConfig(func() (*config.AppConfig, error) {
 		return readyConfig, nil
 	})
 

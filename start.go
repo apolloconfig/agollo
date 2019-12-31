@@ -7,11 +7,12 @@ import (
 	"github.com/zouyx/agollo/v2/component/notify"
 	"github.com/zouyx/agollo/v2/env"
 	_ "github.com/zouyx/agollo/v2/env"
+	"github.com/zouyx/agollo/v2/env/config"
 	"github.com/zouyx/agollo/v2/storage"
 )
 
 //InitCustomConfig init config by custom
-func InitCustomConfig(loadAppConfig func() (*env.AppConfig, error)) {
+func InitCustomConfig(loadAppConfig func() (*config.AppConfig, error)) {
 
 	env.InitConfig(loadAppConfig)
 

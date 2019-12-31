@@ -2,6 +2,7 @@ package component
 
 import (
 	"fmt"
+	"github.com/zouyx/agollo/v2/env/config"
 	"net/url"
 	"time"
 
@@ -45,7 +46,7 @@ func StartRefreshConfig(component AbsComponent) {
 	component.Start()
 }
 
-func GetConfigURLSuffix(config *env.AppConfig, namespaceName string) string {
+func GetConfigURLSuffix(config *config.AppConfig, namespaceName string) string {
 	if config == nil {
 		return ""
 	}
@@ -61,7 +62,7 @@ func GetConfigURLSuffix(config *env.AppConfig, namespaceName string) string {
 //then
 //1.update agcache
 //2.store in disk
-func SyncServerIpList(newAppConfig *env.AppConfig) error {
+func SyncServerIpList(newAppConfig *config.AppConfig) error {
 	appConfig := env.GetAppConfig(newAppConfig)
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")

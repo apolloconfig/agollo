@@ -3,6 +3,7 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zouyx/agollo/v2/env/config"
 	"net/url"
 	"sync"
 	"time"
@@ -157,7 +158,7 @@ func toApolloConfig(resBody []byte) ([]*apolloNotify, error) {
 	return remoteConfig, nil
 }
 
-func notifyRemoteConfig(newAppConfig *env.AppConfig, namespace string) ([]*apolloNotify, error) {
+func notifyRemoteConfig(newAppConfig *config.AppConfig, namespace string) ([]*apolloNotify, error) {
 	appConfig := env.GetAppConfig(newAppConfig)
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
@@ -213,11 +214,11 @@ func AutoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, 
 	return nil, nil
 }
 
-func AutoSyncConfigServices(newAppConfig *env.AppConfig) error {
+func AutoSyncConfigServices(newAppConfig *config.AppConfig) error {
 	return autoSyncNamespaceConfigServices(newAppConfig, allNotifications.notifications)
 }
 
-func autoSyncNamespaceConfigServices(newAppConfig *env.AppConfig, notifications map[string]int64) error {
+func autoSyncNamespaceConfigServices(newAppConfig *config.AppConfig, notifications map[string]int64) error {
 	appConfig := env.GetAppConfig(newAppConfig)
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
@@ -240,7 +241,7 @@ func autoSyncNamespaceConfigServices(newAppConfig *env.AppConfig, notifications 
 	return err
 }
 
-func getNotifyUrlSuffix(notifications string, config *env.AppConfig, newConfig *env.AppConfig) string {
+func getNotifyUrlSuffix(notifications string, config *config.AppConfig, newConfig *config.AppConfig) string {
 	c := config
 	if newConfig != nil {
 		c = newConfig

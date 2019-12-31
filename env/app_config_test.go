@@ -1,8 +1,12 @@
 package env
 
 import (
+	"encoding/json"
 	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v2/env/config"
+	"github.com/zouyx/agollo/v2/env/config/json_config"
 	"github.com/zouyx/agollo/v2/utils"
+	"os"
 
 	"testing"
 	"time"
@@ -10,6 +14,7 @@ import (
 
 var (
 	defaultNamespace = "application"
+	jsonConfigFile = &json_config.JSONConfigFile{}
 )
 
 func TestInit(t *testing.T) {
@@ -37,7 +42,7 @@ func TestGetServicesConfigUrl(t *testing.T) {
 	Assert(t, "http://localhost:8888/services/config?appId=test&ip="+ip, Equal(url))
 }
 
-func getTestAppConfig() *AppConfig {
+func getTestAppConfig() *config.AppConfig {
 	jsonStr := `{
     "appId": "test",
     "cluster": "dev",
@@ -45,7 +50,40 @@ func getTestAppConfig() *AppConfig {
     "ip": "localhost:8888",
     "releaseKey": "1"
 	}`
-	config, _ := CreateAppConfigWithJson(jsonStr)
+	config, _ := jsonConfigFile.Unmarshal(jsonStr)
 
 	return config
+}
+
+
+func TestLoadEnvConfig(t *testing.T) {
+	envConfigFile := "env_test.properties"
+	config, _ := jsonConfigFile.LoadJsonConfig(APP_CONFIG_FILE_NAME)
+	config.Ip = "123"
+	config.AppId = "1111"
+	config.NamespaceName = "nsabbda"
+	file, err := os.Create(envConfigFile)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+	defer file.Close()
+	err = json.NewEncoder(file).Encode(config)
+	if err != nil {
+		t.Error(err)
+		t.FailNow()
+	}
+
+	err = os.Setenv(ENV_CONFIG_FILE_PATH, envConfigFile)
+	envConfig, envConfigErr := getLoadAppConfig(nil)
+	t.Log(config)
+
+	Assert(t, envConfigErr, NilVal())
+	Assert(t, envConfig, NotNilVal())
+	Assert(t, envConfig.AppId, Equal(config.AppId))
+	Assert(t, envConfig.Cluster, Equal(config.Cluster))
+	Assert(t, envConfig.NamespaceName, Equal(config.NamespaceName))
+	Assert(t, envConfig.Ip, Equal(config.Ip))
+
+	os.Remove(envConfigFile)
 }

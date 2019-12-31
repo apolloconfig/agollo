@@ -2,6 +2,8 @@ package http
 
 import (
 	"fmt"
+	"github.com/zouyx/agollo/v2/env/config"
+	"github.com/zouyx/agollo/v2/env/config/json_config"
 	"net/url"
 	"testing"
 	"time"
@@ -11,7 +13,11 @@ import (
 	"github.com/zouyx/agollo/v2/utils"
 )
 
-func getTestAppConfig() *env.AppConfig {
+var(
+	jsonConfigFile = &json_config.JSONConfigFile{}
+)
+
+func getTestAppConfig() *config.AppConfig {
 	jsonStr := `{
     "appId": "test",
     "cluster": "dev",
@@ -19,7 +25,7 @@ func getTestAppConfig() *env.AppConfig {
     "ip": "localhost:8888",
     "releaseKey": "1"
 	}`
-	config, _ := env.CreateAppConfigWithJson(jsonStr)
+	config, _ := jsonConfigFile.Unmarshal(jsonStr)
 
 	return config
 }
@@ -84,7 +90,7 @@ func mockIpList(t *testing.T) {
 	Assert(t, 2, Equal(serverLen))
 }
 
-func getConfigURLSuffix(config *env.AppConfig, namespaceName string) string {
+func getConfigURLSuffix(config *config.AppConfig, namespaceName string) string {
 	if config == nil {
 		return ""
 	}

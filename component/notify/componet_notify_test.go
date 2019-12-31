@@ -3,6 +3,8 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zouyx/agollo/v2/env/config"
+	"github.com/zouyx/agollo/v2/env/config/json_config"
 	"net/http"
 	"os"
 	"testing"
@@ -10,6 +12,10 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v2/env"
+)
+
+var(
+	jsonConfigFile = &json_config.JSONConfigFile{}
 )
 
 const responseStr = `[{"namespaceName":"application","notificationId":%d}]`
@@ -37,7 +43,7 @@ func initMockNotifyAndConfigServer() {
 	handlerMap["abc1"] = onlyNormalTwoConfigResponse
 	server := runMockConfigServer(handlerMap, onlyNormalResponse)
 	appConfig := env.GetPlainAppConfig()
-	env.InitConfig(func() (*env.AppConfig, error) {
+	env.InitConfig(func() (*config.AppConfig, error) {
 		appConfig.Ip = server.URL
 		appConfig.NextTryConnTime = 0
 		return appConfig, nil
@@ -82,7 +88,7 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 	appConfig := env.GetPlainAppConfig()
 	server := runErrorResponse()
 	appConfig.Ip = server.URL
-	env.InitConfig(func() (*env.AppConfig, error) {
+	env.InitConfig(func() (*config.AppConfig, error) {
 		appConfig.Ip = server.URL
 		appConfig.NextTryConnTime = 0
 		return appConfig, nil
@@ -235,7 +241,7 @@ func TestAutoSyncConfigServicesError(t *testing.T) {
 	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
 }
 
-func getTestAppConfig() *env.AppConfig {
+func getTestAppConfig() *config.AppConfig {
 	jsonStr := `{
     "appId": "test",
     "cluster": "dev",
@@ -243,7 +249,7 @@ func getTestAppConfig() *env.AppConfig {
     "ip": "localhost:8888",
     "releaseKey": "1"
 	}`
-	config, _ := env.CreateAppConfigWithJson(jsonStr)
+	config, _ := jsonConfigFile.Unmarshal(jsonStr)
 
 	return config
 }

@@ -3,6 +3,8 @@ package env
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zouyx/agollo/v2/env/config"
+	"github.com/zouyx/agollo/v2/env/config/json_config"
 	"net/url"
 	"os"
 	"strings"
@@ -21,124 +23,30 @@ const (
 	comma                   = ","
 )
 
-func init() {
-	//init config
-	InitFileConfig()
-}
-
-var (
-	long_poll_connect_timeout = 1 * time.Minute //1m
-
+var(
 	//appconfig
-	appConfig *AppConfig
-
+	appConfig *config.AppConfig
 	//real servers ip
 	servers sync.Map
+
+	long_poll_connect_timeout = 1 * time.Minute //1m
 
 	//next try connect period - 60 second
 	next_try_connect_period int64 = 60
 )
 
-type AppConfig struct {
-	AppId            string `json:"appId"`
-	Cluster          string `json:"cluster"`
-	NamespaceName    string `json:"namespaceName"`
-	Ip               string `json:"ip"`
-	NextTryConnTime  int64  `json:"-"`
-	IsBackupConfig   bool   `default:"true" json:"isBackupConfig"`
-	BackupConfigPath string `json:"backupConfigPath"`
+func init() {
+	//init config
+	InitFileConfig()
 }
 
-//getIsBackupConfig whether backup config after fetch config from apollo
-//false : no
-//true : yes (default)
-func (this *AppConfig) GetIsBackupConfig() bool {
-	return this.IsBackupConfig
-}
-
-func (this *AppConfig) GetBackupConfigPath() string {
-	return this.BackupConfigPath
-}
-
-func (this *AppConfig) GetHost() string {
-	if strings.HasPrefix(this.Ip, "http") {
-		if !strings.HasSuffix(this.Ip, "/") {
-			return this.Ip + "/"
-		}
-		return this.Ip
-	}
-	return "http://" + this.Ip + "/"
-}
-
-//if this connect is fail will set this time
-func (this *AppConfig) SetNextTryConnTime(nextTryConnectPeriod int64) {
-	this.NextTryConnTime = time.Now().Unix() + nextTryConnectPeriod
-}
-
-//is connect by ip directly
-//false : no
-//true : yes
-func (this *AppConfig) isConnectDirectly() bool {
-	if this.NextTryConnTime >= 0 && this.NextTryConnTime > time.Now().Unix() {
-		return true
-	}
-
-	return false
-}
-
-func (this *AppConfig) SelectHost() string {
-	if !this.isConnectDirectly() {
-		return this.GetHost()
-	}
-
-	host := ""
-
-	GetServers().Range(func(k, v interface{}) bool {
-		server := v.(*serverInfo)
-		// if some node has down then select next node
-		if server.IsDown {
-			return true
-		}
-		host = k.(string)
-		return false
-	})
-
-	return host
-}
-
-func SetDownNode(host string) {
-	if host == "" || appConfig == nil {
-		return
-	}
-
-	if host == appConfig.GetHost() {
-		appConfig.SetNextTryConnTime(next_try_connect_period)
-	}
-
-	servers.Range(func(k, v interface{}) bool {
-		server := v.(*serverInfo)
-		// if some node has down then select next node
-		if k.(string) == host {
-			server.IsDown = true
-			return false
-		}
-		return true
-	})
-}
-
-type serverInfo struct {
-	AppName     string `json:"appName"`
-	InstanceId  string `json:"instanceId"`
-	HomepageUrl string `json:"homepageUrl"`
-	IsDown      bool   `json:"-"`
-}
 
 func InitFileConfig() {
 	// default use application.properties
 	InitConfig(nil)
 }
 
-func InitConfig(loadAppConfig func() (*AppConfig, error)) {
+func InitConfig(loadAppConfig func() (*config.AppConfig, error)) {
 	var err error
 	//init config file
 	appConfig, err = getLoadAppConfig(loadAppConfig)
@@ -159,7 +67,7 @@ func SplitNamespaces(namespacesStr string, callback func(namespace string)) map[
 }
 
 // set load app config's function
-func getLoadAppConfig(loadAppConfig func() (*AppConfig, error)) (*AppConfig, error) {
+func getLoadAppConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.AppConfig, error) {
 	if loadAppConfig != nil {
 		return loadAppConfig()
 	}
@@ -167,13 +75,13 @@ func getLoadAppConfig(loadAppConfig func() (*AppConfig, error)) (*AppConfig, err
 	if configPath == "" {
 		configPath = APP_CONFIG_FILE_NAME
 	}
-	return loadJsonConfig(configPath)
+	return GetExecuteGetConfigFile().LoadJsonConfig(configPath)
 }
 
 func SyncServerIpListSuccessCallBack(responseBody []byte) (o interface{}, err error) {
 	Logger.Debug("get all server info:", string(responseBody))
 
-	tmpServerInfo := make([]*serverInfo, 0)
+	tmpServerInfo := make([]*config.ServerInfo, 0)
 
 	err = json.Unmarshal(responseBody, &tmpServerInfo)
 
@@ -196,21 +104,43 @@ func SyncServerIpListSuccessCallBack(responseBody []byte) (o interface{}, err er
 	return
 }
 
-func GetAppConfig(newAppConfig *AppConfig) *AppConfig {
+
+func SetDownNode(host string) {
+	if host == "" || appConfig == nil {
+		return
+	}
+
+	if host == appConfig.GetHost() {
+		appConfig.SetNextTryConnTime(next_try_connect_period)
+	}
+
+	servers.Range(func(k, v interface{}) bool {
+		server := v.(*config.ServerInfo)
+		// if some node has down then select next node
+		if k.(string) == host {
+			server.IsDown = true
+			return false
+		}
+		return true
+	})
+}
+
+
+func GetAppConfig(newAppConfig *config.AppConfig) *config.AppConfig {
 	if newAppConfig != nil {
 		return newAppConfig
 	}
 	return appConfig
 }
 
-func GetServicesConfigUrl(config *AppConfig) string {
+func GetServicesConfigUrl(config *config.AppConfig) string {
 	return fmt.Sprintf("%sservices/config?appId=%s&ip=%s",
 		config.GetHost(),
 		url.QueryEscape(config.AppId),
 		utils.GetInternal())
 }
 
-func GetPlainAppConfig() *AppConfig {
+func GetPlainAppConfig() *config.AppConfig {
 	return appConfig
 }
 
@@ -226,4 +156,13 @@ func GetServersLen()int  {
 		return true
 	})
 	return l
+}
+var executeConfigFileOnce sync.Once
+var executeGetConfigFile config.ConfigFile
+
+func GetExecuteGetConfigFile() config.ConfigFile {
+	executeConfigFileOnce.Do(func() {
+		executeGetConfigFile = &json_config.JSONConfigFile{}
+	})
+	return executeGetConfigFile
 }

@@ -3,6 +3,7 @@ package http
 import (
 	"errors"
 	"fmt"
+	"github.com/zouyx/agollo/v2/env/config"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -93,7 +94,7 @@ func Request(requestUrl string, connectionConfig *env.ConnectConfig, callBack *C
 	return nil, err
 }
 
-func RequestRecovery(appConfig *env.AppConfig,
+func RequestRecovery(appConfig *config.AppConfig,
 	connectConfig *env.ConnectConfig,
 	callBack *CallBack) (interface{}, error) {
 	format := "%s%s"
@@ -101,7 +102,7 @@ func RequestRecovery(appConfig *env.AppConfig,
 	var response interface{}
 
 	for {
-		host := appConfig.SelectHost()
+		host := appConfig.SelectHost(env.GetServers())
 		if host == "" {
 			return nil, err
 		}

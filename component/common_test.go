@@ -1,11 +1,17 @@
 package component
 
 import (
+	"github.com/zouyx/agollo/v2/env/config"
+	"github.com/zouyx/agollo/v2/env/config/json_config"
 	"testing"
 	"time"
 
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v2/env"
+)
+
+var(
+	jsonConfigFile = &json_config.JSONConfigFile{}
 )
 
 func TestCreateApolloConfigWithJson(t *testing.T) {
@@ -68,7 +74,7 @@ func trySyncServerIpList(t *testing.T) {
 
 }
 
-func getTestAppConfig() *env.AppConfig {
+func getTestAppConfig() *config.AppConfig {
 	jsonStr := `{
     "appId": "test",
     "cluster": "dev",
@@ -76,7 +82,7 @@ func getTestAppConfig() *env.AppConfig {
     "ip": "localhost:8888",
     "releaseKey": "1"
 	}`
-	config, _ := env.CreateAppConfigWithJson(jsonStr)
+	config, _ := jsonConfigFile.Unmarshal(jsonStr)
 
 	return config
 }
@@ -84,11 +90,11 @@ func getTestAppConfig() *env.AppConfig {
 func TestSelectOnlyOneHost(t *testing.T) {
 	appConfig := env.GetPlainAppConfig()
 	t.Log("appconfig host:" + appConfig.GetHost())
-	t.Log("appconfig select host:" + appConfig.SelectHost())
+	t.Log("appconfig select host:" + appConfig.SelectHost(env.GetServers()))
 
 	host := "http://localhost:8888/"
 	Assert(t, host, Equal(appConfig.GetHost()))
-	Assert(t, host, Equal(appConfig.SelectHost()))
+	Assert(t, host, Equal(appConfig.SelectHost(env.GetServers())))
 }
 
 func TestSelectHost(t *testing.T) {
@@ -98,30 +104,30 @@ func TestSelectHost(t *testing.T) {
 	servers := env.GetServers()
 	appConfig := env.GetPlainAppConfig()
 	t.Log("appconfig host:" + appConfig.GetHost())
-	t.Log("appconfig select host:" + appConfig.SelectHost())
+	t.Log("appconfig select host:" + appConfig.SelectHost(env.GetServers()))
 
 	host := "http://localhost:8888/"
 	Assert(t, host, Equal(appConfig.GetHost()))
-	Assert(t, host, Equal(appConfig.SelectHost()))
+	Assert(t, host, Equal(appConfig.SelectHost(env.GetServers())))
 
 	//check select next time
 	appConfig.SetNextTryConnTime(5)
-	Assert(t, host, NotEqual(appConfig.SelectHost()))
+	Assert(t, host, NotEqual(appConfig.SelectHost(env.GetServers())))
 	time.Sleep(6 * time.Second)
-	Assert(t, host, Equal(appConfig.SelectHost()))
+	Assert(t, host, Equal(appConfig.SelectHost(env.GetServers())))
 
 	//check servers
 	appConfig.SetNextTryConnTime(5)
-	firstHost := appConfig.SelectHost()
+	firstHost := appConfig.SelectHost(env.GetServers())
 	Assert(t, host, NotEqual(firstHost))
 	env.SetDownNode(firstHost)
 
-	secondHost := appConfig.SelectHost()
+	secondHost := appConfig.SelectHost(env.GetServers())
 	Assert(t, host, NotEqual(secondHost))
 	Assert(t, firstHost, NotEqual(secondHost))
 	env.SetDownNode(secondHost)
 
-	thirdHost := appConfig.SelectHost()
+	thirdHost := appConfig.SelectHost(env.GetServers())
 	Assert(t, host, NotEqual(thirdHost))
 	Assert(t, firstHost, NotEqual(thirdHost))
 	Assert(t, secondHost, NotEqual(thirdHost))
@@ -131,12 +137,12 @@ func TestSelectHost(t *testing.T) {
 		return true
 	})
 
-	Assert(t, "", Equal(appConfig.SelectHost()))
+	Assert(t, "", Equal(appConfig.SelectHost(env.GetServers())))
 
 	//no servers
 	//servers = make(map[string]*serverInfo, 0)
 	deleteServers()
-	Assert(t, "", Equal(appConfig.SelectHost()))
+	Assert(t, "", Equal(appConfig.SelectHost(env.GetServers())))
 }
 
 func deleteServers() {

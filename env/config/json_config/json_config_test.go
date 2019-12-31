@@ -1,15 +1,18 @@
-package env
+package json_config
 
 import (
-	"encoding/json"
-	"os"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
 )
 
+var(
+	APP_CONFIG_FILE_NAME = "app.properties"
+	jsonConfigFile = &JSONConfigFile{}
+)
+
 func TestLoadJsonConfig(t *testing.T) {
-	config, err := loadJsonConfig(APP_CONFIG_FILE_NAME)
+	config, err := jsonConfigFile.LoadJsonConfig(APP_CONFIG_FILE_NAME)
 	t.Log(config)
 
 	Assert(t, err, NilVal())
@@ -21,40 +24,8 @@ func TestLoadJsonConfig(t *testing.T) {
 
 }
 
-func TestLoadEnvConfig(t *testing.T) {
-	envConfigFile := "env_test.properties"
-	config, _ := loadJsonConfig(APP_CONFIG_FILE_NAME)
-	config.Ip = "123"
-	config.AppId = "1111"
-	config.NamespaceName = "nsabbda"
-	file, err := os.Create(envConfigFile)
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
-	defer file.Close()
-	err = json.NewEncoder(file).Encode(config)
-	if err != nil {
-		t.Error(err)
-		t.FailNow()
-	}
-
-	err = os.Setenv(ENV_CONFIG_FILE_PATH, envConfigFile)
-	envConfig, envConfigErr := getLoadAppConfig(nil)
-	t.Log(config)
-
-	Assert(t, envConfigErr, NilVal())
-	Assert(t, envConfig, NotNilVal())
-	Assert(t, envConfig.AppId, Equal(config.AppId))
-	Assert(t, envConfig.Cluster, Equal(config.Cluster))
-	Assert(t, envConfig.NamespaceName, Equal(config.NamespaceName))
-	Assert(t, envConfig.Ip, Equal(config.Ip))
-
-	os.Remove(envConfigFile)
-}
-
 func TestLoadJsonConfigWrongFile(t *testing.T) {
-	config, err := loadJsonConfig("")
+	config, err := jsonConfigFile.LoadJsonConfig("")
 	Assert(t, err, NotNilVal())
 	Assert(t, config, NilVal())
 
@@ -62,7 +33,7 @@ func TestLoadJsonConfigWrongFile(t *testing.T) {
 }
 
 func TestLoadJsonConfigWrongType(t *testing.T) {
-	config, err := loadJsonConfig("app_config.go")
+	config, err := jsonConfigFile.LoadJsonConfig("json_config.go")
 	Assert(t, err, NotNilVal())
 	Assert(t, config, NilVal())
 
@@ -77,7 +48,7 @@ func TestCreateAppConfigWithJson(t *testing.T) {
     "ip": "localhost:8888",
     "releaseKey": ""
 	}`
-	config, err := CreateAppConfigWithJson(jsonStr)
+	config, err := jsonConfigFile.Unmarshal(jsonStr)
 	t.Log(config)
 
 	Assert(t, err, NilVal())
@@ -115,7 +86,7 @@ import (
 	"fmt"
 	"net/url"
 )`
-	config, err := CreateAppConfigWithJson(jsonStr)
+	config, err := jsonConfigFile.Unmarshal(jsonStr)
 	t.Log(err)
 
 	Assert(t, err, NotNilVal())
@@ -127,7 +98,7 @@ func TestCreateAppConfigWithJsonDefault(t *testing.T) {
     "appId": "testDefault",
     "ip": "localhost:9999"
 	}`
-	config, err := CreateAppConfigWithJson(jsonStr)
+	config, err := jsonConfigFile.Unmarshal(jsonStr)
 	t.Log(err)
 
 	Assert(t, err, NilVal())
