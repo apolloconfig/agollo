@@ -1,51 +1,41 @@
 package utils
 
 import (
-	"fmt"
-
+	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v2/agcache"
+	"testing"
 )
 
-const (
-	propertiesFormat = "%s=%s\n"
-
-	defaultContentKey = "content"
+var (
+	testDefaultCache agcache.CacheInterface
+	defaultParser    ContentParser
+	propertiesParser ContentParser
 )
 
-//ContentParser 内容转换
-type ContentParser interface {
-	Parse(cache agcache.CacheInterface) (string, error)
+func init() {
+	factory := &agcache.DefaultCacheFactory{}
+	testDefaultCache = factory.Create()
+
+	defaultParser = &DefaultParser{}
+
+	propertiesParser = &PropertiesParser{}
+
+	testDefaultCache.Set("a", []byte("b"), 100)
+	testDefaultCache.Set("c", []byte("d"), 100)
+	testDefaultCache.Set("content", []byte("content"), 100)
 }
 
-//DefaultParser 默认内容转换器
-type DefaultParser struct {
+func TestDefaultParser(t *testing.T) {
+	s, err := defaultParser.Parse(testDefaultCache)
+	Assert(t, err, NilVal())
+	Assert(t, s, Equal("content"))
 }
 
-func (d *DefaultParser) Parse(cache agcache.CacheInterface) (string, error) {
-	value, err := cache.Get(defaultContentKey)
-	if err != nil {
-		return "", err
-	}
-	return string(value), nil
-}
-
-//PropertiesParser properties转换器
-type PropertiesParser struct {
-}
-
-func (d *PropertiesParser) Parse(cache agcache.CacheInterface) (string, error) {
-	properties := convertToProperties(cache)
-	return properties, nil
-}
-
-func convertToProperties(cache agcache.CacheInterface) string {
-	properties := ""
-	if cache == nil {
-		return properties
-	}
-	cache.Range(func(key, value interface{}) bool {
-		properties += fmt.Sprintf(propertiesFormat, key, string(value.([]byte)))
-		return true
-	})
-	return properties
+func TestPropertiesParser(t *testing.T) {
+	s, err := propertiesParser.Parse(testDefaultCache)
+	Assert(t, err, NilVal())
+	Assert(t, s, Equal(`a=b
+c=d
+content=content
+`))
 }
