@@ -152,3 +152,9 @@ func deleteServers() {
 		return true
 	})
 }
+
+func TestGetConfigURLSuffix(t *testing.T) {
+	appConfig := &config.AppConfig{}
+	uri := GetConfigURLSuffix(appConfig, "kk")
+	Assert(t, "", NotEqual(uri))
+}

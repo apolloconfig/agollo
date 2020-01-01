@@ -2,7 +2,6 @@ package agollo
 
 import (
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v2/component/notify"
 	"github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/env/config"
 	"github.com/zouyx/agollo/v2/env/config/json_config"
@@ -34,7 +33,7 @@ func TestStart(t *testing.T) {
 func TestStartWithMultiNamespace(t *testing.T) {
 	t.SkipNow()
 	storage.InitDefaultConfig()
-	notify.InitAllNotifications()
+	//notify.InitAllNotifications()
 	app1 := "abc1"
 
 	appConfig := env.GetPlainAppConfig()

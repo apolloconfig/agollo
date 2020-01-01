@@ -85,22 +85,6 @@ func (n *notificationsMap) getNotifies(namespace string) string {
 	return string(j)
 }
 
-func InitAllNotifications() {
-	appConfig := env.GetPlainAppConfig()
-	if appConfig == nil {
-		allNotifications = &notificationsMap{
-			notifications: make(map[string]int64, 0),
-		}
-		return
-	}
-	namespaces := env.SplitNamespaces(appConfig.NamespaceName,
-		func(namespace string) {})
-
-	allNotifications = &notificationsMap{
-		notifications: namespaces,
-	}
-}
-
 type NotifyConfigComponent struct {
 }
 
