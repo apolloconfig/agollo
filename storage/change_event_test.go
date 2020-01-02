@@ -22,6 +22,9 @@ func (t *CustomChangeListener) OnChange(event *ChangeEvent) {
 
 func TestAddChangeListener(t *testing.T) {
 
+	AddChangeListener(nil)
+	Assert(t, changeListeners.Len(), Equal(0))
+
 	AddChangeListener(listener)
 
 	Assert(t, changeListeners.Len(), Equal(1))
@@ -32,6 +35,8 @@ func TestGetChangeListeners(t *testing.T) {
 }
 
 func TestRemoveChangeListener(t *testing.T) {
+	RemoveChangeListener(nil)
+	Assert(t, changeListeners.Len(), Equal(1))
 	RemoveChangeListener(listener)
 	Assert(t, changeListeners.Len(), Equal(0))
 }
