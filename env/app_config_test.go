@@ -14,7 +14,7 @@ import (
 
 var (
 	defaultNamespace = "application"
-	jsonConfigFile = &json_config.JSONConfigFile{}
+	jsonConfigFile   = &json_config.JSONConfigFile{}
 )
 
 func TestInit(t *testing.T) {
@@ -55,7 +55,6 @@ func getTestAppConfig() *config.AppConfig {
 	return config
 }
 
-
 func TestLoadEnvConfig(t *testing.T) {
 	envConfigFile := "env_test.properties"
 	config, _ := jsonConfigFile.LoadJsonConfig(APP_CONFIG_FILE_NAME)
@@ -86,4 +85,15 @@ func TestLoadEnvConfig(t *testing.T) {
 	Assert(t, envConfig.Ip, Equal(config.Ip))
 
 	os.Remove(envConfigFile)
+}
+
+func TestGetPlainAppConfig(t *testing.T) {
+	plainAppConfig := GetPlainAppConfig()
+	Assert(t, plainAppConfig, NotNilVal())
+}
+
+func TestGetServersLen(t *testing.T) {
+	servers.Store("a", "a")
+	serversLen := GetServersLen()
+	Assert(t, serversLen, Equal(1))
 }
