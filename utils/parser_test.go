@@ -29,6 +29,10 @@ func TestDefaultParser(t *testing.T) {
 	s, err := defaultParser.Parse(testDefaultCache)
 	Assert(t, err, NilVal())
 	Assert(t, s, Equal("content"))
+
+	s, err = defaultParser.Parse(nil)
+	Assert(t, err, NilVal())
+	Assert(t, s, Equal(Empty))
 }
 
 func TestPropertiesParser(t *testing.T) {
@@ -38,4 +42,8 @@ func TestPropertiesParser(t *testing.T) {
 c=d
 content=content
 `))
+
+	s, err = defaultParser.Parse(nil)
+	Assert(t, err, NilVal())
+	Assert(t, s, Equal(Empty))
 }

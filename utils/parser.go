@@ -22,9 +22,13 @@ type DefaultParser struct {
 }
 
 func (d *DefaultParser) Parse(cache agcache.CacheInterface) (string, error) {
+	if cache == nil {
+		return Empty, nil
+	}
+
 	value, err := cache.Get(defaultContentKey)
 	if err != nil {
-		return "", err
+		return Empty, err
 	}
 	return string(value), nil
 }
@@ -39,7 +43,7 @@ func (d *PropertiesParser) Parse(cache agcache.CacheInterface) (string, error) {
 }
 
 func convertToProperties(cache agcache.CacheInterface) string {
-	properties := ""
+	properties := Empty
 	if cache == nil {
 		return properties
 	}
