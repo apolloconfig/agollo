@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var(
+var (
 	jsonConfigFile = &json_config.JSONConfigFile{}
 )
 
@@ -32,7 +32,6 @@ func TestStart(t *testing.T) {
 
 func TestStartWithMultiNamespace(t *testing.T) {
 	t.SkipNow()
-	storage.InitDefaultConfig()
 	//notify.InitAllNotifications()
 	app1 := "abc1"
 

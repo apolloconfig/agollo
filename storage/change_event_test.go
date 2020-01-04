@@ -62,4 +62,16 @@ func TestPushChangeEvent(t *testing.T) {
 	pushChangeEvent(event)
 
 	listener.w.Wait()
+
+	RemoveChangeListener(listener)
+}
+
+func TestCreateConfigChangeEvent(t *testing.T) {
+	addConfig := createAddConfigChange("new")
+	changes := make(map[string]*ConfigChange)
+	changes["add"] = addConfig
+	event := createConfigChangeEvent(changes, "ns")
+	Assert(t, event, NotNilVal())
+	Assert(t, len(event.Changes), Equal(1))
+	Assert(t, event.Namespace, Equal("ns"))
 }

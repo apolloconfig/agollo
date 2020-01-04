@@ -40,41 +40,34 @@ var (
 
 	//config from apollo
 	apolloConfigCache sync.Map
-	//apolloConfigCache = make(map[string]*Config, 0)
 
 	formatParser        = make(map[ConfigFileFormat]utils.ContentParser, 0)
 	defaultFormatParser = &utils.DefaultParser{}
-
-	cacheFactory = &agcache.DefaultCacheFactory{}
 )
 
 func init() {
 	formatParser[Properties] = &utils.PropertiesParser{}
 }
 
-func InitDefaultConfig() {
-	InitConfigCache(cacheFactory)
-}
-
-func InitConfigCache(cacheFactory *agcache.DefaultCacheFactory) {
+func InitConfigCache() {
 	if env.GetPlainAppConfig() == nil {
 		Logger.Warn("Config is nil,can not init agollo.")
 		return
 	}
-	CreateNamespaceConfig(cacheFactory, env.GetPlainAppConfig().NamespaceName)
+	CreateNamespaceConfig(env.GetPlainAppConfig().NamespaceName)
 }
 
-func CreateNamespaceConfig(cacheFactory *agcache.DefaultCacheFactory, namespace string) {
+func CreateNamespaceConfig(namespace string) {
 	env.SplitNamespaces(namespace, func(namespace string) {
 		if _, ok := apolloConfigCache.Load(namespace); ok {
 			return
 		}
-		c := initConfig(namespace, cacheFactory)
+		c := initConfig(namespace, agcache.GetCacheFactory())
 		apolloConfigCache.Store(namespace, c)
 	})
 }
 
-func initConfig(namespace string, factory *agcache.DefaultCacheFactory) *Config {
+func initConfig(namespace string, factory agcache.CacheFactory) *Config {
 	c := &Config{
 		namespace: namespace,
 		cache:     factory.Create(),
@@ -214,7 +207,7 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 func UpdateApolloConfigCache(configurations map[string]string, expireTime int, namespace string) map[string]*ConfigChange {
 	config := GetConfig(namespace)
 	if config == nil {
-		config = initConfig(namespace, cacheFactory)
+		config = initConfig(namespace, agcache.GetCacheFactory())
 		apolloConfigCache.Store(namespace, config)
 	}
 
@@ -278,14 +271,6 @@ func UpdateApolloConfigCache(configurations map[string]string, expireTime int, n
 	return changes
 }
 
-//base on changeList create Change event
-func createConfigChangeEvent(changes map[string]*ConfigChange, nameSpace string) *ChangeEvent {
-	return &ChangeEvent{
-		Namespace: nameSpace,
-		Changes:   changes,
-	}
-}
-
 //GetContent 获取配置文件内容
 func (c *Config) GetContent(format ConfigFileFormat) string {
 	parser := formatParser[format]
@@ -305,10 +290,6 @@ func GetApolloConfigCache() *sync.Map {
 
 func GetDefaultNamespace() string {
 	return defaultNamespace
-}
-
-func GetDefaultCacheFactory() *agcache.DefaultCacheFactory {
-	return cacheFactory
 }
 
 //GetConfig 根据namespace获取apollo配置

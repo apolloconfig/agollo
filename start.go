@@ -15,8 +15,6 @@ import (
 func InitCustomConfig(loadAppConfig func() (*config.AppConfig, error)) {
 
 	env.InitConfig(loadAppConfig)
-
-	storage.InitDefaultConfig()
 }
 
 //start apollo
@@ -34,7 +32,8 @@ func SetLogger(loggerInterface LoggerInterface) {
 //SetCache 设置自定义cache组件
 func SetCache(cacheFactory *agcache.DefaultCacheFactory) {
 	if cacheFactory != nil {
-		storage.InitConfigCache(cacheFactory)
+		agcache.UseCacheFactory(cacheFactory)
+		storage.InitConfigCache()
 	}
 }
 

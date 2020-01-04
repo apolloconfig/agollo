@@ -101,3 +101,11 @@ func createDeletedConfigChange(oldValue string) *ConfigChange {
 		ChangeType: DELETED,
 	}
 }
+
+//base on changeList create Change event
+func createConfigChangeEvent(changes map[string]*ConfigChange, nameSpace string) *ChangeEvent {
+	return &ChangeEvent{
+		Namespace: nameSpace,
+		Changes:   changes,
+	}
+}
