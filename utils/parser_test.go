@@ -3,6 +3,7 @@ package utils
 import (
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v2/agcache"
+	"strings"
 	"testing"
 )
 
@@ -38,10 +39,15 @@ func TestDefaultParser(t *testing.T) {
 func TestPropertiesParser(t *testing.T) {
 	s, err := propertiesParser.Parse(testDefaultCache)
 	Assert(t, err, NilVal())
-	Assert(t, s, Equal(`a=b
-c=d
-content=content
-`))
+
+	hasString := strings.Contains(s, "a=b")
+	Assert(t, hasString, Equal(true))
+
+	hasString = strings.Contains(s, "c=d")
+	Assert(t, hasString, Equal(true))
+
+	hasString = strings.Contains(s, "content=content")
+	Assert(t, hasString, Equal(true))
 
 	s, err = defaultParser.Parse(nil)
 	Assert(t, err, NilVal())
