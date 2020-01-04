@@ -13,12 +13,11 @@ const (
 
 var (
 	internalIpOnce sync.Once
+	internalIp     = ""
 )
 
 //ips
 func GetInternal() string {
-	internalIp := ""
-
 	internalIpOnce.Do(func() {
 		addrs, err := net.InterfaceAddrs()
 		if err != nil {
