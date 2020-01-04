@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -59,15 +60,39 @@ func TestGetConfig(t *testing.T) {
 	s := config.GetStringValue("string", "s")
 	Assert(t, s, Equal("string"))
 
+	s = config.GetStringValue("s", "s")
+	Assert(t, s, Equal("s"))
+
 	//int
 	i := config.GetIntValue("int", 2)
 	Assert(t, i, Equal(int(1)))
+	i = config.GetIntValue("i", 2)
+	Assert(t, i, Equal(int(2)))
 
 	//float
 	f := config.GetFloatValue("float", 2)
 	Assert(t, f, Equal(float64(1)))
+	f = config.GetFloatValue("f", 2)
+	Assert(t, f, Equal(float64(2)))
 
 	//bool
 	b := config.GetBoolValue("bool", false)
 	Assert(t, b, Equal(true))
+
+	b = config.GetBoolValue("b", false)
+	Assert(t, b, Equal(false))
+
+	//content
+	content := config.GetContent(Properties)
+	hasFloat := strings.Contains(content, "float=1")
+	Assert(t, hasFloat, Equal(true))
+
+	hasInt := strings.Contains(content, "int=1")
+	Assert(t, hasInt, Equal(true))
+
+	hasString := strings.Contains(content, "string=string")
+	Assert(t, hasString, Equal(true))
+
+	hasBool := strings.Contains(content, "bool=true")
+	Assert(t, hasBool, Equal(true))
 }
