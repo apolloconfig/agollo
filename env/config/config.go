@@ -7,9 +7,9 @@ import (
 )
 
 type ConfigFile interface {
-	LoadJsonConfig(fileName string) (*AppConfig, error)
+	Load(fileName string, unmarshal func([]byte) (interface{}, error)) (interface{}, error)
 
-	Unmarshal(str string) (*AppConfig, error)
+	Write(content interface{}, configPath string) error
 }
 
 type AppConfig struct {

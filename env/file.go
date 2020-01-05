@@ -1,32 +1,23 @@
 package env
 
 import (
+	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"os"
-
 	. "github.com/zouyx/agollo/v2/component/log"
+	"github.com/zouyx/agollo/v2/env/config/json_config"
 )
 
 const suffix = ".json"
 
-var configFileMap = make(map[string]string, 1)
+var (
+	configFileMap  = make(map[string]string, 1)
+	jsonFileConfig = &json_config.JSONConfigFile{}
+)
 
 //write config to file
 func WriteConfigFile(config *ApolloConfig, configPath string) error {
-	if config == nil {
-		Logger.Error("apollo config is null can not write backup file")
-		return errors.New("apollo config is null can not write backup file")
-	}
-	file, e := os.Create(GetConfigFile(configPath, config.NamespaceName))
-	if e != nil {
-		Logger.Errorf("writeConfigFile fail,error:", e)
-		return e
-	}
-	defer file.Close()
-
-	return json.NewEncoder(file).Encode(config)
+	return jsonFileConfig.Write(config, GetConfigFile(configPath, config.NamespaceName))
 }
 
 //get real config file
@@ -47,19 +38,16 @@ func GetConfigFile(configDir string, namespace string) string {
 func LoadConfigFile(configDir string, namespace string) (*ApolloConfig, error) {
 	configFilePath := GetConfigFile(configDir, namespace)
 	Logger.Info("load config file from :", configFilePath)
-	file, e := os.Open(configFilePath)
-	if e != nil {
-		Logger.Errorf("loadConfigFile fail,error:", e)
-		return nil, e
-	}
-	defer file.Close()
-	config := &ApolloConfig{}
-	e = json.NewDecoder(file).Decode(config)
+	c, e := jsonFileConfig.Load(configFilePath, func(b []byte) (interface{}, error) {
+		config := &ApolloConfig{}
+		e := json.NewDecoder(bytes.NewBuffer(b)).Decode(config)
+		return config, e
+	})
 
-	if e != nil {
+	if c == nil || e != nil {
 		Logger.Errorf("loadConfigFile fail,error:", e)
 		return nil, e
 	}
 
-	return config, e
+	return c.(*ApolloConfig), e
 }

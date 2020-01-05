@@ -50,14 +50,15 @@ func getTestAppConfig() *config.AppConfig {
     "ip": "localhost:8888",
     "releaseKey": "1"
 	}`
-	config, _ := jsonConfigFile.Unmarshal(jsonStr)
+	c, _ := Unmarshal([]byte(jsonStr))
 
-	return config
+	return c.(*config.AppConfig)
 }
 
 func TestLoadEnvConfig(t *testing.T) {
 	envConfigFile := "env_test.properties"
-	config, _ := jsonConfigFile.LoadJsonConfig(APP_CONFIG_FILE_NAME)
+	c, _ := jsonConfigFile.Load(APP_CONFIG_FILE_NAME, Unmarshal)
+	config := c.(*config.AppConfig)
 	config.Ip = "123"
 	config.AppId = "1111"
 	config.NamespaceName = "nsabbda"

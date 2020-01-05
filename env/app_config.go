@@ -21,9 +21,12 @@ const (
 
 	default_notification_id = -1
 	comma                   = ","
+
+	default_cluster   = "default"
+	default_namespace = "application"
 )
 
-var(
+var (
 	//appconfig
 	appConfig *config.AppConfig
 	//real servers ip
@@ -39,7 +42,6 @@ func init() {
 	//init config
 	InitFileConfig()
 }
-
 
 func InitFileConfig() {
 	// default use application.properties
@@ -75,7 +77,12 @@ func getLoadAppConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.
 	if configPath == "" {
 		configPath = APP_CONFIG_FILE_NAME
 	}
-	return GetExecuteGetConfigFile().LoadJsonConfig(configPath)
+	c, e := GetExecuteGetConfigFile().Load(configPath, Unmarshal)
+	if c == nil {
+		return nil, e
+	}
+
+	return c.(*config.AppConfig), e
 }
 
 func SyncServerIpListSuccessCallBack(responseBody []byte) (o interface{}, err error) {
@@ -104,7 +111,6 @@ func SyncServerIpListSuccessCallBack(responseBody []byte) (o interface{}, err er
 	return
 }
 
-
 func SetDownNode(host string) {
 	if host == "" || appConfig == nil {
 		return
@@ -124,7 +130,6 @@ func SetDownNode(host string) {
 		return true
 	})
 }
-
 
 func GetAppConfig(newAppConfig *config.AppConfig) *config.AppConfig {
 	if newAppConfig != nil {
@@ -148,7 +153,7 @@ func GetServers() *sync.Map {
 	return &servers
 }
 
-func GetServersLen()int  {
+func GetServersLen() int {
 	s := GetServers()
 	l := 0
 	s.Range(func(k, v interface{}) bool {
@@ -157,6 +162,7 @@ func GetServersLen()int  {
 	})
 	return l
 }
+
 var executeConfigFileOnce sync.Once
 var executeGetConfigFile config.ConfigFile
 
@@ -165,4 +171,18 @@ func GetExecuteGetConfigFile() config.ConfigFile {
 		executeGetConfigFile = &json_config.JSONConfigFile{}
 	})
 	return executeGetConfigFile
+}
+
+func Unmarshal(b []byte) (interface{}, error) {
+	appConfig := &config.AppConfig{
+		Cluster:        default_cluster,
+		NamespaceName:  default_namespace,
+		IsBackupConfig: true,
+	}
+	err := json.Unmarshal(b, appConfig)
+	if utils.IsNotNil(err) {
+		return nil, err
+	}
+
+	return appConfig, nil
 }

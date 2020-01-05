@@ -3,46 +3,42 @@ package json_config
 import (
 	"encoding/json"
 	"errors"
-	"github.com/zouyx/agollo/v2/env/config"
 	"io/ioutil"
+	"os"
 
+	. "github.com/zouyx/agollo/v2/component/log"
 	"github.com/zouyx/agollo/v2/utils"
 )
 
-var (
-	default_cluster   = "default"
-	default_namespace = "application"
-)
-
 type JSONConfigFile struct {
+}
 
-} 
-
-func(t *JSONConfigFile) LoadJsonConfig(fileName string) (*config.AppConfig, error) {
+func (t *JSONConfigFile) Load(fileName string, unmarshal func([]byte) (interface{}, error)) (interface{}, error) {
 	fs, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return nil, errors.New("Fail to read config file:" + err.Error())
 	}
 
-	appConfig, loadErr := t.Unmarshal(string(fs))
+	config, loadErr := unmarshal(fs)
 
 	if utils.IsNotNil(loadErr) {
 		return nil, errors.New("Load Json Config fail:" + loadErr.Error())
 	}
 
-	return appConfig, nil
+	return config, nil
 }
 
-func(t *JSONConfigFile) Unmarshal(str string) (*config.AppConfig, error) {
-	appConfig := &config.AppConfig{
-		Cluster:        default_cluster,
-		NamespaceName:  default_namespace,
-		IsBackupConfig: true,
+func (t *JSONConfigFile) Write(content interface{}, configPath string) error {
+	if content == nil {
+		Logger.Error("content is null can not write backup file")
+		return errors.New("content is null can not write backup file")
 	}
-	err := json.Unmarshal([]byte(str), appConfig)
-	if utils.IsNotNil(err) {
-		return nil, err
+	file, e := os.Create(configPath)
+	if e != nil {
+		Logger.Errorf("writeConfigFile fail,error:", e)
+		return e
 	}
+	defer file.Close()
 
-	return appConfig, nil
+	return json.NewEncoder(file).Encode(content)
 }

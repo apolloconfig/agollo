@@ -10,7 +10,7 @@ import (
 	"github.com/zouyx/agollo/v2/env"
 )
 
-var(
+var (
 	jsonConfigFile = &json_config.JSONConfigFile{}
 )
 
@@ -82,9 +82,9 @@ func getTestAppConfig() *config.AppConfig {
     "ip": "localhost:8888",
     "releaseKey": "1"
 	}`
-	config, _ := jsonConfigFile.Unmarshal(jsonStr)
+	c, _ := env.Unmarshal([]byte(jsonStr))
 
-	return config
+	return c.(*config.AppConfig)
 }
 
 func TestSelectOnlyOneHost(t *testing.T) {

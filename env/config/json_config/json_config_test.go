@@ -1,18 +1,22 @@
 package json_config
 
 import (
+	"encoding/json"
+	"github.com/zouyx/agollo/v2/env/config"
+	"github.com/zouyx/agollo/v2/utils"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
 )
 
-var(
+var (
 	APP_CONFIG_FILE_NAME = "app.properties"
-	jsonConfigFile = &JSONConfigFile{}
+	jsonConfigFile       = &JSONConfigFile{}
 )
 
 func TestLoadJsonConfig(t *testing.T) {
-	config, err := jsonConfigFile.LoadJsonConfig(APP_CONFIG_FILE_NAME)
+	c, err := jsonConfigFile.Load(APP_CONFIG_FILE_NAME, Unmarshal)
+	config := c.(*config.AppConfig)
 	t.Log(config)
 
 	Assert(t, err, NilVal())
@@ -25,7 +29,7 @@ func TestLoadJsonConfig(t *testing.T) {
 }
 
 func TestLoadJsonConfigWrongFile(t *testing.T) {
-	config, err := jsonConfigFile.LoadJsonConfig("")
+	config, err := jsonConfigFile.Load("", Unmarshal)
 	Assert(t, err, NotNilVal())
 	Assert(t, config, NilVal())
 
@@ -33,7 +37,7 @@ func TestLoadJsonConfigWrongFile(t *testing.T) {
 }
 
 func TestLoadJsonConfigWrongType(t *testing.T) {
-	config, err := jsonConfigFile.LoadJsonConfig("json_config.go")
+	config, err := jsonConfigFile.Load("json_config.go", Unmarshal)
 	Assert(t, err, NotNilVal())
 	Assert(t, config, NilVal())
 
@@ -48,7 +52,8 @@ func TestCreateAppConfigWithJson(t *testing.T) {
     "ip": "localhost:8888",
     "releaseKey": ""
 	}`
-	config, err := jsonConfigFile.Unmarshal(jsonStr)
+	c, err := Unmarshal([]byte(jsonStr))
+	config := c.(*config.AppConfig)
 	t.Log(config)
 
 	Assert(t, err, NilVal())
@@ -86,7 +91,7 @@ import (
 	"fmt"
 	"net/url"
 )`
-	config, err := jsonConfigFile.Unmarshal(jsonStr)
+	config, err := Unmarshal([]byte(jsonStr))
 	t.Log(err)
 
 	Assert(t, err, NotNilVal())
@@ -98,7 +103,8 @@ func TestCreateAppConfigWithJsonDefault(t *testing.T) {
     "appId": "testDefault",
     "ip": "localhost:9999"
 	}`
-	config, err := jsonConfigFile.Unmarshal(jsonStr)
+	c, err := Unmarshal([]byte(jsonStr))
+	config := c.(*config.AppConfig)
 	t.Log(err)
 
 	Assert(t, err, NilVal())
@@ -107,4 +113,18 @@ func TestCreateAppConfigWithJsonDefault(t *testing.T) {
 	Assert(t, "default", Equal(config.Cluster))
 	Assert(t, "application", Equal(config.NamespaceName))
 	Assert(t, "localhost:9999", Equal(config.Ip))
+}
+
+func Unmarshal(b []byte) (interface{}, error) {
+	appConfig := &config.AppConfig{
+		Cluster:        "default",
+		NamespaceName:  "application",
+		IsBackupConfig: true,
+	}
+	err := json.Unmarshal(b, appConfig)
+	if utils.IsNotNil(err) {
+		return nil, err
+	}
+
+	return appConfig, nil
 }
