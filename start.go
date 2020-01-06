@@ -13,7 +13,6 @@ import (
 
 //InitCustomConfig init config by custom
 func InitCustomConfig(loadAppConfig func() (*config.AppConfig, error)) {
-
 	env.InitConfig(loadAppConfig)
 }
 
@@ -30,7 +29,7 @@ func SetLogger(loggerInterface LoggerInterface) {
 }
 
 //SetCache 设置自定义cache组件
-func SetCache(cacheFactory *agcache.DefaultCacheFactory) {
+func SetCache(cacheFactory agcache.CacheFactory) {
 	if cacheFactory != nil {
 		agcache.UseCacheFactory(cacheFactory)
 		storage.InitConfigCache()
@@ -44,7 +43,7 @@ func StartWithLogger(loggerInterface LoggerInterface) error {
 }
 
 //StartWithCache 通过自定义cache启动agollo
-func StartWithCache(cacheFactory *agcache.DefaultCacheFactory) error {
+func StartWithCache(cacheFactory agcache.CacheFactory) error {
 	SetCache(cacheFactory)
 	return startAgollo()
 }

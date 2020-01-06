@@ -258,3 +258,8 @@ func TestConfig_GetIntValue(t *testing.T) {
 
 	Assert(t, defaultValue, Equal(v))
 }
+
+func TestGetApolloConfigCache(t *testing.T) {
+	cache := GetApolloConfigCache()
+	Assert(t, cache, NotNilVal())
+}

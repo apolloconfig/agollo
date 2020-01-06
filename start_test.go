@@ -2,6 +2,8 @@ package agollo
 
 import (
 	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v2/agcache"
+	"github.com/zouyx/agollo/v2/component/log"
 	"github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/env/config"
 	"github.com/zouyx/agollo/v2/env/config/json_config"
@@ -114,4 +116,24 @@ func TestStructInit(t *testing.T) {
 
 	//revert file config
 	env.InitFileConfig()
+}
+
+func TestInitCustomConfig(t *testing.T) {
+	appConfig := &config.AppConfig{}
+	InitCustomConfig(func() (*config.AppConfig, error) {
+		return appConfig, nil
+	})
+	Assert(t, env.GetPlainAppConfig(), Equal(appConfig))
+}
+
+func TestSetLogger(t *testing.T) {
+	logger := &log.DefaultLogger{}
+	SetLogger(logger)
+	Assert(t, log.Logger, Equal(logger))
+}
+
+func TestSetCache(t *testing.T) {
+	defaultCacheFactory := &agcache.DefaultCacheFactory{}
+	SetCache(defaultCacheFactory)
+	Assert(t, agcache.GetCacheFactory(), Equal(defaultCacheFactory))
 }

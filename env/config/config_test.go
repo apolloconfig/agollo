@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v2/utils"
+	"sync"
 	"testing"
 	"time"
 )
@@ -54,4 +55,59 @@ func Unmarshal(b []byte) (interface{}, error) {
 	}
 
 	return appConfig, nil
+}
+
+func TestGetHost(t *testing.T) {
+	ip := appConfig.Ip
+	host := appConfig.GetHost()
+	Assert(t, host, Equal("http://localhost:8888/"))
+
+	appConfig.Ip = "http://baidu.com"
+	host = appConfig.GetHost()
+	Assert(t, host, Equal("http://baidu.com/"))
+
+	appConfig.Ip = "http://163.com/"
+	host = appConfig.GetHost()
+	Assert(t, host, Equal("http://163.com/"))
+
+	appConfig.Ip = ip
+}
+
+func TestAppConfig_IsConnectDirectly(t *testing.T) {
+	backup := appConfig.NextTryConnTime
+
+	appConfig.NextTryConnTime = 0
+	isConnectDirectly := appConfig.isConnectDirectly()
+	Assert(t, isConnectDirectly, Equal(false))
+
+	appConfig.NextTryConnTime = time.Now().Unix() + 10
+	isConnectDirectly = appConfig.isConnectDirectly()
+	Assert(t, isConnectDirectly, Equal(true))
+
+	appConfig.NextTryConnTime = backup
+}
+
+func TestAppConfig_SelectHost(t *testing.T) {
+	backup := appConfig.NextTryConnTime
+
+	appConfig.NextTryConnTime = time.Now().Unix() + 10
+	one := &ServerInfo{
+		"one",
+		"one",
+		"http://one.com/",
+		true,
+	}
+	two := &ServerInfo{
+		"two",
+		"two",
+		"http://two.com/",
+		false}
+	var servers sync.Map
+	servers.Store("one", one)
+	servers.Store("two", two)
+
+	server := appConfig.SelectHost(&servers)
+
+	Assert(t, server, Equal("two"))
+	appConfig.NextTryConnTime = backup
 }
