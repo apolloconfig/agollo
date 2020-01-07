@@ -37,18 +37,6 @@ func SetCache(cacheFactory agcache.CacheFactory) {
 	}
 }
 
-//StartWithLogger 通过自定义logger启动agollo
-func StartWithLogger(loggerInterface LoggerInterface) error {
-	SetLogger(loggerInterface)
-	return startAgollo()
-}
-
-//StartWithCache 通过自定义cache启动agollo
-func StartWithCache(cacheFactory agcache.CacheFactory) error {
-	SetCache(cacheFactory)
-	return startAgollo()
-}
-
 func startAgollo() error {
 	//first sync
 	if err := notify.NotifySyncConfigServices(); err != nil {

@@ -139,3 +139,16 @@ func TestJSONConfigFile_Write(t *testing.T) {
 	file.Close()
 	os.Remove(fileName)
 }
+
+func TestJSONConfigFile_Write_error(t *testing.T) {
+	fileName := "/a/a/a/a//s.k"
+	e := jsonConfigFile.Write(`{"appId":"100004458","cluster":"default","namespaceName":"application","releaseKey":"20170430092936-dee2d58e74515ff3","configurations":{"key1":"value1","key2":"value2"}}`, fileName)
+	file, _ := os.Open(fileName)
+	Assert(t, e, NotNilVal())
+	Assert(t, file, NilVal())
+
+	e = jsonConfigFile.Write(``, fileName)
+	file, _ = os.Open(fileName)
+	Assert(t, e, NotNilVal())
+	Assert(t, file, NilVal())
+}
