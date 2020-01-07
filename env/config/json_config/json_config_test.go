@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/zouyx/agollo/v2/env/config"
 	"github.com/zouyx/agollo/v2/utils"
+	"os"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
@@ -127,4 +128,14 @@ func Unmarshal(b []byte) (interface{}, error) {
 	}
 
 	return appConfig, nil
+}
+
+func TestJSONConfigFile_Write(t *testing.T) {
+	fileName := "test.json"
+	jsonConfigFile.Write(`{"appId":"100004458","cluster":"default","namespaceName":"application","releaseKey":"20170430092936-dee2d58e74515ff3","configurations":{"key1":"value1","key2":"value2"}}`, fileName)
+	file, e := os.Open(fileName)
+	Assert(t, e, NilVal())
+	Assert(t, file, NotNilVal())
+	file.Close()
+	os.Remove(fileName)
 }

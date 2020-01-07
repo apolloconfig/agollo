@@ -5,6 +5,7 @@ import (
 	"github.com/zouyx/agollo/v2/component"
 	. "github.com/zouyx/agollo/v2/component/log"
 	"github.com/zouyx/agollo/v2/component/notify"
+	_ "github.com/zouyx/agollo/v2/component/server_list"
 	"github.com/zouyx/agollo/v2/env"
 	_ "github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/env/config"
@@ -49,8 +50,6 @@ func StartWithCache(cacheFactory agcache.CacheFactory) error {
 }
 
 func startAgollo() error {
-	//init server ip list
-	go component.InitServerIpList()
 	//first sync
 	if err := notify.NotifySyncConfigServices(); err != nil {
 		return err

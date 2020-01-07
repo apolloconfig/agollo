@@ -1,4 +1,4 @@
-package component
+package server_list
 
 import (
 	"net/http"
