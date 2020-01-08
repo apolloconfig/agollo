@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/zouyx/agollo/v2/env/config"
+	"github.com/zouyx/agollo/v2/load_balance"
+	"github.com/zouyx/agollo/v2/utils"
 	"io/ioutil"
 	"net/http"
 	"time"
@@ -102,7 +104,7 @@ func RequestRecovery(appConfig *config.AppConfig,
 	var response interface{}
 
 	for {
-		host := appConfig.SelectHost(env.GetServers())
+		host := loadBalance(appConfig)
 		if host == "" {
 			return nil, err
 		}
@@ -117,4 +119,16 @@ func RequestRecovery(appConfig *config.AppConfig,
 	}
 
 	return nil, errors.New("Try all Nodes Still Error!")
+}
+
+func loadBalance(appConfig *config.AppConfig) string {
+	if !appConfig.IsConnectDirectly() {
+		return appConfig.GetHost()
+	}
+	serverInfo := load_balance.GetLoadBalanace().Load(env.GetServers())
+	if serverInfo == nil {
+		return utils.Empty
+	}
+
+	return serverInfo.HomepageUrl
 }

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v2/utils"
-	"sync"
 	"testing"
 	"time"
 )
@@ -77,37 +76,12 @@ func TestAppConfig_IsConnectDirectly(t *testing.T) {
 	backup := appConfig.NextTryConnTime
 
 	appConfig.NextTryConnTime = 0
-	isConnectDirectly := appConfig.isConnectDirectly()
+	isConnectDirectly := appConfig.IsConnectDirectly()
 	Assert(t, isConnectDirectly, Equal(false))
 
 	appConfig.NextTryConnTime = time.Now().Unix() + 10
-	isConnectDirectly = appConfig.isConnectDirectly()
+	isConnectDirectly = appConfig.IsConnectDirectly()
 	Assert(t, isConnectDirectly, Equal(true))
 
-	appConfig.NextTryConnTime = backup
-}
-
-func TestAppConfig_SelectHost(t *testing.T) {
-	backup := appConfig.NextTryConnTime
-
-	appConfig.NextTryConnTime = time.Now().Unix() + 10
-	one := &ServerInfo{
-		"one",
-		"one",
-		"http://one.com/",
-		true,
-	}
-	two := &ServerInfo{
-		"two",
-		"two",
-		"http://two.com/",
-		false}
-	var servers sync.Map
-	servers.Store("one", one)
-	servers.Store("two", two)
-
-	server := appConfig.SelectHost(&servers)
-
-	Assert(t, server, Equal("two"))
 	appConfig.NextTryConnTime = backup
 }

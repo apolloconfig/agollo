@@ -5,6 +5,7 @@ import (
 	"github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/env/config"
 	"github.com/zouyx/agollo/v2/env/config/json_config"
+	"github.com/zouyx/agollo/v2/load_balance"
 	"testing"
 )
 
@@ -50,11 +51,11 @@ func TestCreateApolloConfigWithJsonError(t *testing.T) {
 func TestSelectOnlyOneHost(t *testing.T) {
 	appConfig := env.GetPlainAppConfig()
 	t.Log("appconfig host:" + appConfig.GetHost())
-	t.Log("appconfig select host:" + appConfig.SelectHost(env.GetServers()))
+	t.Log("appconfig select host:" + load_balance.GetLoadBalanace().Load(env.GetServers()).HomepageUrl)
 
 	host := "http://localhost:8888/"
 	Assert(t, host, Equal(appConfig.GetHost()))
-	Assert(t, host, Equal(appConfig.SelectHost(env.GetServers())))
+	Assert(t, host, Equal(load_balance.GetLoadBalanace().Load(env.GetServers()).HomepageUrl))
 }
 
 func TestGetConfigURLSuffix(t *testing.T) {

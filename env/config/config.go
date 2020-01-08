@@ -2,7 +2,6 @@ package config
 
 import (
 	"strings"
-	"sync"
 	"time"
 )
 
@@ -58,30 +57,10 @@ func (this *AppConfig) SetNextTryConnTime(nextTryConnectPeriod int64) {
 //is connect by ip directly
 //false : no
 //true : yes
-func (this *AppConfig) isConnectDirectly() bool {
+func (this *AppConfig) IsConnectDirectly() bool {
 	if this.NextTryConnTime >= 0 && this.NextTryConnTime > time.Now().Unix() {
 		return true
 	}
 
 	return false
-}
-
-func (this *AppConfig) SelectHost(servers *sync.Map) string {
-	if !this.isConnectDirectly() {
-		return this.GetHost()
-	}
-
-	host := ""
-
-	servers.Range(func(k, v interface{}) bool {
-		server := v.(*ServerInfo)
-		// if some node has down then select next node
-		if server.IsDown {
-			return true
-		}
-		host = k.(string)
-		return false
-	})
-
-	return host
 }
