@@ -62,7 +62,9 @@ func SplitNamespaces(namespacesStr string, callback func(namespace string)) map[
 	namespaces := make(map[string]int64, 1)
 	split := strings.Split(namespacesStr, comma)
 	for _, namespace := range split {
-		callback(namespace)
+		if callback != nil {
+			callback(namespace)
+		}
 		namespaces[namespace] = default_notification_id
 	}
 	return namespaces

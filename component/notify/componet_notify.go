@@ -42,6 +42,18 @@ type apolloNotify struct {
 	NamespaceName  string `json:"namespaceName"`
 }
 
+func init() {
+	InitAllNotifications(nil)
+}
+
+func InitAllNotifications(callback func(namespace string)) {
+	appConfig := env.GetPlainAppConfig()
+	ns := env.SplitNamespaces(appConfig.NamespaceName, callback)
+	allNotifications = &notificationsMap{
+		notifications: ns,
+	}
+}
+
 func (n *notificationsMap) setNotify(namespaceName string, notificationId int64) {
 	n.Lock()
 	defer n.Unlock()
@@ -234,21 +246,4 @@ func getNotifyUrlSuffix(notifications string, config *config.AppConfig, newConfi
 		url.QueryEscape(c.AppId),
 		url.QueryEscape(c.Cluster),
 		url.QueryEscape(notifications))
-}
-
-func NotifySimpleSyncConfigServices(namespace string) error {
-
-	remoteConfigs, err := notifyRemoteConfig(nil, namespace)
-
-	if err != nil || len(remoteConfigs) == 0 {
-		return err
-	}
-
-	updateAllNotifications(remoteConfigs)
-
-	//sync all config
-	notifications := make(map[string]int64)
-	notifications[remoteConfigs[0].NamespaceName] = remoteConfigs[0].NotificationId
-
-	return autoSyncNamespaceConfigServices(nil, notifications)
 }

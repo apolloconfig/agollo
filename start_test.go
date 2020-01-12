@@ -4,6 +4,7 @@ import (
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v2/agcache"
 	"github.com/zouyx/agollo/v2/component/log"
+	"github.com/zouyx/agollo/v2/component/notify"
 	"github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/env/config"
 	"github.com/zouyx/agollo/v2/env/config/json_config"
@@ -19,7 +20,6 @@ var (
 )
 
 func TestStart(t *testing.T) {
-	t.SkipNow()
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
 	server := runMockConfigServer(handlerMap, onlyNormalResponse)
@@ -33,8 +33,8 @@ func TestStart(t *testing.T) {
 }
 
 func TestStartWithMultiNamespace(t *testing.T) {
-	t.SkipNow()
-	//notify.InitAllNotifications()
+	env.GetPlainAppConfig().NamespaceName = "application,abc1"
+	notify.InitAllNotifications(nil)
 	app1 := "abc1"
 
 	appConfig := env.GetPlainAppConfig()
@@ -51,6 +51,7 @@ func TestStartWithMultiNamespace(t *testing.T) {
 	value := GetValue("key1")
 	Assert(t, "value1", Equal(value))
 
+	time.Sleep(1 * time.Second)
 	config := storage.GetConfig(app1)
 	Assert(t, config, NotNilVal())
 	Assert(t, config.GetValue("key1-1"), Equal("value1-1"))
@@ -61,6 +62,7 @@ func TestErrorStart(t *testing.T) {
 	server := runErrorResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
+	notify.InitAllNotifications(nil)
 
 	time.Sleep(1 * time.Second)
 
@@ -99,6 +101,7 @@ func TestStructInit(t *testing.T) {
 	InitCustomConfig(func() (*config.AppConfig, error) {
 		return readyConfig, nil
 	})
+	notify.InitAllNotifications(nil)
 
 	time.Sleep(1 * time.Second)
 
