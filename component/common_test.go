@@ -6,8 +6,61 @@ import (
 	"github.com/zouyx/agollo/v2/env/config"
 	"github.com/zouyx/agollo/v2/env/config/json_config"
 	"github.com/zouyx/agollo/v2/load_balance"
+	_ "github.com/zouyx/agollo/v2/load_balance/round_robin"
 	"testing"
 )
+
+const servicesConfigResponseStr = `[{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.15.128.102:apollo-configservice:8080",
+"homepageUrl": "http://10.15.128.102:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.15.88.125:apollo-configservice:8080",
+"homepageUrl": "http://10.15.88.125:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.14.0.11:apollo-configservice:8080",
+"homepageUrl": "http://10.14.0.11:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.14.0.193:apollo-configservice:8080",
+"homepageUrl": "http://10.14.0.193:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.15.128.101:apollo-configservice:8080",
+"homepageUrl": "http://10.15.128.101:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.14.0.192:apollo-configservice:8080",
+"homepageUrl": "http://10.14.0.192:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.15.88.124:apollo-configservice:8080",
+"homepageUrl": "http://10.15.88.124:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.15.128.103:apollo-configservice:8080",
+"homepageUrl": "http://10.15.128.103:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "localhost:apollo-configservice:8080",
+"homepageUrl": "http://10.14.0.12:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.14.0.194:apollo-configservice:8080",
+"homepageUrl": "http://10.14.0.194:8080/"
+}
+]`
 
 var (
 	jsonConfigFile = &json_config.JSONConfigFile{}
@@ -49,17 +102,21 @@ func TestCreateApolloConfigWithJsonError(t *testing.T) {
 }
 
 func TestSelectOnlyOneHost(t *testing.T) {
+	trySyncServerIpList()
 	appConfig := env.GetPlainAppConfig()
-	t.Log("appconfig host:" + appConfig.GetHost())
-	t.Log("appconfig select host:" + load_balance.GetLoadBalanace().Load(env.GetServers()).HomepageUrl)
-
 	host := "http://localhost:8888/"
 	Assert(t, host, Equal(appConfig.GetHost()))
-	Assert(t, host, Equal(load_balance.GetLoadBalanace().Load(env.GetServers()).HomepageUrl))
+	load := load_balance.GetLoadBalance().Load(env.GetServers())
+	Assert(t, load, NotNilVal())
+	Assert(t, host, NotEqual(load.HomepageUrl))
 }
 
 func TestGetConfigURLSuffix(t *testing.T) {
 	appConfig := &config.AppConfig{}
 	uri := GetConfigURLSuffix(appConfig, "kk")
 	Assert(t, "", NotEqual(uri))
+}
+
+func trySyncServerIpList() {
+	env.SyncServerIpListSuccessCallBack([]byte(servicesConfigResponseStr))
 }

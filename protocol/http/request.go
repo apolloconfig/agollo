@@ -125,7 +125,7 @@ func loadBalance(appConfig *config.AppConfig) string {
 	if !appConfig.IsConnectDirectly() {
 		return appConfig.GetHost()
 	}
-	serverInfo := load_balance.GetLoadBalanace().Load(env.GetServers())
+	serverInfo := load_balance.GetLoadBalance().Load(env.GetServers())
 	if serverInfo == nil {
 		return utils.Empty
 	}

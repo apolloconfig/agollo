@@ -11,10 +11,10 @@ type LoadBalance interface {
 	Load(servers *sync.Map) *config.ServerInfo
 }
 
-func SetLoadBalanace(loadBalance LoadBalance) {
+func SetLoadBalance(loadBalance LoadBalance) {
 	defaultLoadBalance = loadBalance
 }
 
-func GetLoadBalanace() LoadBalance {
+func GetLoadBalance() LoadBalance {
 	return defaultLoadBalance
 }

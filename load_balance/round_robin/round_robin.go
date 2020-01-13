@@ -2,8 +2,13 @@ package round_robin
 
 import (
 	"github.com/zouyx/agollo/v2/env/config"
+	"github.com/zouyx/agollo/v2/load_balance"
 	"sync"
 )
+
+func init() {
+	load_balance.SetLoadBalance(&RoundRobin{})
+}
 
 type RoundRobin struct {
 }
