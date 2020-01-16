@@ -21,6 +21,9 @@ const (
 
 	//notify timeout
 	nofity_connect_timeout = 10 * time.Minute //10m
+
+	//同步链接时间
+	sync_nofity_connect_timeout = 3 * time.Second //3s
 )
 
 var (
@@ -106,15 +109,23 @@ func (this *NotifyConfigComponent) Start() {
 	for {
 		select {
 		case <-t2.C:
-			NotifySyncConfigServices()
+			AsyncConfigs()
 			t2.Reset(long_poll_interval)
 		}
 	}
 }
 
-func NotifySyncConfigServices() error {
+func AsyncConfigs() error {
+	return syncConfigs(true)
+}
 
-	remoteConfigs, err := notifyRemoteConfig(nil, utils.Empty)
+func SyncConfigs() error {
+	return syncConfigs(false)
+}
+
+func syncConfigs(isAsync bool) error {
+
+	remoteConfigs, err := notifyRemoteConfig(nil, utils.Empty, isAsync)
 
 	if err != nil {
 		return fmt.Errorf("notifySyncConfigServices: %s", err)
@@ -154,7 +165,7 @@ func toApolloConfig(resBody []byte) ([]*apolloNotify, error) {
 	return remoteConfig, nil
 }
 
-func notifyRemoteConfig(newAppConfig *config.AppConfig, namespace string) ([]*apolloNotify, error) {
+func notifyRemoteConfig(newAppConfig *config.AppConfig, namespace string, isAsync bool) ([]*apolloNotify, error) {
 	appConfig := env.GetAppConfig(newAppConfig)
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
@@ -163,10 +174,16 @@ func notifyRemoteConfig(newAppConfig *config.AppConfig, namespace string) ([]*ap
 
 	//seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
 
-	notifies, err := http.RequestRecovery(appConfig, &env.ConnectConfig{
-		Uri:     urlSuffix,
-		Timeout: nofity_connect_timeout,
-	}, &http.CallBack{
+	connectConfig := &env.ConnectConfig{
+		Uri: urlSuffix,
+	}
+	if !isAsync {
+		connectConfig.Timeout = sync_nofity_connect_timeout
+	} else {
+		connectConfig.Timeout = nofity_connect_timeout
+	}
+	connectConfig.IsRetry = isAsync
+	notifies, err := http.RequestRecovery(appConfig, connectConfig, &http.CallBack{
 		SuccessCallBack: func(responseBody []byte) (interface{}, error) {
 			return toApolloConfig(responseBody)
 		},

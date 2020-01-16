@@ -17,6 +17,7 @@ import (
 
 var (
 	jsonConfigFile = &json_config.JSONConfigFile{}
+	isAsync        = true
 )
 
 const responseStr = `[{"namespaceName":"application","notificationId":%d}]`
@@ -54,7 +55,7 @@ func initMockNotifyAndConfigServer() {
 func TestSyncConfigServices(t *testing.T) {
 	initMockNotifyAndConfigServer()
 
-	err := NotifySyncConfigServices()
+	err := AsyncConfigs()
 	//err keep nil
 	Assert(t, err, NilVal())
 }
@@ -66,7 +67,7 @@ func TestGetRemoteConfig(t *testing.T) {
 
 	var remoteConfigs []*apolloNotify
 	var err error
-	remoteConfigs, err = notifyRemoteConfig(nil, EMPTY)
+	remoteConfigs, err = notifyRemoteConfig(nil, EMPTY, isAsync)
 
 	//err keep nil
 	Assert(t, err, NilVal())
@@ -99,7 +100,7 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 
 	var remoteConfigs []*apolloNotify
 	var err error
-	remoteConfigs, err = notifyRemoteConfig(nil, EMPTY)
+	remoteConfigs, err = notifyRemoteConfig(nil, EMPTY, isAsync)
 
 	Assert(t, err, NotNilVal())
 	Assert(t, remoteConfigs, NilVal())

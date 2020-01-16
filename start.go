@@ -39,7 +39,7 @@ func SetCache(cacheFactory agcache.CacheFactory) {
 
 func startAgollo() error {
 	//first sync
-	if err := notify.NotifySyncConfigServices(); err != nil {
+	if err := notify.SyncConfigs(); err != nil {
 		return err
 	}
 	Logger.Debug("init notifySyncConfigServices finished")

@@ -9,4 +9,6 @@ type ConnectConfig struct {
 	Timeout time.Duration
 	//连接接口的uri
 	Uri string
+	//是否重试
+	IsRetry bool
 }

@@ -1,6 +1,7 @@
 package server_list
 
 import (
+	"github.com/zouyx/agollo/v2/component"
 	. "github.com/zouyx/agollo/v2/component/log"
 	"github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/env/config"
@@ -14,12 +15,15 @@ const (
 )
 
 func init() {
-	go InitServerIpList()
+	go component.StartRefreshConfig(&SyncServerIpListComponent{})
 }
 
 //set timer for update ip list
 //interval : 20m
-func InitServerIpList() {
+type SyncServerIpListComponent struct {
+}
+
+func (s *SyncServerIpListComponent) Start() {
 	SyncServerIpList(nil)
 	Logger.Debug("syncServerIpList started")
 
