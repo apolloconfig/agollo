@@ -23,6 +23,14 @@ func GetConfigAndInit(namespace string) *storage.Config {
 	config, ok := storage.GetApolloConfigCache().Load(namespace)
 
 	if !ok {
+		storage.CreateNamespaceConfig(namespace)
+
+		//notifySimpleSyncConfigServices(namespace)
+	}
+
+	config, ok = storage.GetApolloConfigCache().Load(namespace)
+
+	if !ok {
 		return nil
 	}
 
