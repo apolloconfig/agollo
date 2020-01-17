@@ -7,11 +7,11 @@ import (
 	"testing"
 )
 
-func TestSyncServerIpList(t *testing.T) {
-	trySyncServerIpList(t)
+func TestSyncServerIPList(t *testing.T) {
+	trySyncServerIPList(t)
 }
 
-func trySyncServerIpList(t *testing.T) {
+func trySyncServerIPList(t *testing.T) {
 	server := runMockServicesConfigServer()
 	defer server.Close()
 

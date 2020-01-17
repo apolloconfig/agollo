@@ -53,6 +53,7 @@ func GetConfigCache(namespace string) agcache.CacheInterface {
 	return config.GetCache()
 }
 
+//GetDefaultConfigCache 获取默认缓存
 func GetDefaultConfigCache() agcache.CacheInterface {
 	config := GetConfigAndInit(storage.GetDefaultNamespace())
 	if config != nil {
@@ -76,6 +77,7 @@ func GetValue(key string) string {
 	return value.(string)
 }
 
+//GetStringValue 获取string配置值
 func GetStringValue(key string, defaultValue string) string {
 	value := GetValue(key)
 	if value == utils.Empty {
@@ -85,6 +87,7 @@ func GetStringValue(key string, defaultValue string) string {
 	return value
 }
 
+//GetIntValue 获取int配置值
 func GetIntValue(key string, defaultValue int) int {
 	value := GetValue(key)
 
@@ -97,6 +100,7 @@ func GetIntValue(key string, defaultValue int) int {
 	return i
 }
 
+//GetFloatValue 获取float配置值
 func GetFloatValue(key string, defaultValue float64) float64 {
 	value := GetValue(key)
 
@@ -109,6 +113,7 @@ func GetFloatValue(key string, defaultValue float64) float64 {
 	return i
 }
 
+//GetBoolValue 获取bool 配置值
 func GetBoolValue(key string, defaultValue bool) bool {
 	value := GetValue(key)
 

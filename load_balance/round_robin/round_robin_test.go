@@ -62,7 +62,7 @@ const servicesConfigResponseStr = `[{
 func TestSelectHost(t *testing.T) {
 	balanace := load_balance.GetLoadBalance()
 	//mock ip data
-	trySyncServerIpList()
+	trySyncServerIPList()
 
 	servers := env.GetServers()
 	appConfig := env.GetPlainAppConfig()
@@ -114,6 +114,6 @@ func deleteServers() {
 	})
 }
 
-func trySyncServerIpList() {
+func trySyncServerIPList() {
 	env.SyncServerIpListSuccessCallBack([]byte(servicesConfigResponseStr))
 }

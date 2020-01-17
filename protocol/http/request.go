@@ -16,12 +16,12 @@ import (
 
 var (
 	//for on error retry
-	on_error_retry_interval = 1 * time.Second //1s
+	onErrorRetryInterval = 1 * time.Second //1s
 
-	connect_timeout = 1 * time.Second //1s
+	connectTimeout = 1 * time.Second //1s
 
 	//max retries connect apollo
-	max_retries = 5
+	maxRetries = 5
 )
 
 type CallBack struct {
@@ -30,13 +30,13 @@ type CallBack struct {
 }
 
 //Request 建立网络请求
-func Request(requestUrl string, connectionConfig *env.ConnectConfig, callBack *CallBack) (interface{}, error) {
+func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *CallBack) (interface{}, error) {
 	client := &http.Client{}
 	//如有设置自定义超时时间即使用
 	if connectionConfig != nil && connectionConfig.Timeout != 0 {
 		client.Timeout = connectionConfig.Timeout
 	} else {
-		client.Timeout = connect_timeout
+		client.Timeout = connectTimeout
 	}
 
 	retry := 0
@@ -46,14 +46,14 @@ func Request(requestUrl string, connectionConfig *env.ConnectConfig, callBack *C
 	for {
 		retry++
 
-		if retry > max_retries {
+		if retry > maxRetries {
 			break
 		}
 
-		res, err = client.Get(requestUrl)
+		res, err = client.Get(requestURL)
 
 		if res == nil || err != nil {
-			Logger.Error("Connect Apollo Server Fail,url:%s,Error:%s", requestUrl, err)
+			Logger.Error("Connect Apollo Server Fail,url:%s,Error:%s", requestURL, err)
 			continue
 		}
 
@@ -62,7 +62,7 @@ func Request(requestUrl string, connectionConfig *env.ConnectConfig, callBack *C
 		case http.StatusOK:
 			responseBody, err = ioutil.ReadAll(res.Body)
 			if err != nil {
-				Logger.Error("Connect Apollo Server Fail,url:%s,Error:", requestUrl, err)
+				Logger.Error("Connect Apollo Server Fail,url:%s,Error:", requestURL, err)
 				continue
 			}
 
@@ -79,13 +79,13 @@ func Request(requestUrl string, connectionConfig *env.ConnectConfig, callBack *C
 				return nil, nil
 			}
 		default:
-			Logger.Error("Connect Apollo Server Fail,url:%s,Error:%s", requestUrl, err)
+			Logger.Error("Connect Apollo Server Fail,url:%s,Error:%s", requestURL, err)
 			if res != nil {
-				Logger.Error("Connect Apollo Server Fail,url:%s,StatusCode:%s", requestUrl, res.StatusCode)
+				Logger.Error("Connect Apollo Server Fail,url:%s,StatusCode:%s", requestURL, res.StatusCode)
 			}
 			err = errors.New("Connect Apollo Server Fail!")
 			// if error then sleep
-			time.Sleep(on_error_retry_interval)
+			time.Sleep(onErrorRetryInterval)
 			continue
 		}
 	}
