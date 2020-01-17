@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/zouyx/agollo/v2/env/config"
-	"github.com/zouyx/agollo/v2/env/config/json"
+	jsonConfig "github.com/zouyx/agollo/v2/env/config/json"
 	"net/url"
 	"os"
 	"strings"
@@ -43,11 +43,13 @@ func init() {
 	InitFileConfig()
 }
 
+//InitFileConfig 使用文件初始化配置
 func InitFileConfig() {
 	// default use application.properties
 	InitConfig(nil)
 }
 
+//InitConfig 使用指定配置初始化配置
 func InitConfig(loadAppConfig func() (*config.AppConfig, error)) {
 	var err error
 	//init config file
@@ -58,6 +60,7 @@ func InitConfig(loadAppConfig func() (*config.AppConfig, error)) {
 	}
 }
 
+//SplitNamespaces 根据namespace字符串分割后，并执行callback函数
 func SplitNamespaces(namespacesStr string, callback func(namespace string)) map[string]int64 {
 	namespaces := make(map[string]int64, 1)
 	split := strings.Split(namespacesStr, comma)
@@ -79,7 +82,7 @@ func getLoadAppConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.
 	if configPath == "" {
 		configPath = APP_CONFIG_FILE_NAME
 	}
-	c, e := GetExecuteGetConfigFile().Load(configPath, Unmarshal)
+	c, e := GetConfigFileExecutor().Load(configPath, Unmarshal)
 	if c == nil {
 		return nil, e
 	}
@@ -87,6 +90,7 @@ func getLoadAppConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.
 	return c.(*config.AppConfig), e
 }
 
+//SyncServerIpListSuccessCallBack 同步服务器列表成功后的回调
 func SyncServerIpListSuccessCallBack(responseBody []byte) (o interface{}, err error) {
 	Logger.Debug("get all server info:", string(responseBody))
 
@@ -113,6 +117,7 @@ func SyncServerIpListSuccessCallBack(responseBody []byte) (o interface{}, err er
 	return
 }
 
+//SetDownNode 设置失效节点
 func SetDownNode(host string) {
 	if host == "" || appConfig == nil {
 		return
@@ -133,6 +138,7 @@ func SetDownNode(host string) {
 	})
 }
 
+//GetAppConfig 获取app配置
 func GetAppConfig(newAppConfig *config.AppConfig) *config.AppConfig {
 	if newAppConfig != nil {
 		return newAppConfig
@@ -140,6 +146,7 @@ func GetAppConfig(newAppConfig *config.AppConfig) *config.AppConfig {
 	return appConfig
 }
 
+//GetServicesConfigUrl 获取服务器列表url
 func GetServicesConfigUrl(config *config.AppConfig) string {
 	return fmt.Sprintf("%sservices/config?appId=%s&ip=%s",
 		config.GetHost(),
@@ -147,14 +154,17 @@ func GetServicesConfigUrl(config *config.AppConfig) string {
 		utils.GetInternal())
 }
 
+//GetPlainAppConfig 获取原始配置
 func GetPlainAppConfig() *config.AppConfig {
 	return appConfig
 }
 
+//GetServers 获取服务器数组
 func GetServers() *sync.Map {
 	return &servers
 }
 
+//GetServersLen 获取服务器数组长度
 func GetServersLen() int {
 	s := GetServers()
 	l := 0
@@ -166,15 +176,17 @@ func GetServersLen() int {
 }
 
 var executeConfigFileOnce sync.Once
-var executeGetConfigFile config.ConfigFile
+var configFileExecutor config.ConfigFile
 
-func GetExecuteGetConfigFile() config.ConfigFile {
+//GetExecuteGetConfigFile 获取
+func GetConfigFileExecutor() config.ConfigFile {
 	executeConfigFileOnce.Do(func() {
-		executeGetConfigFile = &json.JSONConfigFile{}
+		configFileExecutor = &jsonConfig.JSONConfigFile{}
 	})
-	return executeGetConfigFile
+	return configFileExecutor
 }
 
+//Unmarshal 反序列化
 func Unmarshal(b []byte) (interface{}, error) {
 	appConfig := &config.AppConfig{
 		Cluster:        default_cluster,

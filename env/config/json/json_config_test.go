@@ -38,7 +38,7 @@ func TestLoadJsonConfigWrongFile(t *testing.T) {
 }
 
 func TestLoadJsonConfigWrongType(t *testing.T) {
-	config, err := jsonConfigFile.Load("json.go", Unmarshal)
+	config, err := jsonConfigFile.Load("json_config.go", Unmarshal)
 	Assert(t, err, NotNilVal())
 	Assert(t, config, NilVal())
 

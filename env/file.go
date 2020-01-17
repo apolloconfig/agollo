@@ -5,14 +5,14 @@ import (
 	"encoding/json"
 	"fmt"
 	. "github.com/zouyx/agollo/v2/component/log"
-	"github.com/zouyx/agollo/v2/env/config/json"
+	jsonConfig "github.com/zouyx/agollo/v2/env/config/json"
 )
 
 const suffix = ".json"
 
 var (
 	configFileMap  = make(map[string]string, 1)
-	jsonFileConfig = &json.JSONConfigFile{}
+	jsonFileConfig = &jsonConfig.JSONConfigFile{}
 )
 
 //WriteConfigFile write config to file

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/zouyx/agollo/v2/env/config"
-	"github.com/zouyx/agollo/v2/env/config/json"
+	jsonConfig "github.com/zouyx/agollo/v2/env/config/json"
 	"net/http"
 	"os"
 	"testing"
@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	jsonConfigFile = &json.JSONConfigFile{}
+	jsonConfigFile = &jsonConfig.JSONConfigFile{}
 	isAsync        = true
 )
 
