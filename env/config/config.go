@@ -5,12 +5,14 @@ import (
 	"time"
 )
 
+//ConfigFile 读写配置文件
 type ConfigFile interface {
 	Load(fileName string, unmarshal func([]byte) (interface{}, error)) (interface{}, error)
 
 	Write(content interface{}, configPath string) error
 }
 
+//AppConfig 配置文件
 type AppConfig struct {
 	AppId            string `json:"appId"`
 	Cluster          string `json:"cluster"`
@@ -21,6 +23,7 @@ type AppConfig struct {
 	BackupConfigPath string `json:"backupConfigPath"`
 }
 
+//ServerInfo 服务器信息
 type ServerInfo struct {
 	AppName     string `json:"appName"`
 	InstanceId  string `json:"instanceId"`
@@ -31,34 +34,36 @@ type ServerInfo struct {
 //getIsBackupConfig whether backup config after fetch config from apollo
 //false : no
 //true : yes (default)
-func (this *AppConfig) GetIsBackupConfig() bool {
-	return this.IsBackupConfig
+func (a *AppConfig) GetIsBackupConfig() bool {
+	return a.IsBackupConfig
 }
 
-func (this *AppConfig) GetBackupConfigPath() string {
-	return this.BackupConfigPath
+//GetBackupConfigPath GetBackupConfigPath
+func (a *AppConfig) GetBackupConfigPath() string {
+	return a.BackupConfigPath
 }
 
-func (this *AppConfig) GetHost() string {
-	if strings.HasPrefix(this.Ip, "http") {
-		if !strings.HasSuffix(this.Ip, "/") {
-			return this.Ip + "/"
+//GetHost GetHost
+func (a *AppConfig) GetHost() string {
+	if strings.HasPrefix(a.Ip, "http") {
+		if !strings.HasSuffix(a.Ip, "/") {
+			return a.Ip + "/"
 		}
-		return this.Ip
+		return a.Ip
 	}
-	return "http://" + this.Ip + "/"
+	return "http://" + a.Ip + "/"
 }
 
-//if this connect is fail will set this time
-func (this *AppConfig) SetNextTryConnTime(nextTryConnectPeriod int64) {
-	this.NextTryConnTime = time.Now().Unix() + nextTryConnectPeriod
+//SetNextTryConnTime if this connect is fail will set this time
+func (a *AppConfig) SetNextTryConnTime(nextTryConnectPeriod int64) {
+	a.NextTryConnTime = time.Now().Unix() + nextTryConnectPeriod
 }
 
-//is connect by ip directly
+//IsConnectDirectly is connect by ip directly
 //false : no
 //true : yes
-func (this *AppConfig) IsConnectDirectly() bool {
-	if this.NextTryConnTime >= 0 && this.NextTryConnTime > time.Now().Unix() {
+func (a *AppConfig) IsConnectDirectly() bool {
+	if a.NextTryConnTime >= 0 && a.NextTryConnTime > time.Now().Unix() {
 		return true
 	}
 
