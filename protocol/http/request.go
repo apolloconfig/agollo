@@ -24,6 +24,7 @@ var (
 	maxRetries = 5
 )
 
+//CallBack 请求回调函数
 type CallBack struct {
 	SuccessCallBack   func([]byte) (interface{}, error)
 	NotModifyCallBack func() error
@@ -68,22 +69,20 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 
 			if callBack != nil && callBack.SuccessCallBack != nil {
 				return callBack.SuccessCallBack(responseBody)
-			} else {
-				return nil, nil
 			}
+			return nil, nil
 		case http.StatusNotModified:
 			Logger.Info("Config Not Modified:", err)
 			if callBack != nil && callBack.NotModifyCallBack != nil {
 				return nil, callBack.NotModifyCallBack()
-			} else {
-				return nil, nil
 			}
+			return nil, nil
 		default:
 			Logger.Error("Connect Apollo Server Fail,url:%s,Error:%s", requestURL, err)
 			if res != nil {
 				Logger.Error("Connect Apollo Server Fail,url:%s,StatusCode:%s", requestURL, res.StatusCode)
 			}
-			err = errors.New("Connect Apollo Server Fail!")
+			err = errors.New("connect Apollo Server Fail")
 			// if error then sleep
 			time.Sleep(onErrorRetryInterval)
 			continue
@@ -92,7 +91,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 
 	Logger.Error("Over Max Retry Still Error,Error:", err)
 	if err != nil {
-		err = errors.New("Over Max Retry Still Error!")
+		err = errors.New("over Max Retry Still Error")
 	}
 	return nil, err
 }
@@ -111,8 +110,8 @@ func RequestRecovery(appConfig *config.AppConfig,
 			return nil, err
 		}
 
-		requestUrl := fmt.Sprintf(format, host, connectConfig.Uri)
-		response, err = Request(requestUrl, connectConfig, callBack)
+		requestURL := fmt.Sprintf(format, host, connectConfig.Uri)
+		response, err = Request(requestURL, connectConfig, callBack)
 		if err == nil {
 			return response, err
 		}
@@ -120,7 +119,7 @@ func RequestRecovery(appConfig *config.AppConfig,
 		env.SetDownNode(host)
 	}
 
-	return nil, errors.New("Try all Nodes Still Error!")
+	return nil, errors.New("try all Nodes Still Error")
 }
 
 func loadBalance(appConfig *config.AppConfig) string {

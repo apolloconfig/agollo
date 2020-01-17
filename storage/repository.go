@@ -289,6 +289,7 @@ func (c *Config) GetContent(format ConfigFileFormat) string {
 	return s
 }
 
+//GetApolloConfigCache 获取默认namespace的apollo配置
 func GetApolloConfigCache() *sync.Map {
 	return &apolloConfigCache
 }
