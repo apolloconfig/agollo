@@ -10,9 +10,11 @@ import (
 	"github.com/zouyx/agollo/v2/utils"
 )
 
+//JSONConfigFile json文件读写
 type JSONConfigFile struct {
 }
 
+//Load json文件读
 func (t *JSONConfigFile) Load(fileName string, unmarshal func([]byte) (interface{}, error)) (interface{}, error) {
 	fs, err := ioutil.ReadFile(fileName)
 	if err != nil {
@@ -28,6 +30,7 @@ func (t *JSONConfigFile) Load(fileName string, unmarshal func([]byte) (interface
 	return config, nil
 }
 
+//Write json文件写
 func (t *JSONConfigFile) Write(content interface{}, configPath string) error {
 	if content == nil {
 		Logger.Error("content is null can not write backup file")

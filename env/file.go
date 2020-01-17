@@ -34,7 +34,7 @@ func GetConfigFile(configDir string, namespace string) string {
 	return configFileMap[namespace]
 }
 
-//load config from file
+//LoadConfigFile load config from file
 func LoadConfigFile(configDir string, namespace string) (*ApolloConfig, error) {
 	configFilePath := GetConfigFile(configDir, namespace)
 	Logger.Info("load config file from :", configFilePath)
