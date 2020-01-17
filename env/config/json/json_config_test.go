@@ -12,7 +12,7 @@ import (
 
 var (
 	appConfigFile  = "app.properties"
-	jsonConfigFile = &JSONConfigFile{}
+	jsonConfigFile = &ConfigFile{}
 )
 
 func TestLoadJsonConfig(t *testing.T) {

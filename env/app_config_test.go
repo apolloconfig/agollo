@@ -66,8 +66,7 @@ const servicesConfigResponseStr = `[{
 ]`
 
 var (
-	defaultNamespace = "application"
-	jsonConfigFile   = &jsonConfig.JSONConfigFile{}
+	jsonConfigFile = &jsonConfig.ConfigFile{}
 )
 
 func TestInit(t *testing.T) {
@@ -90,7 +89,7 @@ func TestInit(t *testing.T) {
 
 func TestGetServicesConfigUrl(t *testing.T) {
 	appConfig := getTestAppConfig()
-	url := GetServicesConfigUrl(appConfig)
+	url := GetServicesConfigURL(appConfig)
 	ip := utils.GetInternal()
 	Assert(t, "http://localhost:8888/services/config?appId=test&ip="+ip, Equal(url))
 }
@@ -110,7 +109,7 @@ func getTestAppConfig() *config.AppConfig {
 
 func TestLoadEnvConfig(t *testing.T) {
 	envConfigFile := "env_test.properties"
-	c, _ := jsonConfigFile.Load(APP_CONFIG_FILE_NAME, Unmarshal)
+	c, _ := jsonConfigFile.Load(appConfigFile, Unmarshal)
 	config := c.(*config.AppConfig)
 	config.Ip = "123"
 	config.AppId = "1111"
@@ -127,7 +126,7 @@ func TestLoadEnvConfig(t *testing.T) {
 		t.FailNow()
 	}
 
-	err = os.Setenv(ENV_CONFIG_FILE_PATH, envConfigFile)
+	err = os.Setenv(appConfigFilePath, envConfigFile)
 	envConfig, envConfigErr := getLoadAppConfig(nil)
 	t.Log(config)
 
@@ -163,13 +162,13 @@ func TestSplitNamespaces(t *testing.T) {
 	w.Wait()
 }
 func TestSyncServerIpListSuccessCallBack(t *testing.T) {
-	SyncServerIpListSuccessCallBack([]byte(servicesConfigResponseStr))
+	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
 	Assert(t, GetServersLen(), Equal(11))
 }
 
 func TestSetDownNode(t *testing.T) {
 	t.SkipNow()
-	SyncServerIpListSuccessCallBack([]byte(servicesConfigResponseStr))
+	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
 
 	downNode := "10.15.128.102:8080"
 	SetDownNode(downNode)

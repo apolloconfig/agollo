@@ -3,27 +3,25 @@ package env
 import (
 	"encoding/json"
 	"fmt"
+	. "github.com/zouyx/agollo/v2/component/log"
 	"github.com/zouyx/agollo/v2/env/config"
 	jsonConfig "github.com/zouyx/agollo/v2/env/config/json"
+	"github.com/zouyx/agollo/v2/utils"
 	"net/url"
 	"os"
 	"strings"
 	"sync"
-	"time"
-
-	. "github.com/zouyx/agollo/v2/component/log"
-	"github.com/zouyx/agollo/v2/utils"
 )
 
 const (
-	APP_CONFIG_FILE_NAME = "app.properties"
-	ENV_CONFIG_FILE_PATH = "AGOLLO_CONF"
+	appConfigFile     = "app.properties"
+	appConfigFilePath = "AGOLLO_CONF"
 
-	default_notification_id = -1
-	comma                   = ","
+	defaultNotificationId = -1
+	comma                 = ","
 
-	default_cluster   = "default"
-	default_namespace = "application"
+	defaultCluster   = "default"
+	defaultNamespace = "application"
 )
 
 var (
@@ -32,10 +30,8 @@ var (
 	//real servers ip
 	servers sync.Map
 
-	long_poll_connect_timeout = 1 * time.Minute //1m
-
 	//next try connect period - 60 second
-	next_try_connect_period int64 = 60
+	nextTryConnectPeriod int64 = 60
 )
 
 func init() {
@@ -68,7 +64,7 @@ func SplitNamespaces(namespacesStr string, callback func(namespace string)) map[
 		if callback != nil {
 			callback(namespace)
 		}
-		namespaces[namespace] = default_notification_id
+		namespaces[namespace] = defaultNotificationId
 	}
 	return namespaces
 }
@@ -78,9 +74,9 @@ func getLoadAppConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.
 	if loadAppConfig != nil {
 		return loadAppConfig()
 	}
-	configPath := os.Getenv(ENV_CONFIG_FILE_PATH)
+	configPath := os.Getenv(appConfigFilePath)
 	if configPath == "" {
-		configPath = APP_CONFIG_FILE_NAME
+		configPath = appConfigFile
 	}
 	c, e := GetConfigFileExecutor().Load(configPath, Unmarshal)
 	if c == nil {
@@ -91,7 +87,7 @@ func getLoadAppConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.
 }
 
 //SyncServerIpListSuccessCallBack 同步服务器列表成功后的回调
-func SyncServerIpListSuccessCallBack(responseBody []byte) (o interface{}, err error) {
+func SyncServerIPListSuccessCallBack(responseBody []byte) (o interface{}, err error) {
 	Logger.Debug("get all server info:", string(responseBody))
 
 	tmpServerInfo := make([]*config.ServerInfo, 0)
@@ -124,7 +120,7 @@ func SetDownNode(host string) {
 	}
 
 	if host == appConfig.GetHost() {
-		appConfig.SetNextTryConnTime(next_try_connect_period)
+		appConfig.SetNextTryConnTime(nextTryConnectPeriod)
 	}
 
 	servers.Range(func(k, v interface{}) bool {
@@ -147,7 +143,7 @@ func GetAppConfig(newAppConfig *config.AppConfig) *config.AppConfig {
 }
 
 //GetServicesConfigUrl 获取服务器列表url
-func GetServicesConfigUrl(config *config.AppConfig) string {
+func GetServicesConfigURL(config *config.AppConfig) string {
 	return fmt.Sprintf("%sservices/config?appId=%s&ip=%s",
 		config.GetHost(),
 		url.QueryEscape(config.AppId),
@@ -181,7 +177,7 @@ var configFileExecutor config.ConfigFile
 //GetExecuteGetConfigFile 获取
 func GetConfigFileExecutor() config.ConfigFile {
 	executeConfigFileOnce.Do(func() {
-		configFileExecutor = &jsonConfig.JSONConfigFile{}
+		configFileExecutor = &jsonConfig.ConfigFile{}
 	})
 	return configFileExecutor
 }
@@ -189,8 +185,8 @@ func GetConfigFileExecutor() config.ConfigFile {
 //Unmarshal 反序列化
 func Unmarshal(b []byte) (interface{}, error) {
 	appConfig := &config.AppConfig{
-		Cluster:        default_cluster,
-		NamespaceName:  default_namespace,
+		Cluster:        defaultCluster,
+		NamespaceName:  defaultNamespace,
 		IsBackupConfig: true,
 	}
 	err := json.Unmarshal(b, appConfig)

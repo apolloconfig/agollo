@@ -11,11 +11,11 @@ import (
 )
 
 //JSONConfigFile json文件读写
-type JSONConfigFile struct {
+type ConfigFile struct {
 }
 
 //Load json文件读
-func (t *JSONConfigFile) Load(fileName string, unmarshal func([]byte) (interface{}, error)) (interface{}, error) {
+func (t *ConfigFile) Load(fileName string, unmarshal func([]byte) (interface{}, error)) (interface{}, error) {
 	fs, err := ioutil.ReadFile(fileName)
 	if err != nil {
 		return nil, errors.New("Fail to read config file:" + err.Error())
@@ -31,7 +31,7 @@ func (t *JSONConfigFile) Load(fileName string, unmarshal func([]byte) (interface
 }
 
 //Write json文件写
-func (t *JSONConfigFile) Write(content interface{}, configPath string) error {
+func (t *ConfigFile) Write(content interface{}, configPath string) error {
 	if content == nil {
 		Logger.Error("content is null can not write backup file")
 		return errors.New("content is null can not write backup file")

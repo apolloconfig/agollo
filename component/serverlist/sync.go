@@ -47,8 +47,8 @@ func SyncServerIpList(newAppConfig *config.AppConfig) error {
 		panic("can not find apollo config!please confirm!")
 	}
 
-	_, err := http.Request(env.GetServicesConfigUrl(appConfig), &env.ConnectConfig{}, &http.CallBack{
-		SuccessCallBack: env.SyncServerIpListSuccessCallBack,
+	_, err := http.Request(env.GetServicesConfigURL(appConfig), &env.ConnectConfig{}, &http.CallBack{
+		SuccessCallBack: env.SyncServerIPListSuccessCallBack,
 	})
 
 	return err

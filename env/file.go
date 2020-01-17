@@ -12,7 +12,7 @@ const suffix = ".json"
 
 var (
 	configFileMap  = make(map[string]string, 1)
-	jsonFileConfig = &jsonConfig.JSONConfigFile{}
+	jsonFileConfig = &jsonConfig.ConfigFile{}
 )
 
 //WriteConfigFile write config to file

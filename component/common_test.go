@@ -63,7 +63,7 @@ const servicesConfigResponseStr = `[{
 ]`
 
 var (
-	jsonConfigFile = &json.JSONConfigFile{}
+	jsonConfigFile = &json.ConfigFile{}
 )
 
 func TestCreateApolloConfigWithJson(t *testing.T) {
@@ -118,5 +118,5 @@ func TestGetConfigURLSuffix(t *testing.T) {
 }
 
 func trySyncServerIPList() {
-	env.SyncServerIpListSuccessCallBack([]byte(servicesConfigResponseStr))
+	env.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
 }

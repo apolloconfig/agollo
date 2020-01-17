@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	jsonConfigFile = &json.JSONConfigFile{}
+	jsonConfigFile = &json.ConfigFile{}
 )
 
 func getTestAppConfig() *config.AppConfig {
@@ -81,7 +81,7 @@ func TestCustomTimeout(t *testing.T) {
 func mockIPList(t *testing.T) {
 	time.Sleep(1 * time.Second)
 
-	_, err := env.SyncServerIpListSuccessCallBack([]byte(servicesResponseStr))
+	_, err := env.SyncServerIPListSuccessCallBack([]byte(servicesResponseStr))
 
 	Assert(t, err, NilVal())
 

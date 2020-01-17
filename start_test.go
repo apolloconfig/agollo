@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	jsonConfigFile = &json.JSONConfigFile{}
+	jsonConfigFile = &json.ConfigFile{}
 )
 
 func TestStart(t *testing.T) {
