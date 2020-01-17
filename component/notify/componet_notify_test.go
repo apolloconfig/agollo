@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	jsonConfigFile = &jsonConfig.JSONConfigFile{}
+	jsonConfigFile = &jsonConfig.ConfigFile{}
 	isAsync        = true
 )
 
