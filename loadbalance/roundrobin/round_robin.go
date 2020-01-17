@@ -2,12 +2,12 @@ package roundrobin
 
 import (
 	"github.com/zouyx/agollo/v2/env/config"
-	"github.com/zouyx/agollo/v2/load_balance"
+	"github.com/zouyx/agollo/v2/loadbalance"
 	"sync"
 )
 
 func init() {
-	load_balance.SetLoadBalance(&RoundRobin{})
+	loadbalance.SetLoadBalance(&RoundRobin{})
 }
 
 //RoundRobin 轮询调度

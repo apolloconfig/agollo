@@ -5,8 +5,8 @@ import (
 	"github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/env/config"
 	"github.com/zouyx/agollo/v2/env/config/json"
-	"github.com/zouyx/agollo/v2/load_balance"
-	_ "github.com/zouyx/agollo/v2/load_balance/roundrobin"
+	"github.com/zouyx/agollo/v2/loadbalance"
+	_ "github.com/zouyx/agollo/v2/loadbalance/roundrobin"
 	"testing"
 )
 
@@ -106,7 +106,7 @@ func TestSelectOnlyOneHost(t *testing.T) {
 	appConfig := env.GetPlainAppConfig()
 	host := "http://localhost:8888/"
 	Assert(t, host, Equal(appConfig.GetHost()))
-	load := load_balance.GetLoadBalance().Load(env.GetServers())
+	load := loadbalance.GetLoadBalance().Load(env.GetServers())
 	Assert(t, load, NotNilVal())
 	Assert(t, host, NotEqual(load.HomepageUrl))
 }

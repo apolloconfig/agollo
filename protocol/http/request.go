@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/zouyx/agollo/v2/env/config"
-	"github.com/zouyx/agollo/v2/load_balance"
+	"github.com/zouyx/agollo/v2/loadbalance"
 	"github.com/zouyx/agollo/v2/utils"
 	"io/ioutil"
 	"net/http"
@@ -126,7 +126,7 @@ func loadBalance(appConfig *config.AppConfig) string {
 	if !appConfig.IsConnectDirectly() {
 		return appConfig.GetHost()
 	}
-	serverInfo := load_balance.GetLoadBalance().Load(env.GetServers())
+	serverInfo := loadbalance.GetLoadBalance().Load(env.GetServers())
 	if serverInfo == nil {
 		return utils.Empty
 	}

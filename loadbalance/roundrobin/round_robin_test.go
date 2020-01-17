@@ -3,7 +3,7 @@ package roundrobin
 import (
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v2/env"
-	"github.com/zouyx/agollo/v2/load_balance"
+	"github.com/zouyx/agollo/v2/loadbalance"
 	"testing"
 )
 
@@ -60,7 +60,7 @@ const servicesConfigResponseStr = `[{
 ]`
 
 func TestSelectHost(t *testing.T) {
-	balanace := load_balance.GetLoadBalance()
+	balanace := loadbalance.GetLoadBalance()
 	//mock ip data
 	trySyncServerIPList()
 

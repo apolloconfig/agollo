@@ -1,4 +1,4 @@
-package load_balance
+package loadbalance
 
 import (
 	"github.com/zouyx/agollo/v2/env/config"

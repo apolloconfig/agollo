@@ -12,7 +12,7 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v2/env"
-	_ "github.com/zouyx/agollo/v2/load_balance/roundrobin"
+	_ "github.com/zouyx/agollo/v2/loadbalance/roundrobin"
 )
 
 var (
