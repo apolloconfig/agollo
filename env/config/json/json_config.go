@@ -10,7 +10,7 @@ import (
 	"github.com/zouyx/agollo/v2/utils"
 )
 
-//JSONConfigFile json文件读写
+//ConfigFile json文件读写
 type ConfigFile struct {
 }
 

@@ -68,7 +68,7 @@ func (a *ApolloConfig) Init(appID string, cluster string, namespace string) {
 	a.NamespaceName = namespace
 }
 
-//CreateApolloConfigWithJson 使用json配置转换成apolloconfig
+//CreateApolloConfigWithJSON 使用json配置转换成apolloconfig
 func CreateApolloConfigWithJSON(b []byte) (*ApolloConfig, error) {
 	apolloConfig := &ApolloConfig{}
 	err := json.Unmarshal(b, apolloConfig)

@@ -3,6 +3,7 @@ package log
 var Logger LoggerInterface
 
 func init() {
+	//Logger logger 对象
 	Logger = &DefaultLogger{}
 }
 
