@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	//空对象
+	//Empty 空字符串
 	Empty = ""
 )
 

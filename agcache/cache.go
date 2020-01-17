@@ -29,10 +29,12 @@ type CacheFactory interface {
 	Create() CacheInterface
 }
 
+//GetCacheFactory 获取CacheFactory
 func GetCacheFactory() CacheFactory {
 	return gobalCacheFactory
 }
 
+//UseCacheFactory 替换CacheFactory
 func UseCacheFactory(cacheFactory CacheFactory) {
 	gobalCacheFactory = cacheFactory
 }

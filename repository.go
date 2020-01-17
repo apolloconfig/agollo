@@ -55,6 +55,7 @@ func GetApolloConfigCache() agcache.CacheInterface {
 	return GetDefaultConfigCache()
 }
 
+//GetValue 获取配置
 func GetValue(key string) string {
 	value := getConfigValue(key)
 	if value == nil {

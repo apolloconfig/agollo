@@ -16,15 +16,15 @@ import (
 type ConfigFileFormat string
 
 const (
-	//Properties
+	//Properties Properties
 	Properties ConfigFileFormat = "properties"
-	//XML
+	//XML XML
 	XML ConfigFileFormat = "xml"
-	//JSON
+	//JSON JSON
 	JSON ConfigFileFormat = "json"
-	//YML
+	//YML YML
 	YML ConfigFileFormat = "yml"
-	//YAML
+	//YAML YAML
 	YAML ConfigFileFormat = "yaml"
 )
 
@@ -49,6 +49,7 @@ func init() {
 	formatParser[Properties] = &utils.PropertiesParser{}
 }
 
+//InitConfigCache 获取程序配置初始化agollo内润配置
 func InitConfigCache() {
 	if env.GetPlainAppConfig() == nil {
 		Logger.Warn("Config is nil,can not init agollo.")
@@ -57,6 +58,7 @@ func InitConfigCache() {
 	CreateNamespaceConfig(env.GetPlainAppConfig().NamespaceName)
 }
 
+//CreateNamespaceConfig 根据namespace初始化agollo内润配置
 func CreateNamespaceConfig(namespace string) {
 	env.SplitNamespaces(namespace, func(namespace string) {
 		if _, ok := apolloConfigCache.Load(namespace); ok {
@@ -85,7 +87,7 @@ type Config struct {
 	waitInit  sync.WaitGroup
 }
 
-//getIsInit 获取标志
+//GetIsInit 获取标志
 func (c *Config) GetIsInit() bool {
 	return c.isInit.Load().(bool)
 }

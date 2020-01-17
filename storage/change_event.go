@@ -60,6 +60,7 @@ func RemoveChangeListener(listener ChangeListener) {
 	}
 }
 
+//GetChangeListeners 获取配置修改监听器列表
 func GetChangeListeners() *list.List {
 	return changeListeners
 }

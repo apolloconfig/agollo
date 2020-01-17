@@ -9,14 +9,17 @@ import (
 	"github.com/zouyx/agollo/v2/utils"
 )
 
+//AbsComponent 定时组件
 type AbsComponent interface {
 	Start()
 }
 
+//StartRefreshConfig 开始定时服务
 func StartRefreshConfig(component AbsComponent) {
 	component.Start()
 }
 
+//GetConfigURLSuffix 获取apollo config server的路径
 func GetConfigURLSuffix(config *config.AppConfig, namespaceName string) string {
 	if config == nil {
 		return ""
