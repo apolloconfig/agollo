@@ -1,9 +1,9 @@
 package log
 
+//Logger logger 对象
 var Logger LoggerInterface
 
 func init() {
-	//Logger logger 对象
 	Logger = &DefaultLogger{}
 }
 
