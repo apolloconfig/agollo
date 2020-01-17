@@ -66,7 +66,7 @@ func buildNotifyResult(t *testing.T) {
 	time.Sleep(1 * time.Second)
 
 	newAppConfig := getTestAppConfig()
-	newAppConfig.Ip = server.URL
+	newAppConfig.IP = server.URL
 
 	err := AutoSyncConfigServices(newAppConfig)
 	err = AutoSyncConfigServices(newAppConfig)

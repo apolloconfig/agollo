@@ -108,7 +108,7 @@ func SyncServerIPListSuccessCallBack(responseBody []byte) (o interface{}, err er
 		if server == nil {
 			continue
 		}
-		servers.Store(server.HomepageUrl, server)
+		servers.Store(server.HomepageURL, server)
 	}
 	return
 }
@@ -146,7 +146,7 @@ func GetAppConfig(newAppConfig *config.AppConfig) *config.AppConfig {
 func GetServicesConfigURL(config *config.AppConfig) string {
 	return fmt.Sprintf("%sservices/config?appId=%s&ip=%s",
 		config.GetHost(),
-		url.QueryEscape(config.AppId),
+		url.QueryEscape(config.AppID),
 		utils.GetInternal())
 }
 

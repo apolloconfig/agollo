@@ -78,7 +78,7 @@ func TestCreateApolloConfigWithJson(t *testing.T) {
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
-	config, err := env.CreateApolloConfigWithJson([]byte(jsonStr))
+	config, err := env.CreateApolloConfigWithJSON([]byte(jsonStr))
 
 	Assert(t, err, NilVal())
 	Assert(t, config, NotNilVal())
@@ -95,7 +95,7 @@ func TestCreateApolloConfigWithJson(t *testing.T) {
 func TestCreateApolloConfigWithJsonError(t *testing.T) {
 	jsonStr := `jklasdjflasjdfa`
 
-	config, err := env.CreateApolloConfigWithJson([]byte(jsonStr))
+	config, err := env.CreateApolloConfigWithJSON([]byte(jsonStr))
 
 	Assert(t, err, NotNilVal())
 	Assert(t, config, NilVal())
@@ -108,7 +108,7 @@ func TestSelectOnlyOneHost(t *testing.T) {
 	Assert(t, host, Equal(appConfig.GetHost()))
 	load := loadbalance.GetLoadBalance().Load(env.GetServers())
 	Assert(t, load, NotNilVal())
-	Assert(t, host, NotEqual(load.HomepageUrl))
+	Assert(t, host, NotEqual(load.HomepageURL))
 }
 
 func TestGetConfigURLSuffix(t *testing.T) {

@@ -46,7 +46,7 @@ func initMockNotifyAndConfigServer() {
 	server := runMockConfigServer(handlerMap, onlyNormalResponse)
 	appConfig := env.GetPlainAppConfig()
 	env.InitConfig(func() (*config.AppConfig, error) {
-		appConfig.Ip = server.URL
+		appConfig.IP = server.URL
 		appConfig.NextTryConnTime = 0
 		return appConfig, nil
 	})
@@ -89,9 +89,9 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 	initNotifications()
 	appConfig := env.GetPlainAppConfig()
 	server := runErrorResponse()
-	appConfig.Ip = server.URL
+	appConfig.IP = server.URL
 	env.InitConfig(func() (*config.AppConfig, error) {
-		appConfig.Ip = server.URL
+		appConfig.IP = server.URL
 		appConfig.NextTryConnTime = 0
 		return appConfig, nil
 	})
@@ -172,7 +172,7 @@ func TestAutoSyncConfigServices(t *testing.T) {
 	initNotifications()
 	server := runNormalConfigResponse()
 	newAppConfig := getTestAppConfig()
-	newAppConfig.Ip = server.URL
+	newAppConfig.IP = server.URL
 
 	time.Sleep(1 * time.Second)
 
@@ -197,7 +197,7 @@ func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
 	initNotifications()
 	server := runNormalConfigResponse()
 	newAppConfig := getTestAppConfig()
-	newAppConfig.Ip = server.URL
+	newAppConfig.IP = server.URL
 	appConfig := env.GetPlainAppConfig()
 	appConfig.IsBackupConfig = false
 	configFilePath := env.GetConfigFile(newAppConfig.GetBackupConfigPath(), "application")
@@ -226,7 +226,7 @@ func TestAutoSyncConfigServicesError(t *testing.T) {
 	go env.InitConfig(nil)
 	server := runErrorConfigResponse()
 	newAppConfig := getTestAppConfig()
-	newAppConfig.Ip = server.URL
+	newAppConfig.IP = server.URL
 
 	time.Sleep(1 * time.Second)
 

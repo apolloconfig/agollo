@@ -20,7 +20,7 @@ func TestWriteConfigFile(t *testing.T) {
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
-	config, err := CreateApolloConfigWithJson([]byte(jsonStr))
+	config, err := CreateApolloConfigWithJSON([]byte(jsonStr))
 	os.Remove(GetConfigFile(configPath, config.NamespaceName))
 
 	Assert(t, err, NilVal())
@@ -40,7 +40,7 @@ func TestLoadConfigFile(t *testing.T) {
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
-	config, err := CreateApolloConfigWithJson([]byte(jsonStr))
+	config, err := CreateApolloConfigWithJSON([]byte(jsonStr))
 
 	Assert(t, err, NilVal())
 	newConfig, e := LoadConfigFile("", config.NamespaceName)

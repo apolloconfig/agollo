@@ -62,14 +62,14 @@ type ApolloConfig struct {
 }
 
 //Init 初始化
-func (a *ApolloConfig) Init(appId string, cluster string, namespace string) {
-	a.AppID = appId
+func (a *ApolloConfig) Init(appID string, cluster string, namespace string) {
+	a.AppID = appID
 	a.Cluster = cluster
 	a.NamespaceName = namespace
 }
 
 //CreateApolloConfigWithJson 使用json配置转换成apolloconfig
-func CreateApolloConfigWithJson(b []byte) (*ApolloConfig, error) {
+func CreateApolloConfigWithJSON(b []byte) (*ApolloConfig, error) {
 	apolloConfig := &ApolloConfig{}
 	err := json.Unmarshal(b, apolloConfig)
 	if utils.IsNotNil(err) {

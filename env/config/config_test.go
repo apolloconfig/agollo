@@ -57,19 +57,19 @@ func Unmarshal(b []byte) (interface{}, error) {
 }
 
 func TestGetHost(t *testing.T) {
-	ip := appConfig.Ip
+	ip := appConfig.IP
 	host := appConfig.GetHost()
 	Assert(t, host, Equal("http://localhost:8888/"))
 
-	appConfig.Ip = "http://baidu.com"
+	appConfig.IP = "http://baidu.com"
 	host = appConfig.GetHost()
 	Assert(t, host, Equal("http://baidu.com/"))
 
-	appConfig.Ip = "http://163.com/"
+	appConfig.IP = "http://163.com/"
 	host = appConfig.GetHost()
 	Assert(t, host, Equal("http://163.com/"))
 
-	appConfig.Ip = ip
+	appConfig.IP = ip
 }
 
 func TestAppConfig_IsConnectDirectly(t *testing.T) {

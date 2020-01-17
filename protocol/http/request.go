@@ -131,5 +131,5 @@ func loadBalance(appConfig *config.AppConfig) string {
 		return utils.Empty
 	}
 
-	return serverInfo.HomepageUrl
+	return serverInfo.HomepageURL
 }

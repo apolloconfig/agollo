@@ -41,7 +41,7 @@ func runMockConfigServer(handlerMap map[string]func(http.ResponseWriter, *http.R
 	appConfig := env.GetPlainAppConfig()
 	uriHandlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 0)
 	for namespace, handler := range handlerMap {
-		uri := fmt.Sprintf("/configs/%s/%s/%s", appConfig.AppId, appConfig.Cluster, namespace)
+		uri := fmt.Sprintf("/configs/%s/%s/%s", appConfig.AppID, appConfig.Cluster, namespace)
 		uriHandlerMap[uri] = handler
 	}
 	uriHandlerMap["/notifications/v2"] = notifyHandler

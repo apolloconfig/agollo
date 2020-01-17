@@ -14,10 +14,10 @@ type ConfigFile interface {
 
 //AppConfig 配置文件
 type AppConfig struct {
-	AppId            string `json:"appId"`
+	AppID            string `json:"appId"`
 	Cluster          string `json:"cluster"`
 	NamespaceName    string `json:"namespaceName"`
-	Ip               string `json:"ip"`
+	IP               string `json:"ip"`
 	NextTryConnTime  int64  `json:"-"`
 	IsBackupConfig   bool   `default:"true" json:"isBackupConfig"`
 	BackupConfigPath string `json:"backupConfigPath"`
@@ -26,12 +26,12 @@ type AppConfig struct {
 //ServerInfo 服务器信息
 type ServerInfo struct {
 	AppName     string `json:"appName"`
-	InstanceId  string `json:"instanceId"`
-	HomepageUrl string `json:"homepageUrl"`
+	InstanceID  string `json:"instanceId"`
+	HomepageURL string `json:"homepageUrl"`
 	IsDown      bool   `json:"-"`
 }
 
-//getIsBackupConfig whether backup config after fetch config from apollo
+//GetIsBackupConfig whether backup config after fetch config from apollo
 //false : no
 //true : yes (default)
 func (a *AppConfig) GetIsBackupConfig() bool {
@@ -45,13 +45,13 @@ func (a *AppConfig) GetBackupConfigPath() string {
 
 //GetHost GetHost
 func (a *AppConfig) GetHost() string {
-	if strings.HasPrefix(a.Ip, "http") {
-		if !strings.HasSuffix(a.Ip, "/") {
-			return a.Ip + "/"
+	if strings.HasPrefix(a.IP, "http") {
+		if !strings.HasSuffix(a.IP, "/") {
+			return a.IP + "/"
 		}
-		return a.Ip
+		return a.IP
 	}
-	return "http://" + a.Ip + "/"
+	return "http://" + a.IP + "/"
 }
 
 //SetNextTryConnTime if this connect is fail will set this time

@@ -24,7 +24,7 @@ func TestStart(t *testing.T) {
 	handlerMap["application"] = onlyNormalConfigResponse
 	server := runMockConfigServer(handlerMap, onlyNormalResponse)
 	appConfig := env.GetPlainAppConfig()
-	appConfig.Ip = server.URL
+	appConfig.IP = server.URL
 
 	Start()
 
@@ -42,7 +42,7 @@ func TestStartWithMultiNamespace(t *testing.T) {
 	handlerMap["application"] = onlyNormalConfigResponse
 	handlerMap[app1] = onlyNormalSecondConfigResponse
 	server := runMockConfigServer(handlerMap, onlyNormalTwoResponse)
-	appConfig.Ip = server.URL
+	appConfig.IP = server.URL
 
 	Start()
 
@@ -61,7 +61,7 @@ func TestErrorStart(t *testing.T) {
 	t.SkipNow()
 	server := runErrorResponse()
 	newAppConfig := getTestAppConfig()
-	newAppConfig.Ip = server.URL
+	newAppConfig.IP = server.URL
 	notify.InitAllNotifications(nil)
 
 	time.Sleep(1 * time.Second)
@@ -92,10 +92,10 @@ func getTestAppConfig() *config.AppConfig {
 func TestStructInit(t *testing.T) {
 	t.SkipNow()
 	readyConfig := &config.AppConfig{
-		AppId:         "test1",
+		AppID:         "test1",
 		Cluster:       "dev1",
 		NamespaceName: "application1",
-		Ip:            "localhost:8889",
+		IP:            "localhost:8889",
 	}
 
 	InitCustomConfig(func() (*config.AppConfig, error) {
@@ -107,10 +107,10 @@ func TestStructInit(t *testing.T) {
 
 	config := env.GetAppConfig(nil)
 	Assert(t, config, NotNilVal())
-	Assert(t, "test1", Equal(config.AppId))
+	Assert(t, "test1", Equal(config.AppID))
 	Assert(t, "dev1", Equal(config.Cluster))
 	Assert(t, "application1", Equal(config.NamespaceName))
-	Assert(t, "localhost:8889", Equal(config.Ip))
+	Assert(t, "localhost:8889", Equal(config.IP))
 
 	apolloConfig := env.GetCurrentApolloConfig()[config.NamespaceName]
 	Assert(t, "test1", Equal(apolloConfig.AppID))

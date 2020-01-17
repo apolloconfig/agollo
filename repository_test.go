@@ -131,7 +131,7 @@ func TestGetStringValue(t *testing.T) {
 func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	server := runLongNotmodifiedConfigResponse()
 	newAppConfig := getTestAppConfig()
-	newAppConfig.Ip = server.URL
+	newAppConfig.IP = server.URL
 	time.Sleep(1 * time.Second)
 	appConfig := env.GetPlainAppConfig()
 	appConfig.NextTryConnTime = 0

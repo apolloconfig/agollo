@@ -22,10 +22,10 @@ func TestLoadJsonConfig(t *testing.T) {
 
 	Assert(t, err, NilVal())
 	Assert(t, config, NotNilVal())
-	Assert(t, "test", Equal(config.AppId))
+	Assert(t, "test", Equal(config.AppID))
 	Assert(t, "dev", Equal(config.Cluster))
 	Assert(t, "application,abc1", Equal(config.NamespaceName))
-	Assert(t, "localhost:8888", Equal(config.Ip))
+	Assert(t, "localhost:8888", Equal(config.IP))
 
 }
 
@@ -59,10 +59,10 @@ func TestCreateAppConfigWithJson(t *testing.T) {
 
 	Assert(t, err, NilVal())
 	Assert(t, config, NotNilVal())
-	Assert(t, "test", Equal(config.AppId))
+	Assert(t, "test", Equal(config.AppID))
 	Assert(t, "dev", Equal(config.Cluster))
 	Assert(t, "application", Equal(config.NamespaceName))
-	Assert(t, "localhost:8888", Equal(config.Ip))
+	Assert(t, "localhost:8888", Equal(config.IP))
 }
 
 //func TestCreateAppConfigWithJsonWrongEnv(t *testing.T) {
@@ -110,10 +110,10 @@ func TestCreateAppConfigWithJsonDefault(t *testing.T) {
 
 	Assert(t, err, NilVal())
 	Assert(t, config, NotNilVal())
-	Assert(t, "testDefault", Equal(config.AppId))
+	Assert(t, "testDefault", Equal(config.AppID))
 	Assert(t, "default", Equal(config.Cluster))
 	Assert(t, "application", Equal(config.NamespaceName))
-	Assert(t, "localhost:9999", Equal(config.Ip))
+	Assert(t, "localhost:9999", Equal(config.IP))
 }
 
 func Unmarshal(b []byte) (interface{}, error) {

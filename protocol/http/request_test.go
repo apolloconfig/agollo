@@ -35,7 +35,7 @@ func TestRequestRecovery(t *testing.T) {
 	mockIPList(t)
 	server := runNormalBackupConfigResponse()
 	newAppConfig := getTestAppConfig()
-	newAppConfig.Ip = server.URL
+	newAppConfig.IP = server.URL
 
 	appConfig := env.GetAppConfig(newAppConfig)
 	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
@@ -55,7 +55,7 @@ func TestCustomTimeout(t *testing.T) {
 	mockIPList(t)
 	server := runLongTimeResponse()
 	newAppConfig := getTestAppConfig()
-	newAppConfig.Ip = server.URL
+	newAppConfig.IP = server.URL
 
 	startTime := time.Now().Unix()
 	appConfig := env.GetAppConfig(newAppConfig)
@@ -95,7 +95,7 @@ func getConfigURLSuffix(config *config.AppConfig, namespaceName string) string {
 		return ""
 	}
 	return fmt.Sprintf("configs/%s/%s/%s?releaseKey=%s&ip=%s",
-		url.QueryEscape(config.AppId),
+		url.QueryEscape(config.AppID),
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(namespaceName),
 		url.QueryEscape(env.GetCurrentApolloConfigReleaseKey(namespaceName)),

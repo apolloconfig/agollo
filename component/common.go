@@ -25,7 +25,7 @@ func GetConfigURLSuffix(config *config.AppConfig, namespaceName string) string {
 		return ""
 	}
 	return fmt.Sprintf("configs/%s/%s/%s?releaseKey=%s&ip=%s",
-		url.QueryEscape(config.AppId),
+		url.QueryEscape(config.AppID),
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(namespaceName),
 		url.QueryEscape(env.GetCurrentApolloConfigReleaseKey(namespaceName)),

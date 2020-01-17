@@ -16,7 +16,7 @@ func trySyncServerIPList(t *testing.T) {
 	defer server.Close()
 
 	newAppConfig := getTestAppConfig()
-	newAppConfig.Ip = server.URL
+	newAppConfig.IP = server.URL
 	err := SyncServerIPList(newAppConfig)
 
 	Assert(t, err, NilVal())

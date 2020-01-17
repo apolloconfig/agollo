@@ -67,28 +67,28 @@ func TestSelectHost(t *testing.T) {
 	servers := env.GetServers()
 	appConfig := env.GetPlainAppConfig()
 	t.Log("appconfig host:" + appConfig.GetHost())
-	t.Log("appconfig select host:", balanace.Load(env.GetServers()).HomepageUrl)
+	t.Log("appconfig select host:", balanace.Load(env.GetServers()).HomepageURL)
 
 	host := "http://localhost:8888/"
 	Assert(t, host, Equal(appConfig.GetHost()))
-	Assert(t, host, NotEqual(balanace.Load(env.GetServers()).HomepageUrl))
+	Assert(t, host, NotEqual(balanace.Load(env.GetServers()).HomepageURL))
 
 	//check select next time
 	appConfig.SetNextTryConnTime(5)
-	Assert(t, host, NotEqual(balanace.Load(env.GetServers()).HomepageUrl))
+	Assert(t, host, NotEqual(balanace.Load(env.GetServers()).HomepageURL))
 
 	//check servers
 	appConfig.SetNextTryConnTime(5)
 	firstHost := balanace.Load(env.GetServers())
-	Assert(t, host, NotEqual(firstHost.HomepageUrl))
-	env.SetDownNode(firstHost.HomepageUrl)
+	Assert(t, host, NotEqual(firstHost.HomepageURL))
+	env.SetDownNode(firstHost.HomepageURL)
 
-	secondHost := balanace.Load(env.GetServers()).HomepageUrl
+	secondHost := balanace.Load(env.GetServers()).HomepageURL
 	Assert(t, host, NotEqual(secondHost))
 	Assert(t, firstHost, NotEqual(secondHost))
 	env.SetDownNode(secondHost)
 
-	thirdHost := balanace.Load(env.GetServers()).HomepageUrl
+	thirdHost := balanace.Load(env.GetServers()).HomepageURL
 	Assert(t, host, NotEqual(thirdHost))
 	Assert(t, firstHost, NotEqual(thirdHost))
 	Assert(t, secondHost, NotEqual(thirdHost))

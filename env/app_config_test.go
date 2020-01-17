@@ -74,10 +74,10 @@ func TestInit(t *testing.T) {
 	time.Sleep(1 * time.Second)
 
 	Assert(t, config, NotNilVal())
-	Assert(t, "test", Equal(config.AppId))
+	Assert(t, "test", Equal(config.AppID))
 	Assert(t, "dev", Equal(config.Cluster))
 	Assert(t, "application,abc1", Equal(config.NamespaceName))
-	Assert(t, "localhost:8888", Equal(config.Ip))
+	Assert(t, "localhost:8888", Equal(config.IP))
 
 	//TODO: 需要确认是否放在这里
 	//defaultApolloConfig := GetCurrentApolloConfig()[defaultNamespace]
@@ -111,8 +111,8 @@ func TestLoadEnvConfig(t *testing.T) {
 	envConfigFile := "env_test.properties"
 	c, _ := jsonConfigFile.Load(appConfigFile, Unmarshal)
 	config := c.(*config.AppConfig)
-	config.Ip = "123"
-	config.AppId = "1111"
+	config.IP = "123"
+	config.AppID = "1111"
 	config.NamespaceName = "nsabbda"
 	file, err := os.Create(envConfigFile)
 	if err != nil {
@@ -132,10 +132,10 @@ func TestLoadEnvConfig(t *testing.T) {
 
 	Assert(t, envConfigErr, NilVal())
 	Assert(t, envConfig, NotNilVal())
-	Assert(t, envConfig.AppId, Equal(config.AppId))
+	Assert(t, envConfig.AppID, Equal(config.AppID))
 	Assert(t, envConfig.Cluster, Equal(config.Cluster))
 	Assert(t, envConfig.NamespaceName, Equal(config.NamespaceName))
-	Assert(t, envConfig.Ip, Equal(config.Ip))
+	Assert(t, envConfig.IP, Equal(config.IP))
 
 	os.Remove(envConfigFile)
 }

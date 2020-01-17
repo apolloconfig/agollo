@@ -58,10 +58,10 @@ func InitAllNotifications(callback func(namespace string)) {
 	}
 }
 
-func (n *notificationsMap) setNotify(namespaceName string, notificationId int64) {
+func (n *notificationsMap) setNotify(namespaceName string, notificationID int64) {
 	n.Lock()
 	defer n.Unlock()
-	n.notifications[namespaceName] = notificationId
+	n.notifications[namespaceName] = notificationID
 }
 
 func (n *notificationsMap) getNotify(namespace string) int64 {
@@ -101,10 +101,11 @@ func (n *notificationsMap) getNotifies(namespace string) string {
 	return string(j)
 }
 
-//ConfigComponent
+//ConfigComponent 配置组件
 type ConfigComponent struct {
 }
 
+//Start 启动配置组件定时器
 func (c *ConfigComponent) Start() {
 	t2 := time.NewTimer(longPollInterval)
 	//long poll for sync
@@ -232,7 +233,7 @@ func updateAllNotifications(remoteConfigs []*apolloNotify) {
 
 //AutoSyncConfigServicesSuccessCallBack 同步配置回调
 func AutoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, err error) {
-	apolloConfig, err := env.CreateApolloConfigWithJson(responseBody)
+	apolloConfig, err := env.CreateApolloConfigWithJSON(responseBody)
 
 	if err != nil {
 		Logger.Error("Unmarshal Msg Fail,Error:", err)
@@ -279,7 +280,7 @@ func getNotifyURLSuffix(notifications string, config *config.AppConfig, newConfi
 		c = newConfig
 	}
 	return fmt.Sprintf("notifications/v2?appId=%s&cluster=%s&notifications=%s",
-		url.QueryEscape(c.AppId),
+		url.QueryEscape(c.AppID),
 		url.QueryEscape(c.Cluster),
 		url.QueryEscape(notifications))
 }

@@ -32,14 +32,13 @@ const configAbc1ResponseStr = `{
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
-
 //run mock config server
 func runMockConfigServer(handlerMap map[string]func(http.ResponseWriter, *http.Request),
 	notifyHandler func(http.ResponseWriter, *http.Request)) *httptest.Server {
 	appConfig := env.GetPlainAppConfig()
 	uriHandlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 0)
 	for namespace, handler := range handlerMap {
-		uri := fmt.Sprintf("/configs/%s/%s/%s", appConfig.AppId, appConfig.Cluster, namespace)
+		uri := fmt.Sprintf("/configs/%s/%s/%s", appConfig.AppID, appConfig.Cluster, namespace)
 		uriHandlerMap[uri] = handler
 	}
 	uriHandlerMap["/notifications/v2"] = notifyHandler
