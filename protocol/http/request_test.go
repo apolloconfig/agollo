@@ -32,7 +32,7 @@ func getTestAppConfig() *config.AppConfig {
 
 func TestRequestRecovery(t *testing.T) {
 	time.Sleep(1 * time.Second)
-	mockIpList(t)
+	mockIPList(t)
 	server := runNormalBackupConfigResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
@@ -52,7 +52,7 @@ func TestRequestRecovery(t *testing.T) {
 
 func TestCustomTimeout(t *testing.T) {
 	time.Sleep(1 * time.Second)
-	mockIpList(t)
+	mockIPList(t)
 	server := runLongTimeResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.Ip = server.URL
@@ -78,7 +78,7 @@ func TestCustomTimeout(t *testing.T) {
 	Assert(t, o, NilVal())
 }
 
-func mockIpList(t *testing.T) {
+func mockIPList(t *testing.T) {
 	time.Sleep(1 * time.Second)
 
 	_, err := env.SyncServerIpListSuccessCallBack([]byte(servicesResponseStr))

@@ -29,6 +29,7 @@ type CallBack struct {
 	NotModifyCallBack func() error
 }
 
+//Request 建立网络请求
 func Request(requestUrl string, connectionConfig *env.ConnectConfig, callBack *CallBack) (interface{}, error) {
 	client := &http.Client{}
 	//如有设置自定义超时时间即使用
@@ -96,6 +97,7 @@ func Request(requestUrl string, connectionConfig *env.ConnectConfig, callBack *C
 	return nil, err
 }
 
+//RequestRecovery 可以恢复的请求
 func RequestRecovery(appConfig *config.AppConfig,
 	connectConfig *env.ConnectConfig,
 	callBack *CallBack) (interface{}, error) {

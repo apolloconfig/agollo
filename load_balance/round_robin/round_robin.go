@@ -10,9 +10,11 @@ func init() {
 	load_balance.SetLoadBalance(&RoundRobin{})
 }
 
+//RoundRobin 轮询调度
 type RoundRobin struct {
 }
 
+//Load 负载均衡
 func (r *RoundRobin) Load(servers *sync.Map) *config.ServerInfo {
 	var returnServer *config.ServerInfo
 	servers.Range(func(k, v interface{}) bool {
