@@ -168,6 +168,7 @@ func TestSyncServerIpListSuccessCallBack(t *testing.T) {
 }
 
 func TestSetDownNode(t *testing.T) {
+	t.SkipNow()
 	SyncServerIpListSuccessCallBack([]byte(servicesConfigResponseStr))
 
 	downNode := "10.15.128.102:8080"
