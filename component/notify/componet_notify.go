@@ -17,13 +17,13 @@ import (
 )
 
 const (
-	long_poll_interval = 2 * time.Second //2s
+	longPollInterval = 2 * time.Second //2s
 
 	//notify timeout
-	nofity_connect_timeout = 10 * time.Minute //10m
+	nofityConnectTimeout = 10 * time.Minute //10m
 
 	//同步链接时间
-	sync_nofity_connect_timeout = 3 * time.Second //3s
+	syncNofityConnectTimeout = 3 * time.Second //3s
 )
 
 var (
@@ -49,6 +49,7 @@ func init() {
 	InitAllNotifications(nil)
 }
 
+//InitAllNotifications 初始化notificationsMap
 func InitAllNotifications(callback func(namespace string)) {
 	appConfig := env.GetPlainAppConfig()
 	ns := env.SplitNamespaces(appConfig.NamespaceName, callback)
@@ -104,13 +105,13 @@ type NotifyConfigComponent struct {
 }
 
 func (this *NotifyConfigComponent) Start() {
-	t2 := time.NewTimer(long_poll_interval)
+	t2 := time.NewTimer(longPollInterval)
 	//long poll for sync
 	for {
 		select {
 		case <-t2.C:
 			AsyncConfigs()
-			t2.Reset(long_poll_interval)
+			t2.Reset(longPollInterval)
 		}
 	}
 }
@@ -185,7 +186,7 @@ func notifyRemoteConfig(newAppConfig *config.AppConfig, namespace string, isAsyn
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}
-	urlSuffix := getNotifyUrlSuffix(allNotifications.getNotifies(namespace), appConfig, newAppConfig)
+	urlSuffix := getNotifyURLSuffix(allNotifications.getNotifies(namespace), appConfig, newAppConfig)
 
 	//seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
 
@@ -193,9 +194,9 @@ func notifyRemoteConfig(newAppConfig *config.AppConfig, namespace string, isAsyn
 		URI: urlSuffix,
 	}
 	if !isAsync {
-		connectConfig.Timeout = sync_nofity_connect_timeout
+		connectConfig.Timeout = syncNofityConnectTimeout
 	} else {
-		connectConfig.Timeout = nofity_connect_timeout
+		connectConfig.Timeout = nofityConnectTimeout
 	}
 	connectConfig.IsRetry = isAsync
 	notifies, err := http.RequestRecovery(appConfig, connectConfig, &http.CallBack{
@@ -228,6 +229,7 @@ func updateAllNotifications(remoteConfigs []*apolloNotify) {
 	}
 }
 
+//AutoSyncConfigServicesSuccessCallBack 同步配置回调
 func AutoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, err error) {
 	apolloConfig, err := env.CreateApolloConfigWithJson(responseBody)
 
@@ -242,6 +244,7 @@ func AutoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, 
 	return nil, nil
 }
 
+//AutoSyncConfigServices 自动同步配置
 func AutoSyncConfigServices(newAppConfig *config.AppConfig) error {
 	return autoSyncNamespaceConfigServices(newAppConfig, allNotifications.notifications)
 }
@@ -269,7 +272,7 @@ func autoSyncNamespaceConfigServices(newAppConfig *config.AppConfig, notificatio
 	return err
 }
 
-func getNotifyUrlSuffix(notifications string, config *config.AppConfig, newConfig *config.AppConfig) string {
+func getNotifyURLSuffix(notifications string, config *config.AppConfig, newConfig *config.AppConfig) string {
 	c := config
 	if newConfig != nil {
 		c = newConfig

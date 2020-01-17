@@ -47,7 +47,7 @@ func TestLoadConfigFile(t *testing.T) {
 
 	t.Log(newConfig)
 	Assert(t, e, NilVal())
-	Assert(t, config.AppId, Equal(newConfig.AppId))
+	Assert(t, config.AppID, Equal(newConfig.AppID))
 	Assert(t, config.ReleaseKey, Equal(newConfig.ReleaseKey))
 	Assert(t, config.Cluster, Equal(newConfig.Cluster))
 	Assert(t, config.NamespaceName, Equal(newConfig.NamespaceName))

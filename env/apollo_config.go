@@ -18,6 +18,7 @@ type currentApolloConfig struct {
 	configs map[string]*ApolloConnConfig
 }
 
+//SetCurrentApolloConfig 设置apollo配置
 func SetCurrentApolloConfig(namespace string, connConfig *ApolloConnConfig) {
 	currentConnApolloConfig.l.Lock()
 	defer currentConnApolloConfig.l.Unlock()
@@ -33,6 +34,7 @@ func GetCurrentApolloConfig() map[string]*ApolloConnConfig {
 	return currentConnApolloConfig.configs
 }
 
+//GetCurrentApolloConfigReleaseKey 获取release key
 func GetCurrentApolloConfigReleaseKey(namespace string) string {
 	currentConnApolloConfig.l.RLock()
 	defer currentConnApolloConfig.l.RUnlock()
@@ -44,25 +46,29 @@ func GetCurrentApolloConfigReleaseKey(namespace string) string {
 	return config.ReleaseKey
 }
 
+//ApolloConnConfig apollo链接配置
 type ApolloConnConfig struct {
-	AppId         string `json:"appId"`
+	AppID         string `json:"appId"`
 	Cluster       string `json:"cluster"`
 	NamespaceName string `json:"namespaceName"`
 	ReleaseKey    string `json:"releaseKey"`
 	sync.RWMutex
 }
 
+//ApolloConfig apollo配置
 type ApolloConfig struct {
 	ApolloConnConfig
 	Configurations map[string]string `json:"configurations"`
 }
 
+//Init 初始化
 func (a *ApolloConfig) Init(appId string, cluster string, namespace string) {
-	a.AppId = appId
+	a.AppID = appId
 	a.Cluster = cluster
 	a.NamespaceName = namespace
 }
 
+//CreateApolloConfigWithJson 使用json配置转换成apolloconfig
 func CreateApolloConfigWithJson(b []byte) (*ApolloConfig, error) {
 	apolloConfig := &ApolloConfig{}
 	err := json.Unmarshal(b, apolloConfig)

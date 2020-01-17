@@ -83,7 +83,7 @@ func TestCreateApolloConfigWithJson(t *testing.T) {
 	Assert(t, err, NilVal())
 	Assert(t, config, NotNilVal())
 
-	Assert(t, "100004458", Equal(config.AppId))
+	Assert(t, "100004458", Equal(config.AppID))
 	Assert(t, "default", Equal(config.Cluster))
 	Assert(t, "application", Equal(config.NamespaceName))
 	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))

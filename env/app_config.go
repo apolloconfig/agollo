@@ -17,7 +17,7 @@ const (
 	appConfigFile     = "app.properties"
 	appConfigFilePath = "AGOLLO_CONF"
 
-	defaultNotificationId = -1
+	defaultNotificationID = -1
 	comma                 = ","
 
 	defaultCluster   = "default"
@@ -64,7 +64,7 @@ func SplitNamespaces(namespacesStr string, callback func(namespace string)) map[
 		if callback != nil {
 			callback(namespace)
 		}
-		namespaces[namespace] = defaultNotificationId
+		namespaces[namespace] = defaultNotificationID
 	}
 	return namespaces
 }
@@ -86,7 +86,7 @@ func getLoadAppConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.
 	return c.(*config.AppConfig), e
 }
 
-//SyncServerIpListSuccessCallBack 同步服务器列表成功后的回调
+//SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
 func SyncServerIPListSuccessCallBack(responseBody []byte) (o interface{}, err error) {
 	Logger.Debug("get all server info:", string(responseBody))
 
@@ -142,7 +142,7 @@ func GetAppConfig(newAppConfig *config.AppConfig) *config.AppConfig {
 	return appConfig
 }
 
-//GetServicesConfigUrl 获取服务器列表url
+//GetServicesConfigURL 获取服务器列表url
 func GetServicesConfigURL(config *config.AppConfig) string {
 	return fmt.Sprintf("%sservices/config?appId=%s&ip=%s",
 		config.GetHost(),
@@ -174,7 +174,7 @@ func GetServersLen() int {
 var executeConfigFileOnce sync.Once
 var configFileExecutor config.ConfigFile
 
-//GetExecuteGetConfigFile 获取
+//GetConfigFileExecutor 获取文件执行器
 func GetConfigFileExecutor() config.ConfigFile {
 	executeConfigFileOnce.Do(func() {
 		configFileExecutor = &jsonConfig.ConfigFile{}

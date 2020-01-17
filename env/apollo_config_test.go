@@ -9,7 +9,7 @@ import (
 func TestSetCurrentApolloConfig(t *testing.T) {
 	Assert(t, currentConnApolloConfig.configs, NotNilVal())
 	config := &ApolloConnConfig{
-		AppId:      "a",
+		AppID:      "a",
 		ReleaseKey: "releaseKey",
 	}
 	SetCurrentApolloConfig("a", config)
@@ -19,7 +19,7 @@ func TestGetCurrentApolloConfig(t *testing.T) {
 	Assert(t, currentConnApolloConfig.configs, NotNilVal())
 	config := GetCurrentApolloConfig()["a"]
 	Assert(t, config, NotNilVal())
-	Assert(t, config.AppId, Equal("a"))
+	Assert(t, config.AppID, Equal("a"))
 }
 
 func TestGetCurrentApolloConfigReleaseKey(t *testing.T) {
@@ -35,7 +35,7 @@ func TestApolloConfigInit(t *testing.T) {
 	config := &ApolloConfig{}
 	config.Init("appId", "cluster", "ns")
 
-	Assert(t, config.AppId, Equal("appId"))
+	Assert(t, config.AppID, Equal("appId"))
 	Assert(t, config.Cluster, Equal("cluster"))
 	Assert(t, config.NamespaceName, Equal("ns"))
 }

@@ -152,7 +152,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 		return true
 	})
 
-	Assert(t, "100004458", Equal(config.AppId))
+	Assert(t, "100004458", Equal(config.AppID))
 	Assert(t, "default", Equal(config.Cluster))
 	Assert(t, testDefaultNamespace, Equal(config.NamespaceName))
 	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))

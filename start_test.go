@@ -113,7 +113,7 @@ func TestStructInit(t *testing.T) {
 	Assert(t, "localhost:8889", Equal(config.Ip))
 
 	apolloConfig := env.GetCurrentApolloConfig()[config.NamespaceName]
-	Assert(t, "test1", Equal(apolloConfig.AppId))
+	Assert(t, "test1", Equal(apolloConfig.AppID))
 	Assert(t, "dev1", Equal(apolloConfig.Cluster))
 	Assert(t, "application1", Equal(apolloConfig.NamespaceName))
 

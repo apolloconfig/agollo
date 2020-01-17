@@ -25,7 +25,7 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 
 	apolloConfig := &env.ApolloConfig{}
 	apolloConfig.NamespaceName = defaultNamespace
-	apolloConfig.AppId = "test"
+	apolloConfig.AppID = "test"
 	apolloConfig.Cluster = "dev"
 	apolloConfig.Configurations = configurations
 	UpdateApolloConfig(apolloConfig, true)
@@ -35,7 +35,7 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 
 	Assert(t, config, NotNilVal())
 	Assert(t, defaultNamespace, Equal(config.NamespaceName))
-	Assert(t, apolloConfig.AppId, Equal(config.AppId))
+	Assert(t, apolloConfig.AppID, Equal(config.AppID))
 	Assert(t, apolloConfig.Cluster, Equal(config.Cluster))
 	Assert(t, "", Equal(config.ReleaseKey))
 	Assert(t, len(apolloConfig.Configurations), Equal(4))
