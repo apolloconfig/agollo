@@ -11,37 +11,38 @@ import (
 
 const (
 	//refresh ip list
-	refresh_ip_list_interval = 20 * time.Minute //20m
+	refreshIPListInterval = 20 * time.Minute //20m
 )
 
 func init() {
-	go component.StartRefreshConfig(&SyncServerIpListComponent{})
+	go component.StartRefreshConfig(&SyncServerIPListComponent{})
 }
 
-//set timer for update ip list
+//SyncServerIpListComponent set timer for update ip list
 //interval : 20m
-type SyncServerIpListComponent struct {
+type SyncServerIPListComponent struct {
 }
 
-func (s *SyncServerIpListComponent) Start() {
-	SyncServerIpList(nil)
+//Start 启动同步服务器列表
+func (s *SyncServerIPListComponent) Start() {
+	SyncServerIPList(nil)
 	Logger.Debug("syncServerIpList started")
 
-	t2 := time.NewTimer(refresh_ip_list_interval)
+	t2 := time.NewTimer(refreshIPListInterval)
 	for {
 		select {
 		case <-t2.C:
-			SyncServerIpList(nil)
-			t2.Reset(refresh_ip_list_interval)
+			SyncServerIPList(nil)
+			t2.Reset(refreshIPListInterval)
 		}
 	}
 }
 
-//sync ip list from server
+//SyncServerIPList sync ip list from server
 //then
 //1.update agcache
 //2.store in disk
-func SyncServerIpList(newAppConfig *config.AppConfig) error {
+func SyncServerIPList(newAppConfig *config.AppConfig) error {
 	appConfig := env.GetAppConfig(newAppConfig)
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")

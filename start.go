@@ -44,7 +44,7 @@ func startAgollo() error {
 	Logger.Debug("init notifySyncConfigServices finished")
 
 	//start long poll sync config
-	go component.StartRefreshConfig(&notify.NotifyConfigComponent{})
+	go component.StartRefreshConfig(&notify.ConfigComponent{})
 
 	Logger.Info("agollo start finished ! ")
 

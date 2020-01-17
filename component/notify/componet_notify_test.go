@@ -81,7 +81,7 @@ func TestGetRemoteConfig(t *testing.T) {
 	notify := remoteConfigs[0]
 
 	Assert(t, "application", Equal(notify.NamespaceName))
-	Assert(t, true, Equal(notify.NotificationId > 0))
+	Assert(t, true, Equal(notify.notificationID > 0))
 }
 
 func TestErrorGetRemoteConfig(t *testing.T) {

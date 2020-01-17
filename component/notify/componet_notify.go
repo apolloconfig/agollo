@@ -32,7 +32,7 @@ var (
 
 type notification struct {
 	NamespaceName  string `json:"namespaceName"`
-	NotificationId int64  `json:"notificationId"`
+	notificationID int64  `json:"notificationId"`
 }
 
 type notificationsMap struct {
@@ -41,7 +41,7 @@ type notificationsMap struct {
 }
 
 type apolloNotify struct {
-	NotificationId int64  `json:"notificationId"`
+	notificationID int64  `json:"notificationId"`
 	NamespaceName  string `json:"namespaceName"`
 }
 
@@ -76,11 +76,11 @@ func (n *notificationsMap) getNotifies(namespace string) string {
 
 	notificationArr := make([]*notification, 0)
 	if namespace == "" {
-		for namespaceName, notificationId := range n.notifications {
+		for namespaceName, notificationID := range n.notifications {
 			notificationArr = append(notificationArr,
 				&notification{
 					NamespaceName:  namespaceName,
-					NotificationId: notificationId,
+					notificationID: notificationID,
 				})
 		}
 	} else {
@@ -88,7 +88,7 @@ func (n *notificationsMap) getNotifies(namespace string) string {
 		notificationArr = append(notificationArr,
 			&notification{
 				NamespaceName:  namespace,
-				NotificationId: n,
+				notificationID: n,
 			})
 	}
 
@@ -101,10 +101,11 @@ func (n *notificationsMap) getNotifies(namespace string) string {
 	return string(j)
 }
 
-type NotifyConfigComponent struct {
+//ConfigComponent
+type ConfigComponent struct {
 }
 
-func (this *NotifyConfigComponent) Start() {
+func (c *ConfigComponent) Start() {
 	t2 := time.NewTimer(longPollInterval)
 	//long poll for sync
 	for {
@@ -225,7 +226,7 @@ func updateAllNotifications(remoteConfigs []*apolloNotify) {
 			continue
 		}
 
-		allNotifications.setNotify(remoteConfig.NamespaceName, remoteConfig.NotificationId)
+		allNotifications.setNotify(remoteConfig.NamespaceName, remoteConfig.notificationID)
 	}
 }
 
