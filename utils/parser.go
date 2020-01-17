@@ -21,6 +21,7 @@ type ContentParser interface {
 type DefaultParser struct {
 }
 
+//Parse 内存内容默认转换器
 func (d *DefaultParser) Parse(cache agcache.CacheInterface) (string, error) {
 	if cache == nil {
 		return Empty, nil
@@ -37,6 +38,7 @@ func (d *DefaultParser) Parse(cache agcache.CacheInterface) (string, error) {
 type PropertiesParser struct {
 }
 
+//Parse 内存内容=>properties文件转换器
 func (d *PropertiesParser) Parse(cache agcache.CacheInterface) (string, error) {
 	properties := convertToProperties(cache)
 	return properties, nil

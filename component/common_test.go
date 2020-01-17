@@ -102,7 +102,7 @@ func TestCreateApolloConfigWithJsonError(t *testing.T) {
 }
 
 func TestSelectOnlyOneHost(t *testing.T) {
-	trySyncServerIpList()
+	trySyncServerIPList()
 	appConfig := env.GetPlainAppConfig()
 	host := "http://localhost:8888/"
 	Assert(t, host, Equal(appConfig.GetHost()))
@@ -117,6 +117,6 @@ func TestGetConfigURLSuffix(t *testing.T) {
 	Assert(t, "", NotEqual(uri))
 }
 
-func trySyncServerIpList() {
+func trySyncServerIPList() {
 	env.SyncServerIpListSuccessCallBack([]byte(servicesConfigResponseStr))
 }

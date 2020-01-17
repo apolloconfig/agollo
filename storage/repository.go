@@ -86,32 +86,32 @@ type Config struct {
 }
 
 //getIsInit 获取标志
-func (this *Config) GetIsInit() bool {
-	return this.isInit.Load().(bool)
+func (c *Config) GetIsInit() bool {
+	return c.isInit.Load().(bool)
 }
 
 //GetWaitInit 获取标志
-func (this *Config) GetWaitInit() *sync.WaitGroup {
-	return &this.waitInit
+func (c *Config) GetWaitInit() *sync.WaitGroup {
+	return &c.waitInit
 }
 
 //GetCache 获取cache
-func (this *Config) GetCache() agcache.CacheInterface {
-	return this.cache
+func (c *Config) GetCache() agcache.CacheInterface {
+	return c.cache
 }
 
 //getConfigValue 获取配置值
-func (this *Config) getConfigValue(key string) interface{} {
-	b := this.GetIsInit()
+func (c *Config) getConfigValue(key string) interface{} {
+	b := c.GetIsInit()
 	if !b {
-		this.waitInit.Wait()
+		c.waitInit.Wait()
 	}
-	if this.cache == nil {
-		Logger.Errorf("get config value fail!namespace:%s is not exist!", this.namespace)
+	if c.cache == nil {
+		Logger.Errorf("get config value fail!namespace:%s is not exist!", c.namespace)
 		return utils.Empty
 	}
 
-	value, err := this.cache.Get(key)
+	value, err := c.cache.Get(key)
 	if err != nil {
 		Logger.Errorf("get config value fail!key:%s,err:%s", key, err)
 		return utils.Empty
@@ -121,8 +121,8 @@ func (this *Config) getConfigValue(key string) interface{} {
 }
 
 //GetValue 获取配置值（string）
-func (this *Config) GetValue(key string) string {
-	value := this.getConfigValue(key)
+func (c *Config) GetValue(key string) string {
+	value := c.getConfigValue(key)
 	if value == nil {
 		return utils.Empty
 	}
@@ -131,8 +131,8 @@ func (this *Config) GetValue(key string) string {
 }
 
 //GetStringValue 获取配置值（string），获取不到则取默认值
-func (this *Config) GetStringValue(key string, defaultValue string) string {
-	value := this.GetValue(key)
+func (c *Config) GetStringValue(key string, defaultValue string) string {
+	value := c.GetValue(key)
 	if value == utils.Empty {
 		return defaultValue
 	}
@@ -141,8 +141,8 @@ func (this *Config) GetStringValue(key string, defaultValue string) string {
 }
 
 //GetIntValue 获取配置值（int），获取不到则取默认值
-func (this *Config) GetIntValue(key string, defaultValue int) int {
-	value := this.GetValue(key)
+func (c *Config) GetIntValue(key string, defaultValue int) int {
+	value := c.GetValue(key)
 
 	i, err := strconv.Atoi(value)
 	if err != nil {
@@ -154,8 +154,8 @@ func (this *Config) GetIntValue(key string, defaultValue int) int {
 }
 
 //GetFloatValue 获取配置值（float），获取不到则取默认值
-func (this *Config) GetFloatValue(key string, defaultValue float64) float64 {
-	value := this.GetValue(key)
+func (c *Config) GetFloatValue(key string, defaultValue float64) float64 {
+	value := c.GetValue(key)
 
 	i, err := strconv.ParseFloat(value, 64)
 	if err != nil {
@@ -167,8 +167,8 @@ func (this *Config) GetFloatValue(key string, defaultValue float64) float64 {
 }
 
 //GetBoolValue 获取配置值（bool），获取不到则取默认值
-func (this *Config) GetBoolValue(key string, defaultValue bool) bool {
-	value := this.GetValue(key)
+func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
+	value := c.GetValue(key)
 
 	b, err := strconv.ParseBool(value)
 	if err != nil {
@@ -179,6 +179,8 @@ func (this *Config) GetBoolValue(key string, defaultValue bool) bool {
 	return b
 }
 
+//UpdateApolloConfig 根据conf[ig server返回的内容更新内存
+//并判断是否需要写备份文件
 func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 	if apolloConfig == nil {
 		Logger.Error("apolloConfig is null,can't update!")
@@ -204,6 +206,7 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 	}
 }
 
+//UpdateApolloConfigCache 根据conf[ig server返回的内容更新内存
 func UpdateApolloConfigCache(configurations map[string]string, expireTime int, namespace string) map[string]*ConfigChange {
 	config := GetConfig(namespace)
 	if config == nil {
@@ -288,6 +291,7 @@ func GetApolloConfigCache() *sync.Map {
 	return &apolloConfigCache
 }
 
+//GetDefaultNamespace 获取默认命名空间
 func GetDefaultNamespace() string {
 	return defaultNamespace
 }
