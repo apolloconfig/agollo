@@ -1,4 +1,4 @@
-package server_list
+package serverlist
 
 import (
 	"net/http"

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/zouyx/agollo/v2/env/config"
-	"github.com/zouyx/agollo/v2/env/config/json_config"
+	"github.com/zouyx/agollo/v2/env/config/json"
 	"net/http"
 	"os"
 	"testing"
@@ -12,11 +12,11 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v2/env"
-	_ "github.com/zouyx/agollo/v2/load_balance/round_robin"
+	_ "github.com/zouyx/agollo/v2/load_balance/roundrobin"
 )
 
 var (
-	jsonConfigFile = &json_config.JSONConfigFile{}
+	jsonConfigFile = &json.JSONConfigFile{}
 	isAsync        = true
 )
 

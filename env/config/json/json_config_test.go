@@ -1,4 +1,4 @@
-package json_config
+package json
 
 import (
 	"encoding/json"
@@ -11,12 +11,12 @@ import (
 )
 
 var (
-	APP_CONFIG_FILE_NAME = "app.properties"
-	jsonConfigFile       = &JSONConfigFile{}
+	appConfigFile  = "app.properties"
+	jsonConfigFile = &JSONConfigFile{}
 )
 
 func TestLoadJsonConfig(t *testing.T) {
-	c, err := jsonConfigFile.Load(APP_CONFIG_FILE_NAME, Unmarshal)
+	c, err := jsonConfigFile.Load(appConfigFile, Unmarshal)
 	config := c.(*config.AppConfig)
 	t.Log(config)
 
@@ -38,7 +38,7 @@ func TestLoadJsonConfigWrongFile(t *testing.T) {
 }
 
 func TestLoadJsonConfigWrongType(t *testing.T) {
-	config, err := jsonConfigFile.Load("json_config.go", Unmarshal)
+	config, err := jsonConfigFile.Load("json.go", Unmarshal)
 	Assert(t, err, NotNilVal())
 	Assert(t, config, NilVal())
 

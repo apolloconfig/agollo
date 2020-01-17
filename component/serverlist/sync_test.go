@@ -1,4 +1,4 @@
-package server_list
+package serverlist
 
 import (
 	. "github.com/tevid/gohamcrest"

@@ -4,9 +4,9 @@ import (
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/env/config"
-	"github.com/zouyx/agollo/v2/env/config/json_config"
+	"github.com/zouyx/agollo/v2/env/config/json"
 	"github.com/zouyx/agollo/v2/load_balance"
-	_ "github.com/zouyx/agollo/v2/load_balance/round_robin"
+	_ "github.com/zouyx/agollo/v2/load_balance/roundrobin"
 	"testing"
 )
 
@@ -63,7 +63,7 @@ const servicesConfigResponseStr = `[{
 ]`
 
 var (
-	jsonConfigFile = &json_config.JSONConfigFile{}
+	jsonConfigFile = &json.JSONConfigFile{}
 )
 
 func TestCreateApolloConfigWithJson(t *testing.T) {

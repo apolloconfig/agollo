@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v2/env/config"
-	"github.com/zouyx/agollo/v2/env/config/json_config"
+	"github.com/zouyx/agollo/v2/env/config/json"
 	"github.com/zouyx/agollo/v2/utils"
 	"os"
 	"sync"
@@ -67,7 +67,7 @@ const servicesConfigResponseStr = `[{
 
 var (
 	defaultNamespace = "application"
-	jsonConfigFile   = &json_config.JSONConfigFile{}
+	jsonConfigFile   = &json.JSONConfigFile{}
 )
 
 func TestInit(t *testing.T) {

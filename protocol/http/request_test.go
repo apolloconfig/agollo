@@ -3,7 +3,7 @@ package http
 import (
 	"fmt"
 	"github.com/zouyx/agollo/v2/env/config"
-	"github.com/zouyx/agollo/v2/env/config/json_config"
+	"github.com/zouyx/agollo/v2/env/config/json"
 	"net/url"
 	"testing"
 	"time"
@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	jsonConfigFile = &json_config.JSONConfigFile{}
+	jsonConfigFile = &json.JSONConfigFile{}
 )
 
 func getTestAppConfig() *config.AppConfig {
@@ -41,7 +41,7 @@ func TestRequestRecovery(t *testing.T) {
 	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
 
 	o, err := RequestRecovery(appConfig, &env.ConnectConfig{
-		Uri: urlSuffix,
+		URI: urlSuffix,
 	}, &CallBack{
 		SuccessCallBack: nil,
 	})
@@ -62,7 +62,7 @@ func TestCustomTimeout(t *testing.T) {
 	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
 
 	o, err := RequestRecovery(appConfig, &env.ConnectConfig{
-		Uri:     urlSuffix,
+		URI:     urlSuffix,
 		Timeout: 11 * time.Second,
 	}, &CallBack{
 		SuccessCallBack: nil,

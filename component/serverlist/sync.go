@@ -1,4 +1,4 @@
-package server_list
+package serverlist
 
 import (
 	"github.com/zouyx/agollo/v2/component"

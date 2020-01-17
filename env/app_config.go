@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/zouyx/agollo/v2/env/config"
-	"github.com/zouyx/agollo/v2/env/config/json_config"
+	"github.com/zouyx/agollo/v2/env/config/json"
 	"net/url"
 	"os"
 	"strings"
@@ -170,7 +170,7 @@ var executeGetConfigFile config.ConfigFile
 
 func GetExecuteGetConfigFile() config.ConfigFile {
 	executeConfigFileOnce.Do(func() {
-		executeGetConfigFile = &json_config.JSONConfigFile{}
+		executeGetConfigFile = &json.JSONConfigFile{}
 	})
 	return executeGetConfigFile
 }

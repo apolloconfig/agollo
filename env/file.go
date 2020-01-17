@@ -5,22 +5,22 @@ import (
 	"encoding/json"
 	"fmt"
 	. "github.com/zouyx/agollo/v2/component/log"
-	"github.com/zouyx/agollo/v2/env/config/json_config"
+	"github.com/zouyx/agollo/v2/env/config/json"
 )
 
 const suffix = ".json"
 
 var (
 	configFileMap  = make(map[string]string, 1)
-	jsonFileConfig = &json_config.JSONConfigFile{}
+	jsonFileConfig = &json.JSONConfigFile{}
 )
 
-//write config to file
+//WriteConfigFile write config to file
 func WriteConfigFile(config *ApolloConfig, configPath string) error {
 	return jsonFileConfig.Write(config, GetConfigFile(configPath, config.NamespaceName))
 }
 
-//get real config file
+//GetConfigFile get real config file
 func GetConfigFile(configDir string, namespace string) string {
 	fullPath := configFileMap[namespace]
 	if fullPath == "" {

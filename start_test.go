@@ -7,7 +7,7 @@ import (
 	"github.com/zouyx/agollo/v2/component/notify"
 	"github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/env/config"
-	"github.com/zouyx/agollo/v2/env/config/json_config"
+	"github.com/zouyx/agollo/v2/env/config/json"
 	"github.com/zouyx/agollo/v2/storage"
 
 	"net/http"
@@ -16,7 +16,7 @@ import (
 )
 
 var (
-	jsonConfigFile = &json_config.JSONConfigFile{}
+	jsonConfigFile = &json.JSONConfigFile{}
 )
 
 func TestStart(t *testing.T) {

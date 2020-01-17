@@ -1,4 +1,4 @@
-package round_robin
+package roundrobin
 
 import (
 	"github.com/zouyx/agollo/v2/env/config"

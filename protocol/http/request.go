@@ -110,7 +110,7 @@ func RequestRecovery(appConfig *config.AppConfig,
 			return nil, err
 		}
 
-		requestURL := fmt.Sprintf(format, host, connectConfig.Uri)
+		requestURL := fmt.Sprintf(format, host, connectConfig.URI)
 		response, err = Request(requestURL, connectConfig, callBack)
 		if err == nil {
 			return response, err

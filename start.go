@@ -5,7 +5,7 @@ import (
 	"github.com/zouyx/agollo/v2/component"
 	. "github.com/zouyx/agollo/v2/component/log"
 	"github.com/zouyx/agollo/v2/component/notify"
-	_ "github.com/zouyx/agollo/v2/component/server_list"
+	_ "github.com/zouyx/agollo/v2/component/serverlist"
 	"github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/env/config"
 	"github.com/zouyx/agollo/v2/storage"
