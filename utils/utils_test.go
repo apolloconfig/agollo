@@ -7,8 +7,6 @@ import (
 )
 
 func TestGetInternal(t *testing.T) {
-	//fmt.Println("Usage of ./getmyip --get_ip=(external|internal)")
-	//flag.Parse()
 	ip := GetInternal()
 
 	t.Log("Internal ip:", ip)

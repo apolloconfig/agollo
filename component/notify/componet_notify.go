@@ -115,15 +115,22 @@ func (this *NotifyConfigComponent) Start() {
 	}
 }
 
+//AsyncConfigs 异步同步所有配置文件中配置的namespace配置
 func AsyncConfigs() error {
-	return syncConfigs(true)
+	return syncConfigs(utils.Empty, true)
 }
 
+//SyncConfigs 同步同步所有配置文件中配置的namespace配置
 func SyncConfigs() error {
-	return syncConfigs(false)
+	return syncConfigs(utils.Empty, false)
 }
 
-func syncConfigs(isAsync bool) error {
+//SyncNamespaceConfig 同步同步一个指定的namespace配置
+func SyncNamespaceConfig(namespace string) error {
+	return syncConfigs(namespace, false)
+}
+
+func syncConfigs(namespace string, isAsync bool) error {
 
 	remoteConfigs, err := notifyRemoteConfig(nil, utils.Empty, isAsync)
 
@@ -139,18 +146,26 @@ func syncConfigs(isAsync bool) error {
 	//sync all config
 	err = AutoSyncConfigServices(nil)
 
-	//first sync fail then load config file
-	appConfig := env.GetPlainAppConfig()
 	if err != nil {
-		env.SplitNamespaces(appConfig.NamespaceName, func(namespace string) {
-			config, _ := env.LoadConfigFile(appConfig.BackupConfigPath, namespace)
-			if config != nil {
-				storage.UpdateApolloConfig(config, false)
-			}
-		})
+		if namespace != "" {
+			return nil
+		}
+		//first sync fail then load config file
+		appConfig := env.GetPlainAppConfig()
+		loadBackupConfig(appConfig.NamespaceName, appConfig)
 	}
+
 	//sync all config
 	return nil
+}
+
+func loadBackupConfig(namespace string, appConfig *config.AppConfig) {
+	env.SplitNamespaces(namespace, func(namespace string) {
+		config, _ := env.LoadConfigFile(appConfig.BackupConfigPath, namespace)
+		if config != nil {
+			storage.UpdateApolloConfig(config, false)
+		}
+	})
 }
 
 func toApolloConfig(resBody []byte) ([]*apolloNotify, error) {

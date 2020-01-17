@@ -1,6 +1,7 @@
 package agollo
 
 import (
+	"github.com/zouyx/agollo/v2/component/notify"
 	"strconv"
 
 	"github.com/zouyx/agollo/v2/agcache"
@@ -23,9 +24,11 @@ func GetConfigAndInit(namespace string) *storage.Config {
 	config, ok := storage.GetApolloConfigCache().Load(namespace)
 
 	if !ok {
+		//init cache
 		storage.CreateNamespaceConfig(namespace)
 
-		//notifySimpleSyncConfigServices(namespace)
+		//sync config
+		notify.SyncNamespaceConfig(namespace)
 	}
 
 	config, ok = storage.GetApolloConfigCache().Load(namespace)

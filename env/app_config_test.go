@@ -7,10 +7,63 @@ import (
 	"github.com/zouyx/agollo/v2/env/config/json_config"
 	"github.com/zouyx/agollo/v2/utils"
 	"os"
+	"sync"
 
 	"testing"
 	"time"
 )
+
+const servicesConfigResponseStr = `[{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.15.128.102:apollo-configservice:8080",
+"homepageUrl": "http://10.15.128.102:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.15.88.125:apollo-configservice:8080",
+"homepageUrl": "http://10.15.88.125:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.14.0.11:apollo-configservice:8080",
+"homepageUrl": "http://10.14.0.11:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.14.0.193:apollo-configservice:8080",
+"homepageUrl": "http://10.14.0.193:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.15.128.101:apollo-configservice:8080",
+"homepageUrl": "http://10.15.128.101:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.14.0.192:apollo-configservice:8080",
+"homepageUrl": "http://10.14.0.192:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.15.88.124:apollo-configservice:8080",
+"homepageUrl": "http://10.15.88.124:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.15.128.103:apollo-configservice:8080",
+"homepageUrl": "http://10.15.128.103:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "localhost:apollo-configservice:8080",
+"homepageUrl": "http://10.14.0.12:8080/"
+},
+{
+"appName": "APOLLO-CONFIGSERVICE",
+"instanceId": "10.14.0.194:apollo-configservice:8080",
+"homepageUrl": "http://10.14.0.194:8080/"
+}
+]`
 
 var (
 	defaultNamespace = "application"
@@ -97,4 +150,31 @@ func TestGetServersLen(t *testing.T) {
 	servers.Store("a", "a")
 	serversLen := GetServersLen()
 	Assert(t, serversLen, Equal(1))
+}
+
+func TestSplitNamespaces(t *testing.T) {
+	w := &sync.WaitGroup{}
+	w.Add(3)
+	namespaces := SplitNamespaces("a,b,c", func(namespace string) {
+		w.Done()
+	})
+
+	Assert(t, len(namespaces), Equal(3))
+	w.Wait()
+}
+func TestSyncServerIpListSuccessCallBack(t *testing.T) {
+	SyncServerIpListSuccessCallBack([]byte(servicesConfigResponseStr))
+	Assert(t, GetServersLen(), Equal(11))
+}
+
+func TestSetDownNode(t *testing.T) {
+	SyncServerIpListSuccessCallBack([]byte(servicesConfigResponseStr))
+
+	downNode := "10.15.128.102:8080"
+	SetDownNode(downNode)
+
+	value, ok := servers.Load("http://10.15.128.102:8080/")
+	info := value.(*config.ServerInfo)
+	Assert(t, ok, Equal(true))
+	Assert(t, info.IsDown, Equal(true))
 }

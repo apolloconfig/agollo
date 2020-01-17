@@ -125,7 +125,7 @@ func SetDownNode(host string) {
 	servers.Range(func(k, v interface{}) bool {
 		server := v.(*config.ServerInfo)
 		// if some node has down then select next node
-		if k.(string) == host {
+		if strings.Index(k.(string), host) > -1 {
 			server.IsDown = true
 			return false
 		}
