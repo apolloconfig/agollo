@@ -172,10 +172,10 @@ func GetServersLen() int {
 }
 
 var executeConfigFileOnce sync.Once
-var configFileExecutor config.ConfigFile
+var configFileExecutor config.File
 
 //GetConfigFileExecutor 获取文件执行器
-func GetConfigFileExecutor() config.ConfigFile {
+func GetConfigFileExecutor() config.File {
 	executeConfigFileOnce.Do(func() {
 		configFileExecutor = &jsonConfig.ConfigFile{}
 	})

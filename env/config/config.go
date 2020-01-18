@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-//ConfigFile 读写配置文件
-type ConfigFile interface {
+//File 读写配置文件
+type File interface {
 	Load(fileName string, unmarshal func([]byte) (interface{}, error)) (interface{}, error)
 
 	Write(content interface{}, configPath string) error
