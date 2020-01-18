@@ -1,4 +1,4 @@
-module github.com/zouyx/agollo/v2
+module github.com/zouyx/agollo/v3
 
 require github.com/tevid/gohamcrest v1.1.1
 
