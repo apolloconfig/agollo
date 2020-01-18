@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/zouyx/agollo/v2/agcache"
-	. "github.com/zouyx/agollo/v2/component/log"
+	"github.com/zouyx/agollo/v2/component/log"
 	"github.com/zouyx/agollo/v2/storage"
 	"github.com/zouyx/agollo/v2/utils"
 )
@@ -93,7 +93,7 @@ func GetIntValue(key string, defaultValue int) int {
 
 	i, err := strconv.Atoi(value)
 	if err != nil {
-		Logger.Debug("convert to int fail!error:", err)
+		log.Debug("convert to int fail!error:", err)
 		return defaultValue
 	}
 
@@ -106,7 +106,7 @@ func GetFloatValue(key string, defaultValue float64) float64 {
 
 	i, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		Logger.Debug("convert to float fail!error:", err)
+		log.Debug("convert to float fail!error:", err)
 		return defaultValue
 	}
 
@@ -119,7 +119,7 @@ func GetBoolValue(key string, defaultValue bool) bool {
 
 	b, err := strconv.ParseBool(value)
 	if err != nil {
-		Logger.Debug("convert to bool fail!error:", err)
+		log.Debug("convert to bool fail!error:", err)
 		return defaultValue
 	}
 
@@ -134,7 +134,7 @@ func getConfigValue(key string) interface{} {
 
 	value, err := cache.Get(key)
 	if err != nil {
-		Logger.Errorf("get config value fail!key:%s,err:%s", key, err)
+		log.Errorf("get config value fail!key:%s,err:%s", key, err)
 		return utils.Empty
 	}
 

@@ -12,6 +12,7 @@ func InitLogger(ILogger LoggerInterface) {
 	Logger = ILogger
 }
 
+//LoggerInterface 日志接口
 type LoggerInterface interface {
 	Debugf(format string, params ...interface{})
 
@@ -70,45 +71,46 @@ func Error(v ...interface{}) {
 	Logger.Error(v)
 }
 
+//DefaultLogger 默认日志实现
 type DefaultLogger struct {
 }
 
 //Debugf debug 格式化
-func (this *DefaultLogger) Debugf(format string, params ...interface{}) {
+func (d *DefaultLogger) Debugf(format string, params ...interface{}) {
 
 }
 
 //Infof 打印info
-func (this *DefaultLogger) Infof(format string, params ...interface{}) {
+func (d *DefaultLogger) Infof(format string, params ...interface{}) {
 
 }
 
 //Warnf warn格式化
-func (this *DefaultLogger) Warnf(format string, params ...interface{}) error {
+func (d *DefaultLogger) Warnf(format string, params ...interface{}) error {
 	return nil
 }
 
 //Errorf error格式化
-func (this *DefaultLogger) Errorf(format string, params ...interface{}) error {
+func (d *DefaultLogger) Errorf(format string, params ...interface{}) error {
 	return nil
 }
 
 //Debug 打印debug
-func (this *DefaultLogger) Debug(v ...interface{}) {
+func (d *DefaultLogger) Debug(v ...interface{}) {
 
 }
 
 //Info 打印Info
-func (this *DefaultLogger) Info(v ...interface{}) {
+func (d *DefaultLogger) Info(v ...interface{}) {
 
 }
 
 //Warn 打印Warn
-func (this *DefaultLogger) Warn(v ...interface{}) error {
+func (d *DefaultLogger) Warn(v ...interface{}) error {
 	return nil
 }
 
 //Error 打印Error
-func (this *DefaultLogger) Error(v ...interface{}) error {
+func (d *DefaultLogger) Error(v ...interface{}) error {
 	return nil
 }
