@@ -10,6 +10,10 @@ func init() {
 	loadbalance.SetLoadBalance(&RoundRobin{})
 }
 
+func InitLoadBalance() {
+
+}
+
 //RoundRobin 轮询调度
 type RoundRobin struct {
 }

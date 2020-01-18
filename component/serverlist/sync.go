@@ -18,6 +18,10 @@ func init() {
 	go component.StartRefreshConfig(&SyncServerIPListComponent{})
 }
 
+func InitStartRefreshConfig() {
+
+}
+
 //SyncServerIPListComponent set timer for update ip list
 //interval : 20m
 type SyncServerIPListComponent struct {
