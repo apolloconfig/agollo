@@ -37,3 +37,35 @@ func TestWarn(t *testing.T) {
 func TestInitLogger(t *testing.T) {
 	InitLogger(Logger)
 }
+
+func TestCommonDebugf(t *testing.T) {
+	Debugf("")
+}
+
+func TestCommonInfof(t *testing.T) {
+	Infof("")
+}
+
+func TestCommonErrorf(t *testing.T) {
+	Errorf("")
+}
+
+func TestCommonWarnf(t *testing.T) {
+	Warnf("")
+}
+
+func TestCommonDebug(t *testing.T) {
+	Debug("")
+}
+
+func TestCommonInfo(t *testing.T) {
+	Info("")
+}
+
+func TestCommonError(t *testing.T) {
+	Error("")
+}
+
+func TestCommonWarn(t *testing.T) {
+	Warn("")
+}

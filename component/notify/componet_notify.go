@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/zouyx/agollo/v2/component"
-	. "github.com/zouyx/agollo/v2/component/log"
+	"github.com/zouyx/agollo/v2/component/log"
 	"github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/protocol/http"
 	"github.com/zouyx/agollo/v2/storage"
@@ -177,7 +177,7 @@ func toApolloConfig(resBody []byte) ([]*apolloNotify, error) {
 	err := json.Unmarshal(resBody, &remoteConfig)
 
 	if err != nil {
-		Logger.Error("Unmarshal Msg Fail,Error:", err)
+		log.Error("Unmarshal Msg Fail,Error:", err)
 		return nil, err
 	}
 	return remoteConfig, nil
@@ -236,7 +236,7 @@ func AutoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, 
 	apolloConfig, err := env.CreateApolloConfigWithJSON(responseBody)
 
 	if err != nil {
-		Logger.Error("Unmarshal Msg Fail,Error:", err)
+		log.Error("Unmarshal Msg Fail,Error:", err)
 		return nil, err
 	}
 	appConfig := env.GetPlainAppConfig()

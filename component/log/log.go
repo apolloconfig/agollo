@@ -30,6 +30,46 @@ type LoggerInterface interface {
 	Error(v ...interface{}) error
 }
 
+//Debugf debug 格式化
+func Debugf(format string, params ...interface{}) {
+	Logger.Debugf(format, params)
+}
+
+//Infof 打印info
+func Infof(format string, params ...interface{}) {
+	Logger.Infof(format, params)
+}
+
+//Warnf warn格式化
+func Warnf(format string, params ...interface{}) error {
+	return Logger.Warnf(format, params)
+}
+
+//Errorf error格式化
+func Errorf(format string, params ...interface{}) error {
+	return Logger.Errorf(format, params)
+}
+
+//Debug 打印debug
+func Debug(v ...interface{}) {
+	Logger.Debug(v)
+}
+
+//Info 打印Info
+func Info(v ...interface{}) {
+	Logger.Info(v)
+}
+
+//Warn 打印Warn
+func Warn(v ...interface{}) {
+	Logger.Warn(v)
+}
+
+//Error 打印Error
+func Error(v ...interface{}) {
+	Logger.Error(v)
+}
+
 type DefaultLogger struct {
 }
 

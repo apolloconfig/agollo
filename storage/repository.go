@@ -9,7 +9,7 @@ import (
 	"github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/utils"
 
-	. "github.com/zouyx/agollo/v2/component/log"
+	"github.com/zouyx/agollo/v2/component/log"
 )
 
 //ConfigFileFormat 配置文件类型
@@ -52,7 +52,7 @@ func init() {
 //InitConfigCache 获取程序配置初始化agollo内润配置
 func InitConfigCache() {
 	if env.GetPlainAppConfig() == nil {
-		Logger.Warn("Config is nil,can not init agollo.")
+		log.Warn("Config is nil,can not init agollo.")
 		return
 	}
 	CreateNamespaceConfig(env.GetPlainAppConfig().NamespaceName)
@@ -109,13 +109,13 @@ func (c *Config) getConfigValue(key string) interface{} {
 		c.waitInit.Wait()
 	}
 	if c.cache == nil {
-		Logger.Errorf("get config value fail!namespace:%s is not exist!", c.namespace)
+		log.Errorf("get config value fail!namespace:%s is not exist!", c.namespace)
 		return utils.Empty
 	}
 
 	value, err := c.cache.Get(key)
 	if err != nil {
-		Logger.Errorf("get config value fail!key:%s,err:%s", key, err)
+		log.Errorf("get config value fail!key:%s,err:%s", key, err)
 		return utils.Empty
 	}
 
@@ -148,7 +148,7 @@ func (c *Config) GetIntValue(key string, defaultValue int) int {
 
 	i, err := strconv.Atoi(value)
 	if err != nil {
-		Logger.Debug("convert to int fail!error:", err)
+		log.Debug("convert to int fail!error:", err)
 		return defaultValue
 	}
 
@@ -161,7 +161,7 @@ func (c *Config) GetFloatValue(key string, defaultValue float64) float64 {
 
 	i, err := strconv.ParseFloat(value, 64)
 	if err != nil {
-		Logger.Debug("convert to float fail!error:", err)
+		log.Debug("convert to float fail!error:", err)
 		return defaultValue
 	}
 
@@ -174,7 +174,7 @@ func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
 
 	b, err := strconv.ParseBool(value)
 	if err != nil {
-		Logger.Debug("convert to bool fail!error:", err)
+		log.Debug("convert to bool fail!error:", err)
 		return defaultValue
 	}
 
@@ -185,7 +185,7 @@ func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
 //并判断是否需要写备份文件
 func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 	if apolloConfig == nil {
-		Logger.Error("apolloConfig is null,can't update!")
+		log.Error("apolloConfig is null,can't update!")
 		return
 	}
 	//get change list
@@ -284,7 +284,7 @@ func (c *Config) GetContent(format ConfigFileFormat) string {
 	}
 	s, err := parser.Parse(c.cache)
 	if err != nil {
-		Logger.Debug("GetContent fail ! error:", err)
+		log.Debug("GetContent fail ! error:", err)
 	}
 	return s
 }

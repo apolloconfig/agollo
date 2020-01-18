@@ -3,7 +3,7 @@ package env
 import (
 	"encoding/json"
 	"fmt"
-	. "github.com/zouyx/agollo/v2/component/log"
+	"github.com/zouyx/agollo/v2/component/log"
 	"github.com/zouyx/agollo/v2/env/config"
 	jsonConfig "github.com/zouyx/agollo/v2/env/config/json"
 	"github.com/zouyx/agollo/v2/utils"
@@ -88,19 +88,19 @@ func getLoadAppConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.
 
 //SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
 func SyncServerIPListSuccessCallBack(responseBody []byte) (o interface{}, err error) {
-	Logger.Debug("get all server info:", string(responseBody))
+	log.Debug("get all server info:", string(responseBody))
 
 	tmpServerInfo := make([]*config.ServerInfo, 0)
 
 	err = json.Unmarshal(responseBody, &tmpServerInfo)
 
 	if err != nil {
-		Logger.Error("Unmarshal json Fail,Error:", err)
+		log.Error("Unmarshal json Fail,Error:", err)
 		return
 	}
 
 	if len(tmpServerInfo) == 0 {
-		Logger.Info("get no real server!")
+		log.Info("get no real server!")
 		return
 	}
 

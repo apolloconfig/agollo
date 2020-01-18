@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	. "github.com/zouyx/agollo/v2/component/log"
+	"github.com/zouyx/agollo/v2/component/log"
 	jsonConfig "github.com/zouyx/agollo/v2/env/config/json"
 )
 
@@ -37,7 +37,7 @@ func GetConfigFile(configDir string, namespace string) string {
 //LoadConfigFile load config from file
 func LoadConfigFile(configDir string, namespace string) (*ApolloConfig, error) {
 	configFilePath := GetConfigFile(configDir, namespace)
-	Logger.Info("load config file from :", configFilePath)
+	log.Info("load config file from :", configFilePath)
 	c, e := jsonFileConfig.Load(configFilePath, func(b []byte) (interface{}, error) {
 		config := &ApolloConfig{}
 		e := json.NewDecoder(bytes.NewBuffer(b)).Decode(config)
@@ -45,7 +45,7 @@ func LoadConfigFile(configDir string, namespace string) (*ApolloConfig, error) {
 	})
 
 	if c == nil || e != nil {
-		Logger.Errorf("loadConfigFile fail,error:", e)
+		log.Errorf("loadConfigFile fail,error:", e)
 		return nil, e
 	}
 

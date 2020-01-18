@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	. "github.com/zouyx/agollo/v2/component/log"
+	"github.com/zouyx/agollo/v2/component/log"
 	"github.com/zouyx/agollo/v2/utils"
 )
 
@@ -33,12 +33,12 @@ func (t *ConfigFile) Load(fileName string, unmarshal func([]byte) (interface{}, 
 //Write json文件写
 func (t *ConfigFile) Write(content interface{}, configPath string) error {
 	if content == nil {
-		Logger.Error("content is null can not write backup file")
+		log.Error("content is null can not write backup file")
 		return errors.New("content is null can not write backup file")
 	}
 	file, e := os.Create(configPath)
 	if e != nil {
-		Logger.Errorf("writeConfigFile fail,error:", e)
+		log.Errorf("writeConfigFile fail,error:", e)
 		return e
 	}
 	defer file.Close()

@@ -3,7 +3,7 @@ package agollo
 import (
 	"github.com/zouyx/agollo/v2/agcache"
 	"github.com/zouyx/agollo/v2/component"
-	. "github.com/zouyx/agollo/v2/component/log"
+	"github.com/zouyx/agollo/v2/component/log"
 	"github.com/zouyx/agollo/v2/component/notify"
 	_ "github.com/zouyx/agollo/v2/component/serverlist"
 	"github.com/zouyx/agollo/v2/env"
@@ -22,9 +22,9 @@ func Start() error {
 }
 
 //SetLogger 设置自定义logger组件
-func SetLogger(loggerInterface LoggerInterface) {
+func SetLogger(loggerInterface log.LoggerInterface) {
 	if loggerInterface != nil {
-		InitLogger(loggerInterface)
+		log.InitLogger(loggerInterface)
 	}
 }
 
@@ -41,12 +41,12 @@ func startAgollo() error {
 	if err := notify.SyncConfigs(); err != nil {
 		return err
 	}
-	Logger.Debug("init notifySyncConfigServices finished")
+	log.Debug("init notifySyncConfigServices finished")
 
 	//start long poll sync config
 	go component.StartRefreshConfig(&notify.ConfigComponent{})
 
-	Logger.Info("agollo start finished ! ")
+	log.Info("agollo start finished ! ")
 
 	return nil
 }

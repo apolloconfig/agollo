@@ -2,7 +2,7 @@ package serverlist
 
 import (
 	"github.com/zouyx/agollo/v2/component"
-	. "github.com/zouyx/agollo/v2/component/log"
+	"github.com/zouyx/agollo/v2/component/log"
 	"github.com/zouyx/agollo/v2/env"
 	"github.com/zouyx/agollo/v2/env/config"
 	"github.com/zouyx/agollo/v2/protocol/http"
@@ -26,7 +26,7 @@ type SyncServerIPListComponent struct {
 //Start 启动同步服务器列表
 func (s *SyncServerIPListComponent) Start() {
 	SyncServerIPList(nil)
-	Logger.Debug("syncServerIpList started")
+	log.Debug("syncServerIpList started")
 
 	t2 := time.NewTimer(refreshIPListInterval)
 	for {
