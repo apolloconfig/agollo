@@ -32,7 +32,7 @@ var (
 
 type notification struct {
 	NamespaceName  string `json:"namespaceName"`
-	notificationID int64  `json:"notificationId"`
+	NotificationID int64  `json:"notificationId"`
 }
 
 type notificationsMap struct {
@@ -41,7 +41,7 @@ type notificationsMap struct {
 }
 
 type apolloNotify struct {
-	notificationID int64  `json:"notificationId"`
+	NotificationID int64  `json:"notificationId"`
 	NamespaceName  string `json:"namespaceName"`
 }
 
@@ -80,7 +80,7 @@ func (n *notificationsMap) getNotifies(namespace string) string {
 			notificationArr = append(notificationArr,
 				&notification{
 					NamespaceName:  namespaceName,
-					notificationID: notificationID,
+					NotificationID: notificationID,
 				})
 		}
 	} else {
@@ -88,7 +88,7 @@ func (n *notificationsMap) getNotifies(namespace string) string {
 		notificationArr = append(notificationArr,
 			&notification{
 				NamespaceName:  namespace,
-				notificationID: n,
+				NotificationID: n,
 			})
 	}
 
@@ -227,7 +227,7 @@ func updateAllNotifications(remoteConfigs []*apolloNotify) {
 			continue
 		}
 
-		allNotifications.setNotify(remoteConfig.NamespaceName, remoteConfig.notificationID)
+		allNotifications.setNotify(remoteConfig.NamespaceName, remoteConfig.NotificationID)
 	}
 }
 
