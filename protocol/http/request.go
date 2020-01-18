@@ -44,10 +44,15 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 	var responseBody []byte
 	var err error
 	var res *http.Response
+	var retries = maxRetries
+	if connectionConfig != nil && !connectionConfig.IsRetry {
+		retries = 1
+	}
 	for {
+
 		retry++
 
-		if retry > maxRetries {
+		if retry > retries {
 			break
 		}
 

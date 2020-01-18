@@ -135,7 +135,7 @@ func SyncNamespaceConfig(namespace string) error {
 
 func syncConfigs(namespace string, isAsync bool) error {
 
-	remoteConfigs, err := notifyRemoteConfig(nil, utils.Empty, isAsync)
+	remoteConfigs, err := notifyRemoteConfig(nil, namespace, isAsync)
 
 	if err != nil {
 		return fmt.Errorf("notifySyncConfigServices: %s", err)

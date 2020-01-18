@@ -46,9 +46,6 @@ func GetConfigCache(namespace string) agcache.CacheInterface {
 	if config == nil {
 		return nil
 	}
-	if !config.GetIsInit() {
-		config.GetWaitInit().Wait()
-	}
 
 	return config.GetCache()
 }
