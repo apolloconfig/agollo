@@ -18,7 +18,8 @@ func init() {
 	go component.StartRefreshConfig(&SyncServerIPListComponent{})
 }
 
-func InitStartRefreshConfig() {
+//InitSyncServerIPList 初始化同步服务器信息列表
+func InitSyncServerIPList() {
 
 }
 

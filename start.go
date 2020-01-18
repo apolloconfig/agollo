@@ -14,7 +14,7 @@ import (
 
 func init() {
 	roundrobin.InitLoadBalance()
-	serverlist.InitStartRefreshConfig()
+	serverlist.InitSyncServerIPList()
 }
 
 //InitCustomConfig init config by custom
