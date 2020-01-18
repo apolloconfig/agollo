@@ -115,6 +115,24 @@ func TestGetConfigURLSuffix(t *testing.T) {
 	appConfig := &config.AppConfig{}
 	uri := GetConfigURLSuffix(appConfig, "kk")
 	Assert(t, "", NotEqual(uri))
+
+	uri = GetConfigURLSuffix(nil, "kk")
+	Assert(t, "", Equal(uri))
+}
+
+type testComponent struct {
+}
+
+//Start 启动同步服务器列表
+func (s *testComponent) Start() {
+}
+
+func TestStartRefreshConfig(t *testing.T) {
+	StartRefreshConfig(&testComponent{})
+}
+
+func TestName(t *testing.T) {
+
 }
 
 func trySyncServerIPList() {

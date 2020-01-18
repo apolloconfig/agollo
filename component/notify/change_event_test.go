@@ -43,7 +43,6 @@ func (c *CustomChangeListener) OnChange(changeEvent *storage.ChangeEvent) {
 }
 
 func TestListenChangeEvent(t *testing.T) {
-	t.SkipNow()
 	go buildNotifyResult(t)
 	group := sync.WaitGroup{}
 	group.Add(1)
