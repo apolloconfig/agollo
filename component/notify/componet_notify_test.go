@@ -108,7 +108,7 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 	t.Log("remoteConfigs:", remoteConfigs)
 	t.Log("remoteConfigs size:", len(remoteConfigs))
 
-	Assert(t, "Over Max Retry Still Error!", Equal(err.Error()))
+	Assert(t, "over Max Retry Still Error", Equal(err.Error()))
 }
 
 func initNotifications() {
