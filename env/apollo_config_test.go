@@ -2,7 +2,7 @@ package env
 
 import (
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v2/utils"
+	"github.com/zouyx/agollo/v3/utils"
 	"testing"
 )
 

@@ -2,8 +2,8 @@ package roundrobin
 
 import (
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v2/env"
-	"github.com/zouyx/agollo/v2/loadbalance"
+	"github.com/zouyx/agollo/v3/env"
+	"github.com/zouyx/agollo/v3/loadbalance"
 	"testing"
 )
 

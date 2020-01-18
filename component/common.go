@@ -2,11 +2,11 @@ package component
 
 import (
 	"fmt"
-	"github.com/zouyx/agollo/v2/env/config"
+	"github.com/zouyx/agollo/v3/env/config"
 	"net/url"
 
-	"github.com/zouyx/agollo/v2/env"
-	"github.com/zouyx/agollo/v2/utils"
+	"github.com/zouyx/agollo/v3/env"
+	"github.com/zouyx/agollo/v3/utils"
 )
 
 //AbsComponent 定时组件

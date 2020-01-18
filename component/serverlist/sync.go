@@ -1,11 +1,11 @@
 package serverlist
 
 import (
-	"github.com/zouyx/agollo/v2/component"
-	"github.com/zouyx/agollo/v2/component/log"
-	"github.com/zouyx/agollo/v2/env"
-	"github.com/zouyx/agollo/v2/env/config"
-	"github.com/zouyx/agollo/v2/protocol/http"
+	"github.com/zouyx/agollo/v3/component"
+	"github.com/zouyx/agollo/v3/component/log"
+	"github.com/zouyx/agollo/v3/env"
+	"github.com/zouyx/agollo/v3/env/config"
+	"github.com/zouyx/agollo/v3/protocol/http"
 	"time"
 )
 

@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zouyx/agollo/v2/storage"
+	"github.com/zouyx/agollo/v3/storage"
 
-	"github.com/zouyx/agollo/v2/env"
+	"github.com/zouyx/agollo/v3/env"
 
 	. "github.com/tevid/gohamcrest"
 )

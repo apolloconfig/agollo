@@ -2,8 +2,8 @@ package json
 
 import (
 	"encoding/json"
-	"github.com/zouyx/agollo/v2/env/config"
-	"github.com/zouyx/agollo/v2/utils"
+	"github.com/zouyx/agollo/v3/env/config"
+	"github.com/zouyx/agollo/v3/utils"
 	"os"
 	"testing"
 

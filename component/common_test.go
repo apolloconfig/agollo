@@ -2,11 +2,11 @@ package component
 
 import (
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v2/env"
-	"github.com/zouyx/agollo/v2/env/config"
-	"github.com/zouyx/agollo/v2/env/config/json"
-	"github.com/zouyx/agollo/v2/loadbalance"
-	_ "github.com/zouyx/agollo/v2/loadbalance/roundrobin"
+	"github.com/zouyx/agollo/v3/env"
+	"github.com/zouyx/agollo/v3/env/config"
+	"github.com/zouyx/agollo/v3/env/config/json"
+	"github.com/zouyx/agollo/v3/loadbalance"
+	_ "github.com/zouyx/agollo/v3/loadbalance/roundrobin"
 	"testing"
 )
 

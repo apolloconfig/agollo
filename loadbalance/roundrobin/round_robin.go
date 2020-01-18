@@ -1,8 +1,8 @@
 package roundrobin
 
 import (
-	"github.com/zouyx/agollo/v2/env/config"
-	"github.com/zouyx/agollo/v2/loadbalance"
+	"github.com/zouyx/agollo/v3/env/config"
+	"github.com/zouyx/agollo/v3/loadbalance"
 	"sync"
 )
 

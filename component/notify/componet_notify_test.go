@@ -3,16 +3,16 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/v2/env/config"
-	jsonConfig "github.com/zouyx/agollo/v2/env/config/json"
+	"github.com/zouyx/agollo/v3/env/config"
+	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
 	"net/http"
 	"os"
 	"testing"
 	"time"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v2/env"
-	_ "github.com/zouyx/agollo/v2/loadbalance/roundrobin"
+	"github.com/zouyx/agollo/v3/env"
+	_ "github.com/zouyx/agollo/v3/loadbalance/roundrobin"
 )
 
 var (
