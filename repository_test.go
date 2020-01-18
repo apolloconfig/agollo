@@ -1,11 +1,19 @@
 package agollo
 
 import (
-	"encoding/json"
-	. "github.com/tevid/gohamcrest"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
+
+	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v2/component/notify"
+	"github.com/zouyx/agollo/v2/env"
+	"github.com/zouyx/agollo/v2/storage"
 )
+
+const testDefaultNamespace = "application"
 
 //init param
 func init() {
@@ -22,72 +30,21 @@ func createMockApolloConfig(expireTime int) map[string]string {
 	//bool
 	configs["bool"] = "true"
 
-	updateApolloConfigCache(configs, expireTime, defaultNamespace)
+	storage.UpdateApolloConfigCache(configs, expireTime, storage.GetDefaultNamespace())
 
 	return configs
 }
 
-func getFirstApolloConfig(t *testing.T, currentConfig map[string]*ApolloConnConfig) []byte {
-	i := 0
-	var currentJSON []byte
-	var err error
-	for _, v := range currentConfig {
-		if i > 0 {
-			break
-		}
-		currentJSON, err = json.Marshal(v)
-		i++
-	}
-	Assert(t, err, NilVal())
-
-	t.Log("currentJSON:", string(currentJSON))
-
-	Assert(t, false, Equal(string(currentJSON) == ""))
-	return currentJSON
-}
-
-func TestUpdateApolloConfigNull(t *testing.T) {
-	time.Sleep(1 * time.Second)
-	var currentConfig *ApolloConnConfig
-	currentJSON := getFirstApolloConfig(t, currentConnApolloConfig.configs)
-
-	json.Unmarshal(currentJSON, &currentConfig)
-
-	Assert(t, currentConfig, NotNilVal())
-
-	updateApolloConfig(nil, true)
-
-	currentConnApolloConfig.l.RLock()
-	defer currentConnApolloConfig.l.RUnlock()
-	config := currentConnApolloConfig.configs[defaultNamespace]
-
-	//make sure currentConnApolloConfig was not modified
-	//Assert(t, currentConfig.NamespaceName, config.NamespaceName)
-	//Assert(t, currentConfig.AppId, config.AppId)
-	//Assert(t, currentConfig.Cluster, config.Cluster)
-	//Assert(t, currentConfig.ReleaseKey, config.ReleaseKey)
-	Assert(t, config, NotNilVal())
-	Assert(t, defaultNamespace, Equal(config.NamespaceName))
-	Assert(t, "test", Equal(config.AppId))
-	Assert(t, "dev", Equal(config.Cluster))
-	Assert(t, "", Equal(config.ReleaseKey))
-
-}
-
-func TestGetApolloConfigCache(t *testing.T) {
-	cache := GetApolloConfigCache()
-	Assert(t, cache, NotNilVal())
-}
-
 func TestGetConfigValueNullApolloConfig(t *testing.T) {
+	createMockApolloConfig(120)
 	//clear Configurations
-	defaultConfigCache := getDefaultConfigCache()
+	defaultConfigCache := GetDefaultConfigCache()
 	defaultConfigCache.Clear()
 
 	//test getValue
-	value := getValue("joe")
+	value := GetValue("joe")
 
-	Assert(t, empty, Equal(value))
+	Assert(t, "", Equal(value))
 
 	//test GetStringValue
 	defaultValue := "j"
@@ -100,7 +57,7 @@ func TestGetConfigValueNullApolloConfig(t *testing.T) {
 }
 
 func TestGetIntValue(t *testing.T) {
-	createMockApolloConfig(configCacheExpireTime)
+	createMockApolloConfig(120)
 	defaultValue := 100000
 
 	//test default
@@ -171,8 +128,62 @@ func TestGetStringValue(t *testing.T) {
 	Assert(t, "value", Equal(v))
 }
 
+func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
+	server := runLongNotmodifiedConfigResponse()
+	newAppConfig := getTestAppConfig()
+	newAppConfig.IP = server.URL
+	time.Sleep(1 * time.Second)
+	appConfig := env.GetPlainAppConfig()
+	appConfig.NextTryConnTime = 0
+
+	notify.AutoSyncConfigServicesSuccessCallBack([]byte(configResponseStr))
+
+	config := env.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
+
+	fmt.Println("sleeping 10s")
+
+	time.Sleep(10 * time.Second)
+
+	fmt.Println("checking agcache time left")
+	defaultConfigCache := GetDefaultConfigCache()
+
+	defaultConfigCache.Range(func(key, value interface{}) bool {
+		Assert(t, string(value.([]byte)), NotNilVal())
+		return true
+	})
+
+	Assert(t, "100004458", Equal(config.AppID))
+	Assert(t, "default", Equal(config.Cluster))
+	Assert(t, testDefaultNamespace, Equal(config.NamespaceName))
+	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
+	Assert(t, "value1", Equal(GetStringValue("key1", "")))
+	Assert(t, "value2", Equal(GetStringValue("key2", "")))
+	checkBackupFile(t)
+}
+
+func checkBackupFile(t *testing.T) {
+	appConfig := env.GetPlainAppConfig()
+	newConfig, e := env.LoadConfigFile(appConfig.GetBackupConfigPath(), testDefaultNamespace)
+	t.Log(newConfig.Configurations)
+	Assert(t, e, NilVal())
+	Assert(t, newConfig.Configurations, NotNilVal())
+	for k, v := range newConfig.Configurations {
+		Assert(t, GetStringValue(k, ""), Equal(v))
+	}
+}
+
+func runLongNotmodifiedConfigResponse() *httptest.Server {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(500 * time.Microsecond)
+		w.WriteHeader(http.StatusNotModified)
+	}))
+
+	return ts
+}
+
 func TestConfig_GetStringValue(t *testing.T) {
-	config := GetConfig(defaultNamespace)
+	createMockApolloConfig(120)
+	config := GetConfig(testDefaultNamespace)
 
 	defaultValue := "j"
 	//test default
@@ -186,8 +197,9 @@ func TestConfig_GetStringValue(t *testing.T) {
 }
 
 func TestConfig_GetBoolValue(t *testing.T) {
+	createMockApolloConfig(120)
 	defaultValue := false
-	config := GetConfig(defaultNamespace)
+	config := GetConfig(testDefaultNamespace)
 
 	//test default
 	v := config.GetBoolValue("joe", defaultValue)
@@ -206,8 +218,9 @@ func TestConfig_GetBoolValue(t *testing.T) {
 }
 
 func TestConfig_GetFloatValue(t *testing.T) {
+	createMockApolloConfig(120)
 	defaultValue := 100000.1
-	config := GetConfig(defaultNamespace)
+	config := GetConfig(testDefaultNamespace)
 
 	//test default
 	v := config.GetFloatValue("joe", defaultValue)
@@ -226,8 +239,9 @@ func TestConfig_GetFloatValue(t *testing.T) {
 }
 
 func TestConfig_GetIntValue(t *testing.T) {
+	createMockApolloConfig(120)
 	defaultValue := 100000
-	config := GetConfig(defaultNamespace)
+	config := GetConfig(testDefaultNamespace)
 
 	//test default
 	v := config.GetIntValue("joe", defaultValue)
@@ -243,4 +257,9 @@ func TestConfig_GetIntValue(t *testing.T) {
 	v = config.GetIntValue("float", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
+}
+
+func TestGetApolloConfigCache(t *testing.T) {
+	cache := GetApolloConfigCache()
+	Assert(t, cache, NotNilVal())
 }
