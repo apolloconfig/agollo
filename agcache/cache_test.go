@@ -1,8 +1,9 @@
 package agcache
 
 import (
-	. "github.com/tevid/gohamcrest"
 	"testing"
+
+	. "github.com/tevid/gohamcrest"
 )
 
 type TestCacheFactory struct {

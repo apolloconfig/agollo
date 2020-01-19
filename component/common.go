@@ -2,8 +2,9 @@ package component
 
 import (
 	"fmt"
-	"github.com/zouyx/agollo/v3/env/config"
 	"net/url"
+
+	"github.com/zouyx/agollo/v3/env/config"
 
 	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/utils"

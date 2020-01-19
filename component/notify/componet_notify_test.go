@@ -3,12 +3,13 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/v3/env/config"
-	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
 	"net/http"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/zouyx/agollo/v3/env/config"
+	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
 
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v3/env"

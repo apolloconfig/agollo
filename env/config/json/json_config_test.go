@@ -2,9 +2,11 @@ package json
 
 import (
 	"encoding/json"
+	"os"
+
 	"github.com/zouyx/agollo/v3/env/config"
 	"github.com/zouyx/agollo/v3/utils"
-	"os"
+
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
