@@ -159,9 +159,19 @@ func TestSplitNamespaces(t *testing.T) {
 		w.Done()
 	})
 
-	Assert(t, len(namespaces), Equal(3))
+	Assert(t, getNotifyLen(namespaces), Equal(3))
 	w.Wait()
 }
+
+func getNotifyLen(s sync.Map) int {
+	l := 0
+	s.Range(func(k, v interface{}) bool {
+		l++
+		return true
+	})
+	return l
+}
+
 func TestSyncServerIpListSuccessCallBack(t *testing.T) {
 	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
 	Assert(t, GetServersLen(), Equal(11))
