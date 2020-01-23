@@ -19,7 +19,7 @@ const (
 	appConfigFile     = "app.properties"
 	appConfigFilePath = "AGOLLO_CONF"
 
-	defaultNotificationID = -1
+	defaultNotificationID = int64(-1)
 	comma                 = ","
 
 	defaultCluster   = "default"
@@ -59,14 +59,14 @@ func InitConfig(loadAppConfig func() (*config.AppConfig, error)) {
 }
 
 //SplitNamespaces 根据namespace字符串分割后，并执行callback函数
-func SplitNamespaces(namespacesStr string, callback func(namespace string)) map[string]int64 {
-	namespaces := make(map[string]int64, 1)
+func SplitNamespaces(namespacesStr string, callback func(namespace string)) sync.Map {
+	namespaces := sync.Map{}
 	split := strings.Split(namespacesStr, comma)
 	for _, namespace := range split {
 		if callback != nil {
 			callback(namespace)
 		}
-		namespaces[namespace] = defaultNotificationID
+		namespaces.Store(namespace, defaultNotificationID)
 	}
 	return namespaces
 }
