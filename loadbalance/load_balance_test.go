@@ -2,24 +2,25 @@ package loadbalance
 
 import (
 	"sync"
+	"testing"
 
+	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v3/env/config"
 )
 
-var defaultLoadBalance LoadBalance
-
-//LoadBalance 负载均衡器
-type LoadBalance interface {
-	//Load 负载均衡，获取对应服务信息
-	Load(servers *sync.Map) *config.ServerInfo
+type TestLoadBalance struct {
 }
 
-//SetLoadBalance 设置负载均衡器
-func SetLoadBalance(loadBalance LoadBalance) {
-	defaultLoadBalance = loadBalance
+//Load 负载均衡
+func (r *TestLoadBalance) Load(servers *sync.Map) *config.ServerInfo {
+	return nil
 }
 
-//GetLoadBalance 获取负载均衡器
-func GetLoadBalance() LoadBalance {
-	return defaultLoadBalance
+func TestSetLoadBalance(t *testing.T) {
+	SetLoadBalance(&TestLoadBalance{})
+
+	balance := GetLoadBalance()
+
+	b := balance.(*TestLoadBalance)
+	Assert(t, b, NotNilVal())
 }
