@@ -1,9 +1,10 @@
 package utils
 
 import (
-	. "github.com/tevid/gohamcrest"
 	"strings"
 	"testing"
+
+	. "github.com/tevid/gohamcrest"
 )
 
 func TestGetInternal(t *testing.T) {

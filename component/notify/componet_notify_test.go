@@ -3,12 +3,14 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/v3/env/config"
-	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
 	"net/http"
 	"os"
+	"sync"
 	"testing"
 	"time"
+
+	"github.com/zouyx/agollo/v3/env/config"
+	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
 
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v3/env"
@@ -113,10 +115,10 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 
 func initNotifications() {
 	allNotifications = &notificationsMap{
-		notifications: make(map[string]int64, 1),
+		notifications: sync.Map{},
 	}
-	allNotifications.notifications["application"] = -1
-	allNotifications.notifications["abc1"] = -1
+	allNotifications.setNotify("application", -1)
+	allNotifications.setNotify("abc1", -1)
 }
 
 func TestUpdateAllNotifications(t *testing.T) {
@@ -138,14 +140,14 @@ func TestUpdateAllNotifications(t *testing.T) {
 
 	updateAllNotifications(notifies)
 
-	Assert(t, true, Equal(len(allNotifications.notifications) > 0))
-	Assert(t, int64(101), Equal(allNotifications.notifications["application"]))
+	Assert(t, true, Equal(allNotifications.GetNotifyLen() > 0))
+	Assert(t, int64(101), Equal(allNotifications.getNotify("application")))
 }
 
 func TestUpdateAllNotificationsError(t *testing.T) {
 	//clear
 	allNotifications = &notificationsMap{
-		notifications: make(map[string]int64, 1),
+		notifications: sync.Map{},
 	}
 
 	notifyJson := `ffffff`
@@ -158,7 +160,7 @@ func TestUpdateAllNotificationsError(t *testing.T) {
 
 	updateAllNotifications(notifies)
 
-	Assert(t, true, Equal(len(allNotifications.notifications) == 0))
+	Assert(t, true, Equal(allNotifications.GetNotifyLen() == 0))
 }
 
 func TestToApolloConfigError(t *testing.T) {

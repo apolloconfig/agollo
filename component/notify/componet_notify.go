@@ -3,12 +3,13 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/v3/env/config"
 	"net/url"
 	"sync"
 	"time"
 
 	"github.com/zouyx/agollo/v3/component"
+	"github.com/zouyx/agollo/v3/env/config"
+
 	"github.com/zouyx/agollo/v3/component/log"
 	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/protocol/http"
@@ -35,9 +36,9 @@ type notification struct {
 	NotificationID int64  `json:"notificationId"`
 }
 
+// map[string]int64
 type notificationsMap struct {
-	notifications map[string]int64
-	sync.RWMutex
+	notifications sync.Map
 }
 
 type apolloNotify struct {
@@ -59,36 +60,47 @@ func InitAllNotifications(callback func(namespace string)) {
 }
 
 func (n *notificationsMap) setNotify(namespaceName string, notificationID int64) {
-	n.Lock()
-	defer n.Unlock()
-	n.notifications[namespaceName] = notificationID
+	n.notifications.Store(namespaceName, notificationID)
 }
 
 func (n *notificationsMap) getNotify(namespace string) int64 {
-	n.RLock()
-	defer n.RUnlock()
-	return n.notifications[namespace]
+	value, ok := n.notifications.Load(namespace)
+	if !ok || value == nil {
+		return 0
+	}
+	return value.(int64)
+}
+
+func (n *notificationsMap) GetNotifyLen() int {
+	s := n.notifications
+	l := 0
+	s.Range(func(k, v interface{}) bool {
+		l++
+		return true
+	})
+	return l
 }
 
 func (n *notificationsMap) getNotifies(namespace string) string {
-	n.RLock()
-	defer n.RUnlock()
-
 	notificationArr := make([]*notification, 0)
 	if namespace == "" {
-		for namespaceName, notificationID := range n.notifications {
+		n.notifications.Range(func(key, value interface{}) bool {
+			namespaceName := key.(string)
+			notificationID := value.(int64)
 			notificationArr = append(notificationArr,
 				&notification{
 					NamespaceName:  namespaceName,
 					NotificationID: notificationID,
 				})
-		}
+			return true
+		})
 	} else {
-		n := n.notifications[namespace]
+		n, _ := n.notifications.Load(namespace)
+
 		notificationArr = append(notificationArr,
 			&notification{
 				NamespaceName:  namespace,
-				NotificationID: n,
+				NotificationID: n.(int64),
 			})
 	}
 
@@ -248,17 +260,18 @@ func AutoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, 
 
 //AutoSyncConfigServices 自动同步配置
 func AutoSyncConfigServices(newAppConfig *config.AppConfig) error {
-	return autoSyncNamespaceConfigServices(newAppConfig, allNotifications.notifications)
+	return autoSyncNamespaceConfigServices(newAppConfig, allNotifications)
 }
 
-func autoSyncNamespaceConfigServices(newAppConfig *config.AppConfig, notifications map[string]int64) error {
+func autoSyncNamespaceConfigServices(newAppConfig *config.AppConfig, allNotifications *notificationsMap) error {
 	appConfig := env.GetAppConfig(newAppConfig)
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}
 
 	var err error
-	for namespace := range notifications {
+	allNotifications.notifications.Range(func(key, value interface{}) bool {
+		namespace := key.(string)
 		urlSuffix := component.GetConfigURLSuffix(appConfig, namespace)
 
 		_, err = http.RequestRecovery(appConfig, &env.ConnectConfig{
@@ -268,9 +281,10 @@ func autoSyncNamespaceConfigServices(newAppConfig *config.AppConfig, notificatio
 			NotModifyCallBack: touchApolloConfigCache,
 		})
 		if err != nil {
-			return err
+			return false
 		}
-	}
+		return true
+	})
 	return err
 }
 
