@@ -1,10 +1,11 @@
 package utils
 
 import (
-	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v3/agcache"
 	"strings"
 	"testing"
+
+	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v3/agcache"
 )
 
 var (

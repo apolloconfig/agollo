@@ -1,8 +1,9 @@
 package agollo
 
 import (
-	"github.com/zouyx/agollo/v3/component/notify"
 	"strconv"
+
+	"github.com/zouyx/agollo/v3/component/notify"
 
 	"github.com/zouyx/agollo/v3/agcache"
 	"github.com/zouyx/agollo/v3/component/log"

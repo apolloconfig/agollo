@@ -1,9 +1,11 @@
 package storage
 
 import (
-	. "github.com/tevid/gohamcrest"
 	"sync"
+
 	"testing"
+
+	. "github.com/tevid/gohamcrest"
 )
 
 var listener *CustomChangeListener

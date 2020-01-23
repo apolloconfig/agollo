@@ -2,10 +2,11 @@ package config
 
 import (
 	"encoding/json"
-	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v3/utils"
 	"testing"
 	"time"
+
+	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v3/utils"
 )
 
 var (

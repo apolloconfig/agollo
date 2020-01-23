@@ -1,13 +1,14 @@
 package component
 
 import (
+	"testing"
+
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/env/config"
 	"github.com/zouyx/agollo/v3/env/config/json"
 	"github.com/zouyx/agollo/v3/loadbalance"
 	_ "github.com/zouyx/agollo/v3/loadbalance/roundrobin"
-	"testing"
 )
 
 const servicesConfigResponseStr = `[{

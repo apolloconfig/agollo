@@ -1,10 +1,11 @@
 package serverlist
 
 import (
+	"testing"
+
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/env/config"
-	"testing"
 )
 
 func TestSyncServerIPList(t *testing.T) {

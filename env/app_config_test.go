@@ -2,12 +2,13 @@ package env
 
 import (
 	"encoding/json"
+	"os"
+	"sync"
+
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v3/env/config"
 	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
 	"github.com/zouyx/agollo/v3/utils"
-	"os"
-	"sync"
 
 	"testing"
 	"time"

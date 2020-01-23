@@ -3,10 +3,11 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/v3/env/config"
 	"net/url"
 	"sync"
 	"time"
+
+	"github.com/zouyx/agollo/v3/env/config"
 
 	"github.com/zouyx/agollo/v3/component"
 	"github.com/zouyx/agollo/v3/component/log"

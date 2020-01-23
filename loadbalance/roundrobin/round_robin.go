@@ -1,9 +1,10 @@
 package roundrobin
 
 import (
+	"sync"
+
 	"github.com/zouyx/agollo/v3/env/config"
 	"github.com/zouyx/agollo/v3/loadbalance"
-	"sync"
 )
 
 func init() {
