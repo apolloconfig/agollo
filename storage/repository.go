@@ -203,6 +203,10 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 	env.SetCurrentApolloConfig(apolloConfig.NamespaceName, &apolloConfig.ApolloConnConfig)
 
 	if isBackupConfig {
+		//write raw config file async
+		if env.GetPlainAppConfig().GetWithRawBackup(){
+			go env.WriteRawConfigFile(apolloConfig, env.GetPlainAppConfig().GetBackupConfigPath())
+		}
 		//write config file async
 		go env.WriteConfigFile(apolloConfig, env.GetPlainAppConfig().GetBackupConfigPath())
 	}
