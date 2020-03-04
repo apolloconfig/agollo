@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/zouyx/agollo/v3/component/log"
 	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
@@ -15,6 +16,18 @@ var (
 	configFileMap  = make(map[string]string, 1)
 	jsonFileConfig = &jsonConfig.ConfigFile{}
 )
+
+//WriteRawConfigFile write raw config to file
+func WriteRawConfigFile(config *ApolloConfig, configPath string) error {
+	filePath := fmt.Sprintf("%s/%s", configPath, config.NamespaceName)
+	file, e := os.Create(filePath)
+	if e != nil {
+		return e
+	}
+	defer file.Close()
+	_, e = file.WriteString(config.Configurations["content"])
+	return e
+}
 
 //WriteConfigFile write config to file
 func WriteConfigFile(config *ApolloConfig, configPath string) error {

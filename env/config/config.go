@@ -21,6 +21,7 @@ type AppConfig struct {
 	NextTryConnTime  int64  `json:"-"`
 	IsBackupConfig   bool   `default:"true" json:"isBackupConfig"`
 	BackupConfigPath string `json:"backupConfigPath"`
+	WithRawBackup    bool   `default:"false" json:"withRawBackup"`
 }
 
 //ServerInfo 服务器信息
@@ -41,6 +42,11 @@ func (a *AppConfig) GetIsBackupConfig() bool {
 //GetBackupConfigPath GetBackupConfigPath
 func (a *AppConfig) GetBackupConfigPath() string {
 	return a.BackupConfigPath
+}
+
+//GetWithRawBackup GetWithRawBackup
+func (a *AppConfig) GetWithRawBackup() bool {
+	return a.WithRawBackup
 }
 
 //GetHost GetHost

@@ -1,11 +1,33 @@
 package env
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
 )
+
+func TestWriteRawConfigFile(t *testing.T) {
+	configPath := ""
+	jsonStr := `{
+  "appId": "100004458",
+  "cluster": "default",
+  "namespaceName": "application",
+  "configurations": {
+    "key1":"value1",
+    "key2":"value2"
+  },
+  "releaseKey": "20170430092936-dee2d58e74515ff3"
+}`
+
+	config, err := CreateApolloConfigWithJSON([]byte(jsonStr))
+	filePath := fmt.Sprintf("%s/%s", configPath, config.NamespaceName)
+	os.Remove(filePath)
+	Assert(t, err, NilVal())
+	e := WriteRawConfigFile(config, configPath)
+	Assert(t, e, NilVal())
+}
 
 func TestWriteConfigFile(t *testing.T) {
 	configPath := ""
