@@ -46,9 +46,9 @@ type apolloNotify struct {
 	NamespaceName  string `json:"namespaceName"`
 }
 
-func init() {
-	InitAllNotifications(nil)
-}
+//func init() {
+//	InitAllNotifications(nil)
+//}
 
 //InitAllNotifications 初始化notificationsMap
 func InitAllNotifications(callback func(namespace string)) {
