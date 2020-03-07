@@ -14,12 +14,16 @@ import (
 
 func init() {
 	roundrobin.InitLoadBalance()
-	serverlist.InitSyncServerIPList()
+
 }
 
 //InitCustomConfig init config by custom
 func InitCustomConfig(loadAppConfig func() (*config.AppConfig, error)) {
-	env.InitConfig(loadAppConfig)
+	if err := env.InitConfig(loadAppConfig); err == nil {
+		// 有了配置之后才能进行初始化
+		notify.InitAllNotifications(nil)
+		serverlist.InitSyncServerIPList()
+	}
 }
 
 //start apollo
