@@ -1,6 +1,8 @@
 package agollo
 
 import (
+	"sync"
+
 	"github.com/zouyx/agollo/v3/agcache"
 	"github.com/zouyx/agollo/v3/component"
 	"github.com/zouyx/agollo/v3/component/log"
@@ -12,18 +14,20 @@ import (
 	"github.com/zouyx/agollo/v3/storage"
 )
 
+var (
+	initAppConfigFunc      func() (*config.AppConfig, error)
+	initAppConfigFuncMutex sync.Mutex
+)
+
 func init() {
 	roundrobin.InitLoadBalance()
-
 }
 
 //InitCustomConfig init config by custom
 func InitCustomConfig(loadAppConfig func() (*config.AppConfig, error)) {
-	if err := env.InitConfig(loadAppConfig); err == nil {
-		// 有了配置之后才能进行初始化
-		notify.InitAllNotifications(nil)
-		serverlist.InitSyncServerIPList()
-	}
+	initAppConfigFuncMutex.Lock()
+	initAppConfigFunc = loadAppConfig
+	defer initAppConfigFuncMutex.Unlock()
 }
 
 //start apollo
@@ -47,6 +51,13 @@ func SetCache(cacheFactory agcache.CacheFactory) {
 }
 
 func startAgollo() error {
+	// 有了配置之后才能进行初始化
+	if err := env.InitConfig(initAppConfigFunc); err != nil {
+		return err
+	}
+	notify.InitAllNotifications(nil)
+	serverlist.InitSyncServerIPList()
+
 	//first sync
 	if err := notify.SyncConfigs(); err != nil {
 		return err

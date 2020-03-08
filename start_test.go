@@ -1,30 +1,57 @@
 package agollo
 
 import (
+	"encoding/json"
+	"net/http"
+	"os"
+	"testing"
+	"time"
+
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v3/agcache"
 	"github.com/zouyx/agollo/v3/component/log"
 	"github.com/zouyx/agollo/v3/component/notify"
 	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/env/config"
-	"github.com/zouyx/agollo/v3/env/config/json"
+	jsonFile "github.com/zouyx/agollo/v3/env/config/json"
 	"github.com/zouyx/agollo/v3/storage"
-
-	"net/http"
-	"testing"
-	"time"
 )
 
 var (
-	jsonConfigFile = &json.ConfigFile{}
+	jsonConfigFile = &jsonFile.ConfigFile{}
+	appConfigFile  = `{
+    "appId": "test",
+    "cluster": "dev",
+    "namespaceName": "application",
+    "ip": "localhost:8888",
+    "backupConfigPath":""
+}`
+	appConfig = &config.AppConfig{
+		AppID:         "test",
+		Cluster:       "dev",
+		NamespaceName: "application",
+		IP:            "localhost:8888",
+	}
 )
 
+func writeFile(content []byte, configPath string) {
+	file, e := os.Create(configPath)
+	if e != nil {
+		log.Errorf("writeConfigFile fail,error:", e)
+	}
+	defer file.Close()
+	file.Write(content)
+}
+
 func TestStart(t *testing.T) {
+	c := appConfig
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
-	server := runMockConfigServer(handlerMap, onlyNormalResponse)
-	appConfig := env.GetPlainAppConfig()
-	appConfig.IP = server.URL
+	server := runMockConfigServer(handlerMap, onlyNormalResponse, c)
+	c.IP = server.URL
+
+	b, _ := json.Marshal(c)
+	writeFile(b, "app.properties")
 
 	Start()
 
@@ -33,16 +60,20 @@ func TestStart(t *testing.T) {
 }
 
 func TestStartWithMultiNamespace(t *testing.T) {
-	env.GetPlainAppConfig().NamespaceName = "application,abc1"
 	notify.InitAllNotifications(nil)
+	c := appConfig
 	app1 := "abc1"
 
 	appConfig := env.GetPlainAppConfig()
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
 	handlerMap[app1] = onlyNormalSecondConfigResponse
-	server := runMockConfigServer(handlerMap, onlyNormalTwoResponse)
-	appConfig.IP = server.URL
+	server := runMockConfigServer(handlerMap, onlyNormalTwoResponse, appConfig)
+
+	c.NamespaceName = "application,abc1"
+	c.IP = server.URL
+	b, _ := json.Marshal(c)
+	writeFile(b, "app.properties")
 
 	Start()
 
@@ -55,6 +86,12 @@ func TestStartWithMultiNamespace(t *testing.T) {
 	config := storage.GetConfig(app1)
 	Assert(t, config, NotNilVal())
 	Assert(t, config.GetValue("key1-1"), Equal("value1-1"))
+
+	rollbackFile()
+}
+
+func rollbackFile() {
+	writeFile([]byte(appConfigFile), "app.properties")
 }
 
 func TestErrorStart(t *testing.T) {
@@ -122,11 +159,12 @@ func TestStructInit(t *testing.T) {
 }
 
 func TestInitCustomConfig(t *testing.T) {
-	appConfig := &config.AppConfig{}
-	InitCustomConfig(func() (*config.AppConfig, error) {
+	initAppConfigFunc = nil
+	f := func() (*config.AppConfig, error) {
 		return appConfig, nil
-	})
-	Assert(t, env.GetPlainAppConfig(), Equal(appConfig))
+	}
+	InitCustomConfig(f)
+	Assert(t, initAppConfigFunc, NotNilVal())
 }
 
 func TestSetLogger(t *testing.T) {
