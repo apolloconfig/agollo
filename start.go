@@ -1,8 +1,6 @@
 package agollo
 
 import (
-	"sync"
-
 	"github.com/zouyx/agollo/v3/agcache"
 	"github.com/zouyx/agollo/v3/component"
 	"github.com/zouyx/agollo/v3/component/log"
@@ -16,7 +14,6 @@ import (
 
 var (
 	initAppConfigFunc      func() (*config.AppConfig, error)
-	initAppConfigFuncMutex sync.Mutex
 )
 
 func init() {
@@ -25,9 +22,7 @@ func init() {
 
 //InitCustomConfig init config by custom
 func InitCustomConfig(loadAppConfig func() (*config.AppConfig, error)) {
-	initAppConfigFuncMutex.Lock()
 	initAppConfigFunc = loadAppConfig
-	defer initAppConfigFuncMutex.Unlock()
 }
 
 //start apollo
