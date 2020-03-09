@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"strings"
 
-	"github.com/zouyx/agollo/v3/env"
+	"github.com/zouyx/agollo/v3/env/config"
 )
 
 const (
@@ -37,8 +37,8 @@ const (
 
 //run mock config server
 func runMockConfigServer(handlerMap map[string]func(http.ResponseWriter, *http.Request),
-	notifyHandler func(http.ResponseWriter, *http.Request)) *httptest.Server {
-	appConfig := env.GetPlainAppConfig()
+	notifyHandler func(http.ResponseWriter, *http.Request),
+	appConfig *config.AppConfig) *httptest.Server {
 	uriHandlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 0)
 	for namespace, handler := range handlerMap {
 		uri := fmt.Sprintf("/configs/%s/%s/%s", appConfig.AppID, appConfig.Cluster, namespace)
