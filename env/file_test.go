@@ -8,7 +8,7 @@ import (
 	. "github.com/tevid/gohamcrest"
 )
 
-func TestWriteRawConfigFile(t *testing.T) {
+func TestWriteWithRaw(t *testing.T) {
 	configPath := ""
 	jsonStr := `{
   "appId": "100004458",
@@ -25,7 +25,7 @@ func TestWriteRawConfigFile(t *testing.T) {
 	filePath := fmt.Sprintf("%s/%s", configPath, config.NamespaceName)
 	os.Remove(filePath)
 	Assert(t, err, NilVal())
-	e := WriteRawConfigFile(config, configPath)
+	e := WriteWithRaw(WriteConfigFile)(config, configPath)
 	Assert(t, e, NilVal())
 }
 

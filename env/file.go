@@ -17,16 +17,22 @@ var (
 	jsonFileConfig = &jsonConfig.ConfigFile{}
 )
 
-//WriteRawConfigFile write raw config to file
-func WriteRawConfigFile(config *ApolloConfig, configPath string) error {
-	filePath := fmt.Sprintf("%s/%s", configPath, config.NamespaceName)
-	file, e := os.Create(filePath)
-	if e != nil {
-		return e
+//WriteWithRaw
+func WriteWithRaw(f func(config *ApolloConfig, configPath string) error) func(config *ApolloConfig, configPath string) error {
+	return func(config *ApolloConfig, configPath string) error {
+		filePath := fmt.Sprintf("%s/%s", configPath, config.NamespaceName)
+		file, e := os.Create(filePath)
+		if e != nil {
+			return e
+		}
+		defer file.Close()
+		_, e = file.WriteString(config.Configurations["content"])
+		if e != nil {
+			return e
+		}
+
+		return f(config, configPath)
 	}
-	defer file.Close()
-	_, e = file.WriteString(config.Configurations["content"])
-	return e
 }
 
 //WriteConfigFile write config to file

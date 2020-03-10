@@ -29,7 +29,6 @@ const (
 )
 
 const (
-
 	//1 minute
 	configCacheExpireTime = 120
 
@@ -37,7 +36,6 @@ const (
 )
 
 var (
-
 	//config from apollo
 	apolloConfigCache sync.Map
 
@@ -204,11 +202,12 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 
 	if isBackupConfig {
 		//write raw config file async
-		if env.GetPlainAppConfig().GetWithRawBackup(){
-			go env.WriteRawConfigFile(apolloConfig, env.GetPlainAppConfig().GetBackupConfigPath())
+		if env.GetPlainAppConfig().GetWithRawBackup() {
+			go env.WriteWithRaw(env.WriteConfigFile)(apolloConfig, env.GetPlainAppConfig().GetBackupConfigPath())
+		} else {
+			//write config file async
+			go env.WriteConfigFile(apolloConfig, env.GetPlainAppConfig().GetBackupConfigPath())
 		}
-		//write config file async
-		go env.WriteConfigFile(apolloConfig, env.GetPlainAppConfig().GetBackupConfigPath())
 	}
 }
 
