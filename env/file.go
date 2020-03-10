@@ -17,7 +17,7 @@ var (
 	jsonFileConfig = &jsonConfig.ConfigFile{}
 )
 
-//WriteWithRaw
+//WriteWithRaw decorator for WriteConfigFile
 func WriteWithRaw(f func(config *ApolloConfig, configPath string) error) func(config *ApolloConfig, configPath string) error {
 	return func(config *ApolloConfig, configPath string) error {
 		filePath := fmt.Sprintf("%s/%s", configPath, config.NamespaceName)
