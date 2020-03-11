@@ -25,6 +25,8 @@ const (
 
 	//同步链接时间
 	syncNofityConnectTimeout = 3 * time.Second //3s
+
+	defaultNotificationId = int64(-1)
 )
 
 var (
@@ -45,10 +47,6 @@ type apolloNotify struct {
 	NotificationID int64  `json:"notificationId"`
 	NamespaceName  string `json:"namespaceName"`
 }
-
-//func init() {
-//	InitAllNotifications(nil)
-//}
 
 //InitAllNotifications 初始化notificationsMap
 func InitAllNotifications(callback func(namespace string)) {
@@ -95,12 +93,12 @@ func (n *notificationsMap) getNotifies(namespace string) string {
 			return true
 		})
 	} else {
-		n, _ := n.notifications.Load(namespace)
+		notify, _ := n.notifications.LoadOrStore(namespace, defaultNotificationId)
 
 		notificationArr = append(notificationArr,
 			&notification{
 				NamespaceName:  namespace,
-				NotificationID: n.(int64),
+				NotificationID: notify.(int64),
 			})
 	}
 
