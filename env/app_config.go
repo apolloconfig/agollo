@@ -48,14 +48,10 @@ func InitFileConfig() {
 }
 
 //InitConfig 使用指定配置初始化配置
-func InitConfig(loadAppConfig func() (*config.AppConfig, error)) {
-	var err error
+func InitConfig(loadAppConfig func() (*config.AppConfig, error)) (err error) {
 	//init config file
 	appConfig, err = getLoadAppConfig(loadAppConfig)
-
-	if err != nil {
-		return
-	}
+	return
 }
 
 //SplitNamespaces 根据namespace字符串分割后，并执行callback函数

@@ -2,11 +2,12 @@ package http
 
 import (
 	"fmt"
-	"github.com/zouyx/agollo/v3/env/config"
-	"github.com/zouyx/agollo/v3/env/config/json"
 	"net/url"
 	"testing"
 	"time"
+
+	"github.com/zouyx/agollo/v3/env/config"
+	"github.com/zouyx/agollo/v3/env/config/json"
 
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v3/env"
@@ -25,6 +26,7 @@ func getTestAppConfig() *config.AppConfig {
     "ip": "localhost:8888",
     "releaseKey": "1"
 	}`
+
 	c, _ := env.Unmarshal([]byte(jsonStr))
 
 	return c.(*config.AppConfig)
