@@ -33,7 +33,7 @@ jobs:
         go mod vendor
         
     - name: Test
-      run: go test ./..
+      run: go test ./...
 
     - name: Build
       run: go build -o "$Project"
