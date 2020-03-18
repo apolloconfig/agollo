@@ -3,12 +3,13 @@ package http
 import (
 	"errors"
 	"fmt"
-	"github.com/zouyx/agollo/v3/env/config"
-	"github.com/zouyx/agollo/v3/loadbalance"
-	"github.com/zouyx/agollo/v3/utils"
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	"github.com/zouyx/agollo/v3/env/config"
+	"github.com/zouyx/agollo/v3/loadbalance"
+	"github.com/zouyx/agollo/v3/utils"
 
 	"github.com/zouyx/agollo/v3/component/log"
 	"github.com/zouyx/agollo/v3/env"
@@ -16,7 +17,7 @@ import (
 
 var (
 	//for on error retry
-	onErrorRetryInterval = 1 * time.Second //1s
+	onErrorRetryInterval = 2 * time.Second //2s
 
 	connectTimeout = 1 * time.Second //1s
 
@@ -60,6 +61,8 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 
 		if res == nil || err != nil {
 			log.Error("Connect Apollo Server Fail,url:%s,Error:%s", requestURL, err)
+			// if error then sleep
+			time.Sleep(onErrorRetryInterval)
 			continue
 		}
 
@@ -69,6 +72,8 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			responseBody, err = ioutil.ReadAll(res.Body)
 			if err != nil {
 				log.Error("Connect Apollo Server Fail,url:%s,Error:", requestURL, err)
+				// if error then sleep
+				time.Sleep(onErrorRetryInterval)
 				continue
 			}
 
@@ -83,10 +88,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			}
 			return nil, nil
 		default:
-			log.Error("Connect Apollo Server Fail,url:%s,Error:%s", requestURL, err)
-			if res != nil {
-				log.Error("Connect Apollo Server Fail,url:%s,StatusCode:%s", requestURL, res.StatusCode)
-			}
+			log.Error("Connect Apollo Server Fail,url:%s,StatusCode:%s", requestURL, res.StatusCode)
 			err = errors.New("connect Apollo Server Fail")
 			// if error then sleep
 			time.Sleep(onErrorRetryInterval)
@@ -123,8 +125,6 @@ func RequestRecovery(appConfig *config.AppConfig,
 
 		env.SetDownNode(host)
 	}
-
-	return nil, errors.New("try all Nodes Still Error")
 }
 
 func loadBalance(appConfig *config.AppConfig) string {
