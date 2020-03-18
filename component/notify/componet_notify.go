@@ -147,7 +147,7 @@ func syncConfigs(namespace string, isAsync bool) error {
 
 	remoteConfigs, err := notifyRemoteConfig(nil, namespace, isAsync)
 
-	if err != nil || len(namespace) == 0 {
+	if err != nil || len(remoteConfigs) == 0 {
 		appConfig := env.GetPlainAppConfig()
 		loadBackupConfig(appConfig.NamespaceName, appConfig)
 	}
