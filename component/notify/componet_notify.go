@@ -3,6 +3,7 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zouyx/agollo/v3/env/filehandler"
 	"net/url"
 	"sync"
 	"time"
@@ -176,7 +177,7 @@ func syncConfigs(namespace string, isAsync bool) error {
 
 func loadBackupConfig(namespace string, appConfig *config.AppConfig) {
 	env.SplitNamespaces(namespace, func(namespace string) {
-		config, _ := env.LoadConfigFile(appConfig.BackupConfigPath, namespace)
+		config, _ := filehandler.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, namespace)
 		if config != nil {
 			storage.UpdateApolloConfig(config, false)
 		}

@@ -11,11 +11,6 @@ func init() {
 	loadbalance.SetLoadBalance(&RoundRobin{})
 }
 
-//InitLoadBalance 初始化负载均衡器
-func InitLoadBalance() {
-
-}
-
 //RoundRobin 轮询调度
 type RoundRobin struct {
 }
