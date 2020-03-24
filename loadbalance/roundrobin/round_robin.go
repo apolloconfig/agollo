@@ -15,7 +15,6 @@ func init() {
 func InitLoadBalance() {
 
 }
-
 //RoundRobin 轮询调度
 type RoundRobin struct {
 }

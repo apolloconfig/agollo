@@ -8,12 +8,14 @@ import (
 	"github.com/zouyx/agollo/v3/component/serverlist"
 	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/env/config"
+	"github.com/zouyx/agollo/v3/env/filehandler"
+	_ "github.com/zouyx/agollo/v3/env/filehandler/defaultfile"
 	"github.com/zouyx/agollo/v3/loadbalance/roundrobin"
 	"github.com/zouyx/agollo/v3/storage"
 )
 
 var (
-	initAppConfigFunc      func() (*config.AppConfig, error)
+	initAppConfigFunc func() (*config.AppConfig, error)
 )
 
 func init() {
@@ -42,6 +44,13 @@ func SetCache(cacheFactory agcache.CacheFactory) {
 	if cacheFactory != nil {
 		agcache.UseCacheFactory(cacheFactory)
 		storage.InitConfigCache()
+	}
+}
+
+//SetFileHandler define backup file (write and read) handler
+func SetFileHandler(handler filehandler.FileHandler) {
+	if handler != nil {
+		filehandler.SetFileHandler(handler)
 	}
 }
 
