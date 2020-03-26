@@ -7,6 +7,11 @@ import (
 	"github.com/zouyx/agollo/v3/utils"
 )
 
+func init() {
+	//init config
+	InitFileConfig()
+}
+
 func TestSetCurrentApolloConfig(t *testing.T) {
 	Assert(t, currentConnApolloConfig.configs, NotNilVal())
 	config := &ApolloConnConfig{

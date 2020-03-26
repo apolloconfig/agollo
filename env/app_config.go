@@ -36,11 +36,6 @@ var (
 	nextTryConnectPeriod int64 = 60
 )
 
-func init() {
-	//init config
-	InitFileConfig()
-}
-
 //InitFileConfig 使用文件初始化配置
 func InitFileConfig() {
 	// default use application.properties

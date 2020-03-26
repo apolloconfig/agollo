@@ -7,6 +7,11 @@ import (
 	. "github.com/tevid/gohamcrest"
 )
 
+func init() {
+	//init config
+	InitFileConfig()
+}
+
 func TestWriteConfigFile(t *testing.T) {
 	configPath := ""
 	jsonStr := `{

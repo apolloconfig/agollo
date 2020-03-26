@@ -14,6 +14,11 @@ import (
 	"time"
 )
 
+func init() {
+	//init config
+	InitFileConfig()
+}
+
 const servicesConfigResponseStr = `[{
 "appName": "APOLLO-CONFIGSERVICE",
 "instanceId": "10.15.128.102:apollo-configservice:8080",
