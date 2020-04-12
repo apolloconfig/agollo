@@ -1,4 +1,4 @@
-package withrawfile
+package raw
 
 import (
 	"github.com/zouyx/agollo/v3/env"
@@ -9,9 +9,8 @@ import (
 	. "github.com/tevid/gohamcrest"
 )
 
-
 func TestWriteConfigFile(t *testing.T) {
-	filehandler.SetFileHandler(&WithRawFile{})
+	filehandler.SetFileHandler(&RawHandler{})
 
 	configPath := ""
 	jsonStr := `{
@@ -34,7 +33,7 @@ func TestWriteConfigFile(t *testing.T) {
 }
 
 func TestLoadConfigFile(t *testing.T) {
-	filehandler.SetFileHandler(&WithRawFile{})
+	filehandler.SetFileHandler(&RawHandler{})
 
 	jsonStr := `{
   "appId": "100004458",

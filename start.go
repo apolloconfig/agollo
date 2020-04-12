@@ -9,7 +9,7 @@ import (
 	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/env/config"
 	"github.com/zouyx/agollo/v3/env/filehandler"
-	_ "github.com/zouyx/agollo/v3/env/filehandler/defaultfile"
+	_ "github.com/zouyx/agollo/v3/env/filehandler/json"
 	"github.com/zouyx/agollo/v3/loadbalance/roundrobin"
 	"github.com/zouyx/agollo/v3/storage"
 )

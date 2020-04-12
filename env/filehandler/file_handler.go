@@ -2,18 +2,9 @@ package filehandler
 
 import (
 	"github.com/zouyx/agollo/v3/env"
-	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
 )
-
-//Suffix 默认文件保存类型
-const Suffix = ".json"
 
 var file FileHandler
-
-var (
-	ConfigFileMap  = make(map[string]string, 1)
-	JsonFileConfig = &jsonConfig.ConfigFile{}
-)
 
 //FileHandler 备份文件读写
 type FileHandler interface {

@@ -2,7 +2,7 @@ package storage
 
 import (
 	"github.com/zouyx/agollo/v3/env/filehandler"
-	"github.com/zouyx/agollo/v3/env/filehandler/withrawfile"
+	"github.com/zouyx/agollo/v3/env/filehandler/raw"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -205,7 +205,7 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 	if isBackupConfig {
 		//write raw config file async
 		if env.GetPlainAppConfig().GetWithRawBackup() {
-			filehandler.SetFileHandler(&withrawfile.WithRawFile{})
+			filehandler.SetFileHandler(&raw.RawHandler{})
 		}
 		//write config file async
 		go filehandler.GetFileHandler().WriteConfigFile(apolloConfig, env.GetPlainAppConfig().GetBackupConfigPath())

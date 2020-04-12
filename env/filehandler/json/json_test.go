@@ -1,4 +1,4 @@
-package defaultfile
+package json
 
 import (
 	"github.com/zouyx/agollo/v3/env"
