@@ -1,4 +1,4 @@
-package filehandler
+package file
 
 import (
 	"github.com/zouyx/agollo/v3/env"

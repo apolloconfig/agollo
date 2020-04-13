@@ -7,7 +7,7 @@ import (
 	"github.com/zouyx/agollo/v3/component/log"
 	"github.com/zouyx/agollo/v3/env"
 	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
-	"github.com/zouyx/agollo/v3/env/filehandler"
+	"github.com/zouyx/agollo/v3/env/file"
 )
 
 //Suffix 默认文件保存类型
@@ -21,7 +21,7 @@ var (
 )
 
 func init() {
-	filehandler.SetFileHandler(&JSONFileHandler{})
+	file.SetFileHandler(&JSONFileHandler{})
 }
 
 //JSONFileHandler 默认备份文件读写

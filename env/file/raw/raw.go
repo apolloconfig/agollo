@@ -3,7 +3,7 @@ package raw
 import (
 	"fmt"
 	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/env/filehandler/json"
+	"github.com/zouyx/agollo/v3/env/file/json"
 	"os"
 )
 

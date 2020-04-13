@@ -2,7 +2,7 @@ package raw
 
 import (
 	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/env/filehandler"
+	"github.com/zouyx/agollo/v3/env/file"
 	"os"
 	"testing"
 
@@ -10,7 +10,7 @@ import (
 )
 
 func TestWriteConfigFile(t *testing.T) {
-	filehandler.SetFileHandler(&RawHandler{})
+	file.SetFileHandler(&RawHandler{})
 
 	configPath := ""
 	jsonStr := `{
@@ -25,15 +25,15 @@ func TestWriteConfigFile(t *testing.T) {
 }`
 
 	config, err := env.CreateApolloConfigWithJSON([]byte(jsonStr))
-	os.Remove(filehandler.GetFileHandler().GetConfigFile(configPath, config.NamespaceName))
+	os.Remove(file.GetFileHandler().GetConfigFile(configPath, config.NamespaceName))
 
 	Assert(t, err, NilVal())
-	e := filehandler.GetFileHandler().WriteConfigFile(config, configPath)
+	e := file.GetFileHandler().WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
 }
 
 func TestLoadConfigFile(t *testing.T) {
-	filehandler.SetFileHandler(&RawHandler{})
+	file.SetFileHandler(&RawHandler{})
 
 	jsonStr := `{
   "appId": "100004458",
@@ -49,7 +49,7 @@ func TestLoadConfigFile(t *testing.T) {
 	config, err := env.CreateApolloConfigWithJSON([]byte(jsonStr))
 
 	Assert(t, err, NilVal())
-	newConfig, e := filehandler.GetFileHandler().LoadConfigFile("", config.NamespaceName)
+	newConfig, e := file.GetFileHandler().LoadConfigFile("", config.NamespaceName)
 
 	t.Log(newConfig)
 	Assert(t, e, NilVal())

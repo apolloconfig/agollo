@@ -3,7 +3,7 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/v3/env/filehandler"
+	"github.com/zouyx/agollo/v3/env/file"
 	"net/http"
 	"os"
 	"sync"
@@ -203,7 +203,7 @@ func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
 	newAppConfig.IP = server.URL
 	appConfig := env.GetPlainAppConfig()
 	appConfig.IsBackupConfig = false
-	configFilePath := filehandler.GetFileHandler().GetConfigFile(newAppConfig.GetBackupConfigPath(), "application")
+	configFilePath := file.GetFileHandler().GetConfigFile(newAppConfig.GetBackupConfigPath(), "application")
 	err := os.Remove(configFilePath)
 
 	time.Sleep(1 * time.Second)
@@ -219,7 +219,7 @@ func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
 
 func checkNilBackupFile(t *testing.T) {
 	appConfig := env.GetPlainAppConfig()
-	newConfig, e := filehandler.GetFileHandler().LoadConfigFile(appConfig.GetBackupConfigPath(), "application")
+	newConfig, e := file.GetFileHandler().LoadConfigFile(appConfig.GetBackupConfigPath(), "application")
 	Assert(t, e, NotNilVal())
 	Assert(t, newConfig, NilVal())
 }
