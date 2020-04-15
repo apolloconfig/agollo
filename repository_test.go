@@ -3,6 +3,7 @@ package agollo
 import (
 	"fmt"
 	"github.com/zouyx/agollo/v3/env/file"
+	"github.com/zouyx/agollo/v3/extension"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -130,6 +131,7 @@ func TestGetStringValue(t *testing.T) {
 }
 
 func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
+	extension.InitFileHandler()
 	server := runLongNotmodifiedConfigResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.IP = server.URL

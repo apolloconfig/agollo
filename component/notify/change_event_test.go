@@ -3,6 +3,7 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zouyx/agollo/v3/extension"
 	"sync"
 	"testing"
 	"time"
@@ -58,6 +59,7 @@ func TestListenChangeEvent(t *testing.T) {
 }
 
 func buildNotifyResult(t *testing.T) {
+	extension.InitFileHandler()
 	initNotifications()
 	server := runChangeConfigResponse()
 	defer server.Close()
@@ -81,6 +83,7 @@ func buildNotifyResult(t *testing.T) {
 }
 
 func TestRemoveChangeListener(t *testing.T) {
+	extension.InitFileHandler()
 	go buildNotifyResult(t)
 
 	listener := &CustomChangeListener{}
