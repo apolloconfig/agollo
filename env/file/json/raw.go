@@ -1,15 +1,14 @@
-package raw
+package json
 
 import (
 	"fmt"
 	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/env/file/json"
 	"os"
 )
 
 //RawHandler 写入备份文件时，同时写入原始内容和namespace类型
 type RawHandler struct {
-	*json.JSONFileHandler
+	*JSONFileHandler
 }
 
 func writeWithRaw(config *env.ApolloConfig, configDir string) error {
@@ -35,5 +34,5 @@ func writeWithRaw(config *env.ApolloConfig, configDir string) error {
 //WriteConfigFile write config to file
 func (fileHandler *RawHandler) WriteConfigFile(config *env.ApolloConfig, configPath string) error {
 	writeWithRaw(config, configPath)
-	return json.JsonFileConfig.Write(config, fileHandler.GetConfigFile(configPath, config.NamespaceName))
+	return jsonFileConfig.Write(config, fileHandler.GetConfigFile(configPath, config.NamespaceName))
 }

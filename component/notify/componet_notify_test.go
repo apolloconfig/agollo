@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/zouyx/agollo/v3/env/file"
+	"github.com/zouyx/agollo/v3/extension"
 	"net/http"
 	"os"
 	"sync"
@@ -56,6 +57,7 @@ func initMockNotifyAndConfigServer() {
 }
 
 func TestSyncConfigServices(t *testing.T) {
+	extension.InitFileHandler()
 	initMockNotifyAndConfigServer()
 
 	err := AsyncConfigs()

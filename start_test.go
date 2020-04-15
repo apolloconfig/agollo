@@ -2,6 +2,7 @@ package agollo
 
 import (
 	"encoding/json"
+	"github.com/zouyx/agollo/v3/env/file"
 	"net/http"
 	"os"
 	"testing"
@@ -57,6 +58,8 @@ func TestStart(t *testing.T) {
 
 	value := GetValue("key1")
 	Assert(t, "value1", Equal(value))
+	handler := file.GetFileHandler()
+	Assert(t, handler, NotNilVal())
 }
 
 func TestStartWithMultiNamespace(t *testing.T) {

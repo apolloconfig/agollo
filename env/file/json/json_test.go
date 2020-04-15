@@ -9,7 +9,8 @@ import (
 	. "github.com/tevid/gohamcrest"
 )
 
-func TestWriteConfigFile(t *testing.T) {
+func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
+	file.SetFileHandler(&JSONFileHandler{})
 	configPath := ""
 	jsonStr := `{
   "appId": "100004458",
@@ -30,7 +31,8 @@ func TestWriteConfigFile(t *testing.T) {
 	Assert(t, e, NilVal())
 }
 
-func TestLoadConfigFile(t *testing.T) {
+func TestJSONFileHandler_LoadConfigFile(t *testing.T) {
+	file.SetFileHandler(&JSONFileHandler{})
 	jsonStr := `{
   "appId": "100004458",
   "cluster": "default",
