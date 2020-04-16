@@ -8,7 +8,9 @@ import (
 	"github.com/zouyx/agollo/v3/component/serverlist"
 	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/env/config"
+	"github.com/zouyx/agollo/v3/env/file"
 	_ "github.com/zouyx/agollo/v3/env/file/json"
+	"github.com/zouyx/agollo/v3/extension"
 	"github.com/zouyx/agollo/v3/loadbalance/roundrobin"
 	"github.com/zouyx/agollo/v3/storage"
 )
@@ -29,6 +31,13 @@ func InitCustomConfig(loadAppConfig func() (*config.AppConfig, error)) {
 //start apollo
 func Start() error {
 	return startAgollo()
+}
+
+//SetLogger 设置自定义logger组件
+func SetBackupFileHandler(file file.FileHandler) {
+	if file != nil {
+		extension.SetFileHandler(file)
+	}
 }
 
 //SetLogger 设置自定义logger组件
