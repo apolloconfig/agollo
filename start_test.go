@@ -2,7 +2,6 @@ package agollo
 
 import (
 	"encoding/json"
-	"github.com/zouyx/agollo/v3/env/file"
 	"net/http"
 	"os"
 	"testing"
@@ -15,6 +14,7 @@ import (
 	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/env/config"
 	jsonFile "github.com/zouyx/agollo/v3/env/config/json"
+	"github.com/zouyx/agollo/v3/extension"
 	"github.com/zouyx/agollo/v3/storage"
 )
 
@@ -58,7 +58,7 @@ func TestStart(t *testing.T) {
 
 	value := GetValue("key1")
 	Assert(t, "value1", Equal(value))
-	handler := file.GetFileHandler()
+	handler := extension.GetFileHandler()
 	Assert(t, handler, NotNilVal())
 }
 

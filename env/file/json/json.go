@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+
+	"github.com/zouyx/agollo/v3/extension"
+
 	"github.com/zouyx/agollo/v3/component/log"
 	"github.com/zouyx/agollo/v3/env"
 	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
@@ -11,6 +14,10 @@ import (
 
 //Suffix 默认文件保存类型
 const Suffix = ".json"
+
+func init() {
+	extension.SetFileHandler(&JSONFileHandler{})
+}
 
 var (
 	//jsonFileConfig 处理文件的json格式存取

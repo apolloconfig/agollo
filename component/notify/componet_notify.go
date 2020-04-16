@@ -3,10 +3,11 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/v3/env/file"
 	"net/url"
 	"sync"
 	"time"
+
+	"github.com/zouyx/agollo/v3/extension"
 
 	"github.com/zouyx/agollo/v3/component"
 	"github.com/zouyx/agollo/v3/env/config"
@@ -180,7 +181,7 @@ func syncConfigs(namespace string, isAsync bool) error {
 
 func loadBackupConfig(namespace string, appConfig *config.AppConfig) {
 	env.SplitNamespaces(namespace, func(namespace string) {
-		config, _ := file.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, namespace)
+		config, _ := extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, namespace)
 		if config != nil {
 			storage.UpdateApolloConfig(config, false)
 		}

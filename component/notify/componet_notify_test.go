@@ -3,16 +3,17 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/v3/env/file"
-	"github.com/zouyx/agollo/v3/extension"
 	"net/http"
 	"os"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/zouyx/agollo/v3/extension"
+
 	"github.com/zouyx/agollo/v3/env/config"
 	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
+	jsonFile "github.com/zouyx/agollo/v3/env/file/json"
 
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v3/env"
@@ -57,7 +58,7 @@ func initMockNotifyAndConfigServer() {
 }
 
 func TestSyncConfigServices(t *testing.T) {
-	extension.InitFileHandler()
+	extension.SetFileHandler(&jsonFile.JSONFileHandler{})
 	initMockNotifyAndConfigServer()
 
 	err := AsyncConfigs()
@@ -205,7 +206,7 @@ func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
 	newAppConfig.IP = server.URL
 	appConfig := env.GetPlainAppConfig()
 	appConfig.IsBackupConfig = false
-	configFilePath := file.GetFileHandler().GetConfigFile(newAppConfig.GetBackupConfigPath(), "application")
+	configFilePath := extension.GetFileHandler().GetConfigFile(newAppConfig.GetBackupConfigPath(), "application")
 	err := os.Remove(configFilePath)
 
 	time.Sleep(1 * time.Second)
@@ -221,7 +222,7 @@ func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
 
 func checkNilBackupFile(t *testing.T) {
 	appConfig := env.GetPlainAppConfig()
-	newConfig, e := file.GetFileHandler().LoadConfigFile(appConfig.GetBackupConfigPath(), "application")
+	newConfig, e := extension.GetFileHandler().LoadConfigFile(appConfig.GetBackupConfigPath(), "application")
 	Assert(t, e, NotNilVal())
 	Assert(t, newConfig, NilVal())
 }

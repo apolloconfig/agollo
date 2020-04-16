@@ -1,8 +1,10 @@
-package file
+package extension
 
 import (
-	"github.com/zouyx/agollo/v3/env"
 	"testing"
+
+	"github.com/zouyx/agollo/v3/env"
+	"github.com/zouyx/agollo/v3/env/file"
 
 	. "github.com/tevid/gohamcrest"
 )
@@ -29,6 +31,6 @@ func TestSetFileHandler(t *testing.T) {
 
 	fileHandler := GetFileHandler()
 
-	b := fileHandler.(FileHandler)
+	b := fileHandler.(file.FileHandler)
 	Assert(t, b, NotNilVal())
 }

@@ -1,10 +1,13 @@
 package storage
 
 import (
-	"github.com/zouyx/agollo/v3/extension"
 	"strings"
 	"testing"
 	"time"
+
+	jsonFile "github.com/zouyx/agollo/v3/env/file/json"
+
+	"github.com/zouyx/agollo/v3/extension"
 
 	"github.com/zouyx/agollo/v3/env"
 
@@ -16,7 +19,7 @@ func init() {
 }
 
 func TestUpdateApolloConfigNull(t *testing.T) {
-	extension.InitFileHandler()
+	extension.SetFileHandler(&jsonFile.JSONFileHandler{})
 	time.Sleep(1 * time.Second)
 
 	configurations := make(map[string]string)

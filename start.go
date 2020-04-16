@@ -8,7 +8,7 @@ import (
 	"github.com/zouyx/agollo/v3/component/serverlist"
 	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/env/config"
-	"github.com/zouyx/agollo/v3/extension"
+	_ "github.com/zouyx/agollo/v3/env/file/json"
 	"github.com/zouyx/agollo/v3/loadbalance/roundrobin"
 	"github.com/zouyx/agollo/v3/storage"
 )
@@ -51,7 +51,7 @@ func startAgollo() error {
 	if err := env.InitConfig(initAppConfigFunc); err != nil {
 		return err
 	}
-	extension.InitFileHandler()
+
 	notify.InitAllNotifications(nil)
 	serverlist.InitSyncServerIPList()
 

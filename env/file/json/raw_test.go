@@ -1,16 +1,17 @@
 package json
 
 import (
-	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/env/file"
 	"os"
 	"testing"
+
+	"github.com/zouyx/agollo/v3/env"
+	"github.com/zouyx/agollo/v3/extension"
 
 	. "github.com/tevid/gohamcrest"
 )
 
 func TestRawHandler_WriteConfigFile(t *testing.T) {
-	file.SetFileHandler(&RawHandler{})
+	extension.SetFileHandler(&RawHandler{})
 	configPath := ""
 	jsonStr := `{
   "appId": "100004458",
@@ -24,9 +25,9 @@ func TestRawHandler_WriteConfigFile(t *testing.T) {
 }`
 
 	config, err := env.CreateApolloConfigWithJSON([]byte(jsonStr))
-	os.Remove(file.GetFileHandler().GetConfigFile(configPath, config.NamespaceName))
+	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.NamespaceName))
 
 	Assert(t, err, NilVal())
-	e := file.GetFileHandler().WriteConfigFile(config, configPath)
+	e := extension.GetFileHandler().WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
 }

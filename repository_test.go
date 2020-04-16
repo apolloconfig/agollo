@@ -2,12 +2,14 @@ package agollo
 
 import (
 	"fmt"
-	"github.com/zouyx/agollo/v3/env/file"
-	"github.com/zouyx/agollo/v3/extension"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	jsonFile "github.com/zouyx/agollo/v3/env/file/json"
+
+	"github.com/zouyx/agollo/v3/extension"
 
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v3/component/notify"
@@ -131,7 +133,7 @@ func TestGetStringValue(t *testing.T) {
 }
 
 func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
-	extension.InitFileHandler()
+	extension.SetFileHandler(&jsonFile.JSONFileHandler{})
 	server := runLongNotmodifiedConfigResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.IP = server.URL
@@ -166,7 +168,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 
 func checkBackupFile(t *testing.T) {
 	appConfig := env.GetPlainAppConfig()
-	newConfig, e := file.GetFileHandler().LoadConfigFile(appConfig.GetBackupConfigPath(), testDefaultNamespace)
+	newConfig, e := extension.GetFileHandler().LoadConfigFile(appConfig.GetBackupConfigPath(), testDefaultNamespace)
 	t.Log(newConfig.Configurations)
 	Assert(t, e, NilVal())
 	Assert(t, newConfig.Configurations, NotNilVal())
