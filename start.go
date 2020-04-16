@@ -33,7 +33,7 @@ func Start() error {
 	return startAgollo()
 }
 
-//SetLogger 设置自定义logger组件
+//SetBackupFileHandler 设置自定义备份文件处理组件
 func SetBackupFileHandler(file file.FileHandler) {
 	if file != nil {
 		extension.SetFileHandler(file)
