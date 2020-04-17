@@ -7,11 +7,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zouyx/agollo/v3/storage"
-
-	"github.com/zouyx/agollo/v3/env"
-
 	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v3/env"
+	jsonFile "github.com/zouyx/agollo/v3/env/file/json"
+	"github.com/zouyx/agollo/v3/extension"
+	"github.com/zouyx/agollo/v3/storage"
 )
 
 type CustomChangeListener struct {
@@ -58,6 +58,7 @@ func TestListenChangeEvent(t *testing.T) {
 }
 
 func buildNotifyResult(t *testing.T) {
+	extension.SetFileHandler(&jsonFile.JSONFileHandler{})
 	initNotifications()
 	server := runChangeConfigResponse()
 	defer server.Close()
@@ -81,6 +82,7 @@ func buildNotifyResult(t *testing.T) {
 }
 
 func TestRemoveChangeListener(t *testing.T) {
+	extension.SetFileHandler(&jsonFile.JSONFileHandler{})
 	go buildNotifyResult(t)
 
 	listener := &CustomChangeListener{}

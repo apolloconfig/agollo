@@ -6,10 +6,10 @@ import (
 	"sync/atomic"
 
 	"github.com/zouyx/agollo/v3/agcache"
-	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/utils"
-
 	"github.com/zouyx/agollo/v3/component/log"
+	"github.com/zouyx/agollo/v3/env"
+	"github.com/zouyx/agollo/v3/extension"
+	"github.com/zouyx/agollo/v3/utils"
 )
 
 //ConfigFileFormat 配置文件类型
@@ -29,7 +29,6 @@ const (
 )
 
 const (
-
 	//1 minute
 	configCacheExpireTime = 120
 
@@ -37,7 +36,6 @@ const (
 )
 
 var (
-
 	//config from apollo
 	apolloConfigCache sync.Map
 
@@ -204,7 +202,7 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 
 	if isBackupConfig {
 		//write config file async
-		go env.WriteConfigFile(apolloConfig, env.GetPlainAppConfig().GetBackupConfigPath())
+		go extension.GetFileHandler().WriteConfigFile(apolloConfig, env.GetPlainAppConfig().GetBackupConfigPath())
 	}
 }
 

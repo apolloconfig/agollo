@@ -5,9 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zouyx/agollo/v3/env"
-
 	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v3/env"
+	jsonFile "github.com/zouyx/agollo/v3/env/file/json"
+	"github.com/zouyx/agollo/v3/extension"
 )
 
 //init param
@@ -15,6 +16,7 @@ func init() {
 }
 
 func TestUpdateApolloConfigNull(t *testing.T) {
+	extension.SetFileHandler(&jsonFile.JSONFileHandler{})
 	time.Sleep(1 * time.Second)
 
 	configurations := make(map[string]string)

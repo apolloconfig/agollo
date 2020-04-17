@@ -1,13 +1,16 @@
-package env
+package json
 
 import (
 	"os"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v3/env"
+	"github.com/zouyx/agollo/v3/extension"
 )
 
-func TestWriteConfigFile(t *testing.T) {
+func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
+	extension.SetFileHandler(&JSONFileHandler{})
 	configPath := ""
 	jsonStr := `{
   "appId": "100004458",
@@ -20,15 +23,16 @@ func TestWriteConfigFile(t *testing.T) {
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
-	config, err := CreateApolloConfigWithJSON([]byte(jsonStr))
-	os.Remove(GetConfigFile(configPath, config.NamespaceName))
+	config, err := env.CreateApolloConfigWithJSON([]byte(jsonStr))
+	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.NamespaceName))
 
 	Assert(t, err, NilVal())
-	e := WriteConfigFile(config, configPath)
+	e := extension.GetFileHandler().WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
 }
 
-func TestLoadConfigFile(t *testing.T) {
+func TestJSONFileHandler_LoadConfigFile(t *testing.T) {
+	extension.SetFileHandler(&JSONFileHandler{})
 	jsonStr := `{
   "appId": "100004458",
   "cluster": "default",
@@ -40,10 +44,10 @@ func TestLoadConfigFile(t *testing.T) {
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
-	config, err := CreateApolloConfigWithJSON([]byte(jsonStr))
+	config, err := env.CreateApolloConfigWithJSON([]byte(jsonStr))
 
 	Assert(t, err, NilVal())
-	newConfig, e := LoadConfigFile("", config.NamespaceName)
+	newConfig, e := extension.GetFileHandler().LoadConfigFile("", config.NamespaceName)
 
 	t.Log(newConfig)
 	Assert(t, e, NilVal())

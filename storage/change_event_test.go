@@ -2,7 +2,6 @@ package storage
 
 import (
 	"sync"
-
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
