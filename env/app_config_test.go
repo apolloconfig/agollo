@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"os"
 	"sync"
+	"testing"
+	"time"
 
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v3/env/config"
 	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
 	"github.com/zouyx/agollo/v3/utils"
-
-	"testing"
-	"time"
 )
 
 const servicesConfigResponseStr = `[{

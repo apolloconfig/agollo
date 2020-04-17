@@ -3,10 +3,9 @@ package extension
 import (
 	"testing"
 
+	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/env/file"
-
-	. "github.com/tevid/gohamcrest"
 )
 
 type TestFileHandler struct {

@@ -2,8 +2,9 @@ package json
 
 import (
 	"fmt"
-	"github.com/zouyx/agollo/v3/env"
 	"os"
+
+	"github.com/zouyx/agollo/v3/env"
 )
 
 //RawHandler 写入备份文件时，同时写入原始内容和namespace类型

@@ -7,13 +7,11 @@ import (
 	"testing"
 	"time"
 
-	jsonFile "github.com/zouyx/agollo/v3/env/file/json"
-
-	"github.com/zouyx/agollo/v3/extension"
-
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v3/component/notify"
 	"github.com/zouyx/agollo/v3/env"
+	jsonFile "github.com/zouyx/agollo/v3/env/file/json"
+	"github.com/zouyx/agollo/v3/extension"
 	"github.com/zouyx/agollo/v3/storage"
 )
 

@@ -9,14 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zouyx/agollo/v3/extension"
-
+	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/env/config"
 	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
 	jsonFile "github.com/zouyx/agollo/v3/env/file/json"
-
-	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v3/env"
+	"github.com/zouyx/agollo/v3/extension"
 	_ "github.com/zouyx/agollo/v3/loadbalance/roundrobin"
 )
 

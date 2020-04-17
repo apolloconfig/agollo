@@ -5,11 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/zouyx/agollo/v3/extension"
-
 	"github.com/zouyx/agollo/v3/component/log"
 	"github.com/zouyx/agollo/v3/env"
 	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
+	"github.com/zouyx/agollo/v3/extension"
 )
 
 //Suffix 默认文件保存类型

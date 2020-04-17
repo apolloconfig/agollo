@@ -4,10 +4,9 @@ import (
 	"os"
 	"testing"
 
+	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/extension"
-
-	. "github.com/tevid/gohamcrest"
 )
 
 func TestJSONFileHandler_WriteConfigFile(t *testing.T) {

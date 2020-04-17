@@ -7,14 +7,11 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v3/env"
 	jsonFile "github.com/zouyx/agollo/v3/env/file/json"
 	"github.com/zouyx/agollo/v3/extension"
-
 	"github.com/zouyx/agollo/v3/storage"
-
-	"github.com/zouyx/agollo/v3/env"
-
-	. "github.com/tevid/gohamcrest"
 )
 
 type CustomChangeListener struct {
