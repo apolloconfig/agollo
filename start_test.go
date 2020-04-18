@@ -181,3 +181,13 @@ func TestSetCache(t *testing.T) {
 	SetCache(defaultCacheFactory)
 	Assert(t, agcache.GetCacheFactory(), Equal(defaultCacheFactory))
 }
+
+func TestSetLoadBalance(t *testing.T) {
+	balance := extension.GetLoadBalance()
+	Assert(t, balance, NotNilVal())
+}
+
+func TestSetBackupFileHandler(t *testing.T) {
+	fileHandler := extension.GetFileHandler()
+	Assert(t, fileHandler, NotNilVal())
+}

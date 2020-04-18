@@ -2,6 +2,7 @@ package agollo
 
 import (
 	"github.com/zouyx/agollo/v3/agcache"
+	"github.com/zouyx/agollo/v3/cluster"
 	_ "github.com/zouyx/agollo/v3/cluster/roundrobin"
 	"github.com/zouyx/agollo/v3/component"
 	"github.com/zouyx/agollo/v3/component/log"
@@ -33,6 +34,13 @@ func Start() error {
 func SetBackupFileHandler(file file.FileHandler) {
 	if file != nil {
 		extension.SetFileHandler(file)
+	}
+}
+
+//SetLoadBalance 设置自定义负载均衡组件
+func SetLoadBalance(loadBalance cluster.LoadBalance) {
+	if loadBalance != nil {
+		extension.SetLoadBalance(loadBalance)
 	}
 }
 
