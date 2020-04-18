@@ -5,7 +5,6 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/loadbalance"
 )
 
 const servicesConfigResponseStr = `[{
@@ -61,7 +60,7 @@ const servicesConfigResponseStr = `[{
 ]`
 
 func TestSelectHost(t *testing.T) {
-	balanace := loadbalance.GetLoadBalance()
+	balanace := &RoundRobin{}
 	//mock ip data
 	trySyncServerIPList()
 

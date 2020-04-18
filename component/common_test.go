@@ -4,11 +4,11 @@ import (
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
+	_ "github.com/zouyx/agollo/v3/cluster/roundrobin"
 	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/env/config"
 	"github.com/zouyx/agollo/v3/env/config/json"
-	"github.com/zouyx/agollo/v3/loadbalance"
-	_ "github.com/zouyx/agollo/v3/loadbalance/roundrobin"
+	"github.com/zouyx/agollo/v3/extension"
 )
 
 const servicesConfigResponseStr = `[{
@@ -107,7 +107,7 @@ func TestSelectOnlyOneHost(t *testing.T) {
 	appConfig := env.GetPlainAppConfig()
 	host := "http://localhost:8888/"
 	Assert(t, host, Equal(appConfig.GetHost()))
-	load := loadbalance.GetLoadBalance().Load(env.GetServers())
+	load := extension.GetLoadBalance().Load(env.GetServers())
 	Assert(t, load, NotNilVal())
 	Assert(t, host, NotEqual(load.HomepageURL))
 }

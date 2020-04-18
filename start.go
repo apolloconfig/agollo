@@ -2,6 +2,7 @@ package agollo
 
 import (
 	"github.com/zouyx/agollo/v3/agcache"
+	_ "github.com/zouyx/agollo/v3/cluster/roundrobin"
 	"github.com/zouyx/agollo/v3/component"
 	"github.com/zouyx/agollo/v3/component/log"
 	"github.com/zouyx/agollo/v3/component/notify"
@@ -11,17 +12,12 @@ import (
 	"github.com/zouyx/agollo/v3/env/file"
 	_ "github.com/zouyx/agollo/v3/env/file/json"
 	"github.com/zouyx/agollo/v3/extension"
-	"github.com/zouyx/agollo/v3/loadbalance/roundrobin"
 	"github.com/zouyx/agollo/v3/storage"
 )
 
 var (
 	initAppConfigFunc func() (*config.AppConfig, error)
 )
-
-func init() {
-	roundrobin.InitLoadBalance()
-}
 
 //InitCustomConfig init config by custom
 func InitCustomConfig(loadAppConfig func() (*config.AppConfig, error)) {
