@@ -2,6 +2,7 @@ package agollo
 
 import (
 	"github.com/zouyx/agollo/v3/agcache"
+	_ "github.com/zouyx/agollo/v3/agcache/memory"
 	"github.com/zouyx/agollo/v3/cluster"
 	_ "github.com/zouyx/agollo/v3/cluster/roundrobin"
 	"github.com/zouyx/agollo/v3/component"
@@ -54,7 +55,7 @@ func SetLogger(loggerInterface log.LoggerInterface) {
 //SetCache 设置自定义cache组件
 func SetCache(cacheFactory agcache.CacheFactory) {
 	if cacheFactory != nil {
-		agcache.UseCacheFactory(cacheFactory)
+		extension.SetCacheFactory(cacheFactory)
 		storage.InitConfigCache()
 	}
 }

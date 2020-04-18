@@ -8,7 +8,7 @@ import (
 	"time"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v3/agcache"
+	"github.com/zouyx/agollo/v3/agcache/memory"
 	"github.com/zouyx/agollo/v3/component/log"
 	"github.com/zouyx/agollo/v3/component/notify"
 	"github.com/zouyx/agollo/v3/env"
@@ -177,9 +177,9 @@ func TestSetLogger(t *testing.T) {
 }
 
 func TestSetCache(t *testing.T) {
-	defaultCacheFactory := &agcache.DefaultCacheFactory{}
+	defaultCacheFactory := &memory.DefaultCacheFactory{}
 	SetCache(defaultCacheFactory)
-	Assert(t, agcache.GetCacheFactory(), Equal(defaultCacheFactory))
+	Assert(t, extension.GetCacheFactory(), Equal(defaultCacheFactory))
 }
 
 func TestSetLoadBalance(t *testing.T) {
