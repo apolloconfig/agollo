@@ -14,7 +14,7 @@ import (
 	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/env/config"
 	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
-	jsonFile "github.com/zouyx/agollo/v3/env/file/json"
+	_ "github.com/zouyx/agollo/v3/env/file/json"
 	"github.com/zouyx/agollo/v3/extension"
 )
 
@@ -56,7 +56,6 @@ func initMockNotifyAndConfigServer() {
 }
 
 func TestSyncConfigServices(t *testing.T) {
-	extension.SetFileHandler(&jsonFile.JSONFileHandler{})
 	initMockNotifyAndConfigServer()
 
 	err := AsyncConfigs()

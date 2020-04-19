@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
+	"sync"
 	"testing"
 	"time"
 
@@ -182,12 +183,47 @@ func TestSetCache(t *testing.T) {
 	Assert(t, extension.GetCacheFactory(), Equal(defaultCacheFactory))
 }
 
+type TestLoadBalance struct {
+}
+
+//Load 负载均衡
+func (r *TestLoadBalance) Load(servers *sync.Map) *config.ServerInfo {
+	return nil
+}
+
 func TestSetLoadBalance(t *testing.T) {
 	balance := extension.GetLoadBalance()
 	Assert(t, balance, NotNilVal())
+
+	t2 := &TestLoadBalance{}
+	SetLoadBalance(t2)
+	Assert(t, t2, Equal(extension.GetLoadBalance()))
+}
+
+//testFileHandler 默认备份文件读写
+type testFileHandler struct {
+}
+
+// WriteConfigFile write config to file
+func (fileHandler *testFileHandler) WriteConfigFile(config *env.ApolloConfig, configPath string) error {
+	return nil
+}
+
+// GetConfigFile get real config file
+func (fileHandler *testFileHandler) GetConfigFile(configDir string, namespace string) string {
+	return ""
+}
+
+// LoadConfigFile load config from file
+func (fileHandler *testFileHandler) LoadConfigFile(configDir string, namespace string) (*env.ApolloConfig, error) {
+	return nil, nil
 }
 
 func TestSetBackupFileHandler(t *testing.T) {
 	fileHandler := extension.GetFileHandler()
 	Assert(t, fileHandler, NotNilVal())
+
+	t2 := &testFileHandler{}
+	SetBackupFileHandler(t2)
+	Assert(t, t2, Equal(extension.GetFileHandler()))
 }

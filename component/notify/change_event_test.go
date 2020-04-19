@@ -10,8 +10,7 @@ import (
 	. "github.com/tevid/gohamcrest"
 	_ "github.com/zouyx/agollo/v3/agcache/memory"
 	"github.com/zouyx/agollo/v3/env"
-	jsonFile "github.com/zouyx/agollo/v3/env/file/json"
-	"github.com/zouyx/agollo/v3/extension"
+	_ "github.com/zouyx/agollo/v3/env/file/json"
 	"github.com/zouyx/agollo/v3/storage"
 )
 
@@ -59,7 +58,6 @@ func TestListenChangeEvent(t *testing.T) {
 }
 
 func buildNotifyResult(t *testing.T) {
-	extension.SetFileHandler(&jsonFile.JSONFileHandler{})
 	initNotifications()
 	server := runChangeConfigResponse()
 	defer server.Close()
@@ -83,7 +81,6 @@ func buildNotifyResult(t *testing.T) {
 }
 
 func TestRemoveChangeListener(t *testing.T) {
-	extension.SetFileHandler(&jsonFile.JSONFileHandler{})
 	go buildNotifyResult(t)
 
 	listener := &CustomChangeListener{}

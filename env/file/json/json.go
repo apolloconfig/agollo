@@ -15,7 +15,7 @@ import (
 const Suffix = ".json"
 
 func init() {
-	extension.SetFileHandler(&JSONFileHandler{})
+	extension.SetFileHandler(&jsonFileHandler{})
 }
 
 var (
@@ -25,17 +25,17 @@ var (
 	configFileMap = make(map[string]string, 1)
 )
 
-//JSONFileHandler 默认备份文件读写
-type JSONFileHandler struct {
+//jsonFileHandler 默认备份文件读写
+type jsonFileHandler struct {
 }
 
 //WriteConfigFile write config to file
-func (fileHandler *JSONFileHandler) WriteConfigFile(config *env.ApolloConfig, configPath string) error {
+func (fileHandler *jsonFileHandler) WriteConfigFile(config *env.ApolloConfig, configPath string) error {
 	return jsonFileConfig.Write(config, fileHandler.GetConfigFile(configPath, config.NamespaceName))
 }
 
 //GetConfigFile get real config file
-func (fileHandler *JSONFileHandler) GetConfigFile(configDir string, namespace string) string {
+func (fileHandler *jsonFileHandler) GetConfigFile(configDir string, namespace string) string {
 	fullPath := configFileMap[namespace]
 	if fullPath == "" {
 		filePath := fmt.Sprintf("%s%s", namespace, Suffix)
@@ -49,7 +49,7 @@ func (fileHandler *JSONFileHandler) GetConfigFile(configDir string, namespace st
 }
 
 //LoadConfigFile load config from file
-func (fileHandler *JSONFileHandler) LoadConfigFile(configDir string, namespace string) (*env.ApolloConfig, error) {
+func (fileHandler *jsonFileHandler) LoadConfigFile(configDir string, namespace string) (*env.ApolloConfig, error) {
 	configFilePath := fileHandler.GetConfigFile(configDir, namespace)
 	log.Info("load config file from :", configFilePath)
 	c, e := jsonFileConfig.Load(configFilePath, func(b []byte) (interface{}, error) {

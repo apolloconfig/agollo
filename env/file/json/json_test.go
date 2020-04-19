@@ -10,7 +10,7 @@ import (
 )
 
 func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
-	extension.SetFileHandler(&JSONFileHandler{})
+	extension.SetFileHandler(&jsonFileHandler{})
 	configPath := ""
 	jsonStr := `{
   "appId": "100004458",
@@ -32,7 +32,7 @@ func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
 }
 
 func TestJSONFileHandler_LoadConfigFile(t *testing.T) {
-	extension.SetFileHandler(&JSONFileHandler{})
+	extension.SetFileHandler(&jsonFileHandler{})
 	jsonStr := `{
   "appId": "100004458",
   "cluster": "default",
