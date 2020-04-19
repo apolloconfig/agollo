@@ -10,7 +10,7 @@ import (
 	"github.com/zouyx/agollo/v3/component/log"
 	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/env/config"
-	"github.com/zouyx/agollo/v3/loadbalance"
+	"github.com/zouyx/agollo/v3/extension"
 	"github.com/zouyx/agollo/v3/utils"
 )
 
@@ -130,7 +130,7 @@ func loadBalance(appConfig *config.AppConfig) string {
 	if !appConfig.IsConnectDirectly() {
 		return appConfig.GetHost()
 	}
-	serverInfo := loadbalance.GetLoadBalance().Load(env.GetServers())
+	serverInfo := extension.GetLoadBalance().Load(env.GetServers())
 	if serverInfo == nil {
 		return utils.Empty
 	}

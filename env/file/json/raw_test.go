@@ -10,7 +10,7 @@ import (
 )
 
 func TestRawHandler_WriteConfigFile(t *testing.T) {
-	extension.SetFileHandler(&RawHandler{})
+	extension.SetFileHandler(&rawFileHandler{})
 	configPath := ""
 	jsonStr := `{
   "appId": "100004458",
@@ -29,4 +29,12 @@ func TestRawHandler_WriteConfigFile(t *testing.T) {
 	Assert(t, err, NilVal())
 	e := extension.GetFileHandler().WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
+}
+
+func TestGetRawFileHandler(t *testing.T) {
+	handler := GetRawFileHandler()
+	Assert(t, handler, NotNilVal())
+
+	fileHandler := GetRawFileHandler()
+	Assert(t, handler, Equal(fileHandler))
 }

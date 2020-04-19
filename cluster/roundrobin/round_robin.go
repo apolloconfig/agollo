@@ -4,16 +4,11 @@ import (
 	"sync"
 
 	"github.com/zouyx/agollo/v3/env/config"
-	"github.com/zouyx/agollo/v3/loadbalance"
+	"github.com/zouyx/agollo/v3/extension"
 )
 
 func init() {
-	loadbalance.SetLoadBalance(&RoundRobin{})
-}
-
-//InitLoadBalance 初始化负载均衡器
-func InitLoadBalance() {
-
+	extension.SetLoadBalance(&RoundRobin{})
 }
 
 //RoundRobin 轮询调度

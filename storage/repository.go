@@ -62,7 +62,7 @@ func CreateNamespaceConfig(namespace string) {
 		if _, ok := apolloConfigCache.Load(namespace); ok {
 			return
 		}
-		c := initConfig(namespace, agcache.GetCacheFactory())
+		c := initConfig(namespace, extension.GetCacheFactory())
 		apolloConfigCache.Store(namespace, c)
 	})
 }
@@ -210,7 +210,7 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 func UpdateApolloConfigCache(configurations map[string]string, expireTime int, namespace string) map[string]*ConfigChange {
 	config := GetConfig(namespace)
 	if config == nil {
-		config = initConfig(namespace, agcache.GetCacheFactory())
+		config = initConfig(namespace, extension.GetCacheFactory())
 		apolloConfigCache.Store(namespace, config)
 	}
 
