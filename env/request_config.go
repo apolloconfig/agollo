@@ -12,4 +12,8 @@ type ConnectConfig struct {
 	URI string
 	//是否重试
 	IsRetry bool
+	//appID
+	AppId string
+	//密钥
+	Secret string
 }

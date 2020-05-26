@@ -55,8 +55,23 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		if retry > retries {
 			break
 		}
+		req, err := http.NewRequest("GET", requestURL, nil)
+		if res == nil || err != nil {
+			log.Error("Generate connect Apollo request Fail,url:%s,Error:%s", requestURL, err)
+			// if error then sleep
+			break
+		}
 
-		res, err = client.Get(requestURL)
+		//增加header选项
+		httpAuth := extension.GetHttpAuth()
+		if httpAuth != nil {
+			headers := httpAuth.HttpHeaders(requestURL, connectionConfig.AppId, connectionConfig.Secret)
+			if len(headers) > 0 {
+				req.Header = headers
+			}
+		}
+
+		res, err = client.Do(req)
 
 		if res == nil || err != nil {
 			log.Error("Connect Apollo Server Fail,url:%s,Error:%s", requestURL, err)
