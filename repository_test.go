@@ -10,6 +10,8 @@ import (
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v3/component/notify"
 	"github.com/zouyx/agollo/v3/env"
+	_ "github.com/zouyx/agollo/v3/env/file/json"
+	"github.com/zouyx/agollo/v3/extension"
 	"github.com/zouyx/agollo/v3/storage"
 )
 
@@ -163,7 +165,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 
 func checkBackupFile(t *testing.T) {
 	appConfig := env.GetPlainAppConfig()
-	newConfig, e := env.LoadConfigFile(appConfig.GetBackupConfigPath(), testDefaultNamespace)
+	newConfig, e := extension.GetFileHandler().LoadConfigFile(appConfig.GetBackupConfigPath(), testDefaultNamespace)
 	t.Log(newConfig.Configurations)
 	Assert(t, e, NilVal())
 	Assert(t, newConfig.Configurations, NotNilVal())

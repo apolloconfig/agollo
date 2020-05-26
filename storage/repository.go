@@ -6,10 +6,10 @@ import (
 	"sync/atomic"
 
 	"github.com/zouyx/agollo/v3/agcache"
-	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/utils"
-
 	"github.com/zouyx/agollo/v3/component/log"
+	"github.com/zouyx/agollo/v3/env"
+	"github.com/zouyx/agollo/v3/extension"
+	"github.com/zouyx/agollo/v3/utils"
 )
 
 //ConfigFileFormat 配置文件类型
@@ -29,7 +29,6 @@ const (
 )
 
 const (
-
 	//1 minute
 	configCacheExpireTime = 120
 
@@ -37,7 +36,6 @@ const (
 )
 
 var (
-
 	//config from apollo
 	apolloConfigCache sync.Map
 
@@ -64,7 +62,7 @@ func CreateNamespaceConfig(namespace string) {
 		if _, ok := apolloConfigCache.Load(namespace); ok {
 			return
 		}
-		c := initConfig(namespace, agcache.GetCacheFactory())
+		c := initConfig(namespace, extension.GetCacheFactory())
 		apolloConfigCache.Store(namespace, c)
 	})
 }
@@ -204,7 +202,7 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 
 	if isBackupConfig {
 		//write config file async
-		go env.WriteConfigFile(apolloConfig, env.GetPlainAppConfig().GetBackupConfigPath())
+		go extension.GetFileHandler().WriteConfigFile(apolloConfig, env.GetPlainAppConfig().GetBackupConfigPath())
 	}
 }
 
@@ -212,7 +210,7 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 func UpdateApolloConfigCache(configurations map[string]string, expireTime int, namespace string) map[string]*ConfigChange {
 	config := GetConfig(namespace)
 	if config == nil {
-		config = initConfig(namespace, agcache.GetCacheFactory())
+		config = initConfig(namespace, extension.GetCacheFactory())
 		apolloConfigCache.Store(namespace, config)
 	}
 

@@ -1,9 +1,16 @@
-package agcache
+package memory
 
 import (
 	"errors"
 	"sync"
+
+	"github.com/zouyx/agollo/v3/agcache"
+	"github.com/zouyx/agollo/v3/extension"
 )
+
+func init() {
+	extension.SetCacheFactory(&DefaultCacheFactory{})
+}
 
 //DefaultCache 默认缓存
 type DefaultCache struct {
@@ -56,6 +63,6 @@ type DefaultCacheFactory struct {
 }
 
 //Create 创建默认缓存组件
-func (d *DefaultCacheFactory) Create() CacheInterface {
+func (d *DefaultCacheFactory) Create() agcache.CacheInterface {
 	return &DefaultCache{}
 }

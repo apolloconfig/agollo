@@ -1,12 +1,13 @@
-package agcache
+package memory
 
 import (
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v3/agcache"
 )
 
-var testDefaultCache CacheInterface
+var testDefaultCache agcache.CacheInterface
 
 func init() {
 	factory := &DefaultCacheFactory{}

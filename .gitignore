@@ -18,3 +18,4 @@
 application*.json
 /abc1.json
 /env_test.properties
+/vendor/

@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/zouyx/agollo/v3/component"
-	"github.com/zouyx/agollo/v3/env/config"
-
 	"github.com/zouyx/agollo/v3/component/log"
 	"github.com/zouyx/agollo/v3/env"
+	"github.com/zouyx/agollo/v3/env/config"
+	"github.com/zouyx/agollo/v3/extension"
 	"github.com/zouyx/agollo/v3/protocol/http"
 	"github.com/zouyx/agollo/v3/storage"
 	"github.com/zouyx/agollo/v3/utils"
@@ -179,7 +179,7 @@ func syncConfigs(namespace string, isAsync bool) error {
 
 func loadBackupConfig(namespace string, appConfig *config.AppConfig) {
 	env.SplitNamespaces(namespace, func(namespace string) {
-		config, _ := env.LoadConfigFile(appConfig.BackupConfigPath, namespace)
+		config, _ := extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, namespace)
 		if config != nil {
 			storage.UpdateApolloConfig(config, false)
 		}

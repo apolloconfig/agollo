@@ -3,13 +3,11 @@ package json
 import (
 	"encoding/json"
 	"os"
-
-	"github.com/zouyx/agollo/v3/env/config"
-	"github.com/zouyx/agollo/v3/utils"
-
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v3/env/config"
+	"github.com/zouyx/agollo/v3/utils"
 )
 
 var (
