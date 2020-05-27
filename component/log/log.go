@@ -18,17 +18,17 @@ type LoggerInterface interface {
 
 	Infof(format string, params ...interface{})
 
-	Warnf(format string, params ...interface{}) error
+	Warnf(format string, params ...interface{})
 
-	Errorf(format string, params ...interface{}) error
+	Errorf(format string, params ...interface{})
 
 	Debug(v ...interface{})
 
 	Info(v ...interface{})
 
-	Warn(v ...interface{}) error
+	Warn(v ...interface{})
 
-	Error(v ...interface{}) error
+	Error(v ...interface{})
 }
 
 //Debugf debug 格式化
@@ -42,13 +42,13 @@ func Infof(format string, params ...interface{}) {
 }
 
 //Warnf warn格式化
-func Warnf(format string, params ...interface{}) error {
-	return Logger.Warnf(format, params)
+func Warnf(format string, params ...interface{}) {
+	Logger.Warnf(format, params)
 }
 
 //Errorf error格式化
-func Errorf(format string, params ...interface{}) error {
-	return Logger.Errorf(format, params)
+func Errorf(format string, params ...interface{}) {
+	Logger.Errorf(format, params)
 }
 
 //Debug 打印debug
@@ -86,13 +86,11 @@ func (d *DefaultLogger) Infof(format string, params ...interface{}) {
 }
 
 //Warnf warn格式化
-func (d *DefaultLogger) Warnf(format string, params ...interface{}) error {
-	return nil
+func (d *DefaultLogger) Warnf(format string, params ...interface{}) {
 }
 
 //Errorf error格式化
-func (d *DefaultLogger) Errorf(format string, params ...interface{}) error {
-	return nil
+func (d *DefaultLogger) Errorf(format string, params ...interface{}) {
 }
 
 //Debug 打印debug
@@ -106,11 +104,9 @@ func (d *DefaultLogger) Info(v ...interface{}) {
 }
 
 //Warn 打印Warn
-func (d *DefaultLogger) Warn(v ...interface{}) error {
-	return nil
+func (d *DefaultLogger) Warn(v ...interface{}) {
 }
 
 //Error 打印Error
-func (d *DefaultLogger) Error(v ...interface{}) error {
-	return nil
+func (d *DefaultLogger) Error(v ...interface{}) {
 }
