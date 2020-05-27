@@ -21,6 +21,7 @@ type AppConfig struct {
 	NextTryConnTime  int64  `json:"-"`
 	IsBackupConfig   bool   `default:"true" json:"isBackupConfig"`
 	BackupConfigPath string `json:"backupConfigPath"`
+	Secret           string `json:"secret"`
 }
 
 //ServerInfo 服务器信息

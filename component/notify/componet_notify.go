@@ -208,7 +208,9 @@ func notifyRemoteConfig(newAppConfig *config.AppConfig, namespace string, isAsyn
 	//seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
 
 	connectConfig := &env.ConnectConfig{
-		URI: urlSuffix,
+		URI:    urlSuffix,
+		AppID:  appConfig.AppID,
+		Secret: appConfig.Secret,
 	}
 	if !isAsync {
 		connectConfig.Timeout = syncNofityConnectTimeout
@@ -278,7 +280,9 @@ func autoSyncNamespaceConfigServices(newAppConfig *config.AppConfig, allNotifica
 		urlSuffix := component.GetConfigURLSuffix(appConfig, namespace)
 
 		_, err = http.RequestRecovery(appConfig, &env.ConnectConfig{
-			URI: urlSuffix,
+			URI:    urlSuffix,
+			AppID:  appConfig.AppID,
+			Secret: appConfig.Secret,
 		}, &http.CallBack{
 			SuccessCallBack:   AutoSyncConfigServicesSuccessCallBack,
 			NotModifyCallBack: touchApolloConfigCache,
