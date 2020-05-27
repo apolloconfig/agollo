@@ -6,12 +6,12 @@ import (
 
 var authSign auth.HTTPAuth
 
-// SetHttpAuth 设置HttpAuth
+// SetHTTPAuth 设置HttpAuth
 func SetHTTPAuth(httpAuth auth.HTTPAuth) {
 	authSign = httpAuth
 }
 
-// GetHttpAuth 获取HttpAuth
+// GetHTTPAuth 获取HttpAuth
 func GetHTTPAuth() auth.HTTPAuth {
 	return authSign
 }

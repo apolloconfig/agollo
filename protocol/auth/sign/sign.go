@@ -29,7 +29,7 @@ func init() {
 type AuthSignature struct {
 }
 
-// HttpHeaders
+// HTTPHeaders HTTPHeaders
 func (t *AuthSignature) HTTPHeaders(url string, appID string, secret string) map[string][]string {
 	ms := time.Now().UnixNano() / int64(time.Millisecond)
 	timestamp := strconv.FormatInt(ms, 10)
