@@ -13,7 +13,7 @@ type ConnectConfig struct {
 	//是否重试
 	IsRetry bool
 	//appID
-	AppId string
+	AppID string
 	//密钥
 	Secret string
 }

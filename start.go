@@ -14,6 +14,8 @@ import (
 	"github.com/zouyx/agollo/v3/env/file"
 	_ "github.com/zouyx/agollo/v3/env/file/json"
 	"github.com/zouyx/agollo/v3/extension"
+	"github.com/zouyx/agollo/v3/protocol/auth"
+	_ "github.com/zouyx/agollo/v3/protocol/auth/sign"
 	"github.com/zouyx/agollo/v3/storage"
 )
 
@@ -29,6 +31,13 @@ func InitCustomConfig(loadAppConfig func() (*config.AppConfig, error)) {
 //start apollo
 func Start() error {
 	return startAgollo()
+}
+
+//SetSignature 设置自定义 http 授权控件
+func SetSignature(auth auth.HttpAuth) {
+	if auth != nil {
+		extension.SetHttpAuth(auth)
+	}
 }
 
 //SetBackupFileHandler 设置自定义备份文件处理组件

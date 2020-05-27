@@ -13,7 +13,7 @@ const (
 
 func TestSignString(t *testing.T) {
 	s := signString(rawURL, secret)
-	Assert(t, s, Equal("99c4bde465daec2a428c87eb6f18232abd2546ef"))
+	Assert(t, s, Equal("mcS95GXa7CpCjIfrbxgjKr0lRu8="))
 }
 
 func TestUrl2PathWithQuery(t *testing.T) {
@@ -26,7 +26,6 @@ func TestUrl2PathWithQuery(t *testing.T) {
 func TestHttpHeaders(t *testing.T) {
 	a := &AuthSignature{}
 	headers := a.HttpHeaders(rawURL, appID, secret)
-	t.Log(headers)
 
 	Assert(t, headers, HasMapValue("Authorization"))
 	Assert(t, headers, HasMapValue("Timestamp"))

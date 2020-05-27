@@ -3,6 +3,7 @@ package sign
 import (
 	"crypto/hmac"
 	"crypto/sha1"
+	"encoding/base64"
 	"fmt"
 	"github.com/zouyx/agollo/v3/extension"
 	"net/url"
@@ -20,7 +21,7 @@ const (
 	question  = "?"
 )
 
-func inti() {
+func init() {
 	extension.SetHttpAuth(&AuthSignature{})
 }
 
@@ -30,7 +31,7 @@ type AuthSignature struct {
 
 // HttpHeaders
 func (t *AuthSignature) HttpHeaders(url string, appId string, secret string) map[string][]string {
-	ms := time.Now().UnixNano() / 1e6
+	ms := time.Now().UnixNano() / int64(time.Millisecond)
 	timestamp := strconv.FormatInt(ms, 10)
 	pathWithQuery := url2PathWithQuery(url)
 
@@ -38,11 +39,11 @@ func (t *AuthSignature) HttpHeaders(url string, appId string, secret string) map
 	signature := signString(stringToSign, secret)
 	headers := make(map[string][]string, 2)
 
-	signatures := make([]string, 1)
+	signatures := make([]string, 0, 1)
 	signatures = append(signatures, fmt.Sprintf(authorizationFormat, appId, signature))
 	headers[httpHeaderAuthorization] = signatures
 
-	timestamps := make([]string, 1)
+	timestamps := make([]string, 0, 1)
 	timestamps = append(timestamps, timestamp)
 	headers[httpHeaderTimestamp] = timestamps
 	return headers
@@ -52,7 +53,7 @@ func signString(stringToSign string, accessKeySecret string) string {
 	key := []byte(accessKeySecret)
 	mac := hmac.New(sha1.New, key)
 	mac.Write([]byte(stringToSign))
-	return fmt.Sprintf("%x", mac.Sum(nil))
+	return base64.StdEncoding.EncodeToString(mac.Sum(nil))
 }
 
 func url2PathWithQuery(rawURL string) string {

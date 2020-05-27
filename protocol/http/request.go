@@ -56,7 +56,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			break
 		}
 		req, err := http.NewRequest("GET", requestURL, nil)
-		if res == nil || err != nil {
+		if req == nil || err != nil {
 			log.Error("Generate connect Apollo request Fail,url:%s,Error:%s", requestURL, err)
 			// if error then sleep
 			break
@@ -65,7 +65,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		//增加header选项
 		httpAuth := extension.GetHttpAuth()
 		if httpAuth != nil {
-			headers := httpAuth.HttpHeaders(requestURL, connectionConfig.AppId, connectionConfig.Secret)
+			headers := httpAuth.HttpHeaders(requestURL, connectionConfig.AppID, connectionConfig.Secret)
 			if len(headers) > 0 {
 				req.Header = headers
 			}
