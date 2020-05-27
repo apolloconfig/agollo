@@ -59,7 +59,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		if req == nil || err != nil {
 			log.Error("Generate connect Apollo request Fail,url:%s,Error:%s", requestURL, err)
 			// if error then sleep
-			break
+			return nil, errors.New("generate connect Apollo request fail")
 		}
 
 		//增加header选项
@@ -103,7 +103,6 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			return nil, nil
 		default:
 			log.Error("Connect Apollo Server Fail,url:%s,StatusCode:%s", requestURL, res.StatusCode)
-			err = errors.New("connect Apollo Server Fail")
 			// if error then sleep
 			time.Sleep(onErrorRetryInterval)
 			continue
@@ -111,7 +110,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 	}
 
 	log.Error("Over Max Retry Still Error,Error:", err)
-	if err != nil {
+	if retry > retries {
 		err = errors.New("over Max Retry Still Error")
 	}
 	return nil, err
