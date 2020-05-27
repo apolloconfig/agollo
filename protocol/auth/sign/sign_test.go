@@ -25,7 +25,7 @@ func TestUrl2PathWithQuery(t *testing.T) {
 
 func TestHttpHeaders(t *testing.T) {
 	a := &AuthSignature{}
-	headers := a.HttpHeaders(rawURL, appID, secret)
+	headers := a.HTTPHeaders(rawURL, appID, secret)
 
 	Assert(t, headers, HasMapValue("Authorization"))
 	Assert(t, headers, HasMapValue("Timestamp"))

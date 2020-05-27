@@ -230,15 +230,15 @@ func TestSetBackupFileHandler(t *testing.T) {
 
 type TestAuth struct{}
 
-func (a *TestAuth) HttpHeaders(url string, appId string, secret string) map[string][]string {
+func (a *TestAuth) HTTPHeaders(url string, appID string, secret string) map[string][]string {
 	return nil
 }
 
 func TestSetSignature(t *testing.T) {
-	Assert(t, extension.GetHttpAuth(), NotNilVal())
+	Assert(t, extension.GetHTTPAuth(), NotNilVal())
 
 	t2 := &TestAuth{}
 	SetSignature(t2)
 
-	Assert(t, t2, Equal(extension.GetHttpAuth()))
+	Assert(t, t2, Equal(extension.GetHTTPAuth()))
 }

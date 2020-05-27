@@ -63,9 +63,9 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		}
 
 		//增加header选项
-		httpAuth := extension.GetHttpAuth()
+		httpAuth := extension.GetHTTPAuth()
 		if httpAuth != nil {
-			headers := httpAuth.HttpHeaders(requestURL, connectionConfig.AppID, connectionConfig.Secret)
+			headers := httpAuth.HTTPHeaders(requestURL, connectionConfig.AppID, connectionConfig.Secret)
 			if len(headers) > 0 {
 				req.Header = headers
 			}

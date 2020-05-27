@@ -22,7 +22,7 @@ const (
 )
 
 func init() {
-	extension.SetHttpAuth(&AuthSignature{})
+	extension.SetHTTPAuth(&AuthSignature{})
 }
 
 // AuthSignature apollo 授权
@@ -30,7 +30,7 @@ type AuthSignature struct {
 }
 
 // HttpHeaders
-func (t *AuthSignature) HttpHeaders(url string, appId string, secret string) map[string][]string {
+func (t *AuthSignature) HTTPHeaders(url string, appID string, secret string) map[string][]string {
 	ms := time.Now().UnixNano() / int64(time.Millisecond)
 	timestamp := strconv.FormatInt(ms, 10)
 	pathWithQuery := url2PathWithQuery(url)
@@ -40,7 +40,7 @@ func (t *AuthSignature) HttpHeaders(url string, appId string, secret string) map
 	headers := make(map[string][]string, 2)
 
 	signatures := make([]string, 0, 1)
-	signatures = append(signatures, fmt.Sprintf(authorizationFormat, appId, signature))
+	signatures = append(signatures, fmt.Sprintf(authorizationFormat, appID, signature))
 	headers[httpHeaderAuthorization] = signatures
 
 	timestamps := make([]string, 0, 1)

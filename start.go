@@ -34,9 +34,9 @@ func Start() error {
 }
 
 //SetSignature 设置自定义 http 授权控件
-func SetSignature(auth auth.HttpAuth) {
+func SetSignature(auth auth.HTTPAuth) {
 	if auth != nil {
-		extension.SetHttpAuth(auth)
+		extension.SetHTTPAuth(auth)
 	}
 }
 

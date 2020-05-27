@@ -4,14 +4,14 @@ import (
 	"github.com/zouyx/agollo/v3/protocol/auth"
 )
 
-var authSign auth.HttpAuth
+var authSign auth.HTTPAuth
 
 // SetHttpAuth 设置HttpAuth
-func SetHttpAuth(httpAuth auth.HttpAuth) {
+func SetHTTPAuth(httpAuth auth.HTTPAuth) {
 	authSign = httpAuth
 }
 
 // GetHttpAuth 获取HttpAuth
-func GetHttpAuth() auth.HttpAuth {
+func GetHTTPAuth() auth.HTTPAuth {
 	return authSign
 }

@@ -8,14 +8,14 @@ import (
 
 type TestAuth struct{}
 
-func (a *TestAuth) HttpHeaders(url string, appId string, secret string) map[string][]string {
+func (a *TestAuth) HTTPHeaders(url string, appID string, secret string) map[string][]string {
 	return nil
 }
 
 func TestSetHttpAuth(t *testing.T) {
-	SetHttpAuth(&TestAuth{})
+	SetHTTPAuth(&TestAuth{})
 
-	a := GetHttpAuth()
+	a := GetHTTPAuth()
 
 	b := a.(*TestAuth)
 	Assert(t, b, NotNilVal())
