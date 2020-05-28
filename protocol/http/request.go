@@ -1,10 +1,13 @@
 package http
 
 import (
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/zouyx/agollo/v3/component/log"
@@ -22,6 +25,13 @@ var (
 
 	//max retries connect apollo
 	maxRetries = 5
+
+	//defaultMaxConnsPerHost defines the maximum number of concurrent connections
+	defaultMaxConnsPerHost = 512
+	//defaultTimeoutBySecond defines the default timeout for http connections
+	defaultTimeoutBySecond = 60 * time.Second
+	//defaultKeepAliveSecond defines the connection time
+	defaultKeepAliveSecond = 60 * time.Second
 )
 
 //CallBack 请求回调函数
@@ -39,7 +49,20 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 	} else {
 		client.Timeout = connectTimeout
 	}
-
+	tp := &http.Transport{
+		MaxIdleConns:        defaultMaxConnsPerHost,
+		MaxIdleConnsPerHost: defaultMaxConnsPerHost,
+		DialContext: (&net.Dialer{
+			KeepAlive: defaultKeepAliveSecond,
+			Timeout:   defaultTimeoutBySecond,
+		}).DialContext,
+	}
+	if strings.HasPrefix(requestURL, "https") {
+		tp.TLSClientConfig = &tls.Config{
+			InsecureSkipVerify: true,
+		}
+	}
+	client.Transport = tp
 	retry := 0
 	var responseBody []byte
 	var err error

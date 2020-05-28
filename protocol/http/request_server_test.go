@@ -52,6 +52,21 @@ func runNormalBackupConfigResponse() *httptest.Server {
 	return ts
 }
 
+func runNormalBackupConfigResponseWithHttps() *httptest.Server {
+	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		normalBackupConfigCount++
+		if normalBackupConfigCount%3 == 0 {
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(configResponseStr))
+		} else {
+			time.Sleep(500 * time.Microsecond)
+			w.WriteHeader(http.StatusBadGateway)
+		}
+	}))
+
+	return ts
+}
+
 //wait long time then response
 func runLongTimeResponse() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
