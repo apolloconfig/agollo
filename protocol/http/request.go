@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net"
 	"net/http"
+	url2 "net/url"
 	"strings"
 	"time"
 
@@ -29,7 +30,7 @@ var (
 	//defaultMaxConnsPerHost defines the maximum number of concurrent connections
 	defaultMaxConnsPerHost = 512
 	//defaultTimeoutBySecond defines the default timeout for http connections
-	defaultTimeoutBySecond = 60 * time.Second
+	defaultTimeoutBySecond = 1 * time.Second
 	//defaultKeepAliveSecond defines the connection time
 	defaultKeepAliveSecond = 60 * time.Second
 )
@@ -57,7 +58,13 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			Timeout:   defaultTimeoutBySecond,
 		}).DialContext,
 	}
-	if strings.HasPrefix(requestURL, "https") {
+	var err error
+	url, err := url2.Parse(requestURL)
+	if err != nil {
+		log.Error("request Apollo Server url:%s, is invalid %s", requestURL, err)
+		return nil, err
+	}
+	if strings.HasPrefix(url.Scheme, "https") {
 		tp.TLSClientConfig = &tls.Config{
 			InsecureSkipVerify: true,
 		}
@@ -65,7 +72,6 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 	client.Transport = tp
 	retry := 0
 	var responseBody []byte
-	var err error
 	var res *http.Response
 	var retries = maxRetries
 	if connectionConfig != nil && !connectionConfig.IsRetry {

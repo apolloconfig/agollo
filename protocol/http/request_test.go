@@ -54,7 +54,7 @@ func TestRequestRecovery(t *testing.T) {
 func TestHttpsRequestRecovery(t *testing.T) {
 	time.Sleep(1 * time.Second)
 	mockIPList(t)
-	server := runNormalBackupConfigResponseWithHttps()
+	server := runNormalBackupConfigResponseWithHTTPS()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.IP = server.URL
 

@@ -52,7 +52,7 @@ func runNormalBackupConfigResponse() *httptest.Server {
 	return ts
 }
 
-func runNormalBackupConfigResponseWithHttps() *httptest.Server {
+func runNormalBackupConfigResponseWithHTTPS() *httptest.Server {
 	ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		normalBackupConfigCount++
 		if normalBackupConfigCount%3 == 0 {
