@@ -16,11 +16,11 @@ const (
 	defaultContentKey = "content"
 )
 
-//DefaultParser 默认内容转换器
+// DefaultParser 默认内容转换器
 type Parser struct {
 }
 
-//Parse 内存内容默认转换器
+// Parse 内存内容默认转换器
 func (d *Parser) Parse(cache agcache.CacheInterface) (string, error) {
 	if cache == nil {
 		return utils.Empty, nil

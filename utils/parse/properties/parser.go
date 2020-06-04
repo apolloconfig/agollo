@@ -16,11 +16,11 @@ const (
 	propertiesFormat = "%s=%s\n"
 )
 
-//Parser properties转换器
+// Parser properties转换器
 type Parser struct {
 }
 
-//Parse 内存内容=>properties文件转换器
+// Parse 内存内容=>properties文件转换器
 func (d *Parser) Parse(cache agcache.CacheInterface) (string, error) {
 	properties := convertToProperties(cache)
 	return properties, nil
