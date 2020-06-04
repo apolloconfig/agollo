@@ -1,8 +1,9 @@
-package utils
+package normal
 
 import (
 	"errors"
-	"strings"
+	"github.com/zouyx/agollo/v3/utils"
+	"github.com/zouyx/agollo/v3/utils/parse"
 	"sync"
 	"testing"
 
@@ -12,8 +13,7 @@ import (
 
 var (
 	testDefaultCache agcache.CacheInterface
-	defaultParser    ContentParser
-	propertiesParser ContentParser
+	defaultParser    parse.ContentParser
 )
 
 //DefaultCache 默认缓存
@@ -41,7 +41,7 @@ func (d *DefaultCache) EntryCount() (entryCount int64) {
 func (d *DefaultCache) Get(key string) (value []byte, err error) {
 	v, ok := d.defaultCache.Load(key)
 	if !ok {
-		return nil, errors.New("load default cache fail")
+		return nil, errors.New("load normal cache fail")
 	}
 	return v.([]byte), nil
 }
@@ -75,9 +75,7 @@ func init() {
 	factory := &DefaultCacheFactory{}
 	testDefaultCache = factory.Create()
 
-	defaultParser = &DefaultParser{}
-
-	propertiesParser = &PropertiesParser{}
+	defaultParser = &Parser{}
 
 	testDefaultCache.Set("a", []byte("b"), 100)
 	testDefaultCache.Set("c", []byte("d"), 100)
@@ -91,23 +89,5 @@ func TestDefaultParser(t *testing.T) {
 
 	s, err = defaultParser.Parse(nil)
 	Assert(t, err, NilVal())
-	Assert(t, s, Equal(Empty))
-}
-
-func TestPropertiesParser(t *testing.T) {
-	s, err := propertiesParser.Parse(testDefaultCache)
-	Assert(t, err, NilVal())
-
-	hasString := strings.Contains(s, "a=b")
-	Assert(t, hasString, Equal(true))
-
-	hasString = strings.Contains(s, "c=d")
-	Assert(t, hasString, Equal(true))
-
-	hasString = strings.Contains(s, "content=content")
-	Assert(t, hasString, Equal(true))
-
-	s, err = defaultParser.Parse(nil)
-	Assert(t, err, NilVal())
-	Assert(t, s, Equal(Empty))
+	Assert(t, s, Equal(utils.Empty))
 }
