@@ -16,7 +16,7 @@ const (
 	defaultContentKey = "content"
 )
 
-// DefaultParser 默认内容转换器
+// Parser 默认内容转换器
 type Parser struct {
 }
 
