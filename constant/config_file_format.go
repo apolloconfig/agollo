@@ -5,15 +5,15 @@ type ConfigFileFormat string
 
 const (
 	//Properties Properties
-	Properties ConfigFileFormat = "properties"
+	Properties ConfigFileFormat = ".properties"
 	//XML XML
-	XML ConfigFileFormat = "xml"
+	XML ConfigFileFormat = ".xml"
 	//JSON JSON
-	JSON ConfigFileFormat = "json"
+	JSON ConfigFileFormat = ".json"
 	//YML YML
-	YML ConfigFileFormat = "yml"
+	YML ConfigFileFormat = ".yml"
 	//YAML YAML
-	YAML ConfigFileFormat = "yaml"
+	YAML ConfigFileFormat = ".yaml"
 	// DEFAULT DEFAULT
-	DEFAULT ConfigFileFormat = "default"
+	DEFAULT ConfigFileFormat = ".default"
 )

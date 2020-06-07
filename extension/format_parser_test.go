@@ -1,7 +1,6 @@
 package extension
 
 import (
-	"github.com/zouyx/agollo/v3/agcache"
 	"github.com/zouyx/agollo/v3/constant"
 	"testing"
 
@@ -13,8 +12,8 @@ type TestParser struct {
 }
 
 // Parse 内存内容默认转换器
-func (d *TestParser) Parse(cache agcache.CacheInterface) (string, error) {
-	return "", nil
+func (d *TestParser) Parse(s string) (map[string]string, error) {
+	return nil, nil
 }
 
 func TestAddFormatParser(t *testing.T) {

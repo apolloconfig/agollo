@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"github.com/zouyx/agollo/v3/constant"
+	"fmt"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -18,6 +18,8 @@ const (
 	configCacheExpireTime = 120
 
 	defaultNamespace = "application"
+
+	propertiesFormat = "%s=%s\n"
 )
 
 var (
@@ -253,16 +255,20 @@ func UpdateApolloConfigCache(configurations map[string]string, expireTime int, n
 }
 
 //GetContent 获取配置文件内容
-func (c *Config) GetContent(format constant.ConfigFileFormat) string {
-	parser := extension.GetFormatParser(format)
-	if parser == nil {
-		parser = extension.GetFormatParser(constant.DEFAULT)
+func (c *Config) GetContent() string {
+	return convertToProperties(c.cache)
+}
+
+func convertToProperties(cache agcache.CacheInterface) string {
+	properties := utils.Empty
+	if cache == nil {
+		return properties
 	}
-	s, err := parser.Parse(c.cache)
-	if err != nil {
-		log.Debug("GetContent fail ! error:", err)
-	}
-	return s
+	cache.Range(func(key, value interface{}) bool {
+		properties += fmt.Sprintf(propertiesFormat, key, string(value.([]byte)))
+		return true
+	})
+	return properties
 }
 
 //GetApolloConfigCache 获取默认namespace的apollo配置

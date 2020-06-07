@@ -5,7 +5,6 @@ import (
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v3/env"
 	"github.com/zouyx/agollo/v3/extension"
 )
 
@@ -23,7 +22,7 @@ func TestRawHandler_WriteConfigFile(t *testing.T) {
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
-	config, err := env.CreateApolloConfigWithJSON([]byte(jsonStr))
+	config, err := createApolloConfigWithJSON([]byte(jsonStr))
 	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.NamespaceName))
 
 	Assert(t, err, NilVal())
