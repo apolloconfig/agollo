@@ -84,6 +84,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		if retry > retries {
 			break
 		}
+		fmt.Println(requestURL)
 		req, err := http.NewRequest("GET", requestURL, nil)
 		if req == nil || err != nil {
 			log.Error("Generate connect Apollo request Fail,url:%s,Error:%s", requestURL, err)
