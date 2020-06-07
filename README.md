@@ -19,6 +19,7 @@ Agollo - Go Client for Apollo
 * 延迟加载（运行时）namespace
 * 客户端，配置文件容灾
 * 自定义日志，缓存组件
+* 支持配置访问秘钥
  
 # Usage
 
