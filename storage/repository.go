@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"fmt"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -12,40 +13,19 @@ import (
 	"github.com/zouyx/agollo/v3/utils"
 )
 
-//ConfigFileFormat 配置文件类型
-type ConfigFileFormat string
-
-const (
-	//Properties Properties
-	Properties ConfigFileFormat = "properties"
-	//XML XML
-	XML ConfigFileFormat = "xml"
-	//JSON JSON
-	JSON ConfigFileFormat = "json"
-	//YML YML
-	YML ConfigFileFormat = "yml"
-	//YAML YAML
-	YAML ConfigFileFormat = "yaml"
-)
-
 const (
 	//1 minute
 	configCacheExpireTime = 120
 
 	defaultNamespace = "application"
+
+	propertiesFormat = "%s=%s\n"
 )
 
 var (
 	//config from apollo
 	apolloConfigCache sync.Map
-
-	formatParser        = make(map[ConfigFileFormat]utils.ContentParser, 0)
-	defaultFormatParser = &utils.DefaultParser{}
 )
-
-func init() {
-	formatParser[Properties] = &utils.PropertiesParser{}
-}
 
 //InitConfigCache 获取程序配置初始化agollo内润配置
 func InitConfigCache() {
@@ -275,16 +255,20 @@ func UpdateApolloConfigCache(configurations map[string]string, expireTime int, n
 }
 
 //GetContent 获取配置文件内容
-func (c *Config) GetContent(format ConfigFileFormat) string {
-	parser := formatParser[format]
-	if parser == nil {
-		parser = defaultFormatParser
+func (c *Config) GetContent() string {
+	return convertToProperties(c.cache)
+}
+
+func convertToProperties(cache agcache.CacheInterface) string {
+	properties := utils.Empty
+	if cache == nil {
+		return properties
 	}
-	s, err := parser.Parse(c.cache)
-	if err != nil {
-		log.Debug("GetContent fail ! error:", err)
-	}
-	return s
+	cache.Range(func(key, value interface{}) bool {
+		properties += fmt.Sprintf(propertiesFormat, key, string(value.([]byte)))
+		return true
+	})
+	return properties
 }
 
 //GetApolloConfigCache 获取默认namespace的apollo配置

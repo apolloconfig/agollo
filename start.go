@@ -17,6 +17,9 @@ import (
 	"github.com/zouyx/agollo/v3/protocol/auth"
 	_ "github.com/zouyx/agollo/v3/protocol/auth/sign"
 	"github.com/zouyx/agollo/v3/storage"
+	_ "github.com/zouyx/agollo/v3/utils/parse/normal"
+	_ "github.com/zouyx/agollo/v3/utils/parse/properties"
+	_ "github.com/zouyx/agollo/v3/utils/parse/yml"
 )
 
 var (

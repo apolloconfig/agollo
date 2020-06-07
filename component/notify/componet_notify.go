@@ -3,7 +3,9 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zouyx/agollo/v3/constant"
 	"net/url"
+	"path"
 	"sync"
 	"time"
 
@@ -27,6 +29,8 @@ const (
 	syncNofityConnectTimeout = 3 * time.Second //3s
 
 	defaultNotificationId = int64(-1)
+
+	defaultContentKey = "content"
 )
 
 var (
@@ -250,7 +254,7 @@ func updateAllNotifications(remoteConfigs []*apolloNotify) {
 
 //AutoSyncConfigServicesSuccessCallBack 同步配置回调
 func AutoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, err error) {
-	apolloConfig, err := env.CreateApolloConfigWithJSON(responseBody)
+	apolloConfig, err := createApolloConfigWithJSON(responseBody)
 
 	if err != nil {
 		log.Error("Unmarshal Msg Fail,Error:", err)
@@ -261,6 +265,34 @@ func AutoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, 
 	storage.UpdateApolloConfig(apolloConfig, appConfig.GetIsBackupConfig())
 
 	return nil, nil
+}
+
+// createApolloConfigWithJSON 使用json配置转换成apolloconfig
+func createApolloConfigWithJSON(b []byte) (*env.ApolloConfig, error) {
+	apolloConfig := &env.ApolloConfig{}
+	err := json.Unmarshal(b, apolloConfig)
+	if utils.IsNotNil(err) {
+		return nil, err
+	}
+
+	parser := extension.GetFormatParser(constant.ConfigFileFormat(path.Ext(apolloConfig.NamespaceName)))
+	if parser == nil {
+		parser = extension.GetFormatParser(constant.DEFAULT)
+	}
+
+	if parser == nil {
+		return apolloConfig, nil
+	}
+
+	m, err := parser.Parse(apolloConfig.Configurations[defaultContentKey])
+	if err != nil {
+		log.Debug("GetContent fail ! error:", err)
+	}
+
+	if len(m) > 0 {
+		apolloConfig.Configurations = m
+	}
+	return apolloConfig, nil
 }
 
 //AutoSyncConfigServices 自动同步配置

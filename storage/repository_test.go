@@ -9,6 +9,9 @@ import (
 	_ "github.com/zouyx/agollo/v3/agcache/memory"
 	"github.com/zouyx/agollo/v3/env"
 	_ "github.com/zouyx/agollo/v3/env/file/json"
+
+	_ "github.com/zouyx/agollo/v3/utils/parse/normal"
+	_ "github.com/zouyx/agollo/v3/utils/parse/properties"
 )
 
 //init param
@@ -84,7 +87,7 @@ func TestGetConfig(t *testing.T) {
 	Assert(t, b, Equal(false))
 
 	//content
-	content := config.GetContent(Properties)
+	content := config.GetContent()
 	hasFloat := strings.Contains(content, "float=1")
 	Assert(t, hasFloat, Equal(true))
 

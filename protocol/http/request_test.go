@@ -51,6 +51,26 @@ func TestRequestRecovery(t *testing.T) {
 	Assert(t, o, NilVal())
 }
 
+func TestHttpsRequestRecovery(t *testing.T) {
+	time.Sleep(1 * time.Second)
+	mockIPList(t)
+	server := runNormalBackupConfigResponseWithHTTPS()
+	newAppConfig := getTestAppConfig()
+	newAppConfig.IP = server.URL
+
+	appConfig := env.GetAppConfig(newAppConfig)
+	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
+
+	o, err := RequestRecovery(appConfig, &env.ConnectConfig{
+		URI: urlSuffix,
+	}, &CallBack{
+		SuccessCallBack: nil,
+	})
+
+	Assert(t, err, NilVal())
+	Assert(t, o, NilVal())
+}
+
 func TestCustomTimeout(t *testing.T) {
 	time.Sleep(1 * time.Second)
 	mockIPList(t)

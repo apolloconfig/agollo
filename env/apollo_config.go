@@ -1,7 +1,6 @@
 package env
 
 import (
-	"encoding/json"
 	"sync"
 
 	"github.com/zouyx/agollo/v3/utils"
@@ -66,14 +65,4 @@ func (a *ApolloConfig) Init(appID string, cluster string, namespace string) {
 	a.AppID = appID
 	a.Cluster = cluster
 	a.NamespaceName = namespace
-}
-
-//CreateApolloConfigWithJSON 使用json配置转换成apolloconfig
-func CreateApolloConfigWithJSON(b []byte) (*ApolloConfig, error) {
-	apolloConfig := &ApolloConfig{}
-	err := json.Unmarshal(b, apolloConfig)
-	if utils.IsNotNil(err) {
-		return nil, err
-	}
-	return apolloConfig, nil
 }
