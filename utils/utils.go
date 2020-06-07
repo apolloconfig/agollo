@@ -15,9 +15,6 @@ const (
 var (
 	internalIPOnce sync.Once
 	internalIP     = ""
-
-	// EmptyMap 空map
-	EmptyMap = make(map[string]string)
 )
 
 //GetInternal 获取内部ip
