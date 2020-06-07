@@ -1,7 +1,6 @@
 package storage
 
 import (
-	"github.com/zouyx/agollo/v3/constant"
 	"strings"
 	"testing"
 	"time"
@@ -88,7 +87,7 @@ func TestGetConfig(t *testing.T) {
 	Assert(t, b, Equal(false))
 
 	//content
-	content := config.GetContent(constant.Properties)
+	content := config.GetContent()
 	hasFloat := strings.Contains(content, "float=1")
 	Assert(t, hasFloat, Equal(true))
 

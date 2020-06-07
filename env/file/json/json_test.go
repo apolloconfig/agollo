@@ -1,6 +1,8 @@
 package json
 
 import (
+	"encoding/json"
+	"github.com/zouyx/agollo/v3/utils"
 	"os"
 	"testing"
 
@@ -23,7 +25,7 @@ func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
-	config, err := env.CreateApolloConfigWithJSON([]byte(jsonStr))
+	config, err := createApolloConfigWithJSON([]byte(jsonStr))
 	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.NamespaceName))
 
 	Assert(t, err, NilVal())
@@ -44,7 +46,7 @@ func TestJSONFileHandler_LoadConfigFile(t *testing.T) {
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
-	config, err := env.CreateApolloConfigWithJSON([]byte(jsonStr))
+	config, err := createApolloConfigWithJSON([]byte(jsonStr))
 
 	Assert(t, err, NilVal())
 	newConfig, e := extension.GetFileHandler().LoadConfigFile("", config.NamespaceName)
@@ -55,4 +57,13 @@ func TestJSONFileHandler_LoadConfigFile(t *testing.T) {
 	Assert(t, config.ReleaseKey, Equal(newConfig.ReleaseKey))
 	Assert(t, config.Cluster, Equal(newConfig.Cluster))
 	Assert(t, config.NamespaceName, Equal(newConfig.NamespaceName))
+}
+
+func createApolloConfigWithJSON(b []byte) (*env.ApolloConfig, error) {
+	apolloConfig := &env.ApolloConfig{}
+	err := json.Unmarshal(b, apolloConfig)
+	if utils.IsNotNil(err) {
+		return nil, err
+	}
+	return apolloConfig, nil
 }
