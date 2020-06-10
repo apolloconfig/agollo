@@ -11,7 +11,9 @@ import (
 var vp = viper.New()
 
 func init() {
-	extension.AddFormatParser(constant.YML, &Parser{})
+	parser := &Parser{}
+	extension.AddFormatParser(constant.YML, parser)
+	extension.AddFormatParser(constant.YAML, parser)
 	vp.SetConfigType("yml")
 }
 
