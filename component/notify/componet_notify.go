@@ -283,7 +283,6 @@ func createApolloConfigWithJSON(b []byte) (*env.ApolloConfig, error) {
 	if parser == nil {
 		return apolloConfig, nil
 	}
-
 	m, err := parser.Parse(apolloConfig.Configurations[defaultContentKey])
 	if err != nil {
 		log.Debug("GetContent fail ! error:", err)

@@ -17,7 +17,8 @@ func TestRawHandler_WriteConfigFile(t *testing.T) {
   "namespaceName": "application.json",
   "configurations": {
     "key1":"value1",
-    "key2":"value2"
+    "key2":"value2",
+    "test": ["a", "b"]
   },
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`

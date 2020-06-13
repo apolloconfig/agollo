@@ -14,6 +14,6 @@ type Parser struct {
 }
 
 // Parse 内存内容=>properties文件转换器
-func (d *Parser) Parse(configContent string) (map[string]string, error) {
+func (d *Parser) Parse(configContent interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }

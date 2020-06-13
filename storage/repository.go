@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"reflect"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -19,7 +20,7 @@ const (
 
 	defaultNamespace = "application"
 
-	propertiesFormat = "%s=%s\n"
+	propertiesFormat = "%s=%v\n"
 )
 
 var (
@@ -88,16 +89,16 @@ func (c *Config) getConfigValue(key string) interface{} {
 	}
 	if c.cache == nil {
 		log.Errorf("get config value fail!namespace:%s is not exist!", c.namespace)
-		return utils.Empty
+		return nil
 	}
 
 	value, err := c.cache.Get(key)
 	if err != nil {
 		log.Errorf("get config value fail!key:%s,err:%s", key, err)
-		return utils.Empty
+		return nil
 	}
 
-	return string(value)
+	return value
 }
 
 //GetValue 获取配置值（string）
@@ -120,6 +121,33 @@ func (c *Config) GetStringValue(key string, defaultValue string) string {
 	return value
 }
 
+//GetStringSliceValue 获取配置值（[]string）
+func (c *Config) GetStringSliceValue(key string) []string {
+	value := c.getConfigValue(key)
+	if value == nil {
+		return []string{}
+	}
+	return value.([]string)
+}
+
+//GetIntSliceValue 获取配置值（[]int)
+func (c *Config) GetIntSliceValue(key string) []int {
+	value := c.getConfigValue(key)
+	if value == nil {
+		return []int{}
+	}
+	return value.([]int)
+}
+
+//GetSliceValue 获取配置值（[]interface)
+func (c *Config) GetSliceValue(key string) []interface{}{
+	value := c.getConfigValue(key)
+	if value == nil {
+		return []interface{}{}
+	}
+	return value.([]interface{})
+}
+
 //GetIntValue 获取配置值（int），获取不到则取默认值
 func (c *Config) GetIntValue(key string, defaultValue int) int {
 	value := c.GetValue(key)
@@ -129,7 +157,6 @@ func (c *Config) GetIntValue(key string, defaultValue int) int {
 		log.Debug("convert to int fail!error:", err)
 		return defaultValue
 	}
-
 	return i
 }
 
@@ -159,7 +186,7 @@ func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
 	return b
 }
 
-//UpdateApolloConfig 根据conf[ig server返回的内容更新内存
+//UpdateApolloConfig 根据config server返回的内容更新内存
 //并判断是否需要写备份文件
 func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 	if apolloConfig == nil {
@@ -187,7 +214,7 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 }
 
 //UpdateApolloConfigCache 根据conf[ig server返回的内容更新内存
-func UpdateApolloConfigCache(configurations map[string]string, expireTime int, namespace string) map[string]*ConfigChange {
+func UpdateApolloConfigCache(configurations map[string]interface{}, expireTime int, namespace string) map[string]*ConfigChange {
 	config := GetConfig(namespace)
 	if config == nil {
 		config = initConfig(namespace, extension.GetCacheFactory())
@@ -231,13 +258,15 @@ func UpdateApolloConfigCache(configurations map[string]string, expireTime int, n
 			} else {
 				//update
 				oldValue, _ := config.cache.Get(key)
-				if string(oldValue) != value {
-					changes[key] = createModifyConfigChange(string(oldValue), value)
+				if reflect.DeepEqual(oldValue, value) {
+					changes[key] = createModifyConfigChange(oldValue, value)
 				}
 			}
 
-			config.cache.Set(key, []byte(value), expireTime)
-			delete(mp, string(key))
+			if err := config.cache.Set(key, value, expireTime); err != nil {
+				log.Errorf("set key %s to cache error %s", key, err)
+			}
+			delete(mp, key)
 		}
 	}
 
@@ -245,7 +274,7 @@ func UpdateApolloConfigCache(configurations map[string]string, expireTime int, n
 	for key := range mp {
 		//get old value and del
 		oldValue, _ := config.cache.Get(key)
-		changes[key] = createDeletedConfigChange(string(oldValue))
+		changes[key] = createDeletedConfigChange(oldValue)
 
 		config.cache.Del(key)
 	}
@@ -265,7 +294,7 @@ func convertToProperties(cache agcache.CacheInterface) string {
 		return properties
 	}
 	cache.Range(func(key, value interface{}) bool {
-		properties += fmt.Sprintf(propertiesFormat, key, string(value.([]byte)))
+		properties += fmt.Sprintf(propertiesFormat, key, value)
 		return true
 	})
 	return properties

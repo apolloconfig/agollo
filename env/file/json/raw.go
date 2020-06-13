@@ -32,9 +32,11 @@ func writeWithRaw(config *env.ApolloConfig, configDir string) error {
 		return e
 	}
 	defer file.Close()
-	_, e = file.WriteString(config.Configurations["content"])
-	if e != nil {
-		return e
+	if config.Configurations["content"] != nil {
+		_, e = file.WriteString(config.Configurations["content"].(string))
+		if e != nil {
+			return e
+		}
 	}
 	return nil
 }
