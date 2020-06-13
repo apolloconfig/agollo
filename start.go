@@ -64,6 +64,11 @@ func SetLogger(loggerInterface log.LoggerInterface) {
 	}
 }
 
+//UseEventDispatch  添加为某些key分发event功能
+func UseEventDispatch() {
+	storage.UseEventDispatch()
+}
+
 //SetCache 设置自定义cache组件
 func SetCache(cacheFactory agcache.CacheFactory) {
 	if cacheFactory != nil {

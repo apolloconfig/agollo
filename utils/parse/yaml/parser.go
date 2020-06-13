@@ -1,4 +1,4 @@
-package yml
+package yaml
 
 import (
 	"bytes"

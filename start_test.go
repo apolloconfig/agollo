@@ -177,6 +177,12 @@ func TestSetLogger(t *testing.T) {
 	Assert(t, log.Logger, Equal(logger))
 }
 
+func TestUseEventDispatch(t *testing.T) {
+	UseEventDispatch()
+	l := storage.GetChangeListeners()
+	Assert(t, l.Len(), Equal(1))
+}
+
 func TestSetCache(t *testing.T) {
 	defaultCacheFactory := &memory.DefaultCacheFactory{}
 	SetCache(defaultCacheFactory)
