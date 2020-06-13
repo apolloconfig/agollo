@@ -2,6 +2,9 @@ package yml
 
 import (
 	"bytes"
+	"encoding/json"
+
+	"github.com/spf13/cast"
 	"github.com/spf13/viper"
 	"github.com/zouyx/agollo/v3/constant"
 	"github.com/zouyx/agollo/v3/extension"
@@ -44,7 +47,13 @@ func convertToMap(vp *viper.Viper) map[string]string {
 
 	m := make(map[string]string)
 	for _, key := range vp.AllKeys() {
-		m[key] = vp.GetString(key)
+		v := vp.Get(key)
+		s, err := cast.ToStringE(v)
+		if err != nil {
+			b, _ := json.Marshal(v)
+			s = string(b)
+		}
+		m[key] = s
 	}
 	return m
 }
