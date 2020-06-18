@@ -1,4 +1,4 @@
-package yml
+package yaml
 
 import (
 	"bytes"
@@ -11,10 +11,8 @@ import (
 var vp = viper.New()
 
 func init() {
-	parser := &Parser{}
-	extension.AddFormatParser(constant.YML, parser)
-	extension.AddFormatParser(constant.YAML, parser)
-	vp.SetConfigType("yml")
+	extension.AddFormatParser(constant.YAML, &Parser{})
+	vp.SetConfigType("yaml")
 }
 
 // Parser properties转换器

@@ -123,6 +123,34 @@ func GetBoolValue(key string, defaultValue bool) bool {
 	return b
 }
 
+//GetStringSliceValue 获取[]string 配置值
+func GetStringSliceValue(key string, defaultValue []string) []string {
+	value := getConfigValue(key)
+
+	if value == nil {
+		return defaultValue
+	}
+	s, ok := value.([]string)
+	if !ok {
+		return defaultValue
+	}
+	return s
+}
+
+//GetIntSliceValue 获取[]int 配置值
+func GetIntSliceValue(key string, defaultValue []int) []int {
+	value := getConfigValue(key)
+
+	if value == nil {
+		return defaultValue
+	}
+	s, ok := value.([]int)
+	if !ok {
+		return defaultValue
+	}
+	return s
+}
+
 func getConfigValue(key string) interface{} {
 	cache := GetDefaultConfigCache()
 	if cache == nil {
@@ -135,5 +163,5 @@ func getConfigValue(key string) interface{} {
 		return utils.Empty
 	}
 
-	return string(value)
+	return value
 }

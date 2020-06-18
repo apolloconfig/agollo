@@ -2,11 +2,11 @@ package agcache
 
 //CacheInterface 自定义缓存组件接口
 type CacheInterface interface {
-	Set(key string, value []byte, expireSeconds int) (err error)
+	Set(key string, value interface{}, expireSeconds int) (err error)
 
 	EntryCount() (entryCount int64)
 
-	Get(key string) (value []byte, err error)
+	Get(key string) (value interface{}, err error)
 
 	Del(key string) (affected bool)
 

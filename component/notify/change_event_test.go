@@ -30,15 +30,15 @@ func (c *CustomChangeListener) OnChange(changeEvent *storage.ChangeEvent) {
 	Assert(c.t, "application", Equal(changeEvent.Namespace))
 
 	Assert(c.t, "string", Equal(changeEvent.Changes["string"].NewValue))
-	Assert(c.t, "", Equal(changeEvent.Changes["string"].OldValue))
+	Assert(c.t, nil, Equal(changeEvent.Changes["string"].OldValue))
 	Assert(c.t, storage.ADDED, Equal(changeEvent.Changes["string"].ChangeType))
 
 	Assert(c.t, "value1", Equal(changeEvent.Changes["key1"].NewValue))
-	Assert(c.t, "", Equal(changeEvent.Changes["key2"].OldValue))
+	Assert(c.t, nil, Equal(changeEvent.Changes["key2"].OldValue))
 	Assert(c.t, storage.ADDED, Equal(changeEvent.Changes["key1"].ChangeType))
 
 	Assert(c.t, "value2", Equal(changeEvent.Changes["key2"].NewValue))
-	Assert(c.t, "", Equal(changeEvent.Changes["key2"].OldValue))
+	Assert(c.t, nil, Equal(changeEvent.Changes["key2"].OldValue))
 	Assert(c.t, storage.ADDED, Equal(changeEvent.Changes["key2"].ChangeType))
 }
 
