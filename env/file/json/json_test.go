@@ -20,7 +20,8 @@ func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
   "namespaceName": "application",
   "configurations": {
     "key1":"value1",
-    "key2":"value2"
+    "key2":"value2",
+    "test": [1, 2]
   },
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
@@ -41,7 +42,8 @@ func TestJSONFileHandler_LoadConfigFile(t *testing.T) {
   "namespaceName": "application",
   "configurations": {
     "key1":"value1",
-    "key2":"value2"
+    "key2":"value2",
+    "test": [1, 2]
   },
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`

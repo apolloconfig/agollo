@@ -34,8 +34,8 @@ type ChangeEvent struct {
 }
 
 type ConfigChange struct {
-	OldValue   string
-	NewValue   string
+	OldValue   interface{}
+	NewValue   interface{}
 	ChangeType ConfigChangeType
 }
 
@@ -79,7 +79,7 @@ func pushChangeEvent(event *ChangeEvent) {
 }
 
 //create modify config change
-func createModifyConfigChange(oldValue string, newValue string) *ConfigChange {
+func createModifyConfigChange(oldValue interface{}, newValue interface{}) *ConfigChange {
 	return &ConfigChange{
 		OldValue:   oldValue,
 		NewValue:   newValue,
@@ -88,7 +88,7 @@ func createModifyConfigChange(oldValue string, newValue string) *ConfigChange {
 }
 
 //create add config change
-func createAddConfigChange(newValue string) *ConfigChange {
+func createAddConfigChange(newValue interface{}) *ConfigChange {
 	return &ConfigChange{
 		NewValue:   newValue,
 		ChangeType: ADDED,
@@ -96,7 +96,7 @@ func createAddConfigChange(newValue string) *ConfigChange {
 }
 
 //create delete config change
-func createDeletedConfigChange(oldValue string) *ConfigChange {
+func createDeletedConfigChange(oldValue interface{}) *ConfigChange {
 	return &ConfigChange{
 		OldValue:   oldValue,
 		ChangeType: DELETED,

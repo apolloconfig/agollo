@@ -21,8 +21,8 @@ const testDefaultNamespace = "application"
 func init() {
 }
 
-func createMockApolloConfig(expireTime int) map[string]string {
-	configs := make(map[string]string, 0)
+func createMockApolloConfig(expireTime int) map[string]interface{}{
+	configs := make(map[string]interface{}, 0)
 	//string
 	configs["string"] = "value"
 	//int
@@ -31,6 +31,11 @@ func createMockApolloConfig(expireTime int) map[string]string {
 	configs["float"] = "190.3"
 	//bool
 	configs["bool"] = "true"
+	//string slice
+	configs["stringSlice"] = []string{"1", "2"}
+
+	//int slice
+	configs["intSlice"] = []int{1, 2}
 
 	storage.UpdateApolloConfigCache(configs, expireTime, storage.GetDefaultNamespace())
 
@@ -74,6 +79,46 @@ func TestGetIntValue(t *testing.T) {
 
 	//error type
 	v = GetIntValue("float", defaultValue)
+
+	Assert(t, defaultValue, Equal(v))
+}
+
+func TestGetIntSliceValue(t *testing.T) {
+	createMockApolloConfig(120)
+	defaultValue := []int{100}
+
+	//test default
+	v := GetIntSliceValue("joe", defaultValue)
+
+	Assert(t, defaultValue, Equal(v))
+
+	//normal value
+	v = GetIntSliceValue("intSlice", defaultValue)
+
+	Assert(t, []int{1, 2}, Equal(v))
+
+	//error type
+	v = GetIntSliceValue("float", defaultValue)
+
+	Assert(t, defaultValue, Equal(v))
+}
+
+func TestGetStringSliceValue(t *testing.T) {
+	createMockApolloConfig(120)
+	defaultValue := []string{"100"}
+
+	//test default
+	v := GetStringSliceValue("joe", defaultValue)
+
+	Assert(t, defaultValue, Equal(v))
+
+	//normal value
+	v = GetStringSliceValue("stringSlice", defaultValue)
+
+	Assert(t, []string{"1", "2"}, Equal(v))
+
+	//error type
+	v = GetStringSliceValue("float", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 }
@@ -150,7 +195,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	defaultConfigCache := GetDefaultConfigCache()
 
 	defaultConfigCache.Range(func(key, value interface{}) bool {
-		Assert(t, string(value.([]byte)), NotNilVal())
+		Assert(t, value, NotNilVal())
 		return true
 	})
 

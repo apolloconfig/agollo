@@ -12,7 +12,7 @@ type TestParser struct {
 }
 
 // Parse 内存内容默认转换器
-func (d *TestParser) Parse(s string) (map[string]string, error) {
+func (d *TestParser) Parse(s interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }
 

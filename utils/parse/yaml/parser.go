@@ -1,4 +1,4 @@
-package yml
+package yaml
 
 import (
 	"bytes"
@@ -11,9 +11,8 @@ import (
 var vp = viper.New()
 
 func init() {
-	parser := &Parser{}
-	extension.AddFormatParser(constant.YML, parser)
-	vp.SetConfigType("yml")
+	extension.AddFormatParser(constant.YAML, &Parser{})
+	vp.SetConfigType("yaml")
 }
 
 // Parser properties转换器
@@ -26,7 +25,7 @@ func (d *Parser) Parse(configContent interface{}) (map[string]interface{}, error
 	if !ok {
 		return nil, nil
 	}
-	if utils.Empty == content {
+	if utils.Empty == content{
 		return nil, nil
 	}
 
@@ -40,7 +39,7 @@ func (d *Parser) Parse(configContent interface{}) (map[string]interface{}, error
 	return convertToMap(vp), nil
 }
 
-func convertToMap(vp *viper.Viper) map[string]interface{} {
+func convertToMap(vp *viper.Viper) map[string]interface{}{
 	if vp == nil {
 		return nil
 	}

@@ -14,6 +14,6 @@ type Parser struct {
 }
 
 // Parse 内存内容默认转换器
-func (d *Parser) Parse(configContent string) (map[string]string, error) {
+func (d *Parser) Parse(configContent interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }

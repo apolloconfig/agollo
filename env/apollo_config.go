@@ -57,8 +57,9 @@ type ApolloConnConfig struct {
 //ApolloConfig apollo配置
 type ApolloConfig struct {
 	ApolloConnConfig
-	Configurations map[string]string `json:"configurations"`
+	Configurations map[string]interface{} `json:"configurations"`
 }
+
 
 //Init 初始化
 func (a *ApolloConfig) Init(appID string, cluster string, namespace string) {
@@ -66,3 +67,4 @@ func (a *ApolloConfig) Init(appID string, cluster string, namespace string) {
 	a.Cluster = cluster
 	a.NamespaceName = namespace
 }
+

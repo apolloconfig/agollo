@@ -22,7 +22,7 @@ type defaultCache struct {
 }
 
 //Set 获取缓存
-func (d *defaultCache) Set(key string, value []byte, expireSeconds int) (err error) {
+func (d *defaultCache) Set(key string, value interface{}, expireSeconds int) (err error) {
 	d.defaultCache.Store(key, value)
 	return nil
 }
@@ -38,7 +38,7 @@ func (d *defaultCache) EntryCount() (entryCount int64) {
 }
 
 //Get 获取缓存
-func (d *defaultCache) Get(key string) (value []byte, err error) {
+func (d *defaultCache) Get(key string) (value interface{}, err error) {
 	v, ok := d.defaultCache.Load(key)
 	if !ok {
 		return nil, errors.New("load default cache fail")
