@@ -1,6 +1,7 @@
 package agollo
 
 import (
+	"container/list"
 	"github.com/zouyx/agollo/v3/agcache"
 	_ "github.com/zouyx/agollo/v3/agcache/memory"
 	"github.com/zouyx/agollo/v3/cluster"
@@ -75,6 +76,21 @@ func SetCache(cacheFactory agcache.CacheFactory) {
 		extension.SetCacheFactory(cacheFactory)
 		storage.InitConfigCache()
 	}
+}
+
+//AddChangeListener 增加变更监控
+func AddChangeListener(listener storage.ChangeListener) {
+	storage.AddChangeListener(listener)
+}
+
+//RemoveChangeListener 增加变更监控
+func RemoveChangeListener(listener storage.ChangeListener) {
+	storage.AddChangeListener(listener)
+}
+
+//GetChangeListeners 获取配置修改监听器列表
+func GetChangeListeners() *list.List {
+	return storage.GetChangeListeners()
 }
 
 func startAgollo() error {
