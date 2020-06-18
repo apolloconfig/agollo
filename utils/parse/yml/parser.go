@@ -13,7 +13,6 @@ var vp = viper.New()
 func init() {
 	parser := &Parser{}
 	extension.AddFormatParser(constant.YML, parser)
-	extension.AddFormatParser(constant.YAML, parser)
 	vp.SetConfigType("yml")
 }
 
@@ -27,7 +26,7 @@ func (d *Parser) Parse(configContent interface{}) (map[string]interface{}, error
 	if !ok {
 		return nil, nil
 	}
-	if utils.Empty == content{
+	if utils.Empty == content {
 		return nil, nil
 	}
 
@@ -41,7 +40,7 @@ func (d *Parser) Parse(configContent interface{}) (map[string]interface{}, error
 	return convertToMap(vp), nil
 }
 
-func convertToMap(vp *viper.Viper) map[string]interface{}{
+func convertToMap(vp *viper.Viper) map[string]interface{} {
 	if vp == nil {
 		return nil
 	}
