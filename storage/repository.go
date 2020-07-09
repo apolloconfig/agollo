@@ -140,7 +140,7 @@ func (c *Config) GetIntSliceValue(key string) []int {
 }
 
 //GetSliceValue 获取配置值（[]interface)
-func (c *Config) GetSliceValue(key string) []interface{}{
+func (c *Config) GetSliceValue(key string) []interface{} {
 	value := c.getConfigValue(key)
 	if value == nil {
 		return []interface{}{}
