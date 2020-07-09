@@ -258,7 +258,7 @@ func UpdateApolloConfigCache(configurations map[string]interface{}, expireTime i
 			} else {
 				//update
 				oldValue, _ := config.cache.Get(key)
-				if reflect.DeepEqual(oldValue, value) {
+				if !reflect.DeepEqual(oldValue, value) {
 					changes[key] = createModifyConfigChange(oldValue, value)
 				}
 			}
