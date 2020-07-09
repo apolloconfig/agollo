@@ -140,7 +140,7 @@ func (c *Config) GetIntSliceValue(key string) []int {
 }
 
 //GetSliceValue 获取配置值（[]interface)
-func (c *Config) GetSliceValue(key string) []interface{}{
+func (c *Config) GetSliceValue(key string) []interface{} {
 	value := c.getConfigValue(key)
 	if value == nil {
 		return []interface{}{}
@@ -258,7 +258,7 @@ func UpdateApolloConfigCache(configurations map[string]interface{}, expireTime i
 			} else {
 				//update
 				oldValue, _ := config.cache.Get(key)
-				if reflect.DeepEqual(oldValue, value) {
+				if !reflect.DeepEqual(oldValue, value) {
 					changes[key] = createModifyConfigChange(oldValue, value)
 				}
 			}
