@@ -1,0 +1,1 @@
+{"appId":"test","cluster":"dev","namespaceName":"test","releaseKey":"","configurations":{"bool":"false","float":"1","int":"2","sliceInt":[1,2,3],"sliceInter":[1,"2",3],"sliceString":["1","2","3"],"string":"string2"}}
