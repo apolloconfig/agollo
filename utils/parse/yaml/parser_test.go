@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	yamlParser parse.ContentParser = &Parser{}
+	yamlParser parse.ContentParser = newYAMLParser()
 )
 
 func TestYAMLParser(t *testing.T) {
@@ -41,8 +41,5 @@ func TestYAMLParserOnException(t *testing.T) {
 	s, err = yamlParser.Parse(0)
 	Assert(t, err, NilVal())
 	Assert(t, s, NilVal())
-
-	m := convertToMap(nil)
-	Assert(t, m, NilVal())
 }
 

@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	ymlParser parse.ContentParser = &Parser{}
+	ymlParser parse.ContentParser = newYMLParser()
 )
 
 func TestYMLParser(t *testing.T) {
@@ -40,7 +40,4 @@ func TestYMLParserOnException(t *testing.T) {
 	s, err = ymlParser.Parse(0)
 	Assert(t, err, NilVal())
 	Assert(t, s, NilVal())
-
-	m := convertToMap(nil)
-	Assert(t, m, NilVal())
 }

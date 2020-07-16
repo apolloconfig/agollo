@@ -1,23 +1,25 @@
 package yml
 
 import (
-	"bytes"
-	"github.com/spf13/viper"
 	"github.com/zouyx/agollo/v3/constant"
 	"github.com/zouyx/agollo/v3/extension"
 	"github.com/zouyx/agollo/v3/utils"
+	"github.com/zouyx/agollo/v3/utils/parse/conver"
 )
 
-var vp = viper.New()
-
 func init() {
+	extension.AddFormatParser(constant.YML, newYMLParser())
+}
+
+func newYMLParser() *Parser {
 	parser := &Parser{}
-	extension.AddFormatParser(constant.YML, parser)
-	vp.SetConfigType("yml")
+	parser.vp = conver.NewConverter("yml")
+	return parser
 }
 
 // Parser properties转换器
 type Parser struct {
+	vp *conver.Converter
 }
 
 // Parse 内存内容=>yml文件转换器
@@ -29,25 +31,5 @@ func (d *Parser) Parse(configContent interface{}) (map[string]interface{}, error
 	if utils.Empty == content {
 		return nil, nil
 	}
-
-	buffer := bytes.NewBufferString(content)
-	// 使用viper解析
-	err := vp.ReadConfig(buffer)
-	if err != nil {
-		return nil, err
-	}
-
-	return convertToMap(vp), nil
-}
-
-func convertToMap(vp *viper.Viper) map[string]interface{} {
-	if vp == nil {
-		return nil
-	}
-
-	m := make(map[string]interface{})
-	for _, key := range vp.AllKeys() {
-		m[key] = vp.Get(key)
-	}
-	return m
+	return d.vp.ConvertToMap(content)
 }

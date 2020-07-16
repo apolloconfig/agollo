@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	jsonParser parse.ContentParser = &Parser{}
+	jsonParser parse.ContentParser = newJSONParser()
 )
 
 func TestJSONParser(t *testing.T) {
@@ -25,6 +25,7 @@ func TestJSONParser(t *testing.T) {
 `)
 	Assert(t, err, NilVal())
 	t.Logf("%+v", s)
+	t.Logf("%T", s["testvalue"])
 	Assert(t, s["testvalue"], Equal(float64(1)))
 	Assert(t, s["testobject.k1"], Equal("a1"))
 	Assert(t, s["testlist"], Equal([]interface{}{"l1", "l2"}))
@@ -39,8 +40,5 @@ func TestJSONParserOnException(t *testing.T) {
 	s, err = jsonParser.Parse(0)
 	Assert(t, err, NilVal())
 	Assert(t, s, NilVal())
-
-	m := convertToMap(nil)
-	Assert(t, m, NilVal())
 }
 
