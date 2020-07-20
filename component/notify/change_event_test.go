@@ -42,6 +42,10 @@ func (c *CustomChangeListener) OnChange(changeEvent *storage.ChangeEvent) {
 	Assert(c.t, storage.ADDED, Equal(changeEvent.Changes["key2"].ChangeType))
 }
 
+func (c *CustomChangeListener) OnNewestChange(configuration map[string]interface{}) {
+
+}
+
 func TestListenChangeEvent(t *testing.T) {
 	go buildNotifyResult(t)
 	group := sync.WaitGroup{}

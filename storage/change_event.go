@@ -22,6 +22,9 @@ func init() {
 type ChangeListener interface {
 	//OnChange 增加变更监控
 	OnChange(event *ChangeEvent)
+
+	//OnNewestChange 监控最新变更
+	OnNewestChange(configuration map[string]interface{})
 }
 
 //config change type
@@ -67,6 +70,18 @@ func GetChangeListeners() *list.List {
 
 //push config change event
 func pushChangeEvent(event *ChangeEvent) {
+	pushChange(func(listener ChangeListener) {
+		go listener.OnChange(event)
+	})
+}
+
+func pushNewestChanges(configuration map[string]interface{}) {
+	pushChange(func(listener ChangeListener) {
+		go listener.OnNewestChange(configuration)
+	})
+}
+
+func pushChange(f func(ChangeListener)) {
 	// if channel is null ,mean no listener,don't need to push msg
 	if changeListeners == nil || changeListeners.Len() == 0 {
 		return
@@ -74,7 +89,7 @@ func pushChangeEvent(event *ChangeEvent) {
 
 	for i := changeListeners.Front(); i != nil; i = i.Next() {
 		listener := i.Value.(ChangeListener)
-		go listener.OnChange(event)
+		f(listener)
 	}
 }
 
