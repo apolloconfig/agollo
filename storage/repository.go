@@ -199,7 +199,7 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 
 	//get change list
 	changeList := UpdateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime, apolloConfig.NamespaceName)
-	
+
 	if len(changeList) > 0 {
 		//create config change event base on change list
 		event := createConfigChangeEvent(changeList, apolloConfig.NamespaceName)
