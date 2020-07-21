@@ -42,7 +42,7 @@ func (c *CustomChangeListener) OnChange(changeEvent *storage.ChangeEvent) {
 	Assert(c.t, storage.ADDED, Equal(changeEvent.Changes["key2"].ChangeType))
 }
 
-func (c *CustomChangeListener) OnNewestChange(configuration map[string]interface{}) {
+func (c *CustomChangeListener) OnNewestChange(event *storage.FullChangeEvent) {
 
 }
 

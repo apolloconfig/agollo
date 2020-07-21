@@ -24,22 +24,33 @@ type ChangeListener interface {
 	OnChange(event *ChangeEvent)
 
 	//OnNewestChange 监控最新变更
-	OnNewestChange(configuration map[string]interface{})
+	OnNewestChange(event *FullChangeEvent)
 }
 
 //config change type
 type ConfigChangeType int
 
 //config change event
-type ChangeEvent struct {
+type baseChangeEvent struct {
 	Namespace string
-	Changes   map[string]*ConfigChange
+}
+
+//config change event
+type ChangeEvent struct {
+	baseChangeEvent
+	Changes map[string]*ConfigChange
 }
 
 type ConfigChange struct {
 	OldValue   interface{}
 	NewValue   interface{}
 	ChangeType ConfigChangeType
+}
+
+// all config change event
+type FullChangeEvent struct {
+	baseChangeEvent
+	Changes map[string]interface{}
 }
 
 //AddChangeListener 增加变更监控
@@ -75,9 +86,13 @@ func pushChangeEvent(event *ChangeEvent) {
 	})
 }
 
-func pushNewestChanges(configuration map[string]interface{}) {
+func pushNewestChanges(namespace string, configuration map[string]interface{}) {
+	e := &FullChangeEvent{
+		Changes: configuration,
+	}
+	e.Namespace = namespace
 	pushChange(func(listener ChangeListener) {
-		go listener.OnNewestChange(configuration)
+		go listener.OnNewestChange(e)
 	})
 }
 
@@ -120,8 +135,9 @@ func createDeletedConfigChange(oldValue interface{}) *ConfigChange {
 
 //base on changeList create Change event
 func createConfigChangeEvent(changes map[string]*ConfigChange, nameSpace string) *ChangeEvent {
-	return &ChangeEvent{
-		Namespace: nameSpace,
-		Changes:   changes,
+	c := &ChangeEvent{
+		Changes: changes,
 	}
+	c.Namespace = nameSpace
+	return c
 }
