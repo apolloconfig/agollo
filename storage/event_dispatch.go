@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	fmtInvalidKey        = "invalid key format for key %s"
+	fmtInvalidKey = "invalid key format for key %s"
 )
 
 var (
@@ -45,7 +45,9 @@ func UseEventDispatch() {
 }
 
 // RegisterListener 为某些key注释Listener
-func RegisterListener(listener Listener, keys ...string) error {return eventDispatch.RegisterListener(listener, keys...)}
+func RegisterListener(listener Listener, keys ...string) error {
+	return eventDispatch.RegisterListener(listener, keys...)
+}
 
 // RegisterListener 是为某些key注释Listener的方法
 func (d *Dispatcher) RegisterListener(listenerObject Listener, keys ...string) error {
@@ -86,7 +88,9 @@ func invalidKey(key string) bool {
 }
 
 // UnRegisterListener 为某些key注释Listener
-func UnRegisterListener(listenerObj Listener, keys ...string) error {return eventDispatch.UnRegisterListener(listenerObj, keys...)}
+func UnRegisterListener(listenerObj Listener, keys ...string) error {
+	return eventDispatch.UnRegisterListener(listenerObj, keys...)
+}
 
 // UnRegisterListener 用于为某些key注释Listener
 func (d *Dispatcher) UnRegisterListener(listenerObj Listener, keys ...string) error {
@@ -116,7 +120,7 @@ func (d *Dispatcher) UnRegisterListener(listenerObj Listener, keys ...string) er
 }
 
 //OnChange 实现Apollo的ChangeEvent处理
-func (d *Dispatcher) OnChange(changeEvent *ChangeEvent){
+func (d *Dispatcher) OnChange(changeEvent *ChangeEvent) {
 	if changeEvent == nil {
 		return
 	}
@@ -124,6 +128,10 @@ func (d *Dispatcher) OnChange(changeEvent *ChangeEvent){
 	for key, event := range changeEvent.Changes {
 		d.dispatchEvent(key, event)
 	}
+}
+
+func (d *Dispatcher) OnNewestChange(configuration map[string]interface{}) {
+
 }
 
 func (d *Dispatcher) dispatchEvent(eventKey string, event *ConfigChange) {
@@ -145,7 +153,7 @@ func (d *Dispatcher) dispatchEvent(eventKey string, event *ConfigChange) {
 func convertToEvent(key string, event *ConfigChange) *Event {
 	e := &Event{
 		EventType: event.ChangeType,
-		Key: key,
+		Key:       key,
 	}
 	switch event.ChangeType {
 	case ADDED:

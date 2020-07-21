@@ -193,8 +193,15 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 		log.Error("apolloConfig is null,can't update!")
 		return
 	}
+
+	//update apollo connection config
+	env.SetCurrentApolloConfig(apolloConfig.NamespaceName, &apolloConfig.ApolloConnConfig)
+
 	//get change list
 	changeList := UpdateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime, apolloConfig.NamespaceName)
+
+	//push all newest changes
+	pushNewestChanges(apolloConfig.Configurations)
 
 	if len(changeList) > 0 {
 		//create config change event base on change list
@@ -203,9 +210,6 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 		//push change event to channel
 		pushChangeEvent(event)
 	}
-
-	//update apollo connection config
-	env.SetCurrentApolloConfig(apolloConfig.NamespaceName, &apolloConfig.ApolloConnConfig)
 
 	if isBackupConfig {
 		//write config file async
