@@ -21,7 +21,7 @@ func (t *CustomChangeListener) OnChange(event *ChangeEvent) {
 	t.w.Done()
 }
 
-func (t *CustomChangeListener) OnNewestChange(configuration map[string]interface{}) {
+func (t *CustomChangeListener) OnNewestChange(event *FullChangeEvent) {
 
 }
 

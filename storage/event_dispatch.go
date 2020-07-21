@@ -130,7 +130,7 @@ func (d *Dispatcher) OnChange(changeEvent *ChangeEvent) {
 	}
 }
 
-func (d *Dispatcher) OnNewestChange(configuration map[string]interface{}) {
+func (d *Dispatcher) OnNewestChange(event *FullChangeEvent) {
 
 }
 
