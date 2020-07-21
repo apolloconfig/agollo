@@ -54,9 +54,9 @@ func TestPushChangeEvent(t *testing.T) {
 	changes := make(map[string]*ConfigChange)
 	changes["add"] = addConfig
 	event := &ChangeEvent{
-		"a",
-		changes,
+		Changes: changes,
 	}
+	event.Namespace = "a"
 	changes["delete"] = deleteConfig
 	changes["modify"] = modifyConfig
 	listener = &CustomChangeListener{}

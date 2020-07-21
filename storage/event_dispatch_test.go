@@ -7,9 +7,8 @@ import (
 	"time"
 )
 
-
 type CustomListener struct {
-	l sync.Mutex
+	l    sync.Mutex
 	Keys map[string]interface{}
 }
 
@@ -29,9 +28,9 @@ func createChangeEvent() *ChangeEvent {
 	changes["delete"] = deleteConfig
 	changes["modify"] = modifyConfig
 	cEvent := &ChangeEvent{
-		"a",
-		changes,
+		Changes: changes,
 	}
+	cEvent.Namespace = "a"
 	return cEvent
 }
 
