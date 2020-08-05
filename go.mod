@@ -1,7 +1,7 @@
 module github.com/zouyx/agollo/v3
 
 require (
-	github.com/spf13/viper v1.7.0
+	github.com/spf13/viper v1.7.1
 	github.com/tevid/gohamcrest v1.1.1
 )
 
