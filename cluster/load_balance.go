@@ -20,7 +20,7 @@ package cluster
 import (
 	"sync"
 
-	"github.com/zouyx/agollo/v3/env/config"
+	"github.com/zouyx/agollo/v4/env/config"
 )
 
 //LoadBalance 负载均衡器

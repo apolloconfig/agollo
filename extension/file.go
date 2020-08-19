@@ -17,7 +17,7 @@
 
 package extension
 
-import "github.com/zouyx/agollo/v3/env/file"
+import "github.com/zouyx/agollo/v4/env/file"
 
 var fileHandler file.FileHandler
 

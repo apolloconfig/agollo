@@ -20,9 +20,9 @@ package yml
 import (
 	"bytes"
 	"github.com/spf13/viper"
-	"github.com/zouyx/agollo/v3/constant"
-	"github.com/zouyx/agollo/v3/extension"
-	"github.com/zouyx/agollo/v3/utils"
+	"github.com/zouyx/agollo/v4/constant"
+	"github.com/zouyx/agollo/v4/extension"
+	"github.com/zouyx/agollo/v4/utils"
 )
 
 var vp = viper.New()

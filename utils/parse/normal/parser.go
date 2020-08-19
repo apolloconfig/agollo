@@ -18,8 +18,8 @@
 package normal
 
 import (
-	"github.com/zouyx/agollo/v3/constant"
-	"github.com/zouyx/agollo/v3/extension"
+	"github.com/zouyx/agollo/v4/constant"
+	"github.com/zouyx/agollo/v4/extension"
 )
 
 func init() {

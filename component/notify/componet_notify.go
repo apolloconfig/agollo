@@ -20,20 +20,20 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/v3/constant"
+	"github.com/zouyx/agollo/v4/constant"
 	"net/url"
 	"path"
 	"sync"
 	"time"
 
-	"github.com/zouyx/agollo/v3/component"
-	"github.com/zouyx/agollo/v3/component/log"
-	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/env/config"
-	"github.com/zouyx/agollo/v3/extension"
-	"github.com/zouyx/agollo/v3/protocol/http"
-	"github.com/zouyx/agollo/v3/storage"
-	"github.com/zouyx/agollo/v3/utils"
+	"github.com/zouyx/agollo/v4/component"
+	"github.com/zouyx/agollo/v4/component/log"
+	"github.com/zouyx/agollo/v4/env"
+	"github.com/zouyx/agollo/v4/env/config"
+	"github.com/zouyx/agollo/v4/extension"
+	"github.com/zouyx/agollo/v4/protocol/http"
+	"github.com/zouyx/agollo/v4/storage"
+	"github.com/zouyx/agollo/v4/utils"
 )
 
 const (

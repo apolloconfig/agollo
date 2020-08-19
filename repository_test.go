@@ -25,11 +25,11 @@ import (
 	"time"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v3/component/notify"
-	"github.com/zouyx/agollo/v3/env"
-	_ "github.com/zouyx/agollo/v3/env/file/json"
-	"github.com/zouyx/agollo/v3/extension"
-	"github.com/zouyx/agollo/v3/storage"
+	"github.com/zouyx/agollo/v4/component/notify"
+	"github.com/zouyx/agollo/v4/env"
+	_ "github.com/zouyx/agollo/v4/env/file/json"
+	"github.com/zouyx/agollo/v4/extension"
+	"github.com/zouyx/agollo/v4/storage"
 )
 
 const testDefaultNamespace = "application"
@@ -38,7 +38,7 @@ const testDefaultNamespace = "application"
 func init() {
 }
 
-func createMockApolloConfig(expireTime int) map[string]interface{}{
+func createMockApolloConfig(expireTime int) map[string]interface{} {
 	configs := make(map[string]interface{}, 0)
 	//string
 	configs["string"] = "value"

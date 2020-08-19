@@ -18,7 +18,7 @@
 package file
 
 import (
-	"github.com/zouyx/agollo/v3/env"
+	"github.com/zouyx/agollo/v4/env"
 )
 
 //FileHandler 备份文件读写

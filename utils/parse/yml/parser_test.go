@@ -18,8 +18,8 @@
 package yml
 
 import (
-	"github.com/zouyx/agollo/v3/utils"
-	"github.com/zouyx/agollo/v3/utils/parse"
+	"github.com/zouyx/agollo/v4/utils"
+	"github.com/zouyx/agollo/v4/utils/parse"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"

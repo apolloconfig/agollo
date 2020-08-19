@@ -25,10 +25,10 @@ import (
 	"time"
 
 	. "github.com/tevid/gohamcrest"
-	_ "github.com/zouyx/agollo/v3/agcache/memory"
-	"github.com/zouyx/agollo/v3/env"
-	_ "github.com/zouyx/agollo/v3/env/file/json"
-	"github.com/zouyx/agollo/v3/storage"
+	_ "github.com/zouyx/agollo/v4/agcache/memory"
+	"github.com/zouyx/agollo/v4/env"
+	_ "github.com/zouyx/agollo/v4/env/file/json"
+	"github.com/zouyx/agollo/v4/storage"
 )
 
 type CustomChangeListener struct {

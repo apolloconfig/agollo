@@ -20,7 +20,7 @@ package env
 import (
 	"sync"
 
-	"github.com/zouyx/agollo/v3/utils"
+	"github.com/zouyx/agollo/v4/utils"
 )
 
 var (
@@ -77,11 +77,9 @@ type ApolloConfig struct {
 	Configurations map[string]interface{} `json:"configurations"`
 }
 
-
 //Init 初始化
 func (a *ApolloConfig) Init(appID string, cluster string, namespace string) {
 	a.AppID = appID
 	a.Cluster = cluster
 	a.NamespaceName = namespace
 }
-

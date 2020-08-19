@@ -18,8 +18,16 @@
 package config
 
 import (
+	"encoding/json"
+	"github.com/zouyx/agollo/v4/component/log"
 	"strings"
+	"sync"
 	"time"
+)
+
+var (
+	//next try connect period - 60 second
+	nextTryConnectPeriod int64 = 60
 )
 
 //File 读写配置文件
@@ -39,6 +47,8 @@ type AppConfig struct {
 	IsBackupConfig   bool   `default:"true" json:"isBackupConfig"`
 	BackupConfigPath string `json:"backupConfigPath"`
 	Secret           string `json:"secret"`
+	//real servers ip
+	servers sync.Map
 }
 
 //ServerInfo 服务器信息
@@ -86,4 +96,68 @@ func (a *AppConfig) IsConnectDirectly() bool {
 	}
 
 	return false
+}
+
+//SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
+func (a *AppConfig) SyncServerIPListSuccessCallBack(responseBody []byte) (o interface{}, err error) {
+	log.Debug("get all server info:", string(responseBody))
+
+	tmpServerInfo := make([]*ServerInfo, 0)
+
+	err = json.Unmarshal(responseBody, &tmpServerInfo)
+
+	if err != nil {
+		log.Error("Unmarshal json Fail,Error:", err)
+		return
+	}
+
+	if len(tmpServerInfo) == 0 {
+		log.Info("get no real server!")
+		return
+	}
+
+	for _, server := range tmpServerInfo {
+		if server == nil {
+			continue
+		}
+		a.servers.Store(server.HomepageURL, server)
+	}
+	return
+}
+
+//SetDownNode 设置失效节点
+func (a *AppConfig) SetDownNode(host string) {
+	if host == "" {
+		return
+	}
+
+	if host == a.GetHost() {
+		a.SetNextTryConnTime(nextTryConnectPeriod)
+	}
+
+	a.GetServers().Range(func(k, v interface{}) bool {
+		server := v.(*ServerInfo)
+		// if some node has down then select next node
+		if strings.Index(k.(string), host) > -1 {
+			server.IsDown = true
+			return false
+		}
+		return true
+	})
+}
+
+//GetServers 获取服务器数组
+func (a *AppConfig) GetServers() sync.Map {
+	return a.servers
+}
+
+//GetServersLen 获取服务器数组长度
+func (a *AppConfig) GetServersLen() int {
+	s := a.GetServers()
+	l := 0
+	s.Range(func(k, v interface{}) bool {
+		l++
+		return true
+	})
+	return l
 }

@@ -26,14 +26,14 @@ import (
 	"time"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v3/agcache/memory"
-	"github.com/zouyx/agollo/v3/component/log"
-	"github.com/zouyx/agollo/v3/component/notify"
-	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/env/config"
-	jsonFile "github.com/zouyx/agollo/v3/env/config/json"
-	"github.com/zouyx/agollo/v3/extension"
-	"github.com/zouyx/agollo/v3/storage"
+	"github.com/zouyx/agollo/v4/agcache/memory"
+	"github.com/zouyx/agollo/v4/component/log"
+	"github.com/zouyx/agollo/v4/component/notify"
+	"github.com/zouyx/agollo/v4/env"
+	"github.com/zouyx/agollo/v4/env/config"
+	jsonFile "github.com/zouyx/agollo/v4/env/config/json"
+	"github.com/zouyx/agollo/v4/extension"
+	"github.com/zouyx/agollo/v4/storage"
 )
 
 var (

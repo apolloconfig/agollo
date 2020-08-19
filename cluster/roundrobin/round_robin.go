@@ -20,13 +20,8 @@ package roundrobin
 import (
 	"sync"
 
-	"github.com/zouyx/agollo/v3/env/config"
-	"github.com/zouyx/agollo/v3/extension"
+	"github.com/zouyx/agollo/v4/env/config"
 )
-
-func init() {
-	extension.SetLoadBalance(&RoundRobin{})
-}
 
 //RoundRobin 轮询调度
 type RoundRobin struct {

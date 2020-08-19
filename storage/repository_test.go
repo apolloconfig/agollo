@@ -23,12 +23,12 @@ import (
 	"time"
 
 	. "github.com/tevid/gohamcrest"
-	_ "github.com/zouyx/agollo/v3/agcache/memory"
-	"github.com/zouyx/agollo/v3/env"
-	_ "github.com/zouyx/agollo/v3/env/file/json"
+	_ "github.com/zouyx/agollo/v4/agcache/memory"
+	"github.com/zouyx/agollo/v4/env"
+	_ "github.com/zouyx/agollo/v4/env/file/json"
 
-	_ "github.com/zouyx/agollo/v3/utils/parse/normal"
-	_ "github.com/zouyx/agollo/v3/utils/parse/properties"
+	_ "github.com/zouyx/agollo/v4/utils/parse/normal"
+	_ "github.com/zouyx/agollo/v4/utils/parse/properties"
 )
 
 //init param

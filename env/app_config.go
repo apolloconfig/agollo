@@ -25,10 +25,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/zouyx/agollo/v3/component/log"
-	"github.com/zouyx/agollo/v3/env/config"
-	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
-	"github.com/zouyx/agollo/v3/utils"
+	"github.com/zouyx/agollo/v4/env/config"
+	jsonConfig "github.com/zouyx/agollo/v4/env/config/json"
+	"github.com/zouyx/agollo/v4/utils"
 )
 
 const (
@@ -45,29 +44,21 @@ const (
 var (
 	//appconfig
 	appConfig *config.AppConfig
-	//real servers ip
-	servers sync.Map
-
-	//next try connect period - 60 second
-	nextTryConnectPeriod int64 = 60
 )
 
-func init() {
-	//init config
-	InitFileConfig()
-}
-
 //InitFileConfig 使用文件初始化配置
-func InitFileConfig() {
+func InitFileConfig() *config.AppConfig {
 	// default use application.properties
-	InitConfig(nil)
+	if initConfig, err := InitConfig(nil); err != nil {
+		return initConfig
+	}
+	return nil
 }
 
 //InitConfig 使用指定配置初始化配置
-func InitConfig(loadAppConfig func() (*config.AppConfig, error)) (err error) {
+func InitConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.AppConfig, error) {
 	//init config file
-	appConfig, err = getLoadAppConfig(loadAppConfig)
-	return
+	return getLoadAppConfig(loadAppConfig)
 }
 
 //SplitNamespaces 根据namespace字符串分割后，并执行callback函数
@@ -100,54 +91,6 @@ func getLoadAppConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.
 	return c.(*config.AppConfig), e
 }
 
-//SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
-func SyncServerIPListSuccessCallBack(responseBody []byte) (o interface{}, err error) {
-	log.Debug("get all server info:", string(responseBody))
-
-	tmpServerInfo := make([]*config.ServerInfo, 0)
-
-	err = json.Unmarshal(responseBody, &tmpServerInfo)
-
-	if err != nil {
-		log.Error("Unmarshal json Fail,Error:", err)
-		return
-	}
-
-	if len(tmpServerInfo) == 0 {
-		log.Info("get no real server!")
-		return
-	}
-
-	for _, server := range tmpServerInfo {
-		if server == nil {
-			continue
-		}
-		servers.Store(server.HomepageURL, server)
-	}
-	return
-}
-
-//SetDownNode 设置失效节点
-func SetDownNode(host string) {
-	if host == "" || appConfig == nil {
-		return
-	}
-
-	if host == appConfig.GetHost() {
-		appConfig.SetNextTryConnTime(nextTryConnectPeriod)
-	}
-
-	servers.Range(func(k, v interface{}) bool {
-		server := v.(*config.ServerInfo)
-		// if some node has down then select next node
-		if strings.Index(k.(string), host) > -1 {
-			server.IsDown = true
-			return false
-		}
-		return true
-	})
-}
-
 //GetAppConfig 获取app配置
 func GetAppConfig(newAppConfig *config.AppConfig) *config.AppConfig {
 	if newAppConfig != nil {
@@ -167,22 +110,6 @@ func GetServicesConfigURL(config *config.AppConfig) string {
 //GetPlainAppConfig 获取原始配置
 func GetPlainAppConfig() *config.AppConfig {
 	return appConfig
-}
-
-//GetServers 获取服务器数组
-func GetServers() *sync.Map {
-	return &servers
-}
-
-//GetServersLen 获取服务器数组长度
-func GetServersLen() int {
-	s := GetServers()
-	l := 0
-	s.Range(func(k, v interface{}) bool {
-		l++
-		return true
-	})
-	return l
 }
 
 var executeConfigFileOnce sync.Once

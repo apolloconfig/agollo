@@ -21,11 +21,11 @@ import (
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
-	_ "github.com/zouyx/agollo/v3/cluster/roundrobin"
-	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/env/config"
-	"github.com/zouyx/agollo/v3/env/config/json"
-	"github.com/zouyx/agollo/v3/extension"
+	_ "github.com/zouyx/agollo/v4/cluster/roundrobin"
+	"github.com/zouyx/agollo/v4/env"
+	"github.com/zouyx/agollo/v4/env/config"
+	"github.com/zouyx/agollo/v4/env/config/json"
+	"github.com/zouyx/agollo/v4/extension"
 )
 
 const servicesConfigResponseStr = `[{

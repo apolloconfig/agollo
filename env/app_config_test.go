@@ -25,9 +25,9 @@ import (
 	"time"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v3/env/config"
-	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
-	"github.com/zouyx/agollo/v3/utils"
+	"github.com/zouyx/agollo/v4/env/config"
+	jsonConfig "github.com/zouyx/agollo/v4/env/config/json"
+	"github.com/zouyx/agollo/v4/utils"
 )
 
 const servicesConfigResponseStr = `[{

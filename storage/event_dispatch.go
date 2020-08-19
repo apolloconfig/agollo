@@ -20,7 +20,7 @@ package storage
 import (
 	"errors"
 	"fmt"
-	"github.com/zouyx/agollo/v3/component/log"
+	"github.com/zouyx/agollo/v4/component/log"
 	"regexp"
 )
 

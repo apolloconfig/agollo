@@ -22,8 +22,8 @@ import (
 	"os"
 	"sync"
 
-	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/env/file"
+	"github.com/zouyx/agollo/v4/env"
+	"github.com/zouyx/agollo/v4/env/file"
 )
 
 var (
@@ -33,7 +33,7 @@ var (
 
 //rawFileHandler 写入备份文件时，同时写入原始内容和namespace类型
 type rawFileHandler struct {
-	*jsonFileHandler
+	*FileHandler
 }
 
 func writeWithRaw(config *env.ApolloConfig, configDir string) error {
