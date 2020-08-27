@@ -147,8 +147,8 @@ func (a *AppConfig) SetDownNode(host string) {
 }
 
 //GetServers 获取服务器数组
-func (a *AppConfig) GetServers() sync.Map {
-	return a.servers
+func (a *AppConfig) GetServers() *sync.Map {
+	return &a.servers
 }
 
 //GetServersLen 获取服务器数组长度

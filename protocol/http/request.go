@@ -182,7 +182,7 @@ func RequestRecovery(appConfig *config.AppConfig,
 			return response, err
 		}
 
-		env.SetDownNode(host)
+		appConfig.SetDownNode(host)
 	}
 }
 
@@ -190,7 +190,7 @@ func loadBalance(appConfig *config.AppConfig) string {
 	if !appConfig.IsConnectDirectly() {
 		return appConfig.GetHost()
 	}
-	serverInfo := extension.GetLoadBalance().Load(env.GetServers())
+	serverInfo := extension.GetLoadBalance().Load(*appConfig.GetServers())
 	if serverInfo == nil {
 		return utils.Empty
 	}

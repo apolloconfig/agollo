@@ -72,7 +72,8 @@ func TestStart(t *testing.T) {
 	b, _ := json.Marshal(c)
 	writeFile(b, "app.properties")
 
-	Start()
+	client := Create()
+	client.Start()
 
 	value := GetValue("key1")
 	Assert(t, "value1", Equal(value))
@@ -96,7 +97,9 @@ func TestStartWithMultiNamespace(t *testing.T) {
 	b, _ := json.Marshal(c)
 	writeFile(b, "app.properties")
 
-	Start()
+	client := Create()
+
+	client.Start()
 
 	time.Sleep(1 * time.Second)
 
@@ -124,7 +127,8 @@ func TestErrorStart(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	Start()
+	client := Create()
+	client.Start()
 
 	value := GetValue("key1")
 	Assert(t, "value1", Equal(value))
@@ -156,7 +160,8 @@ func TestStructInit(t *testing.T) {
 		IP:            "localhost:8889",
 	}
 
-	InitCustomConfig(func() (*config.AppConfig, error) {
+	client := Create()
+	client.StartWithConfig(func() (*config.AppConfig, error) {
 		return readyConfig, nil
 	})
 	notify.InitAllNotifications(nil)
@@ -177,15 +182,6 @@ func TestStructInit(t *testing.T) {
 
 	//revert file config
 	env.InitFileConfig()
-}
-
-func TestInitCustomConfig(t *testing.T) {
-	initAppConfigFunc = nil
-	f := func() (*config.AppConfig, error) {
-		return appConfig, nil
-	}
-	InitCustomConfig(f)
-	Assert(t, initAppConfigFunc, NotNilVal())
 }
 
 func TestSetLogger(t *testing.T) {
@@ -210,7 +206,7 @@ type TestLoadBalance struct {
 }
 
 //Load 负载均衡
-func (r *TestLoadBalance) Load(servers *sync.Map) *config.ServerInfo {
+func (r *TestLoadBalance) Load(servers sync.Map) *config.ServerInfo {
 	return nil
 }
 

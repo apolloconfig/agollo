@@ -29,7 +29,7 @@ type TestLoadBalance struct {
 }
 
 //Load 负载均衡
-func (r *TestLoadBalance) Load(servers *sync.Map) *config.ServerInfo {
+func (r *TestLoadBalance) Load(servers sync.Map) *config.ServerInfo {
 	return nil
 }
 

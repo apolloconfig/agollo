@@ -85,11 +85,11 @@ var (
 )
 
 func TestSelectOnlyOneHost(t *testing.T) {
-	trySyncServerIPList()
 	appConfig := env.GetPlainAppConfig()
+	trySyncServerIPList(appConfig)
 	host := "http://localhost:8888/"
 	Assert(t, host, Equal(appConfig.GetHost()))
-	load := extension.GetLoadBalance().Load(env.GetServers())
+	load := extension.GetLoadBalance().Load(*appConfig.GetServers())
 	Assert(t, load, NotNilVal())
 	Assert(t, host, NotEqual(load.HomepageURL))
 }
@@ -118,6 +118,6 @@ func TestName(t *testing.T) {
 
 }
 
-func trySyncServerIPList() {
-	env.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
+func trySyncServerIPList(appConfig *config.AppConfig) {
+	appConfig.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
 }

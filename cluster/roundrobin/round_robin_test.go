@@ -18,6 +18,7 @@
 package roundrobin
 
 import (
+	"github.com/zouyx/agollo/v4/env/config"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
@@ -78,59 +79,60 @@ const servicesConfigResponseStr = `[{
 
 func TestSelectHost(t *testing.T) {
 	balanace := &RoundRobin{}
-	//mock ip data
-	trySyncServerIPList()
 
-	servers := env.GetServers()
 	appConfig := env.GetPlainAppConfig()
+	//mock ip data
+	trySyncServerIPList(appConfig)
+
+	servers := appConfig.GetServers()
 	t.Log("appconfig host:" + appConfig.GetHost())
-	t.Log("appconfig select host:", balanace.Load(env.GetServers()).HomepageURL)
+	t.Log("appconfig select host:", balanace.Load(*appConfig.GetServers()).HomepageURL)
 
 	host := "http://localhost:8888/"
 	Assert(t, host, Equal(appConfig.GetHost()))
-	Assert(t, host, NotEqual(balanace.Load(env.GetServers()).HomepageURL))
+	Assert(t, host, NotEqual(balanace.Load(*appConfig.GetServers()).HomepageURL))
 
 	//check select next time
 	appConfig.SetNextTryConnTime(5)
-	Assert(t, host, NotEqual(balanace.Load(env.GetServers()).HomepageURL))
+	Assert(t, host, NotEqual(balanace.Load(*appConfig.GetServers()).HomepageURL))
 
 	//check servers
 	appConfig.SetNextTryConnTime(5)
-	firstHost := balanace.Load(env.GetServers())
+	firstHost := balanace.Load(*appConfig.GetServers())
 	Assert(t, host, NotEqual(firstHost.HomepageURL))
-	env.SetDownNode(firstHost.HomepageURL)
+	appConfig.SetDownNode(firstHost.HomepageURL)
 
-	secondHost := balanace.Load(env.GetServers()).HomepageURL
+	secondHost := balanace.Load(*appConfig.GetServers()).HomepageURL
 	Assert(t, host, NotEqual(secondHost))
 	Assert(t, firstHost, NotEqual(secondHost))
-	env.SetDownNode(secondHost)
+	appConfig.SetDownNode(secondHost)
 
-	thirdHost := balanace.Load(env.GetServers()).HomepageURL
+	thirdHost := balanace.Load(*appConfig.GetServers()).HomepageURL
 	Assert(t, host, NotEqual(thirdHost))
 	Assert(t, firstHost, NotEqual(thirdHost))
 	Assert(t, secondHost, NotEqual(thirdHost))
 
 	servers.Range(func(k, v interface{}) bool {
-		env.SetDownNode(k.(string))
+		appConfig.SetDownNode(k.(string))
 		return true
 	})
 
-	Assert(t, balanace.Load(env.GetServers()), NilVal())
+	Assert(t, balanace.Load(*appConfig.GetServers()), NilVal())
 
 	//no servers
 	//servers = make(map[string]*serverInfo, 0)
-	deleteServers()
-	Assert(t, balanace.Load(env.GetServers()), NilVal())
+	deleteServers(appConfig)
+	Assert(t, balanace.Load(*appConfig.GetServers()), NilVal())
 }
 
-func deleteServers() {
-	servers := env.GetServers()
+func deleteServers(appConfig *config.AppConfig) {
+	servers := appConfig.GetServers()
 	servers.Range(func(k, v interface{}) bool {
 		servers.Delete(k)
 		return true
 	})
 }
 
-func trySyncServerIPList() {
-	env.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
+func trySyncServerIPList(appConfig *config.AppConfig) {
+	appConfig.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
 }

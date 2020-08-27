@@ -163,8 +163,8 @@ func TestGetPlainAppConfig(t *testing.T) {
 }
 
 func TestGetServersLen(t *testing.T) {
-	servers.Store("a", "a")
-	serversLen := GetServersLen()
+	appConfig.GetServers().Store("a", "a")
+	serversLen := appConfig.GetServersLen()
 	Assert(t, serversLen, Equal(1))
 }
 
@@ -189,18 +189,18 @@ func getNotifyLen(s sync.Map) int {
 }
 
 func TestSyncServerIpListSuccessCallBack(t *testing.T) {
-	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
-	Assert(t, GetServersLen(), Equal(11))
+	appConfig.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
+	Assert(t, appConfig.GetServersLen(), Equal(11))
 }
 
 func TestSetDownNode(t *testing.T) {
 	t.SkipNow()
-	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
+	appConfig.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
 
 	downNode := "10.15.128.102:8080"
-	SetDownNode(downNode)
+	appConfig.SetDownNode(downNode)
 
-	value, ok := servers.Load("http://10.15.128.102:8080/")
+	value, ok := appConfig.GetServers().Load("http://10.15.128.102:8080/")
 	info := value.(*config.ServerInfo)
 	Assert(t, ok, Equal(true))
 	Assert(t, info.IsDown, Equal(true))

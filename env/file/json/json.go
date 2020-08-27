@@ -37,16 +37,16 @@ var (
 	configFileMap = make(map[string]string, 1)
 )
 
-//jsonFileHandler 默认备份文件读写
+// FileHandler 默认备份文件读写
 type FileHandler struct {
 }
 
-//WriteConfigFile write config to file
+// WriteConfigFile write config to file
 func (fileHandler *FileHandler) WriteConfigFile(config *env.ApolloConfig, configPath string) error {
 	return jsonFileConfig.Write(config, fileHandler.GetConfigFile(configPath, config.NamespaceName))
 }
 
-//GetConfigFile get real config file
+// GetConfigFile get real config file
 func (fileHandler *FileHandler) GetConfigFile(configDir string, namespace string) string {
 	fullPath := configFileMap[namespace]
 	if fullPath == "" {

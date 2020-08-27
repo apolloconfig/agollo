@@ -50,12 +50,12 @@ func getTestAppConfig() *config.AppConfig {
 
 func TestRequestRecovery(t *testing.T) {
 	time.Sleep(1 * time.Second)
-	mockIPList(t)
 	server := runNormalBackupConfigResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.IP = server.URL
 
 	appConfig := env.GetAppConfig(newAppConfig)
+	mockIPList(t, appConfig)
 	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
 
 	o, err := RequestRecovery(appConfig, &env.ConnectConfig{
@@ -70,12 +70,12 @@ func TestRequestRecovery(t *testing.T) {
 
 func TestHttpsRequestRecovery(t *testing.T) {
 	time.Sleep(1 * time.Second)
-	mockIPList(t)
 	server := runNormalBackupConfigResponseWithHTTPS()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.IP = server.URL
 
 	appConfig := env.GetAppConfig(newAppConfig)
+	mockIPList(t, appConfig)
 	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
 
 	o, err := RequestRecovery(appConfig, &env.ConnectConfig{
@@ -90,13 +90,13 @@ func TestHttpsRequestRecovery(t *testing.T) {
 
 func TestCustomTimeout(t *testing.T) {
 	time.Sleep(1 * time.Second)
-	mockIPList(t)
 	server := runLongTimeResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.IP = server.URL
 
 	startTime := time.Now().Unix()
 	appConfig := env.GetAppConfig(newAppConfig)
+	mockIPList(t, appConfig)
 	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
 
 	o, err := RequestRecovery(appConfig, &env.ConnectConfig{
@@ -116,14 +116,14 @@ func TestCustomTimeout(t *testing.T) {
 	Assert(t, o, NilVal())
 }
 
-func mockIPList(t *testing.T) {
+func mockIPList(t *testing.T, appConfig *config.AppConfig) {
 	time.Sleep(1 * time.Second)
 
-	_, err := env.SyncServerIPListSuccessCallBack([]byte(servicesResponseStr))
+	_, err := appConfig.SyncServerIPListSuccessCallBack([]byte(servicesResponseStr))
 
 	Assert(t, err, NilVal())
 
-	serverLen := env.GetServersLen()
+	serverLen := appConfig.GetServersLen()
 
 	Assert(t, 2, Equal(serverLen))
 }

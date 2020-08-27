@@ -32,26 +32,26 @@ import (
 	"github.com/zouyx/agollo/v4/storage"
 )
 
-type Client struct {
+type client struct {
 	initAppConfigFunc func() (*config.AppConfig, error)
 }
 
-func Create() *Client {
+func Create() *client {
 	extension.SetCacheFactory(&memory.DefaultCacheFactory{})
 	extension.SetLoadBalance(&roundrobin.RoundRobin{})
 	extension.SetFileHandler(&jsonFile.FileHandler{})
 	extension.SetHTTPAuth(&sign.AuthSignature{})
 	storage.InitConfigCache()
-	return &Client{}
+	return &client{}
 }
 
-func (c *Client) Start() error {
+func (c *client) Start() error {
 	return c.StartWithConfig(nil)
 }
 
-func (c *Client) StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) error {
+func (c *client) StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) error {
 	// 有了配置之后才能进行初始化
-	if err := env.InitConfig(loadAppConfig); err != nil {
+	if _, err := env.InitConfig(loadAppConfig); err != nil {
 		return err
 	}
 

@@ -39,9 +39,8 @@ func trySyncServerIPList(t *testing.T) {
 
 	Assert(t, err, NilVal())
 
-	servers := env.GetServers()
 	serverLen := 0
-	servers.Range(func(k, v interface{}) bool {
+	newAppConfig.GetServers().Range(func(k, v interface{}) bool {
 		serverLen++
 		return true
 	})

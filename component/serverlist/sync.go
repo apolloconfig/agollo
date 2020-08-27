@@ -75,7 +75,7 @@ func SyncServerIPList(newAppConfig *config.AppConfig) error {
 		AppID:  appConfig.AppID,
 		Secret: appConfig.Secret,
 	}, &http.CallBack{
-		SuccessCallBack: env.SyncServerIPListSuccessCallBack,
+		SuccessCallBack: appConfig.SyncServerIPListSuccessCallBack,
 	})
 
 	return err
