@@ -65,13 +65,12 @@ func (s *SyncServerIPListComponent) Start() {
 //then
 //1.update agcache
 //2.store in disk
-func SyncServerIPList(newAppConfig *config.AppConfig) error {
-	appConfig := env.GetAppConfig(newAppConfig)
+func SyncServerIPList(appConfig *config.AppConfig) error {
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}
 
-	_, err := http.Request(env.GetServicesConfigURL(appConfig), &env.ConnectConfig{
+	_, err := http.Request(appConfig.GetServicesConfigURL(), &env.ConnectConfig{
 		AppID:  appConfig.AppID,
 		Secret: appConfig.Secret,
 	}, &http.CallBack{

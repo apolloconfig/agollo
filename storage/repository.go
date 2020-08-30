@@ -19,6 +19,7 @@ package storage
 
 import (
 	"fmt"
+	"github.com/zouyx/agollo/v4/env/config"
 	"reflect"
 	"strconv"
 	"sync"
@@ -40,22 +41,38 @@ const (
 	propertiesFormat = "%s=%v\n"
 )
 
-var (
-	//config from apollo
+type Cache struct {
 	apolloConfigCache sync.Map
-)
+}
+
+//GetConfig 根据namespace获取apollo配置
+func (c *Cache) GetConfig(namespace string) *Config {
+	if namespace == "" {
+		return nil
+	}
+
+	config, ok := c.apolloConfigCache.Load(namespace)
+
+	if !ok {
+		return nil
+	}
+
+	return config.(*Config)
+}
 
 //InitConfigCache 获取程序配置初始化agollo内润配置
-func InitConfigCache() {
-	if env.GetPlainAppConfig() == nil {
+func InitConfigCache(config *config.AppConfig) *Cache {
+	if config == nil {
 		log.Warn("Config is nil,can not init agollo.")
-		return
+		return nil
 	}
-	CreateNamespaceConfig(env.GetPlainAppConfig().NamespaceName)
+	return CreateNamespaceConfig(config.NamespaceName)
 }
 
 //CreateNamespaceConfig 根据namespace初始化agollo内润配置
-func CreateNamespaceConfig(namespace string) {
+func CreateNamespaceConfig(namespace string) *Cache {
+	//config from apollo
+	var apolloConfigCache sync.Map
 	env.SplitNamespaces(namespace, func(namespace string) {
 		if _, ok := apolloConfigCache.Load(namespace); ok {
 			return
@@ -63,6 +80,9 @@ func CreateNamespaceConfig(namespace string) {
 		c := initConfig(namespace, extension.GetCacheFactory())
 		apolloConfigCache.Store(namespace, c)
 	})
+	return &Cache{
+		apolloConfigCache,
+	}
 }
 
 func initConfig(namespace string, factory agcache.CacheFactory) *Config {
@@ -205,7 +225,7 @@ func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
 
 //UpdateApolloConfig 根据config server返回的内容更新内存
 //并判断是否需要写备份文件
-func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
+func (c *Cache) UpdateApolloConfig(apolloConfig *env.ApolloConfig, appConfig *config.AppConfig, isBackupConfig bool) {
 	if apolloConfig == nil {
 		log.Error("apolloConfig is null,can't update!")
 		return
@@ -215,7 +235,7 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 	env.SetCurrentApolloConfig(apolloConfig.NamespaceName, &apolloConfig.ApolloConnConfig)
 
 	//get change list
-	changeList := UpdateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime, apolloConfig.NamespaceName)
+	changeList := c.UpdateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime, apolloConfig.NamespaceName)
 
 	//push all newest changes
 	pushNewestChanges(apolloConfig.NamespaceName, apolloConfig.Configurations)
@@ -230,16 +250,16 @@ func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
 
 	if isBackupConfig {
 		//write config file async
-		go extension.GetFileHandler().WriteConfigFile(apolloConfig, env.GetPlainAppConfig().GetBackupConfigPath())
+		go extension.GetFileHandler().WriteConfigFile(apolloConfig, appConfig.GetBackupConfigPath())
 	}
 }
 
 //UpdateApolloConfigCache 根据conf[ig server返回的内容更新内存
-func UpdateApolloConfigCache(configurations map[string]interface{}, expireTime int, namespace string) map[string]*ConfigChange {
-	config := GetConfig(namespace)
+func (c *Cache) UpdateApolloConfigCache(configurations map[string]interface{}, expireTime int, namespace string) map[string]*ConfigChange {
+	config := c.GetConfig(namespace)
 	if config == nil {
 		config = initConfig(namespace, extension.GetCacheFactory())
-		apolloConfigCache.Store(namespace, config)
+		c.apolloConfigCache.Store(namespace, config)
 	}
 
 	isInit := false
@@ -321,27 +341,7 @@ func convertToProperties(cache agcache.CacheInterface) string {
 	return properties
 }
 
-//GetApolloConfigCache 获取默认namespace的apollo配置
-func GetApolloConfigCache() *sync.Map {
-	return &apolloConfigCache
-}
-
 //GetDefaultNamespace 获取默认命名空间
 func GetDefaultNamespace() string {
 	return defaultNamespace
-}
-
-//GetConfig 根据namespace获取apollo配置
-func GetConfig(namespace string) *Config {
-	if namespace == "" {
-		return nil
-	}
-
-	config, ok := GetApolloConfigCache().Load(namespace)
-
-	if !ok {
-		return nil
-	}
-
-	return config.(*Config)
 }

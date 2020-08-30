@@ -34,6 +34,7 @@ import (
 
 type client struct {
 	initAppConfigFunc func() (*config.AppConfig, error)
+	appConfig         *config.AppConfig
 }
 
 func Create() *client {
@@ -41,8 +42,12 @@ func Create() *client {
 	extension.SetLoadBalance(&roundrobin.RoundRobin{})
 	extension.SetFileHandler(&jsonFile.FileHandler{})
 	extension.SetHTTPAuth(&sign.AuthSignature{})
-	storage.InitConfigCache()
-	return &client{}
+	appConfig := env.InitFileConfig()
+	storage.InitConfigCache(appConfig)
+
+	return &client{
+		appConfig: appConfig,
+	}
 }
 
 func (c *client) Start() error {

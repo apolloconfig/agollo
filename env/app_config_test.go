@@ -87,7 +87,7 @@ var (
 )
 
 func TestInit(t *testing.T) {
-	config := GetAppConfig(nil)
+	config := InitFileConfig()
 	time.Sleep(1 * time.Second)
 
 	Assert(t, config, NotNilVal())
@@ -106,7 +106,7 @@ func TestInit(t *testing.T) {
 
 func TestGetServicesConfigUrl(t *testing.T) {
 	appConfig := getTestAppConfig()
-	url := GetServicesConfigURL(appConfig)
+	url := appConfig.GetServicesConfigURL()
 	ip := utils.GetInternal()
 	Assert(t, "http://localhost:8888/services/config?appId=test&ip="+ip, Equal(url))
 }
@@ -157,12 +157,8 @@ func TestLoadEnvConfig(t *testing.T) {
 	os.Remove(envConfigFile)
 }
 
-func TestGetPlainAppConfig(t *testing.T) {
-	plainAppConfig := GetPlainAppConfig()
-	Assert(t, plainAppConfig, NotNilVal())
-}
-
 func TestGetServersLen(t *testing.T) {
+	appConfig := getTestAppConfig()
 	appConfig.GetServers().Store("a", "a")
 	serversLen := appConfig.GetServersLen()
 	Assert(t, serversLen, Equal(1))
@@ -189,12 +185,14 @@ func getNotifyLen(s sync.Map) int {
 }
 
 func TestSyncServerIpListSuccessCallBack(t *testing.T) {
+	appConfig := getTestAppConfig()
 	appConfig.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
-	Assert(t, appConfig.GetServersLen(), Equal(11))
+	Assert(t, appConfig.GetServersLen(), Equal(10))
 }
 
 func TestSetDownNode(t *testing.T) {
 	t.SkipNow()
+	appConfig := getTestAppConfig()
 	appConfig.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
 
 	downNode := "10.15.128.102:8080"

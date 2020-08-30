@@ -80,7 +80,7 @@ const servicesConfigResponseStr = `[{
 func TestSelectHost(t *testing.T) {
 	balanace := &RoundRobin{}
 
-	appConfig := env.GetPlainAppConfig()
+	appConfig := env.InitFileConfig()
 	//mock ip data
 	trySyncServerIPList(appConfig)
 

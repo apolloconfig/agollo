@@ -52,7 +52,7 @@ const configAbc1ResponseStr = `{
 //run mock config server
 func runMockConfigServer(handlerMap map[string]func(http.ResponseWriter, *http.Request),
 	notifyHandler func(http.ResponseWriter, *http.Request)) *httptest.Server {
-	appConfig := env.GetPlainAppConfig()
+	appConfig := env.InitFileConfig()
 	uriHandlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 0)
 	for namespace, handler := range handlerMap {
 		uri := fmt.Sprintf("/configs/%s/%s/%s", appConfig.AppID, appConfig.Cluster, namespace)

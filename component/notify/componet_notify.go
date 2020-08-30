@@ -23,7 +23,6 @@ import (
 	"github.com/zouyx/agollo/v4/constant"
 	"net/url"
 	"path"
-	"sync"
 	"time"
 
 	"github.com/zouyx/agollo/v4/component"
@@ -45,95 +44,12 @@ const (
 	//同步链接时间
 	syncNofityConnectTimeout = 3 * time.Second //3s
 
-	defaultNotificationId = int64(-1)
-
 	defaultContentKey = "content"
 )
 
-var (
-	allNotifications *notificationsMap
-)
-
-type notification struct {
-	NamespaceName  string `json:"namespaceName"`
-	NotificationID int64  `json:"notificationId"`
-}
-
-// map[string]int64
-type notificationsMap struct {
-	notifications sync.Map
-}
-
-type apolloNotify struct {
-	NotificationID int64  `json:"notificationId"`
-	NamespaceName  string `json:"namespaceName"`
-}
-
-//InitAllNotifications 初始化notificationsMap
-func InitAllNotifications(callback func(namespace string)) {
-	appConfig := env.GetPlainAppConfig()
-	ns := env.SplitNamespaces(appConfig.NamespaceName, callback)
-	allNotifications = &notificationsMap{
-		notifications: ns,
-	}
-}
-
-func (n *notificationsMap) setNotify(namespaceName string, notificationID int64) {
-	n.notifications.Store(namespaceName, notificationID)
-}
-
-func (n *notificationsMap) getNotify(namespace string) int64 {
-	value, ok := n.notifications.Load(namespace)
-	if !ok || value == nil {
-		return 0
-	}
-	return value.(int64)
-}
-
-func (n *notificationsMap) GetNotifyLen() int {
-	s := n.notifications
-	l := 0
-	s.Range(func(k, v interface{}) bool {
-		l++
-		return true
-	})
-	return l
-}
-
-func (n *notificationsMap) getNotifies(namespace string) string {
-	notificationArr := make([]*notification, 0)
-	if namespace == "" {
-		n.notifications.Range(func(key, value interface{}) bool {
-			namespaceName := key.(string)
-			notificationID := value.(int64)
-			notificationArr = append(notificationArr,
-				&notification{
-					NamespaceName:  namespaceName,
-					NotificationID: notificationID,
-				})
-			return true
-		})
-	} else {
-		notify, _ := n.notifications.LoadOrStore(namespace, defaultNotificationId)
-
-		notificationArr = append(notificationArr,
-			&notification{
-				NamespaceName:  namespace,
-				NotificationID: notify.(int64),
-			})
-	}
-
-	j, err := json.Marshal(notificationArr)
-
-	if err != nil {
-		return ""
-	}
-
-	return string(j)
-}
-
 //ConfigComponent 配置组件
 type ConfigComponent struct {
+	appConfig *config.AppConfig
 }
 
 //Start 启动配置组件定时器
@@ -143,33 +59,32 @@ func (c *ConfigComponent) Start() {
 	for {
 		select {
 		case <-t2.C:
-			AsyncConfigs()
+			AsyncConfigs(c.appConfig)
 			t2.Reset(longPollInterval)
 		}
 	}
 }
 
 //AsyncConfigs 异步同步所有配置文件中配置的namespace配置
-func AsyncConfigs() error {
-	return syncConfigs(utils.Empty, true)
+func AsyncConfigs(appConfig *config.AppConfig) error {
+	return syncConfigs(utils.Empty, true, appConfig)
 }
 
 //SyncConfigs 同步同步所有配置文件中配置的namespace配置
-func SyncConfigs() error {
-	return syncConfigs(utils.Empty, false)
+func SyncConfigs(appConfig *config.AppConfig) error {
+	return syncConfigs(utils.Empty, false, appConfig)
 }
 
 //SyncNamespaceConfig 同步同步一个指定的namespace配置
-func SyncNamespaceConfig(namespace string) error {
-	return syncConfigs(namespace, false)
+func SyncNamespaceConfig(namespace string, appConfig *config.AppConfig) error {
+	return syncConfigs(namespace, false, appConfig)
 }
 
-func syncConfigs(namespace string, isAsync bool) error {
+func syncConfigs(namespace string, isAsync bool, appConfig *config.AppConfig) error {
 
 	remoteConfigs, err := notifyRemoteConfig(nil, namespace, isAsync)
 
 	if err != nil || len(remoteConfigs) == 0 {
-		appConfig := env.GetPlainAppConfig()
 		loadBackupConfig(appConfig.NamespaceName, appConfig)
 	}
 
@@ -180,7 +95,7 @@ func syncConfigs(namespace string, isAsync bool) error {
 		return fmt.Errorf("notifySyncConfigServices: empty remote config")
 	}
 
-	updateAllNotifications(remoteConfigs)
+	appConfig.GetNotificationsMap().UpdateAllNotifications(remoteConfigs)
 
 	//sync all config
 	err = AutoSyncConfigServices(nil)
@@ -190,7 +105,6 @@ func syncConfigs(namespace string, isAsync bool) error {
 			return nil
 		}
 		//first sync fail then load config file
-		appConfig := env.GetPlainAppConfig()
 		loadBackupConfig(appConfig.NamespaceName, appConfig)
 	}
 
@@ -207,8 +121,8 @@ func loadBackupConfig(namespace string, appConfig *config.AppConfig) {
 	})
 }
 
-func toApolloConfig(resBody []byte) ([]*apolloNotify, error) {
-	remoteConfig := make([]*apolloNotify, 0)
+func toApolloConfig(resBody []byte) ([]*config.Notification, error) {
+	remoteConfig := make([]*config.Notification, 0)
 
 	err := json.Unmarshal(resBody, &remoteConfig)
 
@@ -219,12 +133,11 @@ func toApolloConfig(resBody []byte) ([]*apolloNotify, error) {
 	return remoteConfig, nil
 }
 
-func notifyRemoteConfig(newAppConfig *config.AppConfig, namespace string, isAsync bool) ([]*apolloNotify, error) {
-	appConfig := env.GetAppConfig(newAppConfig)
+func notifyRemoteConfig(appConfig *config.AppConfig, namespace string, isAsync bool) ([]*config.Notification, error) {
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}
-	urlSuffix := getNotifyURLSuffix(allNotifications.getNotifies(namespace), appConfig, newAppConfig)
+	urlSuffix := getNotifyURLSuffix(appConfig.GetNotificationsMap().GetNotifies(namespace), appConfig)
 
 	//seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
 
@@ -250,23 +163,10 @@ func notifyRemoteConfig(newAppConfig *config.AppConfig, namespace string, isAsyn
 		return nil, err
 	}
 
-	return notifies.([]*apolloNotify), err
+	return notifies.([]*config.Notification), err
 }
 func touchApolloConfigCache() error {
 	return nil
-}
-
-func updateAllNotifications(remoteConfigs []*apolloNotify) {
-	for _, remoteConfig := range remoteConfigs {
-		if remoteConfig.NamespaceName == "" {
-			continue
-		}
-		if allNotifications.getNotify(remoteConfig.NamespaceName) == 0 {
-			continue
-		}
-
-		allNotifications.setNotify(remoteConfig.NamespaceName, remoteConfig.NotificationID)
-	}
 }
 
 //AutoSyncConfigServicesSuccessCallBack 同步配置回调
@@ -313,17 +213,16 @@ func createApolloConfigWithJSON(b []byte) (*env.ApolloConfig, error) {
 
 //AutoSyncConfigServices 自动同步配置
 func AutoSyncConfigServices(newAppConfig *config.AppConfig) error {
-	return autoSyncNamespaceConfigServices(newAppConfig, allNotifications)
+	return autoSyncNamespaceConfigServices(newAppConfig)
 }
 
-func autoSyncNamespaceConfigServices(newAppConfig *config.AppConfig, allNotifications *notificationsMap) error {
-	appConfig := env.GetAppConfig(newAppConfig)
+func autoSyncNamespaceConfigServices(appConfig *config.AppConfig) error {
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}
 
 	var err error
-	allNotifications.notifications.Range(func(key, value interface{}) bool {
+	appConfig.GetNotificationsMap().GetNotifications().Range(func(key, value interface{}) bool {
 		namespace := key.(string)
 		urlSuffix := component.GetConfigURLSuffix(appConfig, namespace)
 
@@ -343,13 +242,9 @@ func autoSyncNamespaceConfigServices(newAppConfig *config.AppConfig, allNotifica
 	return err
 }
 
-func getNotifyURLSuffix(notifications string, config *config.AppConfig, newConfig *config.AppConfig) string {
-	c := config
-	if newConfig != nil {
-		c = newConfig
-	}
+func getNotifyURLSuffix(notifications string, config *config.AppConfig) string {
 	return fmt.Sprintf("notifications/v2?appId=%s&cluster=%s&notifications=%s",
-		url.QueryEscape(c.AppID),
-		url.QueryEscape(c.Cluster),
+		url.QueryEscape(config.AppID),
+		url.QueryEscape(config.Cluster),
 		url.QueryEscape(notifications))
 }

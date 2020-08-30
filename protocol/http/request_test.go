@@ -19,6 +19,8 @@ package http
 
 import (
 	"fmt"
+	"github.com/zouyx/agollo/v4/cluster/roundrobin"
+	"github.com/zouyx/agollo/v4/extension"
 	"net/url"
 	"testing"
 	"time"
@@ -29,6 +31,10 @@ import (
 	"github.com/zouyx/agollo/v4/env/config/json"
 	"github.com/zouyx/agollo/v4/utils"
 )
+
+func init() {
+	extension.SetLoadBalance(&roundrobin.RoundRobin{})
+}
 
 var (
 	jsonConfigFile = &json.ConfigFile{}
@@ -51,15 +57,15 @@ func getTestAppConfig() *config.AppConfig {
 func TestRequestRecovery(t *testing.T) {
 	time.Sleep(1 * time.Second)
 	server := runNormalBackupConfigResponse()
-	newAppConfig := getTestAppConfig()
-	newAppConfig.IP = server.URL
+	appConfig := getTestAppConfig()
+	appConfig.IP = server.URL
 
-	appConfig := env.GetAppConfig(newAppConfig)
 	mockIPList(t, appConfig)
-	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
+	urlSuffix := getConfigURLSuffix(appConfig, appConfig.NamespaceName)
 
 	o, err := RequestRecovery(appConfig, &env.ConnectConfig{
-		URI: urlSuffix,
+		URI:     urlSuffix,
+		IsRetry: true,
 	}, &CallBack{
 		SuccessCallBack: nil,
 	})
@@ -71,15 +77,15 @@ func TestRequestRecovery(t *testing.T) {
 func TestHttpsRequestRecovery(t *testing.T) {
 	time.Sleep(1 * time.Second)
 	server := runNormalBackupConfigResponseWithHTTPS()
-	newAppConfig := getTestAppConfig()
-	newAppConfig.IP = server.URL
+	appConfig := getTestAppConfig()
+	appConfig.IP = server.URL
 
-	appConfig := env.GetAppConfig(newAppConfig)
 	mockIPList(t, appConfig)
-	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
+	urlSuffix := getConfigURLSuffix(appConfig, appConfig.NamespaceName)
 
 	o, err := RequestRecovery(appConfig, &env.ConnectConfig{
-		URI: urlSuffix,
+		URI:     urlSuffix,
+		IsRetry: true,
 	}, &CallBack{
 		SuccessCallBack: nil,
 	})
@@ -91,13 +97,12 @@ func TestHttpsRequestRecovery(t *testing.T) {
 func TestCustomTimeout(t *testing.T) {
 	time.Sleep(1 * time.Second)
 	server := runLongTimeResponse()
-	newAppConfig := getTestAppConfig()
-	newAppConfig.IP = server.URL
+	appConfig := getTestAppConfig()
+	appConfig.IP = server.URL
 
 	startTime := time.Now().Unix()
-	appConfig := env.GetAppConfig(newAppConfig)
 	mockIPList(t, appConfig)
-	urlSuffix := getConfigURLSuffix(appConfig, newAppConfig.NamespaceName)
+	urlSuffix := getConfigURLSuffix(appConfig, appConfig.NamespaceName)
 
 	o, err := RequestRecovery(appConfig, &env.ConnectConfig{
 		URI:     urlSuffix,
@@ -111,7 +116,7 @@ func TestCustomTimeout(t *testing.T) {
 	t.Log("start time:", startTime)
 	t.Log("endTime:", endTime)
 	t.Log("duration:", duration)
-	Assert(t, int64(10), Equal(duration))
+	Assert(t, int64(11), Equal(duration))
 	Assert(t, err, NilVal())
 	Assert(t, o, NilVal())
 }

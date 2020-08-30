@@ -19,7 +19,11 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/zouyx/agollo/v4/component/log"
+	"github.com/zouyx/agollo/v4/env"
+	"github.com/zouyx/agollo/v4/utils"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -28,6 +32,8 @@ import (
 var (
 	//next try connect period - 60 second
 	nextTryConnectPeriod int64 = 60
+
+	defaultNotificationId = int64(-1)
 )
 
 //File 读写配置文件
@@ -48,7 +54,8 @@ type AppConfig struct {
 	BackupConfigPath string `json:"backupConfigPath"`
 	Secret           string `json:"secret"`
 	//real servers ip
-	servers sync.Map
+	servers          sync.Map
+	notificationsMap *notificationsMap
 }
 
 //ServerInfo 服务器信息
@@ -80,6 +87,100 @@ func (a *AppConfig) GetHost() string {
 		return a.IP
 	}
 	return "http://" + a.IP + "/"
+}
+
+type Notification struct {
+	NamespaceName  string `json:"namespaceName"`
+	NotificationID int64  `json:"notificationId"`
+}
+
+// InitAllNotifications 初始化notificationsMap
+func (a *AppConfig) InitAllNotifications(callback func(namespace string)) {
+	ns := env.SplitNamespaces(a.NamespaceName, callback)
+	a.notificationsMap = &notificationsMap{
+		notifications: ns,
+	}
+}
+
+// GetNotifications 获取notificationsMap
+func (a *AppConfig) GetNotificationsMap() *notificationsMap {
+	return a.notificationsMap
+}
+
+// map[string]int64
+type notificationsMap struct {
+	notifications sync.Map
+}
+
+func (n *notificationsMap) UpdateAllNotifications(remoteConfigs []*Notification) {
+	for _, remoteConfig := range remoteConfigs {
+		if remoteConfig.NamespaceName == "" {
+			continue
+		}
+		if n.GetNotify(remoteConfig.NamespaceName) == 0 {
+			continue
+		}
+
+		n.setNotify(remoteConfig.NamespaceName, remoteConfig.NotificationID)
+	}
+}
+
+func (n *notificationsMap) setNotify(namespaceName string, notificationID int64) {
+	n.notifications.Store(namespaceName, notificationID)
+}
+
+func (n *notificationsMap) GetNotify(namespace string) int64 {
+	value, ok := n.notifications.Load(namespace)
+	if !ok || value == nil {
+		return 0
+	}
+	return value.(int64)
+}
+
+func (n *notificationsMap) GetNotifyLen() int {
+	s := n.notifications
+	l := 0
+	s.Range(func(k, v interface{}) bool {
+		l++
+		return true
+	})
+	return l
+}
+
+func (n *notificationsMap) GetNotifications() sync.Map {
+	return n.notifications
+}
+
+func (n *notificationsMap) GetNotifies(namespace string) string {
+	notificationArr := make([]*Notification, 0)
+	if namespace == "" {
+		n.notifications.Range(func(key, value interface{}) bool {
+			namespaceName := key.(string)
+			notificationID := value.(int64)
+			notificationArr = append(notificationArr,
+				&Notification{
+					NamespaceName:  namespaceName,
+					NotificationID: notificationID,
+				})
+			return true
+		})
+	} else {
+		notify, _ := n.notifications.LoadOrStore(namespace, defaultNotificationId)
+
+		notificationArr = append(notificationArr,
+			&Notification{
+				NamespaceName:  namespace,
+				NotificationID: notify.(int64),
+			})
+	}
+
+	j, err := json.Marshal(notificationArr)
+
+	if err != nil {
+		return ""
+	}
+
+	return string(j)
 }
 
 //SetNextTryConnTime if this connect is fail will set this time
@@ -160,4 +261,12 @@ func (a *AppConfig) GetServersLen() int {
 		return true
 	})
 	return l
+}
+
+//GetServicesConfigURL 获取服务器列表url
+func (a *AppConfig) GetServicesConfigURL() string {
+	return fmt.Sprintf("%sservices/config?appId=%s&ip=%s",
+		a.GetHost(),
+		url.QueryEscape(a.AppID),
+		utils.GetInternal())
 }

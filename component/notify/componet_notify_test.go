@@ -22,7 +22,6 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
@@ -64,7 +63,7 @@ func initMockNotifyAndConfigServer() {
 	handlerMap["application"] = onlyNormalConfigResponse
 	handlerMap["abc1"] = onlyNormalTwoConfigResponse
 	server := runMockConfigServer(handlerMap, onlyNormalResponse)
-	appConfig := env.GetPlainAppConfig()
+	appConfig := env.InitFileConfig()
 	env.InitConfig(func() (*config.AppConfig, error) {
 		appConfig.IP = server.URL
 		appConfig.NextTryConnTime = 0
@@ -74,8 +73,8 @@ func initMockNotifyAndConfigServer() {
 
 func TestSyncConfigServices(t *testing.T) {
 	initMockNotifyAndConfigServer()
-
-	err := AsyncConfigs()
+	appConfig := env.InitFileConfig()
+	err := AsyncConfigs(appConfig)
 	//err keep nil
 	Assert(t, err, NilVal())
 }
@@ -85,7 +84,7 @@ func TestGetRemoteConfig(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	var remoteConfigs []*apolloNotify
+	var remoteConfigs []*config.Notification
 	var err error
 	remoteConfigs, err = notifyRemoteConfig(nil, EMPTY, isAsync)
 
@@ -107,7 +106,7 @@ func TestGetRemoteConfig(t *testing.T) {
 func TestErrorGetRemoteConfig(t *testing.T) {
 	//clear
 	initNotifications()
-	appConfig := env.GetPlainAppConfig()
+	appConfig := env.InitFileConfig()
 	server := runErrorResponse()
 	appConfig.IP = server.URL
 	env.InitConfig(func() (*config.AppConfig, error) {
@@ -118,7 +117,7 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	var remoteConfigs []*apolloNotify
+	var remoteConfigs []*config.Notification
 	var err error
 	remoteConfigs, err = notifyRemoteConfig(nil, EMPTY, isAsync)
 
@@ -131,17 +130,16 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 	Assert(t, "over Max Retry Still Error", Equal(err.Error()))
 }
 
-func initNotifications() {
-	allNotifications = &notificationsMap{
-		notifications: sync.Map{},
-	}
-	allNotifications.setNotify("application", -1)
-	allNotifications.setNotify("abc1", -1)
+func initNotifications() *config.AppConfig {
+	appConfig := env.InitFileConfig()
+	appConfig.NamespaceName = "application,abc1"
+	appConfig.InitAllNotifications(nil)
+	return appConfig
 }
 
 func TestUpdateAllNotifications(t *testing.T) {
 	//clear
-	initNotifications()
+	c := initNotifications()
 
 	notifyJson := `[
   {
@@ -149,36 +147,34 @@ func TestUpdateAllNotifications(t *testing.T) {
     "notificationId": 101
   }
 ]`
-	notifies := make([]*apolloNotify, 0)
+	notifies := make([]*config.Notification, 0)
 
 	err := json.Unmarshal([]byte(notifyJson), &notifies)
 
 	Assert(t, err, NilVal())
 	Assert(t, true, Equal(len(notifies) > 0))
 
-	updateAllNotifications(notifies)
+	c.GetNotificationsMap().UpdateAllNotifications(notifies)
 
-	Assert(t, true, Equal(allNotifications.GetNotifyLen() > 0))
-	Assert(t, int64(101), Equal(allNotifications.getNotify("application")))
+	Assert(t, true, Equal(c.GetNotificationsMap().GetNotifyLen() > 0))
+	Assert(t, int64(101), Equal(c.GetNotificationsMap().GetNotify("application")))
 }
 
 func TestUpdateAllNotificationsError(t *testing.T) {
 	//clear
-	allNotifications = &notificationsMap{
-		notifications: sync.Map{},
-	}
+	appConfig := env.InitFileConfig()
 
 	notifyJson := `ffffff`
-	notifies := make([]*apolloNotify, 0)
+	notifies := make([]*config.Notification, 0)
 
 	err := json.Unmarshal([]byte(notifyJson), &notifies)
 
 	Assert(t, err, NotNilVal())
 	Assert(t, true, Equal(len(notifies) == 0))
 
-	updateAllNotifications(notifies)
+	appConfig.GetNotificationsMap().UpdateAllNotifications(notifies)
 
-	Assert(t, true, Equal(allNotifications.GetNotifyLen() == 0))
+	Assert(t, true, Equal(appConfig.GetNotificationsMap().GetNotifyLen() == 0))
 }
 
 func TestToApolloConfigError(t *testing.T) {
@@ -189,14 +185,14 @@ func TestToApolloConfigError(t *testing.T) {
 }
 
 func TestAutoSyncConfigServices(t *testing.T) {
-	initNotifications()
+	appConfig := initNotifications()
 	server := runNormalConfigResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.IP = server.URL
 
 	time.Sleep(1 * time.Second)
 
-	env.GetPlainAppConfig().NextTryConnTime = 0
+	appConfig.NextTryConnTime = 0
 
 	err := AutoSyncConfigServices(newAppConfig)
 	err = AutoSyncConfigServices(newAppConfig)
@@ -214,11 +210,10 @@ func TestAutoSyncConfigServices(t *testing.T) {
 }
 
 func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
-	initNotifications()
+	appConfig := initNotifications()
 	server := runNormalConfigResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.IP = server.URL
-	appConfig := env.GetPlainAppConfig()
 	appConfig.IsBackupConfig = false
 	configFilePath := extension.GetFileHandler().GetConfigFile(newAppConfig.GetBackupConfigPath(), "application")
 	err := os.Remove(configFilePath)
@@ -235,7 +230,7 @@ func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
 }
 
 func checkNilBackupFile(t *testing.T) {
-	appConfig := env.GetPlainAppConfig()
+	appConfig := env.InitFileConfig()
 	newConfig, e := extension.GetFileHandler().LoadConfigFile(appConfig.GetBackupConfigPath(), "application")
 	Assert(t, e, NotNilVal())
 	Assert(t, newConfig, NilVal())

@@ -19,8 +19,6 @@ package env
 
 import (
 	"encoding/json"
-	"fmt"
-	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -42,14 +40,14 @@ const (
 )
 
 var (
-	//appconfig
-	appConfig *config.AppConfig
+	executeConfigFileOnce sync.Once
+	configFileExecutor    config.File
 )
 
 //InitFileConfig 使用文件初始化配置
 func InitFileConfig() *config.AppConfig {
 	// default use application.properties
-	if initConfig, err := InitConfig(nil); err != nil {
+	if initConfig, err := InitConfig(nil); err == nil {
 		return initConfig
 	}
 	return nil
@@ -90,30 +88,6 @@ func getLoadAppConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.
 
 	return c.(*config.AppConfig), e
 }
-
-//GetAppConfig 获取app配置
-func GetAppConfig(newAppConfig *config.AppConfig) *config.AppConfig {
-	if newAppConfig != nil {
-		return newAppConfig
-	}
-	return appConfig
-}
-
-//GetServicesConfigURL 获取服务器列表url
-func GetServicesConfigURL(config *config.AppConfig) string {
-	return fmt.Sprintf("%sservices/config?appId=%s&ip=%s",
-		config.GetHost(),
-		url.QueryEscape(config.AppID),
-		utils.GetInternal())
-}
-
-//GetPlainAppConfig 获取原始配置
-func GetPlainAppConfig() *config.AppConfig {
-	return appConfig
-}
-
-var executeConfigFileOnce sync.Once
-var configFileExecutor config.File
 
 //GetConfigFileExecutor 获取文件执行器
 func GetConfigFileExecutor() config.File {

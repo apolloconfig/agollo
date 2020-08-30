@@ -21,12 +21,16 @@ import (
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
-	_ "github.com/zouyx/agollo/v4/cluster/roundrobin"
+	"github.com/zouyx/agollo/v4/cluster/roundrobin"
 	"github.com/zouyx/agollo/v4/env"
 	"github.com/zouyx/agollo/v4/env/config"
 	"github.com/zouyx/agollo/v4/env/config/json"
 	"github.com/zouyx/agollo/v4/extension"
 )
+
+func init() {
+	extension.SetLoadBalance(&roundrobin.RoundRobin{})
+}
 
 const servicesConfigResponseStr = `[{
 "appName": "APOLLO-CONFIGSERVICE",
@@ -85,7 +89,7 @@ var (
 )
 
 func TestSelectOnlyOneHost(t *testing.T) {
-	appConfig := env.GetPlainAppConfig()
+	appConfig := env.InitFileConfig()
 	trySyncServerIPList(appConfig)
 	host := "http://localhost:8888/"
 	Assert(t, host, Equal(appConfig.GetHost()))

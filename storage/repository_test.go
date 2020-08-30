@@ -18,6 +18,9 @@
 package storage
 
 import (
+	"github.com/zouyx/agollo/v4/agcache/memory"
+	jsonFile "github.com/zouyx/agollo/v4/env/file/json"
+	"github.com/zouyx/agollo/v4/extension"
 	"strings"
 	"testing"
 	"time"
@@ -33,20 +36,27 @@ import (
 
 //init param
 func init() {
+	extension.SetCacheFactory(&memory.DefaultCacheFactory{})
+	extension.SetFileHandler(&jsonFile.FileHandler{})
 }
 
-func creatTestApolloConfig(configurations map[string]interface{}, namespace string) {
+func creatTestApolloConfig(configurations map[string]interface{}, namespace string) *Cache {
+	c := &Cache{}
+	appConfig := env.InitFileConfig()
 	apolloConfig := &env.ApolloConfig{}
 	apolloConfig.NamespaceName = namespace
 	apolloConfig.AppID = "test"
 	apolloConfig.Cluster = "dev"
 	apolloConfig.Configurations = configurations
-	UpdateApolloConfig(apolloConfig, true)
+	c.UpdateApolloConfig(apolloConfig, appConfig, true)
+	return c
 
 }
 
 func TestUpdateApolloConfigNull(t *testing.T) {
 	time.Sleep(1 * time.Second)
+	c := &Cache{}
+	appConfig := env.InitFileConfig()
 
 	configurations := make(map[string]interface{})
 	configurations["string"] = "string"
@@ -60,7 +70,7 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 	apolloConfig.AppID = "test"
 	apolloConfig.Cluster = "dev"
 	apolloConfig.Configurations = configurations
-	UpdateApolloConfig(apolloConfig, true)
+	c.UpdateApolloConfig(apolloConfig, appConfig, true)
 
 	currentConnApolloConfig := env.GetCurrentApolloConfig()
 	config := currentConnApolloConfig[defaultNamespace]
@@ -72,11 +82,6 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 	Assert(t, "", Equal(config.ReleaseKey))
 	Assert(t, len(apolloConfig.Configurations), Equal(5))
 
-}
-
-func TestGetApolloConfigCache(t *testing.T) {
-	cache := GetApolloConfigCache()
-	Assert(t, cache, NotNilVal())
 }
 
 func TestGetDefaultNamespace(t *testing.T) {
@@ -93,8 +98,8 @@ func TestGetConfig(t *testing.T) {
 	configurations["sliceString"] = []string{"1", "2", "3"}
 	configurations["sliceInt"] = []int{1, 2, 3}
 	configurations["sliceInter"] = []interface{}{1, "2", 3}
-	creatTestApolloConfig(configurations, "test")
-	config := GetConfig("test")
+	c := creatTestApolloConfig(configurations, "test")
+	config := c.GetConfig("test")
 	Assert(t, config, NotNilVal())
 
 	//string
