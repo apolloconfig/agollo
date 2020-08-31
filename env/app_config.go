@@ -20,7 +20,6 @@ package env
 import (
 	"encoding/json"
 	"os"
-	"strings"
 	"sync"
 
 	"github.com/zouyx/agollo/v4/env/config"
@@ -31,9 +30,6 @@ import (
 const (
 	appConfigFile     = "app.properties"
 	appConfigFilePath = "AGOLLO_CONF"
-
-	defaultNotificationID = int64(-1)
-	comma                 = ","
 
 	defaultCluster   = "default"
 	defaultNamespace = "application"
@@ -57,19 +53,6 @@ func InitFileConfig() *config.AppConfig {
 func InitConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.AppConfig, error) {
 	//init config file
 	return getLoadAppConfig(loadAppConfig)
-}
-
-//SplitNamespaces 根据namespace字符串分割后，并执行callback函数
-func SplitNamespaces(namespacesStr string, callback func(namespace string)) sync.Map {
-	namespaces := sync.Map{}
-	split := strings.Split(namespacesStr, comma)
-	for _, namespace := range split {
-		if callback != nil {
-			callback(namespace)
-		}
-		namespaces.Store(namespace, defaultNotificationID)
-	}
-	return namespaces
 }
 
 // set load app config's function

@@ -38,7 +38,8 @@ const testDefaultNamespace = "application"
 func init() {
 }
 
-func createMockApolloConfig(expireTime int) map[string]interface{} {
+func createMockApolloConfig(expireTime int) *client {
+	client := Create()
 	configs := make(map[string]interface{}, 0)
 	//string
 	configs["string"] = "value"
@@ -54,19 +55,15 @@ func createMockApolloConfig(expireTime int) map[string]interface{} {
 	//int slice
 	configs["intSlice"] = []int{1, 2}
 
-	storage.UpdateApolloConfigCache(configs, expireTime, storage.GetDefaultNamespace())
+	client.cache.UpdateApolloConfigCache(configs, expireTime, storage.GetDefaultNamespace())
 
-	return configs
+	return client
 }
 
 func TestGetConfigValueNullApolloConfig(t *testing.T) {
-	createMockApolloConfig(120)
-	//clear Configurations
-	defaultConfigCache := GetDefaultConfigCache()
-	defaultConfigCache.Clear()
-
+	client := createMockApolloConfig(120)
 	//test getValue
-	value := GetValue("joe")
+	value := client.GetValue("joe")
 
 	Assert(t, "", Equal(value))
 
@@ -74,133 +71,137 @@ func TestGetConfigValueNullApolloConfig(t *testing.T) {
 	defaultValue := "j"
 
 	//test default
-	v := GetStringValue("joe", defaultValue)
+	v := client.GetStringValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 
 }
 
 func TestGetIntValue(t *testing.T) {
-	createMockApolloConfig(120)
+	client := createMockApolloConfig(120)
 	defaultValue := 100000
 
 	//test default
-	v := GetIntValue("joe", defaultValue)
+	v := client.GetIntValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 
 	//normal value
-	v = GetIntValue("int", defaultValue)
+	v = client.GetIntValue("int", defaultValue)
 
 	Assert(t, 1, Equal(v))
 
 	//error type
-	v = GetIntValue("float", defaultValue)
+	v = client.GetIntValue("float", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 }
 
 func TestGetIntSliceValue(t *testing.T) {
-	createMockApolloConfig(120)
+	client := createMockApolloConfig(120)
 	defaultValue := []int{100}
 
 	//test default
-	v := GetIntSliceValue("joe", defaultValue)
+	v := client.GetIntSliceValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 
 	//normal value
-	v = GetIntSliceValue("intSlice", defaultValue)
+	v = client.GetIntSliceValue("intSlice", defaultValue)
 
 	Assert(t, []int{1, 2}, Equal(v))
 
 	//error type
-	v = GetIntSliceValue("float", defaultValue)
+	v = client.GetIntSliceValue("float", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 }
 
 func TestGetStringSliceValue(t *testing.T) {
-	createMockApolloConfig(120)
+	client := createMockApolloConfig(120)
 	defaultValue := []string{"100"}
 
 	//test default
-	v := GetStringSliceValue("joe", defaultValue)
+	v := client.GetStringSliceValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 
 	//normal value
-	v = GetStringSliceValue("stringSlice", defaultValue)
+	v = client.GetStringSliceValue("stringSlice", defaultValue)
 
 	Assert(t, []string{"1", "2"}, Equal(v))
 
 	//error type
-	v = GetStringSliceValue("float", defaultValue)
+	v = client.GetStringSliceValue("float", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 }
 
 func TestGetFloatValue(t *testing.T) {
+	client := createMockApolloConfig(120)
 	defaultValue := 100000.1
 
 	//test default
-	v := GetFloatValue("joe", defaultValue)
+	v := client.GetFloatValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 
 	//normal value
-	v = GetFloatValue("float", defaultValue)
+	v = client.GetFloatValue("float", defaultValue)
 
 	Assert(t, 190.3, Equal(v))
 
 	//error type
-	v = GetFloatValue("int", defaultValue)
+	v = client.GetFloatValue("int", defaultValue)
 
 	Assert(t, float64(1), Equal(v))
 }
 
 func TestGetBoolValue(t *testing.T) {
+	client := createMockApolloConfig(120)
 	defaultValue := false
 
 	//test default
-	v := GetBoolValue("joe", defaultValue)
+	v := client.GetBoolValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 
 	//normal value
-	v = GetBoolValue("bool", defaultValue)
+	v = client.GetBoolValue("bool", defaultValue)
 
 	Assert(t, true, Equal(v))
 
 	//error type
-	v = GetBoolValue("float", defaultValue)
+	v = client.GetBoolValue("float", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 }
 
 func TestGetStringValue(t *testing.T) {
+	client := createMockApolloConfig(120)
 	defaultValue := "j"
 
 	//test default
-	v := GetStringValue("joe", defaultValue)
+	v := client.GetStringValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 
 	//normal value
-	v = GetStringValue("string", defaultValue)
+	v = client.GetStringValue("string", defaultValue)
 
 	Assert(t, "value", Equal(v))
 }
 
 func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
+	client := createMockApolloConfig(120)
 	server := runLongNotmodifiedConfigResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.IP = server.URL
 	time.Sleep(1 * time.Second)
-	appConfig := env.GetPlainAppConfig()
-	appConfig.NextTryConnTime = 0
+	newAppConfig.NextTryConnTime = 0
+	client.appConfig = newAppConfig
 
-	notify.AutoSyncConfigServicesSuccessCallBack([]byte(configResponseStr))
+	notify.AutoSyncConfigServicesSuccessCallBack(newAppConfig, []byte(configResponseStr))
 
 	config := env.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
 
@@ -209,7 +210,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	time.Sleep(10 * time.Second)
 
 	fmt.Println("checking agcache time left")
-	defaultConfigCache := GetDefaultConfigCache()
+	defaultConfigCache := client.GetDefaultConfigCache()
 
 	defaultConfigCache.Range(func(key, value interface{}) bool {
 		Assert(t, value, NotNilVal())
@@ -220,19 +221,18 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	Assert(t, "default", Equal(config.Cluster))
 	Assert(t, testDefaultNamespace, Equal(config.NamespaceName))
 	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
-	Assert(t, "value1", Equal(GetStringValue("key1", "")))
-	Assert(t, "value2", Equal(GetStringValue("key2", "")))
-	checkBackupFile(t)
+	Assert(t, "value1", Equal(client.GetStringValue("key1", "")))
+	Assert(t, "value2", Equal(client.GetStringValue("key2", "")))
+	checkBackupFile(client, t)
 }
 
-func checkBackupFile(t *testing.T) {
-	appConfig := env.GetPlainAppConfig()
-	newConfig, e := extension.GetFileHandler().LoadConfigFile(appConfig.GetBackupConfigPath(), testDefaultNamespace)
+func checkBackupFile(client *client, t *testing.T) {
+	newConfig, e := extension.GetFileHandler().LoadConfigFile(client.appConfig.GetBackupConfigPath(), testDefaultNamespace)
 	t.Log(newConfig.Configurations)
 	Assert(t, e, NilVal())
 	Assert(t, newConfig.Configurations, NotNilVal())
 	for k, v := range newConfig.Configurations {
-		Assert(t, GetStringValue(k, ""), Equal(v))
+		Assert(t, client.GetStringValue(k, ""), Equal(v))
 	}
 }
 
@@ -246,8 +246,8 @@ func runLongNotmodifiedConfigResponse() *httptest.Server {
 }
 
 func TestConfig_GetStringValue(t *testing.T) {
-	createMockApolloConfig(120)
-	config := GetConfig(testDefaultNamespace)
+	client := createMockApolloConfig(120)
+	config := client.GetConfig(testDefaultNamespace)
 
 	defaultValue := "j"
 	//test default
@@ -261,9 +261,9 @@ func TestConfig_GetStringValue(t *testing.T) {
 }
 
 func TestConfig_GetBoolValue(t *testing.T) {
-	createMockApolloConfig(120)
+	client := createMockApolloConfig(120)
 	defaultValue := false
-	config := GetConfig(testDefaultNamespace)
+	config := client.GetConfig(testDefaultNamespace)
 
 	//test default
 	v := config.GetBoolValue("joe", defaultValue)
@@ -282,9 +282,9 @@ func TestConfig_GetBoolValue(t *testing.T) {
 }
 
 func TestConfig_GetFloatValue(t *testing.T) {
-	createMockApolloConfig(120)
+	client := createMockApolloConfig(120)
 	defaultValue := 100000.1
-	config := GetConfig(testDefaultNamespace)
+	config := client.GetConfig(testDefaultNamespace)
 
 	//test default
 	v := config.GetFloatValue("joe", defaultValue)
@@ -303,9 +303,9 @@ func TestConfig_GetFloatValue(t *testing.T) {
 }
 
 func TestConfig_GetIntValue(t *testing.T) {
-	createMockApolloConfig(120)
+	client := createMockApolloConfig(120)
 	defaultValue := 100000
-	config := GetConfig(testDefaultNamespace)
+	config := client.GetConfig(testDefaultNamespace)
 
 	//test default
 	v := config.GetIntValue("joe", defaultValue)
@@ -324,6 +324,7 @@ func TestConfig_GetIntValue(t *testing.T) {
 }
 
 func TestGetApolloConfigCache(t *testing.T) {
-	cache := GetApolloConfigCache()
+	client := createMockApolloConfig(120)
+	cache := client.GetApolloConfigCache()
 	Assert(t, cache, NotNilVal())
 }

@@ -134,5 +134,5 @@ func deleteServers(appConfig *config.AppConfig) {
 }
 
 func trySyncServerIPList(appConfig *config.AppConfig) {
-	appConfig.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
+	appConfig.SyncServerIPListSuccessCallBack(appConfig, []byte(servicesConfigResponseStr))
 }

@@ -19,6 +19,7 @@ package config
 
 import (
 	"encoding/json"
+	"sync"
 	"testing"
 	"time"
 
@@ -102,4 +103,21 @@ func TestAppConfig_IsConnectDirectly(t *testing.T) {
 	Assert(t, isConnectDirectly, Equal(true))
 
 	appConfig.NextTryConnTime = backup
+}
+
+func TestSplitNamespaces(t *testing.T) {
+	w := &sync.WaitGroup{}
+	w.Add(3)
+	namespaces := SplitNamespaces("a,b,c", func(namespace string) {
+		w.Done()
+	})
+
+	l := 0
+	namespaces.Range(func(k, v interface{}) bool {
+		l++
+		return true
+	})
+
+	Assert(t, l, Equal(3))
+	w.Wait()
 }

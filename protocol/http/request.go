@@ -54,8 +54,9 @@ var (
 
 //CallBack 请求回调函数
 type CallBack struct {
-	SuccessCallBack   func([]byte) (interface{}, error)
+	SuccessCallBack   func(*config.AppConfig, []byte) (interface{}, error)
 	NotModifyCallBack func() error
+	appConfig         *config.AppConfig
 }
 
 //Request 建立网络请求
@@ -138,7 +139,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			}
 
 			if callBack != nil && callBack.SuccessCallBack != nil {
-				return callBack.SuccessCallBack(responseBody)
+				return callBack.SuccessCallBack(callBack.appConfig, responseBody)
 			}
 			return nil, nil
 		case http.StatusNotModified:

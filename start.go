@@ -68,7 +68,6 @@ func UseEventDispatch() {
 func SetCache(cacheFactory agcache.CacheFactory) {
 	if cacheFactory != nil {
 		extension.SetCacheFactory(cacheFactory)
-		storage.InitConfigCache()
 	}
 }
 

@@ -21,7 +21,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/zouyx/agollo/v4/component/log"
-	"github.com/zouyx/agollo/v4/env"
 	"github.com/zouyx/agollo/v4/utils"
 	"net/url"
 	"strings"
@@ -33,7 +32,8 @@ var (
 	//next try connect period - 60 second
 	nextTryConnectPeriod int64 = 60
 
-	defaultNotificationId = int64(-1)
+	defaultNotificationID = int64(-1)
+	comma                 = ","
 )
 
 //File 读写配置文件
@@ -96,10 +96,23 @@ type Notification struct {
 
 // InitAllNotifications 初始化notificationsMap
 func (a *AppConfig) InitAllNotifications(callback func(namespace string)) {
-	ns := env.SplitNamespaces(a.NamespaceName, callback)
+	ns := SplitNamespaces(a.NamespaceName, callback)
 	a.notificationsMap = &notificationsMap{
 		notifications: ns,
 	}
+}
+
+//SplitNamespaces 根据namespace字符串分割后，并执行callback函数
+func SplitNamespaces(namespacesStr string, callback func(namespace string)) sync.Map {
+	namespaces := sync.Map{}
+	split := strings.Split(namespacesStr, comma)
+	for _, namespace := range split {
+		if callback != nil {
+			callback(namespace)
+		}
+		namespaces.Store(namespace, defaultNotificationID)
+	}
+	return namespaces
 }
 
 // GetNotifications 获取notificationsMap
@@ -165,7 +178,7 @@ func (n *notificationsMap) GetNotifies(namespace string) string {
 			return true
 		})
 	} else {
-		notify, _ := n.notifications.LoadOrStore(namespace, defaultNotificationId)
+		notify, _ := n.notifications.LoadOrStore(namespace, defaultNotificationID)
 
 		notificationArr = append(notificationArr,
 			&Notification{
@@ -200,7 +213,7 @@ func (a *AppConfig) IsConnectDirectly() bool {
 }
 
 //SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
-func (a *AppConfig) SyncServerIPListSuccessCallBack(responseBody []byte) (o interface{}, err error) {
+func (a *AppConfig) SyncServerIPListSuccessCallBack(appConfig *AppConfig, responseBody []byte) (o interface{}, err error) {
 	log.Debug("get all server info:", string(responseBody))
 
 	tmpServerInfo := make([]*ServerInfo, 0)

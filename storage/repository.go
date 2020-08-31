@@ -73,7 +73,7 @@ func InitConfigCache(config *config.AppConfig) *Cache {
 func CreateNamespaceConfig(namespace string) *Cache {
 	//config from apollo
 	var apolloConfigCache sync.Map
-	env.SplitNamespaces(namespace, func(namespace string) {
+	config.SplitNamespaces(namespace, func(namespace string) {
 		if _, ok := apolloConfigCache.Load(namespace); ok {
 			return
 		}

@@ -164,17 +164,6 @@ func TestGetServersLen(t *testing.T) {
 	Assert(t, serversLen, Equal(1))
 }
 
-func TestSplitNamespaces(t *testing.T) {
-	w := &sync.WaitGroup{}
-	w.Add(3)
-	namespaces := SplitNamespaces("a,b,c", func(namespace string) {
-		w.Done()
-	})
-
-	Assert(t, getNotifyLen(namespaces), Equal(3))
-	w.Wait()
-}
-
 func getNotifyLen(s sync.Map) int {
 	l := 0
 	s.Range(func(k, v interface{}) bool {
@@ -186,14 +175,14 @@ func getNotifyLen(s sync.Map) int {
 
 func TestSyncServerIpListSuccessCallBack(t *testing.T) {
 	appConfig := getTestAppConfig()
-	appConfig.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
+	appConfig.SyncServerIPListSuccessCallBack(nil, []byte(servicesConfigResponseStr))
 	Assert(t, appConfig.GetServersLen(), Equal(10))
 }
 
 func TestSetDownNode(t *testing.T) {
 	t.SkipNow()
 	appConfig := getTestAppConfig()
-	appConfig.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
+	appConfig.SyncServerIPListSuccessCallBack(nil, []byte(servicesConfigResponseStr))
 
 	downNode := "10.15.128.102:8080"
 	appConfig.SetDownNode(downNode)

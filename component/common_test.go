@@ -123,5 +123,5 @@ func TestName(t *testing.T) {
 }
 
 func trySyncServerIPList(appConfig *config.AppConfig) {
-	appConfig.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
+	appConfig.SyncServerIPListSuccessCallBack(appConfig, []byte(servicesConfigResponseStr))
 }

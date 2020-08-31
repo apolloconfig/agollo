@@ -75,7 +75,7 @@ func TestStart(t *testing.T) {
 	client := Create()
 	client.Start()
 
-	value := GetValue("key1")
+	value := client.GetValue("key1")
 	Assert(t, "value1", Equal(value))
 	handler := extension.GetFileHandler()
 	Assert(t, handler, NotNilVal())

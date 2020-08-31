@@ -18,6 +18,7 @@
 package agollo
 
 import (
+	"github.com/zouyx/agollo/v4/agcache"
 	"github.com/zouyx/agollo/v4/agcache/memory"
 	"github.com/zouyx/agollo/v4/cluster/roundrobin"
 	"github.com/zouyx/agollo/v4/component"
@@ -30,11 +31,14 @@ import (
 	"github.com/zouyx/agollo/v4/extension"
 	"github.com/zouyx/agollo/v4/protocol/auth/sign"
 	"github.com/zouyx/agollo/v4/storage"
+	"github.com/zouyx/agollo/v4/utils"
+	"strconv"
 )
 
 type client struct {
 	initAppConfigFunc func() (*config.AppConfig, error)
 	appConfig         *config.AppConfig
+	cache             *storage.Cache
 }
 
 func Create() *client {
@@ -43,10 +47,10 @@ func Create() *client {
 	extension.SetFileHandler(&jsonFile.FileHandler{})
 	extension.SetHTTPAuth(&sign.AuthSignature{})
 	appConfig := env.InitFileConfig()
-	storage.InitConfigCache(appConfig)
 
 	return &client{
 		appConfig: appConfig,
+		cache:     storage.InitConfigCache(appConfig),
 	}
 }
 
@@ -56,15 +60,16 @@ func (c *client) Start() error {
 
 func (c *client) StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) error {
 	// 有了配置之后才能进行初始化
-	if _, err := env.InitConfig(loadAppConfig); err != nil {
+	appConfig, err := env.InitConfig(loadAppConfig)
+	if err != nil {
 		return err
 	}
 
-	notify.InitAllNotifications(nil)
+	appConfig.InitAllNotifications(nil)
 	serverlist.InitSyncServerIPList()
 
 	//first sync
-	if err := notify.SyncConfigs(); err != nil {
+	if err := notify.SyncConfigs(appConfig); err != nil {
 		return err
 	}
 	log.Debug("init notifySyncConfigServices finished")
@@ -75,4 +80,156 @@ func (c *client) StartWithConfig(loadAppConfig func() (*config.AppConfig, error)
 	log.Info("agollo start finished ! ")
 
 	return nil
+}
+
+//GetConfig 根据namespace获取apollo配置
+func (c *client) GetConfig(namespace string) *storage.Config {
+	return c.GetConfigAndInit(namespace)
+}
+
+//GetConfigAndInit 根据namespace获取apollo配置
+func (c *client) GetConfigAndInit(namespace string) *storage.Config {
+	if namespace == "" {
+		return nil
+	}
+
+	config := c.cache.GetConfig(namespace)
+
+	if config == nil {
+		//init cache
+		storage.CreateNamespaceConfig(namespace)
+
+		//sync config
+		notify.SyncNamespaceConfig(namespace, c.appConfig)
+	}
+
+	config = c.cache.GetConfig(namespace)
+
+	return config
+}
+
+//GetConfigCache 根据namespace获取apollo配置的缓存
+func (c *client) GetConfigCache(namespace string) agcache.CacheInterface {
+	config := c.GetConfigAndInit(namespace)
+	if config == nil {
+		return nil
+	}
+
+	return config.GetCache()
+}
+
+//GetDefaultConfigCache 获取默认缓存
+func (c *client) GetDefaultConfigCache() agcache.CacheInterface {
+	config := c.GetConfigAndInit(storage.GetDefaultNamespace())
+	if config != nil {
+		return config.GetCache()
+	}
+	return nil
+}
+
+//GetApolloConfigCache 获取默认namespace的apollo配置
+func (c *client) GetApolloConfigCache() agcache.CacheInterface {
+	return c.GetDefaultConfigCache()
+}
+
+//GetValue 获取配置
+func (c *client) GetValue(key string) string {
+	value := c.getConfigValue(key)
+	if value == nil {
+		return utils.Empty
+	}
+
+	return value.(string)
+}
+
+//GetStringValue 获取string配置值
+func (c *client) GetStringValue(key string, defaultValue string) string {
+	value := c.GetValue(key)
+	if value == utils.Empty {
+		return defaultValue
+	}
+
+	return value
+}
+
+//GetIntValue 获取int配置值
+func (c *client) GetIntValue(key string, defaultValue int) int {
+	value := c.GetValue(key)
+
+	i, err := strconv.Atoi(value)
+	if err != nil {
+		log.Debug("convert to int fail!error:", err)
+		return defaultValue
+	}
+
+	return i
+}
+
+//GetFloatValue 获取float配置值
+func (c *client) GetFloatValue(key string, defaultValue float64) float64 {
+	value := c.GetValue(key)
+
+	i, err := strconv.ParseFloat(value, 64)
+	if err != nil {
+		log.Debug("convert to float fail!error:", err)
+		return defaultValue
+	}
+
+	return i
+}
+
+//GetBoolValue 获取bool 配置值
+func (c *client) GetBoolValue(key string, defaultValue bool) bool {
+	value := c.GetValue(key)
+
+	b, err := strconv.ParseBool(value)
+	if err != nil {
+		log.Debug("convert to bool fail!error:", err)
+		return defaultValue
+	}
+
+	return b
+}
+
+//GetStringSliceValue 获取[]string 配置值
+func (c *client) GetStringSliceValue(key string, defaultValue []string) []string {
+	value := c.getConfigValue(key)
+
+	if value == nil {
+		return defaultValue
+	}
+	s, ok := value.([]string)
+	if !ok {
+		return defaultValue
+	}
+	return s
+}
+
+//GetIntSliceValue 获取[]int 配置值
+func (c *client) GetIntSliceValue(key string, defaultValue []int) []int {
+	value := c.getConfigValue(key)
+
+	if value == nil {
+		return defaultValue
+	}
+	s, ok := value.([]int)
+	if !ok {
+		return defaultValue
+	}
+	return s
+}
+
+func (c *client) getConfigValue(key string) interface{} {
+	cache := c.GetDefaultConfigCache()
+	if cache == nil {
+		return utils.Empty
+	}
+
+	value, err := cache.Get(key)
+	if err != nil {
+		log.Errorf("get config value fail!key:%s,err:%s", key, err)
+		return utils.Empty
+	}
+
+	return value
 }

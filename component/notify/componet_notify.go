@@ -113,7 +113,7 @@ func syncConfigs(namespace string, isAsync bool, appConfig *config.AppConfig) er
 }
 
 func loadBackupConfig(namespace string, appConfig *config.AppConfig) {
-	env.SplitNamespaces(namespace, func(namespace string) {
+	config.SplitNamespaces(namespace, func(namespace string) {
 		config, _ := extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, namespace)
 		if config != nil {
 			storage.UpdateApolloConfig(config, false)
@@ -153,7 +153,7 @@ func notifyRemoteConfig(appConfig *config.AppConfig, namespace string, isAsync b
 	}
 	connectConfig.IsRetry = isAsync
 	notifies, err := http.RequestRecovery(appConfig, connectConfig, &http.CallBack{
-		SuccessCallBack: func(responseBody []byte) (interface{}, error) {
+		SuccessCallBack: func(appConfig *config.AppConfig, responseBody []byte) (interface{}, error) {
 			return toApolloConfig(responseBody)
 		},
 		NotModifyCallBack: touchApolloConfigCache,
@@ -170,16 +170,15 @@ func touchApolloConfigCache() error {
 }
 
 //AutoSyncConfigServicesSuccessCallBack 同步配置回调
-func AutoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, err error) {
+func AutoSyncConfigServicesSuccessCallBack(appConfig *config.AppConfig, responseBody []byte) (o interface{}, err error) {
 	apolloConfig, err := createApolloConfigWithJSON(responseBody)
 
 	if err != nil {
 		log.Error("Unmarshal Msg Fail,Error:", err)
 		return nil, err
 	}
-	appConfig := env.GetPlainAppConfig()
 
-	storage.UpdateApolloConfig(apolloConfig, appConfig.GetIsBackupConfig())
+	appConfig.UpdateApolloConfig(apolloConfig, appConfig.GetIsBackupConfig())
 
 	return nil, nil
 }
@@ -222,7 +221,9 @@ func autoSyncNamespaceConfigServices(appConfig *config.AppConfig) error {
 	}
 
 	var err error
-	appConfig.GetNotificationsMap().GetNotifications().Range(func(key, value interface{}) bool {
+	notifications := appConfig.GetNotificationsMap().GetNotifications()
+	n := &notifications
+	n.Range(func(key, value interface{}) bool {
 		namespace := key.(string)
 		urlSuffix := component.GetConfigURLSuffix(appConfig, namespace)
 
