@@ -31,7 +31,6 @@ import (
 	"github.com/zouyx/agollo/v4/env/config"
 	"github.com/zouyx/agollo/v4/extension"
 	"github.com/zouyx/agollo/v4/protocol/http"
-	"github.com/zouyx/agollo/v4/storage"
 	"github.com/zouyx/agollo/v4/utils"
 )
 
@@ -66,59 +65,46 @@ func (c *ConfigComponent) Start() {
 }
 
 //AsyncConfigs 异步同步所有配置文件中配置的namespace配置
-func AsyncConfigs(appConfig *config.AppConfig) error {
+func AsyncConfigs(appConfig *config.AppConfig) []*env.ApolloConfig {
 	return syncConfigs(utils.Empty, true, appConfig)
 }
 
 //SyncConfigs 同步同步所有配置文件中配置的namespace配置
-func SyncConfigs(appConfig *config.AppConfig) error {
+func SyncConfigs(appConfig *config.AppConfig) []*env.ApolloConfig {
 	return syncConfigs(utils.Empty, false, appConfig)
 }
 
 //SyncNamespaceConfig 同步同步一个指定的namespace配置
-func SyncNamespaceConfig(namespace string, appConfig *config.AppConfig) error {
+func SyncNamespaceConfig(namespace string, appConfig *config.AppConfig) []*env.ApolloConfig {
 	return syncConfigs(namespace, false, appConfig)
 }
 
-func syncConfigs(namespace string, isAsync bool, appConfig *config.AppConfig) error {
+func syncConfigs(namespace string, isAsync bool, appConfig *config.AppConfig) []*env.ApolloConfig {
 
 	remoteConfigs, err := notifyRemoteConfig(nil, namespace, isAsync)
 
+	var apolloConfig []*env.ApolloConfig
 	if err != nil || len(remoteConfigs) == 0 {
-		loadBackupConfig(appConfig.NamespaceName, appConfig)
+		apolloConfig = loadBackupConfig(appConfig.NamespaceName, appConfig)
 	}
 
-	if err != nil {
-		return fmt.Errorf("notifySyncConfigServices: %s", err)
-	}
-	if len(remoteConfigs) == 0 {
-		return fmt.Errorf("notifySyncConfigServices: empty remote config")
+	if len(apolloConfig) > 0 {
+		return apolloConfig
 	}
 
 	appConfig.GetNotificationsMap().UpdateAllNotifications(remoteConfigs)
 
 	//sync all config
-	err = AutoSyncConfigServices(nil)
-
-	if err != nil {
-		if namespace != "" {
-			return nil
-		}
-		//first sync fail then load config file
-		loadBackupConfig(appConfig.NamespaceName, appConfig)
-	}
-
-	//sync all config
-	return nil
+	return AutoSyncConfigServices(nil)
 }
 
-func loadBackupConfig(namespace string, appConfig *config.AppConfig) {
+func loadBackupConfig(namespace string, appConfig *config.AppConfig) []*env.ApolloConfig {
+	apolloConfigs := make([]*env.ApolloConfig, 0)
 	config.SplitNamespaces(namespace, func(namespace string) {
-		config, _ := extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, namespace)
-		if config != nil {
-			storage.UpdateApolloConfig(config, false)
-		}
+		c, _ := extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, namespace)
+		apolloConfigs = append(apolloConfigs, c)
 	})
+	return apolloConfigs
 }
 
 func toApolloConfig(resBody []byte) ([]*config.Notification, error) {
@@ -171,16 +157,15 @@ func touchApolloConfigCache() error {
 
 //AutoSyncConfigServicesSuccessCallBack 同步配置回调
 func AutoSyncConfigServicesSuccessCallBack(appConfig *config.AppConfig, responseBody []byte) (o interface{}, err error) {
-	apolloConfig, err := createApolloConfigWithJSON(responseBody)
-
-	if err != nil {
-		log.Error("Unmarshal Msg Fail,Error:", err)
-		return nil, err
-	}
-
-	appConfig.UpdateApolloConfig(apolloConfig, appConfig.GetIsBackupConfig())
-
-	return nil, nil
+	return createApolloConfigWithJSON(responseBody)
+	//if err != nil {
+	//	log.Error("Unmarshal Msg Fail,Error:", err)
+	//	return nil, err
+	//}
+	//
+	//appConfig.UpdateApolloConfig(apolloConfig, appConfig.GetIsBackupConfig())
+	//
+	//return nil, nil
 }
 
 // createApolloConfigWithJSON 使用json配置转换成apolloconfig
@@ -211,23 +196,26 @@ func createApolloConfigWithJSON(b []byte) (*env.ApolloConfig, error) {
 }
 
 //AutoSyncConfigServices 自动同步配置
-func AutoSyncConfigServices(newAppConfig *config.AppConfig) error {
+func AutoSyncConfigServices(newAppConfig *config.AppConfig) []*env.ApolloConfig {
 	return autoSyncNamespaceConfigServices(newAppConfig)
 }
 
-func autoSyncNamespaceConfigServices(appConfig *config.AppConfig) error {
+func autoSyncNamespaceConfigServices(appConfig *config.AppConfig) []*env.ApolloConfig {
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}
 
-	var err error
+	var (
+		apolloConfigs []*env.ApolloConfig
+	)
+
 	notifications := appConfig.GetNotificationsMap().GetNotifications()
 	n := &notifications
 	n.Range(func(key, value interface{}) bool {
 		namespace := key.(string)
 		urlSuffix := component.GetConfigURLSuffix(appConfig, namespace)
 
-		_, err = http.RequestRecovery(appConfig, &env.ConnectConfig{
+		apolloConfig, err := http.RequestRecovery(appConfig, &env.ConnectConfig{
 			URI:    urlSuffix,
 			AppID:  appConfig.AppID,
 			Secret: appConfig.Secret,
@@ -236,11 +224,13 @@ func autoSyncNamespaceConfigServices(appConfig *config.AppConfig) error {
 			NotModifyCallBack: touchApolloConfigCache,
 		})
 		if err != nil {
+			log.Errorf("request %s fail, error:%v", urlSuffix, err)
 			return false
 		}
+		apolloConfigs = append(apolloConfigs, apolloConfig.(*env.ApolloConfig))
 		return true
 	})
-	return err
+	return apolloConfigs
 }
 
 func getNotifyURLSuffix(notifications string, config *config.AppConfig) string {

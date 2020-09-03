@@ -28,7 +28,6 @@ import (
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v4/agcache/memory"
 	"github.com/zouyx/agollo/v4/component/log"
-	"github.com/zouyx/agollo/v4/component/notify"
 	"github.com/zouyx/agollo/v4/env"
 	"github.com/zouyx/agollo/v4/env/config"
 	jsonFile "github.com/zouyx/agollo/v4/env/config/json"
@@ -82,11 +81,8 @@ func TestStart(t *testing.T) {
 }
 
 func TestStartWithMultiNamespace(t *testing.T) {
-	notify.InitAllNotifications(nil)
 	c := appConfig
 	app1 := "abc1"
-
-	appConfig := env.GetPlainAppConfig()
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
 	handlerMap[app1] = onlyNormalSecondConfigResponse
@@ -98,16 +94,16 @@ func TestStartWithMultiNamespace(t *testing.T) {
 	writeFile(b, "app.properties")
 
 	client := Create()
-
+	client.appConfig.InitAllNotifications(nil)
 	client.Start()
 
 	time.Sleep(1 * time.Second)
 
-	value := GetValue("key1")
+	value := client.GetValue("key1")
 	Assert(t, "value1", Equal(value))
 
 	time.Sleep(1 * time.Second)
-	config := storage.GetConfig(app1)
+	config := client.GetConfig(app1)
 	Assert(t, config, NotNilVal())
 	Assert(t, config.GetValue("key1-1"), Equal("value1-1"))
 
@@ -123,17 +119,17 @@ func TestErrorStart(t *testing.T) {
 	server := runErrorResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.IP = server.URL
-	notify.InitAllNotifications(nil)
 
 	time.Sleep(1 * time.Second)
 
 	client := Create()
+	client.appConfig.InitAllNotifications(nil)
 	client.Start()
 
-	value := GetValue("key1")
+	value := client.GetValue("key1")
 	Assert(t, "value1", Equal(value))
 
-	value2 := GetValue("key2")
+	value2 := client.GetValue("key2")
 	Assert(t, "value2", Equal(value2))
 
 }
@@ -164,11 +160,11 @@ func TestStructInit(t *testing.T) {
 	client.StartWithConfig(func() (*config.AppConfig, error) {
 		return readyConfig, nil
 	})
-	notify.InitAllNotifications(nil)
+	client.appConfig.InitAllNotifications(nil)
 
 	time.Sleep(1 * time.Second)
 
-	config := env.GetAppConfig(nil)
+	config := client.appConfig
 	Assert(t, config, NotNilVal())
 	Assert(t, "test1", Equal(config.AppID))
 	Assert(t, "dev1", Equal(config.Cluster))

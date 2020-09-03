@@ -69,9 +69,13 @@ func (c *client) StartWithConfig(loadAppConfig func() (*config.AppConfig, error)
 	serverlist.InitSyncServerIPList()
 
 	//first sync
-	if err := notify.SyncConfigs(appConfig); err != nil {
-		return err
+	configs := notify.SyncConfigs(appConfig)
+	if len(configs) > 0 {
+		for _, apolloConfig := range configs {
+			c.cache.UpdateApolloConfig(apolloConfig, c.appConfig, true)
+		}
 	}
+
 	log.Debug("init notifySyncConfigServices finished")
 
 	//start long poll sync config

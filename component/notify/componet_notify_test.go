@@ -222,9 +222,10 @@ func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
 
 	appConfig.NextTryConnTime = 0
 
-	err = AutoSyncConfigServices(newAppConfig)
+	configs := AutoSyncConfigServices(newAppConfig)
 
 	Assert(t, err, NilVal())
+	Assert(t, len(configs), GreaterThan(0))
 	checkNilBackupFile(t)
 	appConfig.IsBackupConfig = true
 }
