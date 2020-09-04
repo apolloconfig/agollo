@@ -65,11 +65,15 @@ func (c *client) StartWithConfig(loadAppConfig func() (*config.AppConfig, error)
 		return err
 	}
 
+	if appConfig != nil {
+		c.appConfig = appConfig
+	}
+
 	appConfig.InitAllNotifications(nil)
-	serverlist.InitSyncServerIPList()
+	serverlist.InitSyncServerIPList(c.appConfig)
 
 	//first sync
-	configs := notify.SyncConfigs(appConfig)
+	configs := notify.SyncConfigs(c.appConfig)
 	if len(configs) > 0 {
 		for _, apolloConfig := range configs {
 			c.cache.UpdateApolloConfig(apolloConfig, c.appConfig, true)
@@ -79,7 +83,9 @@ func (c *client) StartWithConfig(loadAppConfig func() (*config.AppConfig, error)
 	log.Debug("init notifySyncConfigServices finished")
 
 	//start long poll sync config
-	go component.StartRefreshConfig(&notify.ConfigComponent{})
+	configComponent := &notify.ConfigComponent{}
+	configComponent.SetAppConfig(c.appConfig)
+	go component.StartRefreshConfig(configComponent)
 
 	log.Info("agollo start finished ! ")
 

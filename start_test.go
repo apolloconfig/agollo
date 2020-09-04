@@ -144,7 +144,9 @@ func getTestAppConfig() *config.AppConfig {
 	}`
 	c, _ := env.Unmarshal([]byte(jsonStr))
 
-	return c.(*config.AppConfig)
+	c2 := c.(*config.AppConfig)
+	c2.Init()
+	return c2
 }
 
 func TestStructInit(t *testing.T) {
@@ -164,14 +166,14 @@ func TestStructInit(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	config := client.appConfig
-	Assert(t, config, NotNilVal())
-	Assert(t, "test1", Equal(config.AppID))
-	Assert(t, "dev1", Equal(config.Cluster))
-	Assert(t, "application1", Equal(config.NamespaceName))
-	Assert(t, "localhost:8889", Equal(config.IP))
+	c := client.appConfig
+	Assert(t, c, NotNilVal())
+	Assert(t, "test1", Equal(c.AppID))
+	Assert(t, "dev1", Equal(c.Cluster))
+	Assert(t, "application1", Equal(c.NamespaceName))
+	Assert(t, "localhost:8889", Equal(c.IP))
 
-	apolloConfig := env.GetCurrentApolloConfig()[config.NamespaceName]
+	apolloConfig := c.GetCurrentApolloConfig().Get()[c.NamespaceName]
 	Assert(t, "test1", Equal(apolloConfig.AppID))
 	Assert(t, "dev1", Equal(apolloConfig.Cluster))
 	Assert(t, "application1", Equal(apolloConfig.NamespaceName))
@@ -220,7 +222,7 @@ type testFileHandler struct {
 }
 
 // WriteConfigFile write config to file
-func (fileHandler *testFileHandler) WriteConfigFile(config *env.ApolloConfig, configPath string) error {
+func (fileHandler *testFileHandler) WriteConfigFile(config *config.ApolloConfig, configPath string) error {
 	return nil
 }
 
@@ -230,7 +232,7 @@ func (fileHandler *testFileHandler) GetConfigFile(configDir string, namespace st
 }
 
 // LoadConfigFile load config from file
-func (fileHandler *testFileHandler) LoadConfigFile(configDir string, namespace string) (*env.ApolloConfig, error) {
+func (fileHandler *testFileHandler) LoadConfigFile(configDir string, namespace string) (*config.ApolloConfig, error) {
 	return nil, nil
 }
 

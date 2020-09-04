@@ -100,6 +100,7 @@ func TestSelectOnlyOneHost(t *testing.T) {
 
 func TestGetConfigURLSuffix(t *testing.T) {
 	appConfig := &config.AppConfig{}
+	appConfig.Init()
 	uri := GetConfigURLSuffix(appConfig, "kk")
 	Assert(t, "", NotEqual(uri))
 

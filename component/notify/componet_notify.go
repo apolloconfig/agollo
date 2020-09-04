@@ -51,6 +51,10 @@ type ConfigComponent struct {
 	appConfig *config.AppConfig
 }
 
+func (c *ConfigComponent) SetAppConfig(appConfig *config.AppConfig) {
+	c.appConfig = appConfig
+}
+
 //Start 启动配置组件定时器
 func (c *ConfigComponent) Start() {
 	t2 := time.NewTimer(longPollInterval)
@@ -65,25 +69,25 @@ func (c *ConfigComponent) Start() {
 }
 
 //AsyncConfigs 异步同步所有配置文件中配置的namespace配置
-func AsyncConfigs(appConfig *config.AppConfig) []*env.ApolloConfig {
+func AsyncConfigs(appConfig *config.AppConfig) []*config.ApolloConfig {
 	return syncConfigs(utils.Empty, true, appConfig)
 }
 
 //SyncConfigs 同步同步所有配置文件中配置的namespace配置
-func SyncConfigs(appConfig *config.AppConfig) []*env.ApolloConfig {
+func SyncConfigs(appConfig *config.AppConfig) []*config.ApolloConfig {
 	return syncConfigs(utils.Empty, false, appConfig)
 }
 
 //SyncNamespaceConfig 同步同步一个指定的namespace配置
-func SyncNamespaceConfig(namespace string, appConfig *config.AppConfig) []*env.ApolloConfig {
+func SyncNamespaceConfig(namespace string, appConfig *config.AppConfig) []*config.ApolloConfig {
 	return syncConfigs(namespace, false, appConfig)
 }
 
-func syncConfigs(namespace string, isAsync bool, appConfig *config.AppConfig) []*env.ApolloConfig {
+func syncConfigs(namespace string, isAsync bool, appConfig *config.AppConfig) []*config.ApolloConfig {
 
-	remoteConfigs, err := notifyRemoteConfig(nil, namespace, isAsync)
+	remoteConfigs, err := notifyRemoteConfig(appConfig, namespace, isAsync)
 
-	var apolloConfig []*env.ApolloConfig
+	var apolloConfig []*config.ApolloConfig
 	if err != nil || len(remoteConfigs) == 0 {
 		apolloConfig = loadBackupConfig(appConfig.NamespaceName, appConfig)
 	}
@@ -95,11 +99,11 @@ func syncConfigs(namespace string, isAsync bool, appConfig *config.AppConfig) []
 	appConfig.GetNotificationsMap().UpdateAllNotifications(remoteConfigs)
 
 	//sync all config
-	return AutoSyncConfigServices(nil)
+	return AutoSyncConfigServices(appConfig)
 }
 
-func loadBackupConfig(namespace string, appConfig *config.AppConfig) []*env.ApolloConfig {
-	apolloConfigs := make([]*env.ApolloConfig, 0)
+func loadBackupConfig(namespace string, appConfig *config.AppConfig) []*config.ApolloConfig {
+	apolloConfigs := make([]*config.ApolloConfig, 0)
 	config.SplitNamespaces(namespace, func(namespace string) {
 		c, _ := extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, namespace)
 		apolloConfigs = append(apolloConfigs, c)
@@ -158,19 +162,11 @@ func touchApolloConfigCache() error {
 //AutoSyncConfigServicesSuccessCallBack 同步配置回调
 func AutoSyncConfigServicesSuccessCallBack(appConfig *config.AppConfig, responseBody []byte) (o interface{}, err error) {
 	return createApolloConfigWithJSON(responseBody)
-	//if err != nil {
-	//	log.Error("Unmarshal Msg Fail,Error:", err)
-	//	return nil, err
-	//}
-	//
-	//appConfig.UpdateApolloConfig(apolloConfig, appConfig.GetIsBackupConfig())
-	//
-	//return nil, nil
 }
 
 // createApolloConfigWithJSON 使用json配置转换成apolloconfig
-func createApolloConfigWithJSON(b []byte) (*env.ApolloConfig, error) {
-	apolloConfig := &env.ApolloConfig{}
+func createApolloConfigWithJSON(b []byte) (*config.ApolloConfig, error) {
+	apolloConfig := &config.ApolloConfig{}
 	err := json.Unmarshal(b, apolloConfig)
 	if utils.IsNotNil(err) {
 		return nil, err
@@ -196,17 +192,17 @@ func createApolloConfigWithJSON(b []byte) (*env.ApolloConfig, error) {
 }
 
 //AutoSyncConfigServices 自动同步配置
-func AutoSyncConfigServices(newAppConfig *config.AppConfig) []*env.ApolloConfig {
+func AutoSyncConfigServices(newAppConfig *config.AppConfig) []*config.ApolloConfig {
 	return autoSyncNamespaceConfigServices(newAppConfig)
 }
 
-func autoSyncNamespaceConfigServices(appConfig *config.AppConfig) []*env.ApolloConfig {
+func autoSyncNamespaceConfigServices(appConfig *config.AppConfig) []*config.ApolloConfig {
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}
 
 	var (
-		apolloConfigs []*env.ApolloConfig
+		apolloConfigs []*config.ApolloConfig
 	)
 
 	notifications := appConfig.GetNotificationsMap().GetNotifications()
@@ -227,7 +223,7 @@ func autoSyncNamespaceConfigServices(appConfig *config.AppConfig) []*env.ApolloC
 			log.Errorf("request %s fail, error:%v", urlSuffix, err)
 			return false
 		}
-		apolloConfigs = append(apolloConfigs, apolloConfig.(*env.ApolloConfig))
+		apolloConfigs = append(apolloConfigs, apolloConfig.(*config.ApolloConfig))
 		return true
 	})
 	return apolloConfigs

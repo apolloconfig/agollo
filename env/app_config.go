@@ -69,7 +69,9 @@ func getLoadAppConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.
 		return nil, e
 	}
 
-	return c.(*config.AppConfig), e
+	appConfig := c.(*config.AppConfig)
+	appConfig.Init()
+	return appConfig, e
 }
 
 //GetConfigFileExecutor 获取文件执行器

@@ -19,12 +19,12 @@ package json
 
 import (
 	"encoding/json"
+	"github.com/zouyx/agollo/v4/env/config"
 	"github.com/zouyx/agollo/v4/utils"
 	"os"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v4/env"
 	"github.com/zouyx/agollo/v4/extension"
 )
 
@@ -78,8 +78,8 @@ func TestJSONFileHandler_LoadConfigFile(t *testing.T) {
 	Assert(t, config.NamespaceName, Equal(newConfig.NamespaceName))
 }
 
-func createApolloConfigWithJSON(b []byte) (*env.ApolloConfig, error) {
-	apolloConfig := &env.ApolloConfig{}
+func createApolloConfigWithJSON(b []byte) (*config.ApolloConfig, error) {
+	apolloConfig := &config.ApolloConfig{}
 	err := json.Unmarshal(b, apolloConfig)
 	if utils.IsNotNil(err) {
 		return nil, err

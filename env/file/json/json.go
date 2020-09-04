@@ -21,9 +21,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/zouyx/agollo/v4/env/config"
 
 	"github.com/zouyx/agollo/v4/component/log"
-	"github.com/zouyx/agollo/v4/env"
 	jsonConfig "github.com/zouyx/agollo/v4/env/config/json"
 )
 
@@ -42,7 +42,7 @@ type FileHandler struct {
 }
 
 // WriteConfigFile write config to file
-func (fileHandler *FileHandler) WriteConfigFile(config *env.ApolloConfig, configPath string) error {
+func (fileHandler *FileHandler) WriteConfigFile(config *config.ApolloConfig, configPath string) error {
 	return jsonFileConfig.Write(config, fileHandler.GetConfigFile(configPath, config.NamespaceName))
 }
 
@@ -61,11 +61,11 @@ func (fileHandler *FileHandler) GetConfigFile(configDir string, namespace string
 }
 
 //LoadConfigFile load config from file
-func (fileHandler *FileHandler) LoadConfigFile(configDir string, namespace string) (*env.ApolloConfig, error) {
+func (fileHandler *FileHandler) LoadConfigFile(configDir string, namespace string) (*config.ApolloConfig, error) {
 	configFilePath := fileHandler.GetConfigFile(configDir, namespace)
 	log.Info("load config file from :", configFilePath)
 	c, e := jsonFileConfig.Load(configFilePath, func(b []byte) (interface{}, error) {
-		config := &env.ApolloConfig{}
+		config := &config.ApolloConfig{}
 		e := json.NewDecoder(bytes.NewBuffer(b)).Decode(config)
 		return config, e
 	})
@@ -75,5 +75,5 @@ func (fileHandler *FileHandler) LoadConfigFile(configDir string, namespace strin
 		return nil, e
 	}
 
-	return c.(*env.ApolloConfig), e
+	return c.(*config.ApolloConfig), e
 }

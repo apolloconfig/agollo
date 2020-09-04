@@ -27,7 +27,6 @@ import (
 
 	"github.com/zouyx/agollo/v4/agcache"
 	"github.com/zouyx/agollo/v4/component/log"
-	"github.com/zouyx/agollo/v4/env"
 	"github.com/zouyx/agollo/v4/extension"
 	"github.com/zouyx/agollo/v4/utils"
 )
@@ -225,14 +224,14 @@ func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
 
 //UpdateApolloConfig 根据config server返回的内容更新内存
 //并判断是否需要写备份文件
-func (c *Cache) UpdateApolloConfig(apolloConfig *env.ApolloConfig, appConfig *config.AppConfig, isBackupConfig bool) {
+func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfig *config.AppConfig, isBackupConfig bool) {
 	if apolloConfig == nil {
 		log.Error("apolloConfig is null,can't update!")
 		return
 	}
 
 	//update apollo connection config
-	env.SetCurrentApolloConfig(apolloConfig.NamespaceName, &apolloConfig.ApolloConnConfig)
+	appConfig.SetCurrentApolloConfig(&apolloConfig.ApolloConnConfig)
 
 	//get change list
 	changeList := c.UpdateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime, apolloConfig.NamespaceName)

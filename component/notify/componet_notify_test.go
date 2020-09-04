@@ -199,7 +199,7 @@ func TestAutoSyncConfigServices(t *testing.T) {
 
 	Assert(t, err, NilVal())
 
-	config := env.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
+	config := appConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]
 
 	Assert(t, "100004458", Equal(config.AppID))
 	Assert(t, "default", Equal(config.Cluster))
@@ -250,7 +250,7 @@ func TestAutoSyncConfigServicesError(t *testing.T) {
 
 	Assert(t, err, NotNilVal())
 
-	config := env.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
+	config := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]
 
 	//still properties config
 	Assert(t, "100004458", Equal(config.AppID))
@@ -269,7 +269,10 @@ func getTestAppConfig() *config.AppConfig {
 	}`
 	c, _ := env.Unmarshal([]byte(jsonStr))
 
-	return c.(*config.AppConfig)
+	appConfig := c.(*config.AppConfig)
+	appConfig.InitAllNotifications(nil)
+	appConfig.Init()
+	return appConfig
 }
 
 func TestCreateApolloConfigWithJson(t *testing.T) {

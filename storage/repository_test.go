@@ -19,6 +19,7 @@ package storage
 
 import (
 	"github.com/zouyx/agollo/v4/agcache/memory"
+	"github.com/zouyx/agollo/v4/env/config"
 	jsonFile "github.com/zouyx/agollo/v4/env/file/json"
 	"github.com/zouyx/agollo/v4/extension"
 	"strings"
@@ -41,9 +42,9 @@ func init() {
 }
 
 func creatTestApolloConfig(configurations map[string]interface{}, namespace string) *Cache {
-	c := &Cache{}
+	c := CreateNamespaceConfig(namespace)
 	appConfig := env.InitFileConfig()
-	apolloConfig := &env.ApolloConfig{}
+	apolloConfig := &config.ApolloConfig{}
 	apolloConfig.NamespaceName = namespace
 	apolloConfig.AppID = "test"
 	apolloConfig.Cluster = "dev"
@@ -55,7 +56,7 @@ func creatTestApolloConfig(configurations map[string]interface{}, namespace stri
 
 func TestUpdateApolloConfigNull(t *testing.T) {
 	time.Sleep(1 * time.Second)
-	c := &Cache{}
+	c := CreateNamespaceConfig(defaultNamespace)
 	appConfig := env.InitFileConfig()
 
 	configurations := make(map[string]interface{})
@@ -65,14 +66,14 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 	configurations["bool"] = "true"
 	configurations["slice"] = []int{1, 2}
 
-	apolloConfig := &env.ApolloConfig{}
+	apolloConfig := &config.ApolloConfig{}
 	apolloConfig.NamespaceName = defaultNamespace
 	apolloConfig.AppID = "test"
 	apolloConfig.Cluster = "dev"
 	apolloConfig.Configurations = configurations
 	c.UpdateApolloConfig(apolloConfig, appConfig, true)
 
-	currentConnApolloConfig := env.GetCurrentApolloConfig()
+	currentConnApolloConfig := appConfig.GetCurrentApolloConfig().Get()
 	config := currentConnApolloConfig[defaultNamespace]
 
 	Assert(t, config, NotNilVal())

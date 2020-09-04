@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/zouyx/agollo/v4/env"
 	"github.com/zouyx/agollo/v4/env/config"
 	"github.com/zouyx/agollo/v4/utils"
 )
@@ -45,6 +44,6 @@ func GetConfigURLSuffix(config *config.AppConfig, namespaceName string) string {
 		url.QueryEscape(config.AppID),
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(namespaceName),
-		url.QueryEscape(env.GetCurrentApolloConfigReleaseKey(namespaceName)),
+		url.QueryEscape(config.GetCurrentApolloConfig().GetReleaseKey(namespaceName)),
 		utils.GetInternal())
 }

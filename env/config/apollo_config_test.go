@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package env
+package config
 
 import (
 	"testing"
@@ -24,28 +24,25 @@ import (
 	"github.com/zouyx/agollo/v4/utils"
 )
 
-func TestSetCurrentApolloConfig(t *testing.T) {
-	Assert(t, currentConnApolloConfig.configs, NotNilVal())
+func TestCurrentApolloConfig(t *testing.T) {
+	c := CreateCurrentApolloConfig()
+	Assert(t, c.configs, NotNilVal())
 	config := &ApolloConnConfig{
 		AppID:      "a",
 		ReleaseKey: "releaseKey",
 	}
-	SetCurrentApolloConfig("a", config)
-}
+	c.Set("a", config)
 
-func TestGetCurrentApolloConfig(t *testing.T) {
-	Assert(t, currentConnApolloConfig.configs, NotNilVal())
-	config := GetCurrentApolloConfig()["a"]
-	Assert(t, config, NotNilVal())
-	Assert(t, config.AppID, Equal("a"))
-}
+	Assert(t, c.configs, NotNilVal())
+	conf := c.Get()["a"]
+	Assert(t, conf, NotNilVal())
+	Assert(t, conf.AppID, Equal("a"))
 
-func TestGetCurrentApolloConfigReleaseKey(t *testing.T) {
-	Assert(t, currentConnApolloConfig.configs, NotNilVal())
-	key := GetCurrentApolloConfigReleaseKey("b")
+	Assert(t, c.configs, NotNilVal())
+	key := c.GetReleaseKey("b")
 	Assert(t, key, Equal(utils.Empty))
 
-	key = GetCurrentApolloConfigReleaseKey("a")
+	key = c.GetReleaseKey("a")
 	Assert(t, key, Equal("releaseKey"))
 }
 

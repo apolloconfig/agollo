@@ -18,12 +18,12 @@
 package file
 
 import (
-	"github.com/zouyx/agollo/v4/env"
+	"github.com/zouyx/agollo/v4/env/config"
 )
 
 //FileHandler 备份文件读写
 type FileHandler interface {
-	WriteConfigFile(config *env.ApolloConfig, configPath string) error
+	WriteConfigFile(config *config.ApolloConfig, configPath string) error
 	GetConfigFile(configDir string, namespace string) string
-	LoadConfigFile(configDir string, namespace string) (*env.ApolloConfig, error)
+	LoadConfigFile(configDir string, namespace string) (*config.ApolloConfig, error)
 }

@@ -19,6 +19,7 @@ package agollo
 
 import (
 	"fmt"
+	"github.com/zouyx/agollo/v4/env/config"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -26,7 +27,6 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v4/component/notify"
-	"github.com/zouyx/agollo/v4/env"
 	_ "github.com/zouyx/agollo/v4/env/file/json"
 	"github.com/zouyx/agollo/v4/extension"
 	"github.com/zouyx/agollo/v4/storage"
@@ -201,9 +201,10 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	newAppConfig.NextTryConnTime = 0
 	client.appConfig = newAppConfig
 
-	notify.AutoSyncConfigServicesSuccessCallBack(newAppConfig, []byte(configResponseStr))
+	apolloConfig, _ := notify.AutoSyncConfigServicesSuccessCallBack(newAppConfig, []byte(configResponseStr))
+	client.cache.UpdateApolloConfig(apolloConfig.(*config.ApolloConfig), newAppConfig, false)
 
-	config := env.GetCurrentApolloConfig()[newAppConfig.NamespaceName]
+	config := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]
 
 	fmt.Println("sleeping 10s")
 
@@ -217,6 +218,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 		return true
 	})
 
+	Assert(t, config, NotNilVal())
 	Assert(t, "100004458", Equal(config.AppID))
 	Assert(t, "default", Equal(config.Cluster))
 	Assert(t, testDefaultNamespace, Equal(config.NamespaceName))

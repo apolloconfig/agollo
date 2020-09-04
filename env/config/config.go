@@ -54,8 +54,9 @@ type AppConfig struct {
 	BackupConfigPath string `json:"backupConfigPath"`
 	Secret           string `json:"secret"`
 	//real servers ip
-	servers          sync.Map
-	notificationsMap *notificationsMap
+	servers                 sync.Map
+	notificationsMap        *notificationsMap
+	currentConnApolloConfig *CurrentApolloConfig
 }
 
 //ServerInfo 服务器信息
@@ -89,6 +90,11 @@ func (a *AppConfig) GetHost() string {
 	return "http://" + a.IP + "/"
 }
 
+// InitAllNotifications 初始化notificationsMap
+func (a *AppConfig) Init() {
+	a.currentConnApolloConfig = CreateCurrentApolloConfig()
+}
+
 type Notification struct {
 	NamespaceName  string `json:"namespaceName"`
 	NotificationID int64  `json:"notificationId"`
@@ -118,82 +124,6 @@ func SplitNamespaces(namespacesStr string, callback func(namespace string)) sync
 // GetNotifications 获取notificationsMap
 func (a *AppConfig) GetNotificationsMap() *notificationsMap {
 	return a.notificationsMap
-}
-
-// map[string]int64
-type notificationsMap struct {
-	notifications sync.Map
-}
-
-func (n *notificationsMap) UpdateAllNotifications(remoteConfigs []*Notification) {
-	for _, remoteConfig := range remoteConfigs {
-		if remoteConfig.NamespaceName == "" {
-			continue
-		}
-		if n.GetNotify(remoteConfig.NamespaceName) == 0 {
-			continue
-		}
-
-		n.setNotify(remoteConfig.NamespaceName, remoteConfig.NotificationID)
-	}
-}
-
-func (n *notificationsMap) setNotify(namespaceName string, notificationID int64) {
-	n.notifications.Store(namespaceName, notificationID)
-}
-
-func (n *notificationsMap) GetNotify(namespace string) int64 {
-	value, ok := n.notifications.Load(namespace)
-	if !ok || value == nil {
-		return 0
-	}
-	return value.(int64)
-}
-
-func (n *notificationsMap) GetNotifyLen() int {
-	s := n.notifications
-	l := 0
-	s.Range(func(k, v interface{}) bool {
-		l++
-		return true
-	})
-	return l
-}
-
-func (n *notificationsMap) GetNotifications() sync.Map {
-	return n.notifications
-}
-
-func (n *notificationsMap) GetNotifies(namespace string) string {
-	notificationArr := make([]*Notification, 0)
-	if namespace == "" {
-		n.notifications.Range(func(key, value interface{}) bool {
-			namespaceName := key.(string)
-			notificationID := value.(int64)
-			notificationArr = append(notificationArr,
-				&Notification{
-					NamespaceName:  namespaceName,
-					NotificationID: notificationID,
-				})
-			return true
-		})
-	} else {
-		notify, _ := n.notifications.LoadOrStore(namespace, defaultNotificationID)
-
-		notificationArr = append(notificationArr,
-			&Notification{
-				NamespaceName:  namespace,
-				NotificationID: notify.(int64),
-			})
-	}
-
-	j, err := json.Marshal(notificationArr)
-
-	if err != nil {
-		return ""
-	}
-
-	return string(j)
 }
 
 //SetNextTryConnTime if this connect is fail will set this time
@@ -282,4 +212,90 @@ func (a *AppConfig) GetServicesConfigURL() string {
 		a.GetHost(),
 		url.QueryEscape(a.AppID),
 		utils.GetInternal())
+}
+
+// nolint
+func (a *AppConfig) SetCurrentApolloConfig(apolloConfig *ApolloConnConfig) {
+	a.currentConnApolloConfig.Set(apolloConfig.NamespaceName, apolloConfig)
+}
+
+// nolint
+func (a *AppConfig) GetCurrentApolloConfig() *CurrentApolloConfig {
+	return a.currentConnApolloConfig
+}
+
+// map[string]int64
+type notificationsMap struct {
+	notifications sync.Map
+}
+
+func (n *notificationsMap) UpdateAllNotifications(remoteConfigs []*Notification) {
+	for _, remoteConfig := range remoteConfigs {
+		if remoteConfig.NamespaceName == "" {
+			continue
+		}
+		if n.GetNotify(remoteConfig.NamespaceName) == 0 {
+			continue
+		}
+
+		n.setNotify(remoteConfig.NamespaceName, remoteConfig.NotificationID)
+	}
+}
+
+func (n *notificationsMap) setNotify(namespaceName string, notificationID int64) {
+	n.notifications.Store(namespaceName, notificationID)
+}
+
+func (n *notificationsMap) GetNotify(namespace string) int64 {
+	value, ok := n.notifications.Load(namespace)
+	if !ok || value == nil {
+		return 0
+	}
+	return value.(int64)
+}
+
+func (n *notificationsMap) GetNotifyLen() int {
+	s := n.notifications
+	l := 0
+	s.Range(func(k, v interface{}) bool {
+		l++
+		return true
+	})
+	return l
+}
+
+func (n *notificationsMap) GetNotifications() sync.Map {
+	return n.notifications
+}
+
+func (n *notificationsMap) GetNotifies(namespace string) string {
+	notificationArr := make([]*Notification, 0)
+	if namespace == "" {
+		n.notifications.Range(func(key, value interface{}) bool {
+			namespaceName := key.(string)
+			notificationID := value.(int64)
+			notificationArr = append(notificationArr,
+				&Notification{
+					NamespaceName:  namespaceName,
+					NotificationID: notificationID,
+				})
+			return true
+		})
+	} else {
+		notify, _ := n.notifications.LoadOrStore(namespace, defaultNotificationID)
+
+		notificationArr = append(notificationArr,
+			&Notification{
+				NamespaceName:  namespace,
+				NotificationID: notify.(int64),
+			})
+	}
+
+	j, err := json.Marshal(notificationArr)
+
+	if err != nil {
+		return ""
+	}
+
+	return string(j)
 }
