@@ -105,7 +105,14 @@ func syncConfigs(namespace string, isAsync bool, appConfig *config.AppConfig) []
 func loadBackupConfig(namespace string, appConfig *config.AppConfig) []*config.ApolloConfig {
 	apolloConfigs := make([]*config.ApolloConfig, 0)
 	config.SplitNamespaces(namespace, func(namespace string) {
-		c, _ := extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, namespace)
+		c, err := extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, namespace)
+		if err != nil {
+			log.Error("LoadConfigFile error, error", err)
+			return
+		}
+		if c == nil {
+			return
+		}
 		apolloConfigs = append(apolloConfigs, c)
 	})
 	return apolloConfigs
@@ -128,8 +135,6 @@ func notifyRemoteConfig(appConfig *config.AppConfig, namespace string, isAsync b
 		panic("can not find apollo config!please confirm!")
 	}
 	urlSuffix := getNotifyURLSuffix(appConfig.GetNotificationsMap().GetNotifies(namespace), appConfig)
-
-	//seelog.Debugf("allNotifications.getNotifies():%s",allNotifications.getNotifies())
 
 	connectConfig := &env.ConnectConfig{
 		URI:    urlSuffix,
@@ -222,6 +227,9 @@ func autoSyncNamespaceConfigServices(appConfig *config.AppConfig) []*config.Apol
 		if err != nil {
 			log.Errorf("request %s fail, error:%v", urlSuffix, err)
 			return false
+		}
+		if apolloConfig == nil {
+			return true
 		}
 		apolloConfigs = append(apolloConfigs, apolloConfig.(*config.ApolloConfig))
 		return true

@@ -20,6 +20,9 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/zouyx/agollo/v4/cluster/roundrobin"
+	jsonFile "github.com/zouyx/agollo/v4/env/file/json"
+	"github.com/zouyx/agollo/v4/extension"
 	"sync"
 	"testing"
 	"time"
@@ -29,6 +32,11 @@ import (
 	_ "github.com/zouyx/agollo/v4/env/file/json"
 	"github.com/zouyx/agollo/v4/storage"
 )
+
+func init() {
+	extension.SetLoadBalance(&roundrobin.RoundRobin{})
+	extension.SetFileHandler(&jsonFile.FileHandler{})
+}
 
 type CustomChangeListener struct {
 	t     *testing.T
@@ -63,7 +71,8 @@ func (c *CustomChangeListener) OnNewestChange(event *storage.FullChangeEvent) {
 }
 
 func TestListenChangeEvent(t *testing.T) {
-	go buildNotifyResult(t)
+	t.SkipNow()
+	buildNotifyResult(t)
 	group := sync.WaitGroup{}
 	group.Add(1)
 
@@ -78,7 +87,6 @@ func TestListenChangeEvent(t *testing.T) {
 }
 
 func buildNotifyResult(t *testing.T) {
-	t.SkipNow()
 	server := runChangeConfigResponse()
 	defer server.Close()
 
@@ -87,11 +95,13 @@ func buildNotifyResult(t *testing.T) {
 	newAppConfig := getTestAppConfig()
 	newAppConfig.IP = server.URL
 
-	err := AutoSyncConfigServices(newAppConfig)
-	err = AutoSyncConfigServices(newAppConfig)
+	apolloConfigs := AutoSyncConfigServices(newAppConfig)
+	apolloConfigs = AutoSyncConfigServices(newAppConfig)
 
-	Assert(t, err, NilVal())
+	Assert(t, apolloConfigs, NotNilVal())
+	Assert(t, len(apolloConfigs), Equal(1))
 
+	newAppConfig.GetCurrentApolloConfig().Set(newAppConfig.NamespaceName, &apolloConfigs[0].ApolloConnConfig)
 	config := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]
 
 	Assert(t, "100004458", Equal(config.AppID))

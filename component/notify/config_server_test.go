@@ -82,7 +82,7 @@ var normalConfigCount = 1
 func runNormalConfigResponse() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		normalConfigCount++
-		if normalConfigCount%3 == 0 {
+		if normalConfigCount%2 == 0 {
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(configResponseStr))
 		} else {
