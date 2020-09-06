@@ -202,7 +202,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	client.appConfig = newAppConfig
 
 	apolloConfig, _ := notify.AutoSyncConfigServicesSuccessCallBack(newAppConfig, []byte(configResponseStr))
-	client.cache.UpdateApolloConfig(apolloConfig.(*config.ApolloConfig), newAppConfig, false)
+	client.cache.UpdateApolloConfig(apolloConfig.(*config.ApolloConfig), newAppConfig, true)
 
 	config := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]
 
@@ -230,7 +230,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 
 func checkBackupFile(client *client, t *testing.T) {
 	newConfig, e := extension.GetFileHandler().LoadConfigFile(client.appConfig.GetBackupConfigPath(), testDefaultNamespace)
-	t.Log(newConfig.Configurations)
+	Assert(t, newConfig, NotNilVal())
 	Assert(t, e, NilVal())
 	Assert(t, newConfig.Configurations, NotNilVal())
 	for k, v := range newConfig.Configurations {
