@@ -38,7 +38,7 @@ const testDefaultNamespace = "application"
 func init() {
 }
 
-func createMockApolloConfig(expireTime int) *client {
+func createMockApolloConfig(expireTime int) *Client {
 	client := Create()
 	configs := make(map[string]interface{}, 0)
 	//string
@@ -228,7 +228,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	checkBackupFile(client, t)
 }
 
-func checkBackupFile(client *client, t *testing.T) {
+func checkBackupFile(client *Client, t *testing.T) {
 	newConfig, e := extension.GetFileHandler().LoadConfigFile(client.appConfig.GetBackupConfigPath(), testDefaultNamespace)
 	Assert(t, newConfig, NotNilVal())
 	Assert(t, e, NilVal())

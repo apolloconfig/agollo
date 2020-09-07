@@ -94,7 +94,7 @@ func TestStartWithMultiNamespace(t *testing.T) {
 	writeFile(b, "app.properties")
 
 	client := Create()
-	client.appConfig.InitAllNotifications(nil)
+	client.appConfig.Init()
 	client.Start()
 
 	time.Sleep(1 * time.Second)
@@ -123,7 +123,7 @@ func TestErrorStart(t *testing.T) {
 	time.Sleep(1 * time.Second)
 
 	client := Create()
-	client.appConfig.InitAllNotifications(nil)
+	client.appConfig.Init()
 	client.Start()
 
 	value := client.GetValue("key1")
@@ -162,7 +162,7 @@ func TestStructInit(t *testing.T) {
 	client.StartWithConfig(func() (*config.AppConfig, error) {
 		return readyConfig, nil
 	})
-	client.appConfig.InitAllNotifications(nil)
+	client.appConfig.Init()
 
 	time.Sleep(1 * time.Second)
 

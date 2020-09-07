@@ -134,7 +134,6 @@ func initNotifications() *config.AppConfig {
 	appConfig := env.InitFileConfig()
 	appConfig.NamespaceName = "application,abc1"
 	appConfig.Init()
-	appConfig.InitAllNotifications(nil)
 	return appConfig
 }
 
@@ -263,7 +262,6 @@ func getTestAppConfig() *config.AppConfig {
 	c, _ := env.Unmarshal([]byte(jsonStr))
 
 	appConfig := c.(*config.AppConfig)
-	appConfig.InitAllNotifications(nil)
 	appConfig.Init()
 	return appConfig
 }

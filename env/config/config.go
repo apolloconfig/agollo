@@ -93,6 +93,7 @@ func (a *AppConfig) GetHost() string {
 // InitAllNotifications 初始化notificationsMap
 func (a *AppConfig) Init() {
 	a.currentConnApolloConfig = CreateCurrentApolloConfig()
+	a.initAllNotifications(nil)
 }
 
 type Notification struct {
@@ -101,7 +102,7 @@ type Notification struct {
 }
 
 // InitAllNotifications 初始化notificationsMap
-func (a *AppConfig) InitAllNotifications(callback func(namespace string)) {
+func (a *AppConfig) initAllNotifications(callback func(namespace string)) {
 	ns := SplitNamespaces(a.NamespaceName, callback)
 	a.notificationsMap = &notificationsMap{
 		notifications: ns,
