@@ -40,6 +40,7 @@ func init() {
 
 func createMockApolloConfig(expireTime int) *Client {
 	client := Create()
+	client.cache = storage.InitConfigCache(client.appConfig)
 	configs := make(map[string]interface{}, 0)
 	//string
 	configs["string"] = "value"
