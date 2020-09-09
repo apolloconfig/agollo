@@ -86,6 +86,7 @@ func (c *Client) StartWithConfig(loadAppConfig func() (*config.AppConfig, error)
 	//start long poll sync config
 	configComponent := &notify.ConfigComponent{}
 	configComponent.SetAppConfig(c.appConfig)
+	configComponent.SetCache(c.cache)
 	go component.StartRefreshConfig(configComponent)
 
 	log.Info("agollo start finished ! ")

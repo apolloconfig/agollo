@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/zouyx/agollo/v4/constant"
+	"github.com/zouyx/agollo/v4/storage"
 	"net/url"
 	"path"
 	"time"
@@ -49,10 +50,15 @@ const (
 //ConfigComponent 配置组件
 type ConfigComponent struct {
 	appConfig *config.AppConfig
+	cache     *storage.Cache
 }
 
 func (c *ConfigComponent) SetAppConfig(appConfig *config.AppConfig) {
 	c.appConfig = appConfig
+}
+
+func (c *ConfigComponent) SetCache(cache *storage.Cache) {
+	c.cache = cache
 }
 
 //Start 启动配置组件定时器
@@ -62,7 +68,10 @@ func (c *ConfigComponent) Start() {
 	for {
 		select {
 		case <-t2.C:
-			AsyncConfigs(c.appConfig)
+			configs := AsyncConfigs(c.appConfig)
+			for _, apolloConfig := range configs {
+				c.cache.UpdateApolloConfig(apolloConfig, c.appConfig, true)
+			}
 			t2.Reset(longPollInterval)
 		}
 	}
