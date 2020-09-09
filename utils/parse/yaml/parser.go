@@ -20,15 +20,12 @@ package yaml
 import (
 	"bytes"
 	"github.com/spf13/viper"
-	"github.com/zouyx/agollo/v4/constant"
-	"github.com/zouyx/agollo/v4/extension"
 	"github.com/zouyx/agollo/v4/utils"
 )
 
 var vp = viper.New()
 
 func init() {
-	extension.AddFormatParser(constant.YAML, &Parser{})
 	vp.SetConfigType("yaml")
 }
 

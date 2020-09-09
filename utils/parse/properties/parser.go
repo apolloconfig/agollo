@@ -17,15 +17,6 @@
 
 package properties
 
-import (
-	"github.com/zouyx/agollo/v4/constant"
-	"github.com/zouyx/agollo/v4/extension"
-)
-
-func init() {
-	extension.AddFormatParser(constant.Properties, &Parser{})
-}
-
 // Parser properties转换器
 type Parser struct {
 }

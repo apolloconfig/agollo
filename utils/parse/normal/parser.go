@@ -17,15 +17,6 @@
 
 package normal
 
-import (
-	"github.com/zouyx/agollo/v4/constant"
-	"github.com/zouyx/agollo/v4/extension"
-)
-
-func init() {
-	extension.AddFormatParser(constant.DEFAULT, &Parser{})
-}
-
 // Parser 默认内容转换器
 type Parser struct {
 }

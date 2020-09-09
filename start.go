@@ -26,9 +26,6 @@ import (
 	"github.com/zouyx/agollo/v4/extension"
 	"github.com/zouyx/agollo/v4/protocol/auth"
 	"github.com/zouyx/agollo/v4/storage"
-	_ "github.com/zouyx/agollo/v4/utils/parse/normal"
-	_ "github.com/zouyx/agollo/v4/utils/parse/properties"
-	_ "github.com/zouyx/agollo/v4/utils/parse/yml"
 )
 
 //SetSignature 设置自定义 http 授权控件

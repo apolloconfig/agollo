@@ -25,6 +25,7 @@ import (
 	"github.com/zouyx/agollo/v4/component/log"
 	"github.com/zouyx/agollo/v4/component/notify"
 	"github.com/zouyx/agollo/v4/component/serverlist"
+	"github.com/zouyx/agollo/v4/constant"
 	"github.com/zouyx/agollo/v4/env"
 	"github.com/zouyx/agollo/v4/env/config"
 	jsonFile "github.com/zouyx/agollo/v4/env/file/json"
@@ -32,6 +33,10 @@ import (
 	"github.com/zouyx/agollo/v4/protocol/auth/sign"
 	"github.com/zouyx/agollo/v4/storage"
 	"github.com/zouyx/agollo/v4/utils"
+	"github.com/zouyx/agollo/v4/utils/parse/normal"
+	"github.com/zouyx/agollo/v4/utils/parse/properties"
+	"github.com/zouyx/agollo/v4/utils/parse/yaml"
+	"github.com/zouyx/agollo/v4/utils/parse/yml"
 	"strconv"
 )
 
@@ -47,6 +52,13 @@ func create() *Client {
 	extension.SetLoadBalance(&roundrobin.RoundRobin{})
 	extension.SetFileHandler(&jsonFile.FileHandler{})
 	extension.SetHTTPAuth(&sign.AuthSignature{})
+
+	// file parser
+	extension.AddFormatParser(constant.DEFAULT, &normal.Parser{})
+	extension.AddFormatParser(constant.Properties, &properties.Parser{})
+	extension.AddFormatParser(constant.YML, &yml.Parser{})
+	extension.AddFormatParser(constant.YAML, &yaml.Parser{})
+
 	appConfig := env.InitFileConfig()
 
 	return &Client{
