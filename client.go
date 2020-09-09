@@ -54,7 +54,7 @@ func create() *Client {
 	}
 }
 
-// StartWithConfig 根据默认文件启动
+// Start 根据默认文件启动
 func Start() (*Client, error) {
 	return StartWithConfig(nil)
 }
