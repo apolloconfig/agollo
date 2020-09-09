@@ -40,6 +40,7 @@ const (
 	propertiesFormat = "%s=%v\n"
 )
 
+// Cache apollo 配置缓存
 type Cache struct {
 	apolloConfigCache sync.Map
 }

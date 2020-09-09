@@ -53,10 +53,12 @@ type ConfigComponent struct {
 	cache     *storage.Cache
 }
 
+// SetAppConfig nolint
 func (c *ConfigComponent) SetAppConfig(appConfig *config.AppConfig) {
 	c.appConfig = appConfig
 }
 
+// SetCache nolint
 func (c *ConfigComponent) SetCache(cache *storage.Cache) {
 	c.cache = cache
 }

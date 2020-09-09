@@ -71,8 +71,7 @@ func TestStart(t *testing.T) {
 	b, _ := json.Marshal(c)
 	writeFile(b, "app.properties")
 
-	client := Create()
-	client.Start()
+	client, _ := Start()
 
 	value := client.GetValue("key1")
 	Assert(t, "value1", Equal(value))
@@ -93,9 +92,7 @@ func TestStartWithMultiNamespace(t *testing.T) {
 	b, _ := json.Marshal(c)
 	writeFile(b, "app.properties")
 
-	client := Create()
-	client.appConfig.Init()
-	client.Start()
+	client, _ := Start()
 
 	time.Sleep(1 * time.Second)
 
@@ -122,9 +119,7 @@ func TestErrorStart(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	client := Create()
-	client.appConfig.Init()
-	client.Start()
+	client, _ := Start()
 
 	value := client.GetValue("key1")
 	Assert(t, "value1", Equal(value))
@@ -158,11 +153,9 @@ func TestStructInit(t *testing.T) {
 		IP:            "localhost:8889",
 	}
 
-	client := Create()
-	client.StartWithConfig(func() (*config.AppConfig, error) {
+	client, _ := StartWithConfig(func() (*config.AppConfig, error) {
 		return readyConfig, nil
 	})
-	client.appConfig.Init()
 
 	time.Sleep(1 * time.Second)
 

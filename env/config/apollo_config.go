@@ -23,12 +23,13 @@ import (
 	"github.com/zouyx/agollo/v4/utils"
 )
 
+// CurrentApolloConfig 当前 apollo 返回的配置信息
 type CurrentApolloConfig struct {
 	l       sync.RWMutex
 	configs map[string]*ApolloConnConfig
 }
 
-// CreateCurrentApolloConfig xx
+// CreateCurrentApolloConfig nolint
 func CreateCurrentApolloConfig() *CurrentApolloConfig {
 	return &CurrentApolloConfig{
 		configs: make(map[string]*ApolloConnConfig, 1),
@@ -63,7 +64,7 @@ func (c *CurrentApolloConfig) GetReleaseKey(namespace string) string {
 	return config.ReleaseKey
 }
 
-//ApolloConnConfig apollo链接配置
+// ApolloConnConfig apollo链接配置
 type ApolloConnConfig struct {
 	AppID         string `json:"appId"`
 	Cluster       string `json:"cluster"`

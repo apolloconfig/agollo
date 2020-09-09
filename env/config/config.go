@@ -90,12 +90,13 @@ func (a *AppConfig) GetHost() string {
 	return "http://" + a.IP + "/"
 }
 
-// InitAllNotifications 初始化notificationsMap
+// Init 初始化notificationsMap
 func (a *AppConfig) Init() {
 	a.currentConnApolloConfig = CreateCurrentApolloConfig()
 	a.initAllNotifications(nil)
 }
 
+// Notification 用于保存 apollo Notification 信息
 type Notification struct {
 	NamespaceName  string `json:"namespaceName"`
 	NotificationID int64  `json:"notificationId"`
@@ -122,7 +123,7 @@ func SplitNamespaces(namespacesStr string, callback func(namespace string)) sync
 	return namespaces
 }
 
-// GetNotifications 获取notificationsMap
+// GetNotificationsMap 获取notificationsMap
 func (a *AppConfig) GetNotificationsMap() *notificationsMap {
 	return a.notificationsMap
 }
@@ -215,12 +216,12 @@ func (a *AppConfig) GetServicesConfigURL() string {
 		utils.GetInternal())
 }
 
-// nolint
+// SetCurrentApolloConfig nolint
 func (a *AppConfig) SetCurrentApolloConfig(apolloConfig *ApolloConnConfig) {
 	a.currentConnApolloConfig.Set(apolloConfig.NamespaceName, apolloConfig)
 }
 
-// nolint
+// GetCurrentApolloConfig nolint
 func (a *AppConfig) GetCurrentApolloConfig() *CurrentApolloConfig {
 	return a.currentConnApolloConfig
 }

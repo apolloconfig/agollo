@@ -35,13 +35,14 @@ import (
 	"strconv"
 )
 
+// Client apollo 客户端实例
 type Client struct {
 	initAppConfigFunc func() (*config.AppConfig, error)
 	appConfig         *config.AppConfig
 	cache             *storage.Cache
 }
 
-func Create() *Client {
+func create() *Client {
 	extension.SetCacheFactory(&memory.DefaultCacheFactory{})
 	extension.SetLoadBalance(&roundrobin.RoundRobin{})
 	extension.SetFileHandler(&jsonFile.FileHandler{})
@@ -53,17 +54,20 @@ func Create() *Client {
 	}
 }
 
-func (c *Client) Start() error {
-	return c.StartWithConfig(nil)
+// StartWithConfig 根据默认文件启动
+func Start() (*Client, error) {
+	return StartWithConfig(nil)
 }
 
-func (c *Client) StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) error {
+// StartWithConfig 根据配置启动
+func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (*Client, error) {
 	// 有了配置之后才能进行初始化
 	appConfig, err := env.InitConfig(loadAppConfig)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
+	c := create()
 	if appConfig != nil {
 		c.appConfig = appConfig
 	}
@@ -91,7 +95,7 @@ func (c *Client) StartWithConfig(loadAppConfig func() (*config.AppConfig, error)
 
 	log.Info("agollo start finished ! ")
 
-	return nil
+	return c, nil
 }
 
 //GetConfig 根据namespace获取apollo配置
