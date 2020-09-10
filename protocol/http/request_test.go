@@ -125,7 +125,7 @@ func TestCustomTimeout(t *testing.T) {
 func mockIPList(t *testing.T, appConfig *config.AppConfig) {
 	time.Sleep(1 * time.Second)
 
-	_, err := appConfig.SyncServerIPListSuccessCallBack(nil, []byte(servicesResponseStr))
+	_, err := appConfig.SyncServerIPListSuccessCallBack([]byte(servicesResponseStr))
 
 	Assert(t, err, NilVal())
 

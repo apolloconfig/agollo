@@ -161,7 +161,7 @@ func notifyRemoteConfig(appConfig *config.AppConfig, namespace string) ([]*confi
 	}
 	connectConfig.Timeout = nofityConnectTimeout
 	notifies, err := http.RequestRecovery(appConfig, connectConfig, &http.CallBack{
-		SuccessCallBack: func(appConfig *config.AppConfig, responseBody []byte) (interface{}, error) {
+		SuccessCallBack: func(responseBody []byte) (interface{}, error) {
 			return toApolloConfig(responseBody)
 		},
 		NotModifyCallBack: touchApolloConfigCache,
@@ -178,7 +178,7 @@ func touchApolloConfigCache() error {
 }
 
 //AutoSyncConfigServicesSuccessCallBack 同步配置回调
-func AutoSyncConfigServicesSuccessCallBack(appConfig *config.AppConfig, responseBody []byte) (o interface{}, err error) {
+func AutoSyncConfigServicesSuccessCallBack(responseBody []byte) (o interface{}, err error) {
 	return createApolloConfigWithJSON(responseBody)
 }
 

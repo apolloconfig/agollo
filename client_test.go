@@ -202,7 +202,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	newAppConfig.NextTryConnTime = 0
 	client.appConfig = newAppConfig
 
-	apolloConfig, _ := notify.AutoSyncConfigServicesSuccessCallBack(newAppConfig, []byte(configResponseStr))
+	apolloConfig, _ := notify.AutoSyncConfigServicesSuccessCallBack([]byte(configResponseStr))
 	client.cache.UpdateApolloConfig(apolloConfig.(*config.ApolloConfig), newAppConfig, true)
 
 	config := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]

@@ -145,7 +145,7 @@ func (a *AppConfig) IsConnectDirectly() bool {
 }
 
 //SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
-func (a *AppConfig) SyncServerIPListSuccessCallBack(appConfig *AppConfig, responseBody []byte) (o interface{}, err error) {
+func (a *AppConfig) SyncServerIPListSuccessCallBack(responseBody []byte) (o interface{}, err error) {
 	log.Debug("get all server info:", string(responseBody))
 
 	tmpServerInfo := make([]*ServerInfo, 0)

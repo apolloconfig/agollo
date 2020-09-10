@@ -175,14 +175,14 @@ func getNotifyLen(s sync.Map) int {
 
 func TestSyncServerIpListSuccessCallBack(t *testing.T) {
 	appConfig := getTestAppConfig()
-	appConfig.SyncServerIPListSuccessCallBack(nil, []byte(servicesConfigResponseStr))
+	appConfig.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
 	Assert(t, appConfig.GetServersLen(), Equal(10))
 }
 
 func TestSetDownNode(t *testing.T) {
 	t.SkipNow()
 	appConfig := getTestAppConfig()
-	appConfig.SyncServerIPListSuccessCallBack(nil, []byte(servicesConfigResponseStr))
+	appConfig.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
 
 	downNode := "10.15.128.102:8080"
 	appConfig.SetDownNode(downNode)
