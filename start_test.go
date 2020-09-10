@@ -32,7 +32,6 @@ import (
 	"github.com/zouyx/agollo/v4/env/config"
 	jsonFile "github.com/zouyx/agollo/v4/env/config/json"
 	"github.com/zouyx/agollo/v4/extension"
-	"github.com/zouyx/agollo/v4/storage"
 )
 
 var (
@@ -179,12 +178,6 @@ func TestSetLogger(t *testing.T) {
 	logger := &log.DefaultLogger{}
 	SetLogger(logger)
 	Assert(t, log.Logger, Equal(logger))
-}
-
-func TestUseEventDispatch(t *testing.T) {
-	UseEventDispatch()
-	l := storage.GetChangeListeners()
-	Assert(t, l.Len(), Equal(1))
 }
 
 func TestSetCache(t *testing.T) {

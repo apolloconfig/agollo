@@ -18,6 +18,7 @@
 package agollo
 
 import (
+	"container/list"
 	"github.com/zouyx/agollo/v4/agcache"
 	"github.com/zouyx/agollo/v4/agcache/memory"
 	"github.com/zouyx/agollo/v4/cluster/roundrobin"
@@ -260,4 +261,24 @@ func (c *Client) getConfigValue(key string) interface{} {
 	}
 
 	return value
+}
+
+// AddChangeListener 增加变更监控
+func (c *Client) AddChangeListener(listener storage.ChangeListener) {
+	c.cache.AddChangeListener(listener)
+}
+
+// RemoveChangeListener 增加变更监控
+func (c *Client) RemoveChangeListener(listener storage.ChangeListener) {
+	c.cache.RemoveChangeListener(listener)
+}
+
+// GetChangeListeners 获取配置修改监听器列表
+func (c *Client) GetChangeListeners() *list.List {
+	return c.cache.GetChangeListeners()
+}
+
+// UseEventDispatch  添加为某些key分发event功能
+func (c *Client) UseEventDispatch() {
+	c.AddChangeListener(storage.UseEventDispatch())
 }

@@ -18,14 +18,12 @@
 package agollo
 
 import (
-	"container/list"
 	"github.com/zouyx/agollo/v4/agcache"
 	"github.com/zouyx/agollo/v4/cluster"
 	"github.com/zouyx/agollo/v4/component/log"
 	"github.com/zouyx/agollo/v4/env/file"
 	"github.com/zouyx/agollo/v4/extension"
 	"github.com/zouyx/agollo/v4/protocol/auth"
-	"github.com/zouyx/agollo/v4/storage"
 )
 
 //SetSignature 设置自定义 http 授权控件
@@ -56,29 +54,9 @@ func SetLogger(loggerInterface log.LoggerInterface) {
 	}
 }
 
-//UseEventDispatch  添加为某些key分发event功能
-func UseEventDispatch() {
-	storage.UseEventDispatch()
-}
-
 //SetCache 设置自定义cache组件
 func SetCache(cacheFactory agcache.CacheFactory) {
 	if cacheFactory != nil {
 		extension.SetCacheFactory(cacheFactory)
 	}
-}
-
-//AddChangeListener 增加变更监控
-func AddChangeListener(listener storage.ChangeListener) {
-	storage.AddChangeListener(listener)
-}
-
-//RemoveChangeListener 增加变更监控
-func RemoveChangeListener(listener storage.ChangeListener) {
-	storage.RemoveChangeListener(listener)
-}
-
-//GetChangeListeners 获取配置修改监听器列表
-func GetChangeListeners() *list.List {
-	return storage.GetChangeListeners()
 }

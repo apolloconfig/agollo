@@ -19,6 +19,7 @@ package agollo
 
 import (
 	"fmt"
+	"github.com/zouyx/agollo/v4/agcache/memory"
 	"github.com/zouyx/agollo/v4/env/config"
 	"net/http"
 	"net/http/httptest"
@@ -36,6 +37,7 @@ const testDefaultNamespace = "application"
 
 //init param
 func init() {
+	extension.SetCacheFactory(&memory.DefaultCacheFactory{})
 }
 
 func createMockApolloConfig(expireTime int) *Client {
@@ -330,4 +332,12 @@ func TestGetApolloConfigCache(t *testing.T) {
 	client := createMockApolloConfig(120)
 	cache := client.GetApolloConfigCache()
 	Assert(t, cache, NotNilVal())
+}
+
+func TestUseEventDispatch(t *testing.T) {
+	dispatch := storage.UseEventDispatch()
+	cache := storage.CreateNamespaceConfig("abc")
+	cache.AddChangeListener(dispatch)
+	l := cache.GetChangeListeners()
+	Assert(t, l.Len(), Equal(1))
 }

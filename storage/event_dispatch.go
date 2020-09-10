@@ -33,10 +33,6 @@ var (
 	ErrNilListener = errors.New("nil listener")
 )
 
-var (
-	eventDispatch *Dispatcher
-)
-
 // Event generated when any config changes
 type Event struct {
 	EventType ConfigChangeType
@@ -55,15 +51,10 @@ type Dispatcher struct {
 }
 
 // UseEventDispatch 用于开启事件分发功能
-func UseEventDispatch() {
-	eventDispatch = new(Dispatcher)
+func UseEventDispatch() *Dispatcher {
+	eventDispatch := new(Dispatcher)
 	eventDispatch.listeners = make(map[string][]Listener)
-	AddChangeListener(eventDispatch)
-}
-
-// RegisterListener 为某些key注释Listener
-func RegisterListener(listener Listener, keys ...string) error {
-	return eventDispatch.RegisterListener(listener, keys...)
+	return eventDispatch
 }
 
 // RegisterListener 是为某些key注释Listener的方法
@@ -102,11 +93,6 @@ func invalidKey(key string) bool {
 		return true
 	}
 	return false
-}
-
-// UnRegisterListener 为某些key注释Listener
-func UnRegisterListener(listenerObj Listener, keys ...string) error {
-	return eventDispatch.UnRegisterListener(listenerObj, keys...)
 }
 
 // UnRegisterListener 用于为某些key注释Listener

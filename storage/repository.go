@@ -18,6 +18,7 @@
 package storage
 
 import (
+	"container/list"
 	"fmt"
 	"github.com/zouyx/agollo/v4/env/config"
 	"reflect"
@@ -43,6 +44,7 @@ const (
 // Cache apollo 配置缓存
 type Cache struct {
 	apolloConfigCache sync.Map
+	changeListeners   *list.List
 }
 
 //GetConfig 根据namespace获取apollo配置
@@ -72,7 +74,8 @@ func CreateNamespaceConfig(namespace string) *Cache {
 		apolloConfigCache.Store(namespace, c)
 	})
 	return &Cache{
-		apolloConfigCache,
+		apolloConfigCache: apolloConfigCache,
+		changeListeners:   list.New(),
 	}
 }
 
@@ -229,14 +232,14 @@ func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfig 
 	changeList := c.UpdateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime, apolloConfig.NamespaceName)
 
 	//push all newest changes
-	pushNewestChanges(apolloConfig.NamespaceName, apolloConfig.Configurations)
+	c.pushNewestChanges(apolloConfig.NamespaceName, apolloConfig.Configurations)
 
 	if len(changeList) > 0 {
 		//create config change event base on change list
 		event := createConfigChangeEvent(changeList, apolloConfig.NamespaceName)
 
 		//push change event to channel
-		pushChangeEvent(event)
+		c.pushChangeEvent(event)
 	}
 
 	if isBackupConfig {
@@ -335,4 +338,59 @@ func convertToProperties(cache agcache.CacheInterface) string {
 //GetDefaultNamespace 获取默认命名空间
 func GetDefaultNamespace() string {
 	return defaultNamespace
+}
+
+//AddChangeListener 增加变更监控
+func (c *Cache) AddChangeListener(listener ChangeListener) {
+	if listener == nil {
+		return
+	}
+	c.changeListeners.PushBack(listener)
+}
+
+//RemoveChangeListener 增加变更监控
+func (c *Cache) RemoveChangeListener(listener ChangeListener) {
+	if listener == nil {
+		return
+	}
+	for i := c.changeListeners.Front(); i != nil; i = i.Next() {
+		apolloListener := i.Value.(ChangeListener)
+		if listener == apolloListener {
+			c.changeListeners.Remove(i)
+		}
+	}
+}
+
+// GetChangeListeners 获取配置修改监听器列表
+func (c *Cache) GetChangeListeners() *list.List {
+	return c.changeListeners
+}
+
+//push config change event
+func (c *Cache) pushChangeEvent(event *ChangeEvent) {
+	c.pushChange(func(listener ChangeListener) {
+		go listener.OnChange(event)
+	})
+}
+
+func (c *Cache) pushNewestChanges(namespace string, configuration map[string]interface{}) {
+	e := &FullChangeEvent{
+		Changes: configuration,
+	}
+	e.Namespace = namespace
+	c.pushChange(func(listener ChangeListener) {
+		go listener.OnNewestChange(e)
+	})
+}
+
+func (c *Cache) pushChange(f func(ChangeListener)) {
+	// if channel is null ,mean no listener,don't need to push msg
+	if c.changeListeners == nil || c.changeListeners.Len() == 0 {
+		return
+	}
+
+	for i := c.changeListeners.Front(); i != nil; i = i.Next() {
+		listener := i.Value.(ChangeListener)
+		f(listener)
+	}
 }
