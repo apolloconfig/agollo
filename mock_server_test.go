@@ -52,13 +52,13 @@ const (
 	responseTwoStr = `[{"namespaceName":"application","notificationId":%d},{"namespaceName":"abc1","notificationId":%d}]`
 )
 
-//run mock config server
-func runMockConfigServer(handlerMap map[string]func(http.ResponseWriter, *http.Request),
+//run mock config Files server
+func runMockConfigFilesServer(handlerMap map[string]func(http.ResponseWriter, *http.Request),
 	notifyHandler func(http.ResponseWriter, *http.Request),
 	appConfig *config.AppConfig) *httptest.Server {
 	uriHandlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 0)
 	for namespace, handler := range handlerMap {
-		uri := fmt.Sprintf("/configs/%s/%s/%s", appConfig.AppID, appConfig.Cluster, namespace)
+		uri := fmt.Sprintf("/configfiles/%s/%s/%s", appConfig.AppID, appConfig.Cluster, namespace)
 		uriHandlerMap[uri] = handler
 	}
 	uriHandlerMap["/notifications/v2"] = notifyHandler

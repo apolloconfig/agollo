@@ -69,9 +69,7 @@ func getLoadAppConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.
 		return nil, e
 	}
 
-	appConfig := c.(*config.AppConfig)
-	appConfig.Init()
-	return appConfig, e
+	return c.(*config.AppConfig), e
 }
 
 //GetConfigFileExecutor 获取文件执行器
@@ -93,6 +91,6 @@ func Unmarshal(b []byte) (interface{}, error) {
 	if utils.IsNotNil(err) {
 		return nil, err
 	}
-
+	appConfig.Init()
 	return appConfig, nil
 }

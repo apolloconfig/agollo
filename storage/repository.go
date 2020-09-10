@@ -60,15 +60,6 @@ func (c *Cache) GetConfig(namespace string) *Config {
 	return config.(*Config)
 }
 
-//InitConfigCache 获取程序配置初始化agollo内润配置
-func InitConfigCache(config *config.AppConfig) *Cache {
-	if config == nil {
-		log.Warn("Config is nil,can not init agollo.")
-		return nil
-	}
-	return CreateNamespaceConfig(config.NamespaceName)
-}
-
 //CreateNamespaceConfig 根据namespace初始化agollo内润配置
 func CreateNamespaceConfig(namespace string) *Cache {
 	//config from apollo

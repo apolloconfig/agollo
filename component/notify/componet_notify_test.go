@@ -44,7 +44,6 @@ func init() {
 
 var (
 	jsonConfigFile = &jsonConfig.ConfigFile{}
-	isAsync        = true
 )
 
 const responseStr = `[{"namespaceName":"application","notificationId":%d}]`
@@ -91,7 +90,7 @@ func TestGetRemoteConfig(t *testing.T) {
 	var err error
 	appConfig := initNotifications()
 	appConfig.IP = server.URL
-	remoteConfigs, err = notifyRemoteConfig(appConfig, EMPTY, isAsync)
+	remoteConfigs, err = notifyRemoteConfig(appConfig, EMPTY)
 
 	//err keep nil
 	Assert(t, err, NilVal())
@@ -119,7 +118,7 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 
 	var remoteConfigs []*config.Notification
 	var err error
-	remoteConfigs, err = notifyRemoteConfig(appConfig, EMPTY, isAsync)
+	remoteConfigs, err = notifyRemoteConfig(appConfig, EMPTY)
 
 	Assert(t, err, NotNilVal())
 	Assert(t, remoteConfigs, NilVal())
@@ -248,7 +247,7 @@ func TestAutoSyncConfigServicesError(t *testing.T) {
 
 	apolloConfigs := AutoSyncConfigServices(newAppConfig)
 
-	Assert(t, apolloConfigs, NilVal())
+	Assert(t, len(apolloConfigs), Equal(0))
 }
 
 func getTestAppConfig() *config.AppConfig {

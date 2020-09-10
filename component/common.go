@@ -35,7 +35,7 @@ func StartRefreshConfig(component AbsComponent) {
 	component.Start()
 }
 
-//GetConfigURLSuffix 获取apollo config server的路径
+// GetConfigURLSuffix 通过不带缓存的Http接口从Apollo读取配置
 func GetConfigURLSuffix(config *config.AppConfig, namespaceName string) string {
 	if config == nil {
 		return ""
@@ -45,5 +45,17 @@ func GetConfigURLSuffix(config *config.AppConfig, namespaceName string) string {
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(namespaceName),
 		url.QueryEscape(config.GetCurrentApolloConfig().GetReleaseKey(namespaceName)),
+		utils.GetInternal())
+}
+
+// GetConfigFilesURLSuffix 通过带缓存的Http接口从Apollo读取配置
+func GetConfigFilesURLSuffix(config *config.AppConfig, namespaceName string) string {
+	if config == nil {
+		return ""
+	}
+	return fmt.Sprintf("configfiles/%s/%s/%s?&ip=%s",
+		url.QueryEscape(config.AppID),
+		url.QueryEscape(config.Cluster),
+		url.QueryEscape(namespaceName),
 		utils.GetInternal())
 }

@@ -84,13 +84,13 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (*Client, 
 		c.appConfig = appConfig
 	}
 
-	c.cache = storage.InitConfigCache(appConfig)
+	c.cache = storage.CreateNamespaceConfig(appConfig.NamespaceName)
 	appConfig.Init()
 
 	serverlist.InitSyncServerIPList(c.appConfig)
 
 	//first sync
-	configs := notify.SyncConfigs(c.appConfig)
+	configs := notify.AutoSyncConfigServices(c.appConfig)
 	if len(configs) > 0 {
 		for _, apolloConfig := range configs {
 			c.cache.UpdateApolloConfig(apolloConfig, c.appConfig, true)
