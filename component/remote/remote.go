@@ -15,14 +15,16 @@
  * limitations under the License.
  */
 
-package component
+package remote
 
-//AbsComponent 定时组件
-type AbsComponent interface {
-	Start()
-}
+import (
+	"github.com/zouyx/agollo/v4/env/config"
+	"github.com/zouyx/agollo/v4/protocol/http"
+)
 
-//StartRefreshConfig 开始定时服务
-func StartRefreshConfig(component AbsComponent) {
-	component.Start()
+type ApolloConfig interface {
+	GetNotifyURLSuffix(notifications string, config config.AppConfig) string
+	GetSyncURI(config config.AppConfig, namespaceName string) string
+	Sync(appConfig *config.AppConfig) []*config.ApolloConfig
+	CallBack() http.CallBack
 }
