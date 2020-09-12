@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/zouyx/agollo/v4/agcache/memory"
 	"github.com/zouyx/agollo/v4/cluster/roundrobin"
+	"github.com/zouyx/agollo/v4/component/remote"
 	jsonFile "github.com/zouyx/agollo/v4/env/file/json"
 	"github.com/zouyx/agollo/v4/extension"
 	"sync"
@@ -81,8 +82,9 @@ func buildNotifyResult(t *testing.T) {
 	newAppConfig := getTestAppConfig()
 	newAppConfig.IP = server.URL
 
-	apolloConfigs := AutoSyncConfigServices(newAppConfig)
-	apolloConfigs = AutoSyncConfigServices(newAppConfig)
+	syncApolloConfig := remote.CreateSyncApolloConfig()
+	apolloConfigs := syncApolloConfig.Sync(newAppConfig)
+	apolloConfigs = syncApolloConfig.Sync(newAppConfig)
 
 	Assert(t, apolloConfigs, NotNilVal())
 	Assert(t, len(apolloConfigs), Equal(1))

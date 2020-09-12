@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package abs
+package remote
 
 import (
 	"github.com/zouyx/agollo/v4/component/log"
@@ -24,32 +24,18 @@ import (
 	"github.com/zouyx/agollo/v4/protocol/http"
 )
 
-type ApolloConfig struct{}
-
-func (*ApolloConfig) GetNotifyURLSuffix(notifications string, config config.AppConfig) string {
-	return ""
+type AbsApolloConfig struct {
+	remoteApollo ApolloConfig
 }
 
-func (*ApolloConfig) GetSyncURI(config config.AppConfig, namespaceName string) string {
-	return ""
-}
-
-func (*ApolloConfig) Sync(appConfig *config.AppConfig) []*config.ApolloConfig {
-	return nil
-}
-
-func (*ApolloConfig) CallBack() http.CallBack {
-	return http.CallBack{}
-}
-
-func (a *ApolloConfig) SyncWithNamespace(namespace string, appConfig *config.AppConfig) *config.ApolloConfig {
+func (a *AbsApolloConfig) SyncWithNamespace(namespace string, appConfig *config.AppConfig) *config.ApolloConfig {
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}
 
-	urlSuffix := a.GetSyncURI(*appConfig, namespace)
+	urlSuffix := a.remoteApollo.GetSyncURI(*appConfig, namespace)
 
-	callback := a.CallBack()
+	callback := a.remoteApollo.CallBack()
 	apolloConfig, err := http.RequestRecovery(appConfig, &env.ConnectConfig{
 		URI:    urlSuffix,
 		AppID:  appConfig.AppID,

@@ -25,6 +25,7 @@ import (
 	"github.com/zouyx/agollo/v4/component"
 	"github.com/zouyx/agollo/v4/component/log"
 	"github.com/zouyx/agollo/v4/component/notify"
+	"github.com/zouyx/agollo/v4/component/remote"
 	"github.com/zouyx/agollo/v4/component/serverlist"
 	"github.com/zouyx/agollo/v4/constant"
 	"github.com/zouyx/agollo/v4/env"
@@ -40,6 +41,8 @@ import (
 	"github.com/zouyx/agollo/v4/utils/parse/yml"
 	"strconv"
 )
+
+var syncApolloConfig = remote.CreateSyncApolloConfig()
 
 // Client apollo 客户端实例
 type Client struct {
@@ -91,7 +94,7 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (*Client, 
 	serverlist.InitSyncServerIPList(c.appConfig)
 
 	//first sync
-	configs := notify.AutoSyncConfigServices(c.appConfig)
+	configs := syncApolloConfig.Sync(c.appConfig)
 	if len(configs) > 0 {
 		for _, apolloConfig := range configs {
 			c.cache.UpdateApolloConfig(apolloConfig, c.appConfig, true)
@@ -129,7 +132,7 @@ func (c *Client) GetConfigAndInit(namespace string) *storage.Config {
 		storage.CreateNamespaceConfig(namespace)
 
 		//sync config
-		notify.SyncNamespaceConfig(namespace, c.appConfig)
+		syncApolloConfig.SyncWithNamespace(namespace, c.appConfig)
 	}
 
 	config = c.cache.GetConfig(namespace)

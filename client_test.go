@@ -18,16 +18,20 @@
 package agollo
 
 import (
+	"encoding/json"
 	"fmt"
 	"github.com/zouyx/agollo/v4/agcache/memory"
+	"github.com/zouyx/agollo/v4/component/log"
+	"github.com/zouyx/agollo/v4/constant"
 	"github.com/zouyx/agollo/v4/env/config"
+	"github.com/zouyx/agollo/v4/utils"
 	"net/http"
 	"net/http/httptest"
+	"path"
 	"testing"
 	"time"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v4/component/notify"
 	_ "github.com/zouyx/agollo/v4/env/file/json"
 	"github.com/zouyx/agollo/v4/extension"
 	"github.com/zouyx/agollo/v4/storage"
@@ -204,7 +208,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	newAppConfig.NextTryConnTime = 0
 	client.appConfig = newAppConfig
 
-	apolloConfig, _ := notify.AutoSyncConfigServicesSuccessCallBack([]byte(configResponseStr))
+	apolloConfig, _ := createApolloConfigWithJSON([]byte(configResponseStr))
 	client.cache.UpdateApolloConfig(apolloConfig.(*config.ApolloConfig), newAppConfig, true)
 
 	config := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]
@@ -229,6 +233,32 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	Assert(t, "value1", Equal(client.GetStringValue("key1", "")))
 	Assert(t, "value2", Equal(client.GetStringValue("key2", "")))
 	checkBackupFile(client, t)
+}
+
+func createApolloConfigWithJSON(b []byte) (o interface{}, err error) {
+	apolloConfig := &config.ApolloConfig{}
+	err = json.Unmarshal(b, apolloConfig)
+	if utils.IsNotNil(err) {
+		return nil, err
+	}
+
+	parser := extension.GetFormatParser(constant.ConfigFileFormat(path.Ext(apolloConfig.NamespaceName)))
+	if parser == nil {
+		parser = extension.GetFormatParser(constant.DEFAULT)
+	}
+
+	if parser == nil {
+		return apolloConfig, nil
+	}
+	m, err := parser.Parse(apolloConfig.Configurations["content"])
+	if err != nil {
+		log.Debug("GetContent fail ! error:", err)
+	}
+
+	if len(m) > 0 {
+		apolloConfig.Configurations = m
+	}
+	return apolloConfig, nil
 }
 
 func checkBackupFile(client *Client, t *testing.T) {

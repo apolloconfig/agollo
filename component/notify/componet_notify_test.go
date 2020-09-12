@@ -19,23 +19,16 @@ package notify
 
 import (
 	"encoding/json"
-	"github.com/zouyx/agollo/v4/cluster/roundrobin"
-	"github.com/zouyx/agollo/v4/component/log"
-	"github.com/zouyx/agollo/v4/constant"
-	jsonFile "github.com/zouyx/agollo/v4/env/file/json"
-	"github.com/zouyx/agollo/v4/utils"
-	"os"
-	"path"
-	"testing"
-	"time"
-
 	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v4/cluster/roundrobin"
 	_ "github.com/zouyx/agollo/v4/cluster/roundrobin"
 	"github.com/zouyx/agollo/v4/env"
 	"github.com/zouyx/agollo/v4/env/config"
 	jsonConfig "github.com/zouyx/agollo/v4/env/config/json"
 	_ "github.com/zouyx/agollo/v4/env/file/json"
+	jsonFile "github.com/zouyx/agollo/v4/env/file/json"
 	"github.com/zouyx/agollo/v4/extension"
+	"testing"
 )
 
 func init() {
@@ -92,73 +85,6 @@ func TestUpdateAllNotificationsError(t *testing.T) {
 	appConfig.GetNotificationsMap().UpdateAllNotifications(notifies)
 
 	Assert(t, appConfig.GetNotificationsMap().GetNotifyLen(), Equal(2))
-}
-
-func TestAutoSyncConfigServices(t *testing.T) {
-	server := runNormalConfigResponse()
-	newAppConfig := initNotifications()
-	newAppConfig.IP = server.URL
-
-	time.Sleep(1 * time.Second)
-
-	apolloConfigs := AutoSyncConfigServices(newAppConfig)
-
-	Assert(t, apolloConfigs, NotNilVal())
-	Assert(t, len(apolloConfigs), Equal(1))
-
-	newAppConfig.GetCurrentApolloConfig().Set(newAppConfig.NamespaceName, &apolloConfigs[0].ApolloConnConfig)
-	config := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]
-
-	Assert(t, "100004458", Equal(config.AppID))
-	Assert(t, "default", Equal(config.Cluster))
-	Assert(t, "application", Equal(config.NamespaceName))
-	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
-	//Assert(t,"value1",config.Configurations["key1"])
-	//Assert(t,"value2",config.Configurations["key2"])
-}
-
-func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
-	appConfig := initNotifications()
-	server := runNormalConfigResponse()
-	newAppConfig := initNotifications()
-	newAppConfig.IP = server.URL
-	appConfig.IsBackupConfig = false
-	configFilePath := extension.GetFileHandler().GetConfigFile(newAppConfig.GetBackupConfigPath(), "application")
-	os.Remove(configFilePath)
-
-	time.Sleep(1 * time.Second)
-
-	newAppConfig.NextTryConnTime = 0
-	newAppConfig.IsBackupConfig = false
-	AutoSyncConfigServices(newAppConfig)
-
-	newAppConfig.NextTryConnTime = 0
-	newAppConfig.IsBackupConfig = true
-	configs := AutoSyncConfigServices(newAppConfig)
-
-	Assert(t, len(configs), GreaterThan(0))
-	checkNilBackupFile(t)
-
-}
-
-func checkNilBackupFile(t *testing.T) {
-	appConfig := env.InitFileConfig()
-	newConfig, e := extension.GetFileHandler().LoadConfigFile(appConfig.GetBackupConfigPath(), "application")
-	Assert(t, e, NotNilVal())
-	Assert(t, newConfig, NilVal())
-}
-
-func TestAutoSyncConfigServicesError(t *testing.T) {
-	//reload app properties
-	server := runErrorConfigResponse()
-	newAppConfig := initNotifications()
-	newAppConfig.IP = server.URL
-
-	time.Sleep(1 * time.Second)
-
-	apolloConfigs := AutoSyncConfigServices(newAppConfig)
-
-	Assert(t, len(apolloConfigs), Equal(0))
 }
 
 func getTestAppConfig() *config.AppConfig {

@@ -15,39 +15,31 @@
  * limitations under the License.
  */
 
-package sync
+package remote
 
 import (
 	"fmt"
-	"github.com/zouyx/agollo/v4/component/remote"
-	"github.com/zouyx/agollo/v4/component/remote/abs"
 	"github.com/zouyx/agollo/v4/env/config"
 	"github.com/zouyx/agollo/v4/protocol/http"
 	"github.com/zouyx/agollo/v4/utils"
 	"net/url"
 )
 
-var (
-	remoteApollo apolloConfig
-)
-
-func init() {
-	remoteApollo = apolloConfig{}
+func CreateSyncApolloConfig() ApolloConfig {
+	a := &syncApolloConfig{}
+	a.remoteApollo = a
+	return a
 }
 
-func GetInstance() remote.ApolloConfig {
-	return &remoteApollo
+type syncApolloConfig struct {
+	AbsApolloConfig
 }
 
-type apolloConfig struct {
-	abs.ApolloConfig
-}
-
-func (*apolloConfig) GetNotifyURLSuffix(notifications string, config config.AppConfig) string {
+func (*syncApolloConfig) GetNotifyURLSuffix(notifications string, config config.AppConfig) string {
 	return ""
 }
 
-func (*apolloConfig) GetSyncURI(config config.AppConfig, namespaceName string) string {
+func (*syncApolloConfig) GetSyncURI(config config.AppConfig, namespaceName string) string {
 	return fmt.Sprintf("configfiles/%s/%s/%s?&ip=%s",
 		url.QueryEscape(config.AppID),
 		url.QueryEscape(config.Cluster),
@@ -55,11 +47,14 @@ func (*apolloConfig) GetSyncURI(config config.AppConfig, namespaceName string) s
 		utils.GetInternal())
 }
 
-func (*apolloConfig) CallBack() http.CallBack {
-	return http.CallBack{}
+func (*syncApolloConfig) CallBack() http.CallBack {
+	return http.CallBack{
+		SuccessCallBack:   createApolloConfigWithJSON,
+		NotModifyCallBack: touchApolloConfigCache,
+	}
 }
 
-func (a *apolloConfig) Sync(appConfig *config.AppConfig) []*config.ApolloConfig {
+func (a *syncApolloConfig) Sync(appConfig *config.AppConfig) []*config.ApolloConfig {
 	configs := make([]*config.ApolloConfig, 0, 8)
 	config.SplitNamespaces(appConfig.NamespaceName, func(namespace string) {
 		apolloConfig := a.SyncWithNamespace(namespace, appConfig)

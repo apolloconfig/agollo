@@ -15,19 +15,32 @@
  * limitations under the License.
  */
 
-package async
+package remote
 
 import (
 	"fmt"
 	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v4/cluster/roundrobin"
 	"github.com/zouyx/agollo/v4/env"
 	"github.com/zouyx/agollo/v4/env/config"
+	jsonFile "github.com/zouyx/agollo/v4/env/file/json"
+	"github.com/zouyx/agollo/v4/extension"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 	"time"
 )
+
+var asyncApollo *asyncApolloConfig
+
+func init() {
+	extension.SetLoadBalance(&roundrobin.RoundRobin{})
+	extension.SetFileHandler(&jsonFile.FileHandler{})
+
+	asyncApollo = &asyncApolloConfig{}
+	asyncApollo.remoteApollo = asyncApollo
+}
 
 const configResponseStr = `{
   "appId": "100004458",
@@ -121,7 +134,7 @@ func TestApolloConfig_Sync(t *testing.T) {
 	server := initMockNotifyAndConfigServer()
 	appConfig := initNotifications()
 	appConfig.IP = server.URL
-	apolloConfigs := GetInstance().Sync(appConfig)
+	apolloConfigs := asyncApollo.Sync(appConfig)
 	//err keep nil
 	Assert(t, apolloConfigs, NotNilVal())
 	Assert(t, len(apolloConfigs), Equal(2))
@@ -143,7 +156,7 @@ func TestGetRemoteConfig(t *testing.T) {
 	var err error
 	appConfig := initNotifications()
 	appConfig.IP = server.URL
-	remoteConfigs, err = remoteApollo.notifyRemoteConfig(appConfig, EMPTY)
+	remoteConfigs, err = asyncApollo.notifyRemoteConfig(appConfig, EMPTY)
 
 	//err keep nil
 	Assert(t, err, NilVal())
@@ -171,7 +184,8 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 
 	var remoteConfigs []*config.Notification
 	var err error
-	remoteConfigs, err = remoteApollo.notifyRemoteConfig(appConfig, EMPTY)
+
+	remoteConfigs, err = asyncApollo.notifyRemoteConfig(appConfig, EMPTY)
 
 	Assert(t, err, NotNilVal())
 	Assert(t, remoteConfigs, NilVal())
@@ -195,17 +209,17 @@ func TestCreateApolloConfigWithJson(t *testing.T) {
 }`
 
 	o, err := createApolloConfigWithJSON([]byte(jsonStr))
-	config := o.(config.ApolloConfig)
+	c := o.(*config.ApolloConfig)
 
 	Assert(t, err, NilVal())
-	Assert(t, config, NotNilVal())
+	Assert(t, c, NotNilVal())
 
-	Assert(t, "100004458", Equal(config.AppID))
-	Assert(t, "default", Equal(config.Cluster))
-	Assert(t, "application", Equal(config.NamespaceName))
-	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
-	Assert(t, "value1", Equal(config.Configurations["key1"]))
-	Assert(t, "value2", Equal(config.Configurations["key2"]))
+	Assert(t, "100004458", Equal(c.AppID))
+	Assert(t, "default", Equal(c.Cluster))
+	Assert(t, "application", Equal(c.NamespaceName))
+	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(c.ReleaseKey))
+	Assert(t, "value1", Equal(c.Configurations["key1"]))
+	Assert(t, "value2", Equal(c.Configurations["key2"]))
 
 }
 
@@ -216,4 +230,11 @@ func TestCreateApolloConfigWithJsonError(t *testing.T) {
 
 	Assert(t, err, NotNilVal())
 	Assert(t, config, NilVal())
+}
+
+func TestGetConfigURLSuffix(t *testing.T) {
+	appConfig := &config.AppConfig{}
+	appConfig.Init()
+	uri := asyncApollo.GetSyncURI(*appConfig, "kk")
+	Assert(t, "", NotEqual(uri))
 }

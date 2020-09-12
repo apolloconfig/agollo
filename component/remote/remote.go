@@ -27,4 +27,5 @@ type ApolloConfig interface {
 	GetSyncURI(config config.AppConfig, namespaceName string) string
 	Sync(appConfig *config.AppConfig) []*config.ApolloConfig
 	CallBack() http.CallBack
+	SyncWithNamespace(namespace string, appConfig *config.AppConfig) *config.ApolloConfig
 }

@@ -15,14 +15,12 @@
  * limitations under the License.
  */
 
-package async
+package remote
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/zouyx/agollo/v4/component/log"
-	"github.com/zouyx/agollo/v4/component/remote"
-	"github.com/zouyx/agollo/v4/component/remote/abs"
 	"github.com/zouyx/agollo/v4/constant"
 	"github.com/zouyx/agollo/v4/env"
 	"github.com/zouyx/agollo/v4/env/config"
@@ -41,30 +39,24 @@ const (
 	defaultContentKey = "content"
 )
 
-var (
-	remoteApollo apolloConfig
-)
-
-func init() {
-	remoteApollo = apolloConfig{}
+func CreateAsyncApolloConfig() ApolloConfig {
+	a := &asyncApolloConfig{}
+	a.remoteApollo = a
+	return a
 }
 
-func GetInstance() remote.ApolloConfig {
-	return &remoteApollo
+type asyncApolloConfig struct {
+	AbsApolloConfig
 }
 
-type apolloConfig struct {
-	abs.ApolloConfig
-}
-
-func (*apolloConfig) GetNotifyURLSuffix(notifications string, config config.AppConfig) string {
+func (*asyncApolloConfig) GetNotifyURLSuffix(notifications string, config config.AppConfig) string {
 	return fmt.Sprintf("notifications/v2?appId=%s&cluster=%s&notifications=%s",
 		url.QueryEscape(config.AppID),
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(notifications))
 }
 
-func (*apolloConfig) GetSyncURI(config config.AppConfig, namespaceName string) string {
+func (*asyncApolloConfig) GetSyncURI(config config.AppConfig, namespaceName string) string {
 	return fmt.Sprintf("configs/%s/%s/%s?releaseKey=%s&ip=%s",
 		url.QueryEscape(config.AppID),
 		url.QueryEscape(config.Cluster),
@@ -73,7 +65,7 @@ func (*apolloConfig) GetSyncURI(config config.AppConfig, namespaceName string) s
 		utils.GetInternal())
 }
 
-func (a *apolloConfig) Sync(appConfig *config.AppConfig) []*config.ApolloConfig {
+func (a *asyncApolloConfig) Sync(appConfig *config.AppConfig) []*config.ApolloConfig {
 	remoteConfigs, err := a.notifyRemoteConfig(appConfig, utils.Empty)
 
 	var apolloConfigs []*config.ApolloConfig
@@ -97,14 +89,14 @@ func (a *apolloConfig) Sync(appConfig *config.AppConfig) []*config.ApolloConfig 
 	return apolloConfigs
 }
 
-func (*apolloConfig) CallBack() http.CallBack {
+func (*asyncApolloConfig) CallBack() http.CallBack {
 	return http.CallBack{
 		SuccessCallBack:   createApolloConfigWithJSON,
 		NotModifyCallBack: touchApolloConfigCache,
 	}
 }
 
-func (a *apolloConfig) notifyRemoteConfig(appConfig *config.AppConfig, namespace string) ([]*config.Notification, error) {
+func (a *asyncApolloConfig) notifyRemoteConfig(appConfig *config.AppConfig, namespace string) ([]*config.Notification, error) {
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}

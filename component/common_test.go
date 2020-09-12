@@ -98,16 +98,6 @@ func TestSelectOnlyOneHost(t *testing.T) {
 	Assert(t, host, NotEqual(load.HomepageURL))
 }
 
-func TestGetConfigURLSuffix(t *testing.T) {
-	appConfig := &config.AppConfig{}
-	appConfig.Init()
-	uri := GetConfigURLSuffix(appConfig, "kk")
-	Assert(t, "", NotEqual(uri))
-
-	uri = GetConfigURLSuffix(nil, "kk")
-	Assert(t, "", Equal(uri))
-}
-
 type testComponent struct {
 }
 

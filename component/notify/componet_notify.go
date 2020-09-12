@@ -18,10 +18,10 @@
 package notify
 
 import (
+	"github.com/zouyx/agollo/v4/component/remote"
 	"github.com/zouyx/agollo/v4/storage"
 	"time"
 
-	"github.com/zouyx/agollo/v4/component/remote/async"
 	"github.com/zouyx/agollo/v4/env/config"
 )
 
@@ -48,11 +48,11 @@ func (c *ConfigComponent) SetCache(cache *storage.Cache) {
 //Start 启动配置组件定时器
 func (c *ConfigComponent) Start() {
 	t2 := time.NewTimer(longPollInterval)
+	instance := remote.CreateAsyncApolloConfig()
 	//long poll for sync
 	for {
 		select {
 		case <-t2.C:
-			instance := async.GetInstance()
 			configs := instance.Sync(c.appConfig)
 			for _, apolloConfig := range configs {
 				c.cache.UpdateApolloConfig(apolloConfig, c.appConfig, true)
