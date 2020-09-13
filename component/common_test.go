@@ -18,6 +18,8 @@
 package component
 
 import (
+	"github.com/zouyx/agollo/v4/component/log"
+	"github.com/zouyx/agollo/v4/protocol/http"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
@@ -26,6 +28,8 @@ import (
 	"github.com/zouyx/agollo/v4/env/config"
 	"github.com/zouyx/agollo/v4/env/config/json"
 	"github.com/zouyx/agollo/v4/extension"
+
+	json2 "encoding/json"
 )
 
 func init() {
@@ -114,5 +118,32 @@ func TestName(t *testing.T) {
 }
 
 func trySyncServerIPList(appConfig *config.AppConfig) {
-	appConfig.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
+	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfig: appConfig})
+}
+
+//SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
+func SyncServerIPListSuccessCallBack(responseBody []byte, callback http.CallBack) (o interface{}, err error) {
+	log.Debug("get all server info:", string(responseBody))
+
+	tmpServerInfo := make([]*config.ServerInfo, 0)
+
+	err = json2.Unmarshal(responseBody, &tmpServerInfo)
+
+	if err != nil {
+		log.Error("Unmarshal json Fail,Error:", err)
+		return
+	}
+
+	if len(tmpServerInfo) == 0 {
+		log.Info("get no real server!")
+		return
+	}
+
+	for _, server := range tmpServerInfo {
+		if server == nil {
+			continue
+		}
+		callback.AppConfig.GetServers().Store(server.HomepageURL, server)
+	}
+	return
 }

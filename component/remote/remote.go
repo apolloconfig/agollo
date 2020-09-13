@@ -26,6 +26,6 @@ type ApolloConfig interface {
 	GetNotifyURLSuffix(notifications string, config config.AppConfig) string
 	GetSyncURI(config config.AppConfig, namespaceName string) string
 	Sync(appConfig *config.AppConfig) []*config.ApolloConfig
-	CallBack() http.CallBack
+	CallBack(namespace string) http.CallBack
 	SyncWithNamespace(namespace string, appConfig *config.AppConfig) *config.ApolloConfig
 }

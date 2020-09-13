@@ -21,13 +21,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/zouyx/agollo/v4/agcache/memory"
-	"github.com/zouyx/agollo/v4/component/log"
-	"github.com/zouyx/agollo/v4/constant"
 	"github.com/zouyx/agollo/v4/env/config"
-	"github.com/zouyx/agollo/v4/utils"
 	"net/http"
 	"net/http/httptest"
-	"path"
 	"testing"
 	"time"
 
@@ -226,10 +222,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	})
 
 	Assert(t, config, NotNilVal())
-	Assert(t, "100004458", Equal(config.AppID))
-	Assert(t, "default", Equal(config.Cluster))
 	Assert(t, testDefaultNamespace, Equal(config.NamespaceName))
-	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
 	Assert(t, "value1", Equal(client.GetStringValue("key1", "")))
 	Assert(t, "value2", Equal(client.GetStringValue("key2", "")))
 	checkBackupFile(client, t)
@@ -237,27 +230,11 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 
 func createApolloConfigWithJSON(b []byte) (o interface{}, err error) {
 	apolloConfig := &config.ApolloConfig{}
-	err = json.Unmarshal(b, apolloConfig)
-	if utils.IsNotNil(err) {
-		return nil, err
-	}
+	apolloConfig.NamespaceName = testDefaultNamespace
 
-	parser := extension.GetFormatParser(constant.ConfigFileFormat(path.Ext(apolloConfig.NamespaceName)))
-	if parser == nil {
-		parser = extension.GetFormatParser(constant.DEFAULT)
-	}
-
-	if parser == nil {
-		return apolloConfig, nil
-	}
-	m, err := parser.Parse(apolloConfig.Configurations["content"])
-	if err != nil {
-		log.Debug("GetContent fail ! error:", err)
-	}
-
-	if len(m) > 0 {
-		apolloConfig.Configurations = m
-	}
+	configurations := make(map[string]interface{}, 0)
+	apolloConfig.Configurations = configurations
+	err = json.Unmarshal(b, &apolloConfig.Configurations)
 	return apolloConfig, nil
 }
 

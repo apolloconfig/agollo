@@ -18,11 +18,16 @@
 package remote
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/zouyx/agollo/v4/component/log"
+	"github.com/zouyx/agollo/v4/constant"
 	"github.com/zouyx/agollo/v4/env/config"
+	"github.com/zouyx/agollo/v4/extension"
 	"github.com/zouyx/agollo/v4/protocol/http"
 	"github.com/zouyx/agollo/v4/utils"
 	"net/url"
+	"path"
 )
 
 func CreateSyncApolloConfig() ApolloConfig {
@@ -47,11 +52,43 @@ func (*syncApolloConfig) GetSyncURI(config config.AppConfig, namespaceName strin
 		utils.GetInternal())
 }
 
-func (*syncApolloConfig) CallBack() http.CallBack {
+func (*syncApolloConfig) CallBack(namespace string) http.CallBack {
 	return http.CallBack{
-		SuccessCallBack:   createApolloConfigWithJSON,
+		SuccessCallBack:   processJSONFiles,
 		NotModifyCallBack: touchApolloConfigCache,
+		Namespace:         namespace,
 	}
+}
+
+func processJSONFiles(b []byte, callback http.CallBack) (o interface{}, err error) {
+	apolloConfig := &config.ApolloConfig{}
+	apolloConfig.NamespaceName = callback.Namespace
+
+	configurations := make(map[string]interface{}, 0)
+	apolloConfig.Configurations = configurations
+	err = json.Unmarshal(b, &apolloConfig.Configurations)
+
+	if utils.IsNotNil(err) {
+		return nil, err
+	}
+
+	parser := extension.GetFormatParser(constant.ConfigFileFormat(path.Ext(apolloConfig.NamespaceName)))
+	if parser == nil {
+		parser = extension.GetFormatParser(constant.DEFAULT)
+	}
+
+	if parser == nil {
+		return apolloConfig, nil
+	}
+	m, err := parser.Parse(configurations[defaultContentKey])
+	if err != nil {
+		log.Debug("GetContent fail ! error:", err)
+	}
+
+	if len(m) > 0 {
+		apolloConfig.Configurations = m
+	}
+	return apolloConfig, nil
 }
 
 func (a *syncApolloConfig) Sync(appConfig *config.AppConfig) []*config.ApolloConfig {

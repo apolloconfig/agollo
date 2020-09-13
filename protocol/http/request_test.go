@@ -20,6 +20,7 @@ package http
 import (
 	"fmt"
 	"github.com/zouyx/agollo/v4/cluster/roundrobin"
+	"github.com/zouyx/agollo/v4/component/log"
 	"github.com/zouyx/agollo/v4/extension"
 	"net/url"
 	"testing"
@@ -30,6 +31,8 @@ import (
 	"github.com/zouyx/agollo/v4/env/config"
 	"github.com/zouyx/agollo/v4/env/config/json"
 	"github.com/zouyx/agollo/v4/utils"
+
+	json2 "encoding/json"
 )
 
 func init() {
@@ -125,7 +128,7 @@ func TestCustomTimeout(t *testing.T) {
 func mockIPList(t *testing.T, appConfig *config.AppConfig) {
 	time.Sleep(1 * time.Second)
 
-	_, err := appConfig.SyncServerIPListSuccessCallBack([]byte(servicesResponseStr))
+	_, err := SyncServerIPListSuccessCallBack([]byte(servicesResponseStr), CallBack{AppConfig: appConfig})
 
 	Assert(t, err, NilVal())
 
@@ -144,4 +147,31 @@ func getConfigURLSuffix(config *config.AppConfig, namespaceName string) string {
 		url.QueryEscape(namespaceName),
 		url.QueryEscape(config.GetCurrentApolloConfig().GetReleaseKey(namespaceName)),
 		utils.GetInternal())
+}
+
+//SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
+func SyncServerIPListSuccessCallBack(responseBody []byte, callback CallBack) (o interface{}, err error) {
+	log.Debug("get all server info:", string(responseBody))
+
+	tmpServerInfo := make([]*config.ServerInfo, 0)
+
+	err = json2.Unmarshal(responseBody, &tmpServerInfo)
+
+	if err != nil {
+		log.Error("Unmarshal json Fail,Error:", err)
+		return
+	}
+
+	if len(tmpServerInfo) == 0 {
+		log.Info("get no real server!")
+		return
+	}
+
+	for _, server := range tmpServerInfo {
+		if server == nil {
+			continue
+		}
+		callback.AppConfig.GetServers().Store(server.HomepageURL, server)
+	}
+	return
 }

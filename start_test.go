@@ -64,7 +64,7 @@ func TestStart(t *testing.T) {
 	c := appConfig
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
-	server := runMockConfigFilesServer(handlerMap, onlyNormalResponse, c)
+	server := runMockConfigFilesServer(handlerMap, nil, c)
 	c.IP = server.URL
 
 	b, _ := json.Marshal(c)
@@ -84,7 +84,7 @@ func TestStartWithMultiNamespace(t *testing.T) {
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
 	handlerMap[app1] = onlyNormalSecondConfigResponse
-	server := runMockConfigFilesServer(handlerMap, onlyNormalTwoResponse, appConfig)
+	server := runMockConfigFilesServer(handlerMap, nil, appConfig)
 
 	c.NamespaceName = "application,abc1"
 	c.IP = server.URL
@@ -93,12 +93,9 @@ func TestStartWithMultiNamespace(t *testing.T) {
 
 	client, _ := Start()
 
-	time.Sleep(1 * time.Second)
-
 	value := client.GetValue("key1")
 	Assert(t, "value1", Equal(value))
 
-	time.Sleep(1 * time.Second)
 	config := client.GetConfig(app1)
 	Assert(t, config, NotNilVal())
 	Assert(t, config.GetValue("key1-1"), Equal("value1-1"))

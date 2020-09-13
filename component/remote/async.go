@@ -89,10 +89,11 @@ func (a *asyncApolloConfig) Sync(appConfig *config.AppConfig) []*config.ApolloCo
 	return apolloConfigs
 }
 
-func (*asyncApolloConfig) CallBack() http.CallBack {
+func (*asyncApolloConfig) CallBack(namespace string) http.CallBack {
 	return http.CallBack{
 		SuccessCallBack:   createApolloConfigWithJSON,
 		NotModifyCallBack: touchApolloConfigCache,
+		Namespace:         namespace,
 	}
 }
 
@@ -109,10 +110,11 @@ func (a *asyncApolloConfig) notifyRemoteConfig(appConfig *config.AppConfig, name
 	}
 	connectConfig.Timeout = notifyConnectTimeout
 	notifies, err := http.RequestRecovery(appConfig, connectConfig, &http.CallBack{
-		SuccessCallBack: func(responseBody []byte) (interface{}, error) {
+		SuccessCallBack: func(responseBody []byte, callback http.CallBack) (interface{}, error) {
 			return toApolloConfig(responseBody)
 		},
 		NotModifyCallBack: touchApolloConfigCache,
+		Namespace:         namespace,
 	})
 
 	if notifies == nil {
@@ -154,7 +156,7 @@ func loadBackupConfig(namespace string, appConfig *config.AppConfig) []*config.A
 	return apolloConfigs
 }
 
-func createApolloConfigWithJSON(b []byte) (o interface{}, err error) {
+func createApolloConfigWithJSON(b []byte, callback http.CallBack) (o interface{}, err error) {
 	apolloConfig := &config.ApolloConfig{}
 	err = json.Unmarshal(b, apolloConfig)
 	if utils.IsNotNil(err) {

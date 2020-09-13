@@ -18,6 +18,7 @@
 package serverlist
 
 import (
+	"encoding/json"
 	"time"
 
 	"github.com/zouyx/agollo/v4/component"
@@ -75,8 +76,36 @@ func SyncServerIPList(appConfig *config.AppConfig) error {
 		AppID:  appConfig.AppID,
 		Secret: appConfig.Secret,
 	}, &http.CallBack{
-		SuccessCallBack: appConfig.SyncServerIPListSuccessCallBack,
+		SuccessCallBack: SyncServerIPListSuccessCallBack,
+		AppConfig:       appConfig,
 	})
 
 	return err
+}
+
+//SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
+func SyncServerIPListSuccessCallBack(responseBody []byte, callback http.CallBack) (o interface{}, err error) {
+	log.Debug("get all server info:", string(responseBody))
+
+	tmpServerInfo := make([]*config.ServerInfo, 0)
+
+	err = json.Unmarshal(responseBody, &tmpServerInfo)
+
+	if err != nil {
+		log.Error("Unmarshal json Fail,Error:", err)
+		return
+	}
+
+	if len(tmpServerInfo) == 0 {
+		log.Info("get no real server!")
+		return
+	}
+
+	for _, server := range tmpServerInfo {
+		if server == nil {
+			continue
+		}
+		callback.AppConfig.GetServers().Store(server.HomepageURL, server)
+	}
+	return
 }

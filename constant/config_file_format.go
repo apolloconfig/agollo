@@ -32,5 +32,5 @@ const (
 	//YAML YAML
 	YAML ConfigFileFormat = ".yaml"
 	// DEFAULT DEFAULT
-	DEFAULT ConfigFileFormat = ".default"
+	DEFAULT ConfigFileFormat = ""
 )

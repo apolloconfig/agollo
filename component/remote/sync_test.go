@@ -19,8 +19,13 @@ package remote
 
 import (
 	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v4/constant"
 	"github.com/zouyx/agollo/v4/env"
 	"github.com/zouyx/agollo/v4/extension"
+	"github.com/zouyx/agollo/v4/utils/parse/normal"
+	"github.com/zouyx/agollo/v4/utils/parse/properties"
+	"github.com/zouyx/agollo/v4/utils/parse/yaml"
+	"github.com/zouyx/agollo/v4/utils/parse/yml"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -36,6 +41,12 @@ var (
 func init() {
 	syncApollo = &syncApolloConfig{}
 	syncApollo.remoteApollo = syncApollo
+
+	// file parser
+	extension.AddFormatParser(constant.DEFAULT, &normal.Parser{})
+	extension.AddFormatParser(constant.Properties, &properties.Parser{})
+	extension.AddFormatParser(constant.YML, &yml.Parser{})
+	extension.AddFormatParser(constant.YAML, &yaml.Parser{})
 }
 
 //Normal response
@@ -47,7 +58,7 @@ func runNormalConfigResponse() *httptest.Server {
 		normalConfigCount++
 		if normalConfigCount%2 == 0 {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(configResponseStr))
+			w.Write([]byte(configFilesResponseStr))
 		} else {
 			time.Sleep(500 * time.Microsecond)
 			w.WriteHeader(http.StatusNotModified)
@@ -80,15 +91,12 @@ func TestAutoSyncConfigServices(t *testing.T) {
 	Assert(t, apolloConfigs, NotNilVal())
 	Assert(t, len(apolloConfigs), Equal(1))
 
-	newAppConfig.GetCurrentApolloConfig().Set(newAppConfig.NamespaceName, &apolloConfigs[0].ApolloConnConfig)
-	config := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]
-
-	Assert(t, "100004458", Equal(config.AppID))
-	Assert(t, "default", Equal(config.Cluster))
-	Assert(t, "application", Equal(config.NamespaceName))
-	Assert(t, "20170430092936-dee2d58e74515ff3", Equal(config.ReleaseKey))
-	//Assert(t,"value1",config.Configurations["key1"])
-	//Assert(t,"value2",config.Configurations["key2"])
+	apolloConfig := apolloConfigs[0]
+	newAppConfig.GetCurrentApolloConfig().Set(newAppConfig.NamespaceName, &apolloConfig.ApolloConnConfig)
+	c := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]
+	Assert(t, "application", Equal(c.NamespaceName))
+	Assert(t, "value1", Equal(apolloConfig.Configurations["key1"]))
+	Assert(t, "value2", Equal(apolloConfig.Configurations["key2"]))
 }
 
 func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {

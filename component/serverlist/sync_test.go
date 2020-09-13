@@ -18,6 +18,7 @@
 package serverlist
 
 import (
+	"github.com/zouyx/agollo/v4/protocol/http"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
@@ -60,4 +61,24 @@ func getTestAppConfig() *config.AppConfig {
 	c, _ := env.Unmarshal([]byte(jsonStr))
 
 	return c.(*config.AppConfig)
+}
+
+func TestSyncServerIpListSuccessCallBack(t *testing.T) {
+	appConfig := getTestAppConfig()
+	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfig: appConfig})
+	Assert(t, appConfig.GetServersLen(), Equal(10))
+}
+
+func TestSetDownNode(t *testing.T) {
+	t.SkipNow()
+	appConfig := getTestAppConfig()
+	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfig: appConfig})
+
+	downNode := "10.15.128.102:8080"
+	appConfig.SetDownNode(downNode)
+
+	value, ok := appConfig.GetServers().Load("http://10.15.128.102:8080/")
+	info := value.(*config.ServerInfo)
+	Assert(t, ok, Equal(true))
+	Assert(t, info.IsDown, Equal(true))
 }

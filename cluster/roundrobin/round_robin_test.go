@@ -18,7 +18,9 @@
 package roundrobin
 
 import (
+	"github.com/zouyx/agollo/v4/component/serverlist"
 	"github.com/zouyx/agollo/v4/env/config"
+	"github.com/zouyx/agollo/v4/protocol/http"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
@@ -134,5 +136,5 @@ func deleteServers(appConfig *config.AppConfig) {
 }
 
 func trySyncServerIPList(appConfig *config.AppConfig) {
-	appConfig.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
+	serverlist.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfig: appConfig})
 }

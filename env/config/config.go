@@ -20,7 +20,6 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/v4/component/log"
 	"github.com/zouyx/agollo/v4/utils"
 	"net/url"
 	"strings"
@@ -142,33 +141,6 @@ func (a *AppConfig) IsConnectDirectly() bool {
 	}
 
 	return false
-}
-
-//SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
-func (a *AppConfig) SyncServerIPListSuccessCallBack(responseBody []byte) (o interface{}, err error) {
-	log.Debug("get all server info:", string(responseBody))
-
-	tmpServerInfo := make([]*ServerInfo, 0)
-
-	err = json.Unmarshal(responseBody, &tmpServerInfo)
-
-	if err != nil {
-		log.Error("Unmarshal json Fail,Error:", err)
-		return
-	}
-
-	if len(tmpServerInfo) == 0 {
-		log.Info("get no real server!")
-		return
-	}
-
-	for _, server := range tmpServerInfo {
-		if server == nil {
-			continue
-		}
-		a.servers.Store(server.HomepageURL, server)
-	}
-	return
 }
 
 //SetDownNode 设置失效节点

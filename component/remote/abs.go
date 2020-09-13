@@ -35,7 +35,7 @@ func (a *AbsApolloConfig) SyncWithNamespace(namespace string, appConfig *config.
 
 	urlSuffix := a.remoteApollo.GetSyncURI(*appConfig, namespace)
 
-	callback := a.remoteApollo.CallBack()
+	callback := a.remoteApollo.CallBack(namespace)
 	apolloConfig, err := http.RequestRecovery(appConfig, &env.ConnectConfig{
 		URI:    urlSuffix,
 		AppID:  appConfig.AppID,

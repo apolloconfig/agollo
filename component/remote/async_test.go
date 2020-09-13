@@ -25,6 +25,7 @@ import (
 	"github.com/zouyx/agollo/v4/env/config"
 	jsonFile "github.com/zouyx/agollo/v4/env/file/json"
 	"github.com/zouyx/agollo/v4/extension"
+	http2 "github.com/zouyx/agollo/v4/protocol/http"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -51,6 +52,11 @@ const configResponseStr = `{
     "key2":"value2"
   },
   "releaseKey": "20170430092936-dee2d58e74515ff3"
+}`
+
+const configFilesResponseStr = `{
+    "key1":"value1",
+    "key2":"value2"
 }`
 
 const configAbc1ResponseStr = `{
@@ -207,8 +213,7 @@ func TestCreateApolloConfigWithJson(t *testing.T) {
   },
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
-
-	o, err := createApolloConfigWithJSON([]byte(jsonStr))
+	o, err := createApolloConfigWithJSON([]byte(jsonStr), http2.CallBack{})
 	c := o.(*config.ApolloConfig)
 
 	Assert(t, err, NilVal())
@@ -226,7 +231,7 @@ func TestCreateApolloConfigWithJson(t *testing.T) {
 func TestCreateApolloConfigWithJsonError(t *testing.T) {
 	jsonStr := `jklasdjflasjdfa`
 
-	config, err := createApolloConfigWithJSON([]byte(jsonStr))
+	config, err := createApolloConfigWithJSON([]byte(jsonStr), http2.CallBack{})
 
 	Assert(t, err, NotNilVal())
 	Assert(t, config, NilVal())
