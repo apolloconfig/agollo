@@ -44,7 +44,7 @@ func runMockConfigFilesServer(handlerMap map[string]func(http.ResponseWriter, *h
 	appConfig *config.AppConfig) *httptest.Server {
 	uriHandlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 0)
 	for namespace, handler := range handlerMap {
-		uri := fmt.Sprintf("/configfiles/%s/%s/%s", appConfig.AppID, appConfig.Cluster, namespace)
+		uri := fmt.Sprintf("/configfiles/json/%s/%s/%s", appConfig.AppID, appConfig.Cluster, namespace)
 		uriHandlerMap[uri] = handler
 	}
 
