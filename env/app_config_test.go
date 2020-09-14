@@ -94,7 +94,7 @@ func TestInit(t *testing.T) {
 	Assert(t, "test", Equal(config.AppID))
 	Assert(t, "dev", Equal(config.Cluster))
 	Assert(t, "application,abc1", Equal(config.NamespaceName))
-	Assert(t, "localhost:8888", Equal(config.IP))
+	Assert(t, "http://localhost:8888", Equal(config.IP))
 
 	//TODO: 需要确认是否放在这里
 	//defaultApolloConfig := GetCurrentApolloConfig()[defaultNamespace]
@@ -116,7 +116,7 @@ func getTestAppConfig() *config.AppConfig {
     "appId": "test",
     "cluster": "dev",
     "namespaceName": "application",
-    "ip": "localhost:8888",
+    "ip": "http://localhost:8888",
     "releaseKey": "1"
 	}`
 	c, _ := Unmarshal([]byte(jsonStr))

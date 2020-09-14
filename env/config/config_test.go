@@ -36,7 +36,7 @@ func getTestAppConfig() *AppConfig {
     "appId": "test",
     "cluster": "dev",
     "namespaceName": "application",
-    "ip": "localhost:8888",
+    "ip": "http://localhost:8888",
     "releaseKey": "1"
 	}`
 	c, _ := Unmarshal([]byte(jsonStr))
