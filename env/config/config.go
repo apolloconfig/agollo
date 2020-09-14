@@ -80,13 +80,14 @@ func (a *AppConfig) GetBackupConfigPath() string {
 
 //GetHost GetHost
 func (a *AppConfig) GetHost() string {
-	if strings.HasPrefix(a.IP, "http") {
-		if !strings.HasSuffix(a.IP, "/") {
-			return a.IP + "/"
-		}
+	u, err := url.Parse(a.IP)
+	if err != nil {
 		return a.IP
 	}
-	return "http://" + a.IP + "/"
+	if !strings.HasSuffix(u.Path, "/") {
+		return u.String() + "/"
+	}
+	return u.String()
 }
 
 // Init 初始化notificationsMap

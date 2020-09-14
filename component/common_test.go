@@ -100,6 +100,19 @@ func TestSelectOnlyOneHost(t *testing.T) {
 	load := extension.GetLoadBalance().Load(*appConfig.GetServers())
 	Assert(t, load, NotNilVal())
 	Assert(t, host, NotEqual(load.HomepageURL))
+
+	appConfig.IP = host
+	Assert(t, host, Equal(appConfig.GetHost()))
+	load = extension.GetLoadBalance().Load(*appConfig.GetServers())
+	Assert(t, load, NotNilVal())
+	Assert(t, host, NotEqual(load.HomepageURL))
+
+	appConfig.IP = "https://localhost:8888"
+	https := "https://localhost:8888/"
+	Assert(t, https, Equal(appConfig.GetHost()))
+	load = extension.GetLoadBalance().Load(*appConfig.GetServers())
+	Assert(t, load, NotNilVal())
+	Assert(t, host, NotEqual(load.HomepageURL))
 }
 
 type testComponent struct {
