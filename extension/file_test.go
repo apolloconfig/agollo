@@ -34,11 +34,11 @@ func (r *TestFileHandler) WriteConfigFile(config *config.ApolloConfig, configPat
 }
 
 //GetConfigFile 获得配置文件路径
-func (r *TestFileHandler) GetConfigFile(configDir string, namespace string) string {
+func (r *TestFileHandler) GetConfigFile(configDir string, appId string, namespace string) string {
 	return ""
 }
 
-func (r *TestFileHandler) LoadConfigFile(configDir string, namespace string) (*config.ApolloConfig, error) {
+func (r *TestFileHandler) LoadConfigFile(configDir string, appId string, namespace string) (*config.ApolloConfig, error) {
 	return nil, nil
 }
 

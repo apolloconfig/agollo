@@ -244,6 +244,7 @@ func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfig 
 
 	if isBackupConfig {
 		//write config file async
+		apolloConfig.AppID = appConfig.AppID
 		go extension.GetFileHandler().WriteConfigFile(apolloConfig, appConfig.GetBackupConfigPath())
 	}
 }

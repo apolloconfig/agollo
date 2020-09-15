@@ -44,7 +44,7 @@ func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
 }`
 
 	config, err := createApolloConfigWithJSON([]byte(jsonStr))
-	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.NamespaceName))
+	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.AppID, config.NamespaceName))
 
 	Assert(t, err, NilVal())
 	e := extension.GetFileHandler().WriteConfigFile(config, configPath)
@@ -68,7 +68,7 @@ func TestJSONFileHandler_LoadConfigFile(t *testing.T) {
 	config, err := createApolloConfigWithJSON([]byte(jsonStr))
 
 	Assert(t, err, NilVal())
-	newConfig, e := extension.GetFileHandler().LoadConfigFile("", config.NamespaceName)
+	newConfig, e := extension.GetFileHandler().LoadConfigFile("", config.AppID, config.NamespaceName)
 
 	t.Log(newConfig)
 	Assert(t, e, NilVal())

@@ -210,12 +210,12 @@ func (fileHandler *testFileHandler) WriteConfigFile(config *config.ApolloConfig,
 }
 
 // GetConfigFile get real config file
-func (fileHandler *testFileHandler) GetConfigFile(configDir string, namespace string) string {
+func (fileHandler *testFileHandler) GetConfigFile(configDir string, appId string, namespace string) string {
 	return ""
 }
 
 // LoadConfigFile load config from file
-func (fileHandler *testFileHandler) LoadConfigFile(configDir string, namespace string) (*config.ApolloConfig, error) {
+func (fileHandler *testFileHandler) LoadConfigFile(configDir string, appId string, namespace string) (*config.ApolloConfig, error) {
 	return nil, nil
 }
 

@@ -239,7 +239,7 @@ func createApolloConfigWithJSON(b []byte) (o interface{}, err error) {
 }
 
 func checkBackupFile(client *Client, t *testing.T) {
-	newConfig, e := extension.GetFileHandler().LoadConfigFile(client.appConfig.GetBackupConfigPath(), testDefaultNamespace)
+	newConfig, e := extension.GetFileHandler().LoadConfigFile(client.appConfig.GetBackupConfigPath(), client.appConfig.AppID, testDefaultNamespace)
 	Assert(t, newConfig, NotNilVal())
 	Assert(t, e, NilVal())
 	Assert(t, newConfig.Configurations, NotNilVal())

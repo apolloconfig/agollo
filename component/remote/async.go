@@ -69,11 +69,11 @@ func (a *asyncApolloConfig) Sync(appConfig *config.AppConfig) []*config.ApolloCo
 	remoteConfigs, err := a.notifyRemoteConfig(appConfig, utils.Empty)
 
 	var apolloConfigs []*config.ApolloConfig
-	if err != nil || len(remoteConfigs) == 0 {
+	if err != nil {
 		apolloConfigs = loadBackupConfig(appConfig.NamespaceName, appConfig)
 	}
 
-	if len(apolloConfigs) > 0 {
+	if len(remoteConfigs) == 0 || len(apolloConfigs) > 0 {
 		return apolloConfigs
 	}
 
@@ -143,7 +143,7 @@ func toApolloConfig(resBody []byte) ([]*config.Notification, error) {
 func loadBackupConfig(namespace string, appConfig *config.AppConfig) []*config.ApolloConfig {
 	apolloConfigs := make([]*config.ApolloConfig, 0)
 	config.SplitNamespaces(namespace, func(namespace string) {
-		c, err := extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, namespace)
+		c, err := extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, appConfig.AppID, namespace)
 		if err != nil {
 			log.Error("LoadConfigFile error, error", err)
 			return

@@ -61,7 +61,7 @@ func writeWithRaw(config *config.ApolloConfig, configDir string) error {
 //WriteConfigFile write config to file
 func (fileHandler *rawFileHandler) WriteConfigFile(config *config.ApolloConfig, configPath string) error {
 	writeWithRaw(config, configPath)
-	return jsonFileConfig.Write(config, fileHandler.GetConfigFile(configPath, config.NamespaceName))
+	return jsonFileConfig.Write(config, fileHandler.GetConfigFile(configPath, config.AppID, config.NamespaceName))
 }
 
 // GetRawFileHandler 获取 rawFileHandler 实例
