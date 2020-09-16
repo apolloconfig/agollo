@@ -30,6 +30,7 @@ import (
 	"path"
 )
 
+// CreateSyncApolloConfig 创建同步获取 Apollo 配置
 func CreateSyncApolloConfig() ApolloConfig {
 	a := &syncApolloConfig{}
 	a.remoteApollo = a

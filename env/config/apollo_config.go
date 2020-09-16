@@ -73,7 +73,7 @@ type ApolloConnConfig struct {
 	sync.RWMutex
 }
 
-//ApolloConfig apollo配置
+// ApolloConfig apollo配置
 type ApolloConfig struct {
 	ApolloConnConfig
 	Configurations map[string]interface{} `json:"configurations"`

@@ -39,6 +39,7 @@ const (
 	defaultContentKey = "content"
 )
 
+// CreateAsyncApolloConfig 创建异步 apollo 配置
 func CreateAsyncApolloConfig() ApolloConfig {
 	a := &asyncApolloConfig{}
 	a.remoteApollo = a

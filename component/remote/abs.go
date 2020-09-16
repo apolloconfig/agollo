@@ -24,6 +24,7 @@ import (
 	"github.com/zouyx/agollo/v4/protocol/http"
 )
 
+// AbsApolloConfig 抽象 apollo 配置
 type AbsApolloConfig struct {
 	remoteApollo ApolloConfig
 }
