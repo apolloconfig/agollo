@@ -15,46 +15,48 @@
  * limitations under the License.
  */
 
-package env
+package config
 
 import (
 	"sync"
 
-	"github.com/zouyx/agollo/v3/utils"
+	"github.com/zouyx/agollo/v4/utils"
 )
 
-var (
-	currentConnApolloConfig = &currentApolloConfig{
-		configs: make(map[string]*ApolloConnConfig, 1),
-	}
-)
-
-type currentApolloConfig struct {
+// CurrentApolloConfig 当前 apollo 返回的配置信息
+type CurrentApolloConfig struct {
 	l       sync.RWMutex
 	configs map[string]*ApolloConnConfig
 }
 
-//SetCurrentApolloConfig 设置apollo配置
-func SetCurrentApolloConfig(namespace string, connConfig *ApolloConnConfig) {
-	currentConnApolloConfig.l.Lock()
-	defer currentConnApolloConfig.l.Unlock()
+// CreateCurrentApolloConfig nolint
+func CreateCurrentApolloConfig() *CurrentApolloConfig {
+	return &CurrentApolloConfig{
+		configs: make(map[string]*ApolloConnConfig, 1),
+	}
+}
 
-	currentConnApolloConfig.configs[namespace] = connConfig
+//SetCurrentApolloConfig 设置apollo配置
+func (c *CurrentApolloConfig) Set(namespace string, connConfig *ApolloConnConfig) {
+	c.l.Lock()
+	defer c.l.Unlock()
+
+	c.configs[namespace] = connConfig
 }
 
 //GetCurrentApolloConfig 获取Apollo链接配置
-func GetCurrentApolloConfig() map[string]*ApolloConnConfig {
-	currentConnApolloConfig.l.RLock()
-	defer currentConnApolloConfig.l.RUnlock()
+func (c *CurrentApolloConfig) Get() map[string]*ApolloConnConfig {
+	c.l.RLock()
+	defer c.l.RUnlock()
 
-	return currentConnApolloConfig.configs
+	return c.configs
 }
 
 //GetCurrentApolloConfigReleaseKey 获取release key
-func GetCurrentApolloConfigReleaseKey(namespace string) string {
-	currentConnApolloConfig.l.RLock()
-	defer currentConnApolloConfig.l.RUnlock()
-	config := currentConnApolloConfig.configs[namespace]
+func (c *CurrentApolloConfig) GetReleaseKey(namespace string) string {
+	c.l.RLock()
+	defer c.l.RUnlock()
+	config := c.configs[namespace]
 	if config == nil {
 		return utils.Empty
 	}
@@ -62,7 +64,7 @@ func GetCurrentApolloConfigReleaseKey(namespace string) string {
 	return config.ReleaseKey
 }
 
-//ApolloConnConfig apollo链接配置
+// ApolloConnConfig apollo链接配置
 type ApolloConnConfig struct {
 	AppID         string `json:"appId"`
 	Cluster       string `json:"cluster"`
@@ -71,12 +73,11 @@ type ApolloConnConfig struct {
 	sync.RWMutex
 }
 
-//ApolloConfig apollo配置
+// ApolloConfig apollo配置
 type ApolloConfig struct {
 	ApolloConnConfig
 	Configurations map[string]interface{} `json:"configurations"`
 }
-
 
 //Init 初始化
 func (a *ApolloConfig) Init(appID string, cluster string, namespace string) {
@@ -84,4 +85,3 @@ func (a *ApolloConfig) Init(appID string, cluster string, namespace string) {
 	a.Cluster = cluster
 	a.NamespaceName = namespace
 }
-

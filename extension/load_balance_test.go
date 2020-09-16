@@ -22,14 +22,14 @@ import (
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v3/env/config"
+	"github.com/zouyx/agollo/v4/env/config"
 )
 
 type TestLoadBalance struct {
 }
 
 //Load 负载均衡
-func (r *TestLoadBalance) Load(servers *sync.Map) *config.ServerInfo {
+func (r *TestLoadBalance) Load(servers sync.Map) *config.ServerInfo {
 	return nil
 }
 

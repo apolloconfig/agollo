@@ -19,20 +19,15 @@ package memory
 
 import (
 	"errors"
-	"github.com/zouyx/agollo/v3/agcache"
-	"github.com/zouyx/agollo/v3/extension"
+	"github.com/zouyx/agollo/v4/agcache"
 	"sync"
 	"sync/atomic"
 )
 
-func init() {
-	extension.SetCacheFactory(&DefaultCacheFactory{})
-}
-
 //DefaultCache 默认缓存
 type DefaultCache struct {
 	defaultCache sync.Map
-	count int64
+	count        int64
 }
 
 //Set 获取缓存

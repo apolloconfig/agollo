@@ -18,35 +18,46 @@
 package storage
 
 import (
+	"github.com/zouyx/agollo/v4/agcache/memory"
+	"github.com/zouyx/agollo/v4/env/config"
+	jsonFile "github.com/zouyx/agollo/v4/env/file/json"
+	"github.com/zouyx/agollo/v4/extension"
 	"strings"
 	"testing"
 	"time"
 
 	. "github.com/tevid/gohamcrest"
-	_ "github.com/zouyx/agollo/v3/agcache/memory"
-	"github.com/zouyx/agollo/v3/env"
-	_ "github.com/zouyx/agollo/v3/env/file/json"
+	_ "github.com/zouyx/agollo/v4/agcache/memory"
+	"github.com/zouyx/agollo/v4/env"
+	_ "github.com/zouyx/agollo/v4/env/file/json"
 
-	_ "github.com/zouyx/agollo/v3/utils/parse/normal"
-	_ "github.com/zouyx/agollo/v3/utils/parse/properties"
+	_ "github.com/zouyx/agollo/v4/utils/parse/normal"
+	_ "github.com/zouyx/agollo/v4/utils/parse/properties"
 )
 
 //init param
 func init() {
+	extension.SetCacheFactory(&memory.DefaultCacheFactory{})
+	extension.SetFileHandler(&jsonFile.FileHandler{})
 }
 
-func creatTestApolloConfig(configurations map[string]interface{}, namespace string) {
-	apolloConfig := &env.ApolloConfig{}
+func creatTestApolloConfig(configurations map[string]interface{}, namespace string) *Cache {
+	c := CreateNamespaceConfig(namespace)
+	appConfig := env.InitFileConfig()
+	apolloConfig := &config.ApolloConfig{}
 	apolloConfig.NamespaceName = namespace
 	apolloConfig.AppID = "test"
 	apolloConfig.Cluster = "dev"
 	apolloConfig.Configurations = configurations
-	UpdateApolloConfig(apolloConfig, true)
+	c.UpdateApolloConfig(apolloConfig, appConfig, true)
+	return c
 
 }
 
 func TestUpdateApolloConfigNull(t *testing.T) {
 	time.Sleep(1 * time.Second)
+	c := CreateNamespaceConfig(defaultNamespace)
+	appConfig := env.InitFileConfig()
 
 	configurations := make(map[string]interface{})
 	configurations["string"] = "string"
@@ -55,14 +66,14 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 	configurations["bool"] = "true"
 	configurations["slice"] = []int{1, 2}
 
-	apolloConfig := &env.ApolloConfig{}
+	apolloConfig := &config.ApolloConfig{}
 	apolloConfig.NamespaceName = defaultNamespace
 	apolloConfig.AppID = "test"
 	apolloConfig.Cluster = "dev"
 	apolloConfig.Configurations = configurations
-	UpdateApolloConfig(apolloConfig, true)
+	c.UpdateApolloConfig(apolloConfig, appConfig, true)
 
-	currentConnApolloConfig := env.GetCurrentApolloConfig()
+	currentConnApolloConfig := appConfig.GetCurrentApolloConfig().Get()
 	config := currentConnApolloConfig[defaultNamespace]
 
 	Assert(t, config, NotNilVal())
@@ -72,11 +83,6 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 	Assert(t, "", Equal(config.ReleaseKey))
 	Assert(t, len(apolloConfig.Configurations), Equal(5))
 
-}
-
-func TestGetApolloConfigCache(t *testing.T) {
-	cache := GetApolloConfigCache()
-	Assert(t, cache, NotNilVal())
 }
 
 func TestGetDefaultNamespace(t *testing.T) {
@@ -93,8 +99,8 @@ func TestGetConfig(t *testing.T) {
 	configurations["sliceString"] = []string{"1", "2", "3"}
 	configurations["sliceInt"] = []int{1, 2, 3}
 	configurations["sliceInter"] = []interface{}{1, "2", 3}
-	creatTestApolloConfig(configurations, "test")
-	config := GetConfig("test")
+	c := creatTestApolloConfig(configurations, "test")
+	config := c.GetConfig("test")
 	Assert(t, config, NotNilVal())
 
 	//string
@@ -150,4 +156,67 @@ func TestGetConfig(t *testing.T) {
 	Assert(t, hasSlice, Equal(true))
 	hasSlice = strings.Contains(content, "sliceInt=[1 2 3]")
 	Assert(t, hasSlice, Equal(true))
+}
+
+func createChangeEvent() *ChangeEvent {
+	addConfig := createAddConfigChange("new")
+	deleteConfig := createDeletedConfigChange("old")
+	modifyConfig := createModifyConfigChange("old", "new")
+	changes := make(map[string]*ConfigChange)
+	changes["add"] = addConfig
+	changes["adx"] = addConfig
+	changes["delete"] = deleteConfig
+	changes["modify"] = modifyConfig
+	cEvent := &ChangeEvent{
+		Changes: changes,
+	}
+	cEvent.Namespace = "a"
+	return cEvent
+}
+
+func TestRegDispatchInRepository(t *testing.T) {
+	dispatch := UseEventDispatch()
+	err := dispatch.RegisterListener(nil, "ad.*")
+	Assert(t, err, NotNilVal())
+	l := &CustomListener{
+		Keys: make(map[string]interface{}, 0),
+	}
+	err = dispatch.RegisterListener(l, "ad.*")
+	Assert(t, err, NilVal())
+	cEvent := createChangeEvent()
+	cache := CreateNamespaceConfig("abc")
+	cache.AddChangeListener(dispatch)
+	cache.pushChangeEvent(cEvent)
+	time.Sleep(1 * time.Second)
+	Assert(t, len(l.Keys), Equal(2))
+	v, ok := l.Keys["add"]
+	Assert(t, v, Equal("new"))
+	Assert(t, ok, Equal(true))
+	v, ok = l.Keys["adx"]
+	Assert(t, v, Equal("new"))
+	Assert(t, ok, Equal(true))
+}
+
+func TestDispatchInRepository(t *testing.T) {
+	dispatch := UseEventDispatch()
+	l := &CustomListener{
+		Keys: make(map[string]interface{}, 0),
+	}
+	err := dispatch.RegisterListener(l, "add", "delete")
+	Assert(t, err, NilVal())
+	Assert(t, len(dispatch.listeners), Equal(2))
+	cEvent := createChangeEvent()
+	cache := CreateNamespaceConfig("abc")
+	cache.AddChangeListener(dispatch)
+	cache.pushChangeEvent(cEvent)
+	time.Sleep(1 * time.Second)
+	Assert(t, len(l.Keys), Equal(2))
+	v, ok := l.Keys["add"]
+	Assert(t, v, Equal("new"))
+	Assert(t, ok, Equal(true))
+	v, ok = l.Keys["delete"]
+	Assert(t, ok, Equal(true))
+	Assert(t, v, Equal("old"))
+	_, ok = l.Keys["modify"]
+	Assert(t, ok, Equal(false))
 }

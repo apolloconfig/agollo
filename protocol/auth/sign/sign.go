@@ -22,7 +22,6 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
-	"github.com/zouyx/agollo/v3/extension"
 	"net/url"
 	"strconv"
 	"time"
@@ -37,10 +36,6 @@ const (
 	delimiter = "\n"
 	question  = "?"
 )
-
-func init() {
-	extension.SetHTTPAuth(&AuthSignature{})
-}
 
 // AuthSignature apollo 授权
 type AuthSignature struct {

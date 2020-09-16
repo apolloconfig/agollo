@@ -18,8 +18,8 @@
 package extension
 
 import (
-	"github.com/zouyx/agollo/v3/constant"
-	"github.com/zouyx/agollo/v3/utils/parse"
+	"github.com/zouyx/agollo/v4/constant"
+	"github.com/zouyx/agollo/v4/utils/parse"
 )
 
 var formatParser = make(map[constant.ConfigFileFormat]parse.ContentParser, 0)

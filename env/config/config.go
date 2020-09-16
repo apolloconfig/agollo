@@ -18,8 +18,21 @@
 package config
 
 import (
+	"encoding/json"
+	"fmt"
+	"github.com/zouyx/agollo/v4/utils"
+	"net/url"
 	"strings"
+	"sync"
 	"time"
+)
+
+var (
+	//next try connect period - 60 second
+	nextTryConnectPeriod int64 = 60
+
+	defaultNotificationID = int64(-1)
+	comma                 = ","
 )
 
 //File 读写配置文件
@@ -39,6 +52,10 @@ type AppConfig struct {
 	IsBackupConfig   bool   `default:"true" json:"isBackupConfig"`
 	BackupConfigPath string `json:"backupConfigPath"`
 	Secret           string `json:"secret"`
+	//real servers ip
+	servers                 sync.Map
+	notificationsMap        *notificationsMap
+	currentConnApolloConfig *CurrentApolloConfig
 }
 
 //ServerInfo 服务器信息
@@ -63,13 +80,52 @@ func (a *AppConfig) GetBackupConfigPath() string {
 
 //GetHost GetHost
 func (a *AppConfig) GetHost() string {
-	if strings.HasPrefix(a.IP, "http") {
-		if !strings.HasSuffix(a.IP, "/") {
-			return a.IP + "/"
-		}
+	u, err := url.Parse(a.IP)
+	if err != nil {
 		return a.IP
 	}
-	return "http://" + a.IP + "/"
+	if !strings.HasSuffix(u.Path, "/") {
+		return u.String() + "/"
+	}
+	return u.String()
+}
+
+// Init 初始化notificationsMap
+func (a *AppConfig) Init() {
+	a.currentConnApolloConfig = CreateCurrentApolloConfig()
+	a.initAllNotifications(nil)
+}
+
+// Notification 用于保存 apollo Notification 信息
+type Notification struct {
+	NamespaceName  string `json:"namespaceName"`
+	NotificationID int64  `json:"notificationId"`
+}
+
+// InitAllNotifications 初始化notificationsMap
+func (a *AppConfig) initAllNotifications(callback func(namespace string)) {
+	ns := SplitNamespaces(a.NamespaceName, callback)
+	a.notificationsMap = &notificationsMap{
+		notifications: ns,
+	}
+}
+
+//SplitNamespaces 根据namespace字符串分割后，并执行callback函数
+func SplitNamespaces(namespacesStr string, callback func(namespace string)) sync.Map {
+	namespaces := sync.Map{}
+	split := strings.Split(namespacesStr, comma)
+	for _, namespace := range split {
+		if callback != nil {
+			callback(namespace)
+		}
+		namespaces.Store(namespace, defaultNotificationID)
+	}
+	return namespaces
+}
+
+// GetNotificationsMap 获取notificationsMap
+func (a *AppConfig) GetNotificationsMap() *notificationsMap {
+	return a.notificationsMap
 }
 
 //SetNextTryConnTime if this connect is fail will set this time
@@ -86,4 +142,135 @@ func (a *AppConfig) IsConnectDirectly() bool {
 	}
 
 	return false
+}
+
+//SetDownNode 设置失效节点
+func (a *AppConfig) SetDownNode(host string) {
+	if host == "" {
+		return
+	}
+
+	if host == a.GetHost() {
+		a.SetNextTryConnTime(nextTryConnectPeriod)
+	}
+
+	a.GetServers().Range(func(k, v interface{}) bool {
+		server := v.(*ServerInfo)
+		// if some node has down then select next node
+		if strings.Index(k.(string), host) > -1 {
+			server.IsDown = true
+			return false
+		}
+		return true
+	})
+}
+
+//GetServers 获取服务器数组
+func (a *AppConfig) GetServers() *sync.Map {
+	return &a.servers
+}
+
+//GetServersLen 获取服务器数组长度
+func (a *AppConfig) GetServersLen() int {
+	s := a.GetServers()
+	l := 0
+	s.Range(func(k, v interface{}) bool {
+		l++
+		return true
+	})
+	return l
+}
+
+//GetServicesConfigURL 获取服务器列表url
+func (a *AppConfig) GetServicesConfigURL() string {
+	return fmt.Sprintf("%sservices/config?appId=%s&ip=%s",
+		a.GetHost(),
+		url.QueryEscape(a.AppID),
+		utils.GetInternal())
+}
+
+// SetCurrentApolloConfig nolint
+func (a *AppConfig) SetCurrentApolloConfig(apolloConfig *ApolloConnConfig) {
+	a.currentConnApolloConfig.Set(apolloConfig.NamespaceName, apolloConfig)
+}
+
+// GetCurrentApolloConfig nolint
+func (a *AppConfig) GetCurrentApolloConfig() *CurrentApolloConfig {
+	return a.currentConnApolloConfig
+}
+
+// map[string]int64
+type notificationsMap struct {
+	notifications sync.Map
+}
+
+func (n *notificationsMap) UpdateAllNotifications(remoteConfigs []*Notification) {
+	for _, remoteConfig := range remoteConfigs {
+		if remoteConfig.NamespaceName == "" {
+			continue
+		}
+		if n.GetNotify(remoteConfig.NamespaceName) == 0 {
+			continue
+		}
+
+		n.setNotify(remoteConfig.NamespaceName, remoteConfig.NotificationID)
+	}
+}
+
+func (n *notificationsMap) setNotify(namespaceName string, notificationID int64) {
+	n.notifications.Store(namespaceName, notificationID)
+}
+
+func (n *notificationsMap) GetNotify(namespace string) int64 {
+	value, ok := n.notifications.Load(namespace)
+	if !ok || value == nil {
+		return 0
+	}
+	return value.(int64)
+}
+
+func (n *notificationsMap) GetNotifyLen() int {
+	s := n.notifications
+	l := 0
+	s.Range(func(k, v interface{}) bool {
+		l++
+		return true
+	})
+	return l
+}
+
+func (n *notificationsMap) GetNotifications() sync.Map {
+	return n.notifications
+}
+
+func (n *notificationsMap) GetNotifies(namespace string) string {
+	notificationArr := make([]*Notification, 0)
+	if namespace == "" {
+		n.notifications.Range(func(key, value interface{}) bool {
+			namespaceName := key.(string)
+			notificationID := value.(int64)
+			notificationArr = append(notificationArr,
+				&Notification{
+					NamespaceName:  namespaceName,
+					NotificationID: notificationID,
+				})
+			return true
+		})
+	} else {
+		notify, _ := n.notifications.LoadOrStore(namespace, defaultNotificationID)
+
+		notificationArr = append(notificationArr,
+			&Notification{
+				NamespaceName:  namespace,
+				NotificationID: notify.(int64),
+			})
+	}
+
+	j, err := json.Marshal(notificationArr)
+
+	if err != nil {
+		return ""
+	}
+
+	return string(j)
 }

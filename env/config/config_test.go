@@ -19,11 +19,12 @@ package config
 
 import (
 	"encoding/json"
+	"sync"
 	"testing"
 	"time"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v3/utils"
+	"github.com/zouyx/agollo/v4/utils"
 )
 
 var (
@@ -35,7 +36,7 @@ func getTestAppConfig() *AppConfig {
     "appId": "test",
     "cluster": "dev",
     "namespaceName": "application",
-    "ip": "localhost:8888",
+    "ip": "http://localhost:8888",
     "releaseKey": "1"
 	}`
 	c, _ := Unmarshal([]byte(jsonStr))
@@ -102,4 +103,21 @@ func TestAppConfig_IsConnectDirectly(t *testing.T) {
 	Assert(t, isConnectDirectly, Equal(true))
 
 	appConfig.NextTryConnTime = backup
+}
+
+func TestSplitNamespaces(t *testing.T) {
+	w := &sync.WaitGroup{}
+	w.Add(3)
+	namespaces := SplitNamespaces("a,b,c", func(namespace string) {
+		w.Done()
+	})
+
+	l := 0
+	namespaces.Range(func(k, v interface{}) bool {
+		l++
+		return true
+	})
+
+	Assert(t, l, Equal(3))
+	w.Wait()
 }

@@ -18,27 +18,27 @@
 package extension
 
 import (
+	"github.com/zouyx/agollo/v4/env/config"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/env/file"
+	"github.com/zouyx/agollo/v4/env/file"
 )
 
 type TestFileHandler struct {
 }
 
 //WriteConfigFile 写入配置文件
-func (r *TestFileHandler) WriteConfigFile(config *env.ApolloConfig, configPath string) error {
+func (r *TestFileHandler) WriteConfigFile(config *config.ApolloConfig, configPath string) error {
 	return nil
 }
 
 //GetConfigFile 获得配置文件路径
-func (r *TestFileHandler) GetConfigFile(configDir string, namespace string) string {
+func (r *TestFileHandler) GetConfigFile(configDir string, appID string, namespace string) string {
 	return ""
 }
 
-func (r *TestFileHandler) LoadConfigFile(configDir string, namespace string) (*env.ApolloConfig, error) {
+func (r *TestFileHandler) LoadConfigFile(configDir string, appID string, namespace string) (*config.ApolloConfig, error) {
 	return nil, nil
 }
 

@@ -15,50 +15,23 @@
  * limitations under the License.
  */
 
-package yaml
+package remote
 
 import (
-	"github.com/zouyx/agollo/v4/utils"
-	"github.com/zouyx/agollo/v4/utils/parse"
-	"testing"
-
-	. "github.com/tevid/gohamcrest"
+	"github.com/zouyx/agollo/v4/env/config"
+	"github.com/zouyx/agollo/v4/protocol/http"
 )
 
-var (
-	yamlParser parse.ContentParser = &Parser{}
-)
-
-func TestYAMLParser(t *testing.T) {
-	s, err := yamlParser.Parse(`
-a:
-    a1: a1
-b:
-    b1: b1
-c:
-    c1: c1
-d:
-    d1: d1
-e:  
-    e1: e1`)
-	Assert(t, err, NilVal())
-
-	Assert(t, s["a.a1"], Equal("a1"))
-
-	Assert(t, s["b.b1"], Equal("b1"))
-
-	Assert(t, s["c.c1"], Equal("c1"))
-
-}
-
-func TestYAMLParserOnException(t *testing.T) {
-	s, err := yamlParser.Parse(utils.Empty)
-	Assert(t, err, NilVal())
-	Assert(t, s, NilVal())
-	s, err = yamlParser.Parse(0)
-	Assert(t, err, NilVal())
-	Assert(t, s, NilVal())
-
-	m := convertToMap(nil)
-	Assert(t, m, NilVal())
+// ApolloConfig apollo 配置
+type ApolloConfig interface {
+	// GetNotifyURLSuffix 获取异步更新路径
+	GetNotifyURLSuffix(notifications string, config config.AppConfig) string
+	// GetSyncURI 获取同步路径
+	GetSyncURI(config config.AppConfig, namespaceName string) string
+	// Sync 同步获取 Apollo 配置
+	Sync(appConfig *config.AppConfig) []*config.ApolloConfig
+	// CallBack 根据 namespace 获取 callback 方法
+	CallBack(namespace string) http.CallBack
+	// SyncWithNamespace 通过 namespace 同步 apollo 配置
+	SyncWithNamespace(namespace string, appConfig *config.AppConfig) *config.ApolloConfig
 }

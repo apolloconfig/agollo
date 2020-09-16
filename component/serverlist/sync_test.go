@@ -18,11 +18,12 @@
 package serverlist
 
 import (
+	"github.com/zouyx/agollo/v4/protocol/http"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/env/config"
+	"github.com/zouyx/agollo/v4/env"
+	"github.com/zouyx/agollo/v4/env/config"
 )
 
 func TestSyncServerIPList(t *testing.T) {
@@ -39,9 +40,8 @@ func trySyncServerIPList(t *testing.T) {
 
 	Assert(t, err, NilVal())
 
-	servers := env.GetServers()
 	serverLen := 0
-	servers.Range(func(k, v interface{}) bool {
+	newAppConfig.GetServers().Range(func(k, v interface{}) bool {
 		serverLen++
 		return true
 	})
@@ -61,4 +61,24 @@ func getTestAppConfig() *config.AppConfig {
 	c, _ := env.Unmarshal([]byte(jsonStr))
 
 	return c.(*config.AppConfig)
+}
+
+func TestSyncServerIpListSuccessCallBack(t *testing.T) {
+	appConfig := getTestAppConfig()
+	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfig: appConfig})
+	Assert(t, appConfig.GetServersLen(), Equal(10))
+}
+
+func TestSetDownNode(t *testing.T) {
+	t.SkipNow()
+	appConfig := getTestAppConfig()
+	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfig: appConfig})
+
+	downNode := "10.15.128.102:8080"
+	appConfig.SetDownNode(downNode)
+
+	value, ok := appConfig.GetServers().Load("http://10.15.128.102:8080/")
+	info := value.(*config.ServerInfo)
+	Assert(t, ok, Equal(true))
+	Assert(t, info.IsDown, Equal(true))
 }
