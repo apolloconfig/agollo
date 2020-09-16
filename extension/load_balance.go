@@ -17,7 +17,7 @@
 
 package extension
 
-import "github.com/zouyx/agollo/v3/cluster"
+import "github.com/zouyx/agollo/v4/cluster"
 
 var defaultLoadBalance cluster.LoadBalance
 

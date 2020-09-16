@@ -20,15 +20,12 @@ package yaml
 import (
 	"bytes"
 	"github.com/spf13/viper"
-	"github.com/zouyx/agollo/v3/constant"
-	"github.com/zouyx/agollo/v3/extension"
-	"github.com/zouyx/agollo/v3/utils"
+	"github.com/zouyx/agollo/v4/utils"
 )
 
 var vp = viper.New()
 
 func init() {
-	extension.AddFormatParser(constant.YAML, &Parser{})
 	vp.SetConfigType("yaml")
 }
 
@@ -42,7 +39,7 @@ func (d *Parser) Parse(configContent interface{}) (map[string]interface{}, error
 	if !ok {
 		return nil, nil
 	}
-	if utils.Empty == content{
+	if utils.Empty == content {
 		return nil, nil
 	}
 
@@ -56,7 +53,7 @@ func (d *Parser) Parse(configContent interface{}) (map[string]interface{}, error
 	return convertToMap(vp), nil
 }
 
-func convertToMap(vp *viper.Viper) map[string]interface{}{
+func convertToMap(vp *viper.Viper) map[string]interface{} {
 	if vp == nil {
 		return nil
 	}

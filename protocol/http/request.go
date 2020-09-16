@@ -28,11 +28,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/zouyx/agollo/v3/component/log"
-	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/env/config"
-	"github.com/zouyx/agollo/v3/extension"
-	"github.com/zouyx/agollo/v3/utils"
+	"github.com/zouyx/agollo/v4/component/log"
+	"github.com/zouyx/agollo/v4/env"
+	"github.com/zouyx/agollo/v4/env/config"
+	"github.com/zouyx/agollo/v4/extension"
+	"github.com/zouyx/agollo/v4/utils"
 )
 
 var (
@@ -54,8 +54,10 @@ var (
 
 //CallBack 请求回调函数
 type CallBack struct {
-	SuccessCallBack   func([]byte) (interface{}, error)
+	SuccessCallBack   func([]byte, CallBack) (interface{}, error)
 	NotModifyCallBack func() error
+	AppConfig         *config.AppConfig
+	Namespace         string
 }
 
 //Request 建立网络请求
@@ -138,7 +140,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			}
 
 			if callBack != nil && callBack.SuccessCallBack != nil {
-				return callBack.SuccessCallBack(responseBody)
+				return callBack.SuccessCallBack(responseBody, *callBack)
 			}
 			return nil, nil
 		case http.StatusNotModified:
@@ -182,7 +184,7 @@ func RequestRecovery(appConfig *config.AppConfig,
 			return response, err
 		}
 
-		env.SetDownNode(host)
+		appConfig.SetDownNode(host)
 	}
 }
 
@@ -190,7 +192,7 @@ func loadBalance(appConfig *config.AppConfig) string {
 	if !appConfig.IsConnectDirectly() {
 		return appConfig.GetHost()
 	}
-	serverInfo := extension.GetLoadBalance().Load(env.GetServers())
+	serverInfo := extension.GetLoadBalance().Load(*appConfig.GetServers())
 	if serverInfo == nil {
 		return utils.Empty
 	}

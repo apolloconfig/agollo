@@ -25,9 +25,9 @@ import (
 	"time"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v3/env/config"
-	jsonConfig "github.com/zouyx/agollo/v3/env/config/json"
-	"github.com/zouyx/agollo/v3/utils"
+	"github.com/zouyx/agollo/v4/env/config"
+	jsonConfig "github.com/zouyx/agollo/v4/env/config/json"
+	"github.com/zouyx/agollo/v4/utils"
 )
 
 const servicesConfigResponseStr = `[{
@@ -87,14 +87,14 @@ var (
 )
 
 func TestInit(t *testing.T) {
-	config := GetAppConfig(nil)
+	config := InitFileConfig()
 	time.Sleep(1 * time.Second)
 
 	Assert(t, config, NotNilVal())
 	Assert(t, "test", Equal(config.AppID))
 	Assert(t, "dev", Equal(config.Cluster))
 	Assert(t, "application,abc1", Equal(config.NamespaceName))
-	Assert(t, "localhost:8888", Equal(config.IP))
+	Assert(t, "http://localhost:8888", Equal(config.IP))
 
 	//TODO: 需要确认是否放在这里
 	//defaultApolloConfig := GetCurrentApolloConfig()[defaultNamespace]
@@ -106,7 +106,7 @@ func TestInit(t *testing.T) {
 
 func TestGetServicesConfigUrl(t *testing.T) {
 	appConfig := getTestAppConfig()
-	url := GetServicesConfigURL(appConfig)
+	url := appConfig.GetServicesConfigURL()
 	ip := utils.GetInternal()
 	Assert(t, "http://localhost:8888/services/config?appId=test&ip="+ip, Equal(url))
 }
@@ -116,7 +116,7 @@ func getTestAppConfig() *config.AppConfig {
     "appId": "test",
     "cluster": "dev",
     "namespaceName": "application",
-    "ip": "localhost:8888",
+    "ip": "http://localhost:8888",
     "releaseKey": "1"
 	}`
 	c, _ := Unmarshal([]byte(jsonStr))
@@ -157,26 +157,11 @@ func TestLoadEnvConfig(t *testing.T) {
 	os.Remove(envConfigFile)
 }
 
-func TestGetPlainAppConfig(t *testing.T) {
-	plainAppConfig := GetPlainAppConfig()
-	Assert(t, plainAppConfig, NotNilVal())
-}
-
 func TestGetServersLen(t *testing.T) {
-	servers.Store("a", "a")
-	serversLen := GetServersLen()
+	appConfig := getTestAppConfig()
+	appConfig.GetServers().Store("a", "a")
+	serversLen := appConfig.GetServersLen()
 	Assert(t, serversLen, Equal(1))
-}
-
-func TestSplitNamespaces(t *testing.T) {
-	w := &sync.WaitGroup{}
-	w.Add(3)
-	namespaces := SplitNamespaces("a,b,c", func(namespace string) {
-		w.Done()
-	})
-
-	Assert(t, getNotifyLen(namespaces), Equal(3))
-	w.Wait()
 }
 
 func getNotifyLen(s sync.Map) int {
@@ -186,22 +171,4 @@ func getNotifyLen(s sync.Map) int {
 		return true
 	})
 	return l
-}
-
-func TestSyncServerIpListSuccessCallBack(t *testing.T) {
-	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
-	Assert(t, GetServersLen(), Equal(11))
-}
-
-func TestSetDownNode(t *testing.T) {
-	t.SkipNow()
-	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
-
-	downNode := "10.15.128.102:8080"
-	SetDownNode(downNode)
-
-	value, ok := servers.Load("http://10.15.128.102:8080/")
-	info := value.(*config.ServerInfo)
-	Assert(t, ok, Equal(true))
-	Assert(t, info.IsDown, Equal(true))
 }

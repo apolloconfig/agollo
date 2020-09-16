@@ -18,17 +18,18 @@
 package storage
 
 import (
+	"container/list"
 	"fmt"
+	"github.com/zouyx/agollo/v4/env/config"
 	"reflect"
 	"strconv"
 	"sync"
 	"sync/atomic"
 
-	"github.com/zouyx/agollo/v3/agcache"
-	"github.com/zouyx/agollo/v3/component/log"
-	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/extension"
-	"github.com/zouyx/agollo/v3/utils"
+	"github.com/zouyx/agollo/v4/agcache"
+	"github.com/zouyx/agollo/v4/component/log"
+	"github.com/zouyx/agollo/v4/extension"
+	"github.com/zouyx/agollo/v4/utils"
 )
 
 const (
@@ -40,29 +41,42 @@ const (
 	propertiesFormat = "%s=%v\n"
 )
 
-var (
-	//config from apollo
+// Cache apollo 配置缓存
+type Cache struct {
 	apolloConfigCache sync.Map
-)
+	changeListeners   *list.List
+}
 
-//InitConfigCache 获取程序配置初始化agollo内润配置
-func InitConfigCache() {
-	if env.GetPlainAppConfig() == nil {
-		log.Warn("Config is nil,can not init agollo.")
-		return
+//GetConfig 根据namespace获取apollo配置
+func (c *Cache) GetConfig(namespace string) *Config {
+	if namespace == "" {
+		return nil
 	}
-	CreateNamespaceConfig(env.GetPlainAppConfig().NamespaceName)
+
+	config, ok := c.apolloConfigCache.Load(namespace)
+
+	if !ok {
+		return nil
+	}
+
+	return config.(*Config)
 }
 
 //CreateNamespaceConfig 根据namespace初始化agollo内润配置
-func CreateNamespaceConfig(namespace string) {
-	env.SplitNamespaces(namespace, func(namespace string) {
+func CreateNamespaceConfig(namespace string) *Cache {
+	//config from apollo
+	var apolloConfigCache sync.Map
+	config.SplitNamespaces(namespace, func(namespace string) {
 		if _, ok := apolloConfigCache.Load(namespace); ok {
 			return
 		}
 		c := initConfig(namespace, extension.GetCacheFactory())
 		apolloConfigCache.Store(namespace, c)
 	})
+	return &Cache{
+		apolloConfigCache: apolloConfigCache,
+		changeListeners:   list.New(),
+	}
 }
 
 func initConfig(namespace string, factory agcache.CacheFactory) *Config {
@@ -205,41 +219,42 @@ func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
 
 //UpdateApolloConfig 根据config server返回的内容更新内存
 //并判断是否需要写备份文件
-func UpdateApolloConfig(apolloConfig *env.ApolloConfig, isBackupConfig bool) {
+func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfig *config.AppConfig, isBackupConfig bool) {
 	if apolloConfig == nil {
 		log.Error("apolloConfig is null,can't update!")
 		return
 	}
 
 	//update apollo connection config
-	env.SetCurrentApolloConfig(apolloConfig.NamespaceName, &apolloConfig.ApolloConnConfig)
+	appConfig.SetCurrentApolloConfig(&apolloConfig.ApolloConnConfig)
 
 	//get change list
-	changeList := UpdateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime, apolloConfig.NamespaceName)
+	changeList := c.UpdateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime, apolloConfig.NamespaceName)
 
 	//push all newest changes
-	pushNewestChanges(apolloConfig.NamespaceName, apolloConfig.Configurations)
+	c.pushNewestChanges(apolloConfig.NamespaceName, apolloConfig.Configurations)
 
 	if len(changeList) > 0 {
 		//create config change event base on change list
 		event := createConfigChangeEvent(changeList, apolloConfig.NamespaceName)
 
 		//push change event to channel
-		pushChangeEvent(event)
+		c.pushChangeEvent(event)
 	}
 
 	if isBackupConfig {
 		//write config file async
-		go extension.GetFileHandler().WriteConfigFile(apolloConfig, env.GetPlainAppConfig().GetBackupConfigPath())
+		apolloConfig.AppID = appConfig.AppID
+		go extension.GetFileHandler().WriteConfigFile(apolloConfig, appConfig.GetBackupConfigPath())
 	}
 }
 
 //UpdateApolloConfigCache 根据conf[ig server返回的内容更新内存
-func UpdateApolloConfigCache(configurations map[string]interface{}, expireTime int, namespace string) map[string]*ConfigChange {
-	config := GetConfig(namespace)
+func (c *Cache) UpdateApolloConfigCache(configurations map[string]interface{}, expireTime int, namespace string) map[string]*ConfigChange {
+	config := c.GetConfig(namespace)
 	if config == nil {
 		config = initConfig(namespace, extension.GetCacheFactory())
-		apolloConfigCache.Store(namespace, config)
+		c.apolloConfigCache.Store(namespace, config)
 	}
 
 	isInit := false
@@ -321,27 +336,62 @@ func convertToProperties(cache agcache.CacheInterface) string {
 	return properties
 }
 
-//GetApolloConfigCache 获取默认namespace的apollo配置
-func GetApolloConfigCache() *sync.Map {
-	return &apolloConfigCache
-}
-
 //GetDefaultNamespace 获取默认命名空间
 func GetDefaultNamespace() string {
 	return defaultNamespace
 }
 
-//GetConfig 根据namespace获取apollo配置
-func GetConfig(namespace string) *Config {
-	if namespace == "" {
-		return nil
+//AddChangeListener 增加变更监控
+func (c *Cache) AddChangeListener(listener ChangeListener) {
+	if listener == nil {
+		return
+	}
+	c.changeListeners.PushBack(listener)
+}
+
+//RemoveChangeListener 增加变更监控
+func (c *Cache) RemoveChangeListener(listener ChangeListener) {
+	if listener == nil {
+		return
+	}
+	for i := c.changeListeners.Front(); i != nil; i = i.Next() {
+		apolloListener := i.Value.(ChangeListener)
+		if listener == apolloListener {
+			c.changeListeners.Remove(i)
+		}
+	}
+}
+
+// GetChangeListeners 获取配置修改监听器列表
+func (c *Cache) GetChangeListeners() *list.List {
+	return c.changeListeners
+}
+
+//push config change event
+func (c *Cache) pushChangeEvent(event *ChangeEvent) {
+	c.pushChange(func(listener ChangeListener) {
+		go listener.OnChange(event)
+	})
+}
+
+func (c *Cache) pushNewestChanges(namespace string, configuration map[string]interface{}) {
+	e := &FullChangeEvent{
+		Changes: configuration,
+	}
+	e.Namespace = namespace
+	c.pushChange(func(listener ChangeListener) {
+		go listener.OnNewestChange(e)
+	})
+}
+
+func (c *Cache) pushChange(f func(ChangeListener)) {
+	// if channel is null ,mean no listener,don't need to push msg
+	if c.changeListeners == nil || c.changeListeners.Len() == 0 {
+		return
 	}
 
-	config, ok := GetApolloConfigCache().Load(namespace)
-
-	if !ok {
-		return nil
+	for i := c.changeListeners.Front(); i != nil; i = i.Next() {
+		listener := i.Value.(ChangeListener)
+		f(listener)
 	}
-
-	return config.(*Config)
 }

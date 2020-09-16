@@ -18,17 +18,18 @@
 package storage
 
 import (
+	"container/list"
 	"sync"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
 )
 
-var listener *CustomChangeListener
-
-func init() {
-	listener = &CustomChangeListener{}
+var c = &Cache{
+	changeListeners: list.New(),
 }
+
+var listener = &CustomChangeListener{}
 
 type CustomChangeListener struct {
 	w sync.WaitGroup
@@ -44,23 +45,23 @@ func (t *CustomChangeListener) OnNewestChange(event *FullChangeEvent) {
 
 func TestAddChangeListener(t *testing.T) {
 
-	AddChangeListener(nil)
-	Assert(t, changeListeners.Len(), Equal(0))
+	c.AddChangeListener(nil)
+	Assert(t, c.changeListeners.Len(), Equal(0))
 
-	AddChangeListener(listener)
+	c.AddChangeListener(listener)
 
-	Assert(t, changeListeners.Len(), Equal(1))
+	Assert(t, c.changeListeners.Len(), Equal(1))
 }
 
 func TestGetChangeListeners(t *testing.T) {
-	Assert(t, GetChangeListeners().Len(), Equal(1))
+	Assert(t, c.GetChangeListeners().Len(), Equal(1))
 }
 
 func TestRemoveChangeListener(t *testing.T) {
-	RemoveChangeListener(nil)
-	Assert(t, changeListeners.Len(), Equal(1))
-	RemoveChangeListener(listener)
-	Assert(t, changeListeners.Len(), Equal(0))
+	c.RemoveChangeListener(nil)
+	Assert(t, c.changeListeners.Len(), Equal(1))
+	c.RemoveChangeListener(listener)
+	Assert(t, c.changeListeners.Len(), Equal(0))
 }
 
 func TestPushChangeEvent(t *testing.T) {
@@ -79,13 +80,13 @@ func TestPushChangeEvent(t *testing.T) {
 	listener = &CustomChangeListener{}
 	listener.w.Add(1)
 
-	AddChangeListener(listener)
+	c.AddChangeListener(listener)
 
-	pushChangeEvent(event)
+	c.pushChangeEvent(event)
 
 	listener.w.Wait()
 
-	RemoveChangeListener(listener)
+	c.RemoveChangeListener(listener)
 }
 
 func TestCreateConfigChangeEvent(t *testing.T) {

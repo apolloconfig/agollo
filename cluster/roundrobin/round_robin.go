@@ -20,20 +20,15 @@ package roundrobin
 import (
 	"sync"
 
-	"github.com/zouyx/agollo/v3/env/config"
-	"github.com/zouyx/agollo/v3/extension"
+	"github.com/zouyx/agollo/v4/env/config"
 )
-
-func init() {
-	extension.SetLoadBalance(&RoundRobin{})
-}
 
 //RoundRobin 轮询调度
 type RoundRobin struct {
 }
 
 //Load 负载均衡
-func (r *RoundRobin) Load(servers *sync.Map) *config.ServerInfo {
+func (r *RoundRobin) Load(servers sync.Map) *config.ServerInfo {
 	var returnServer *config.ServerInfo
 	servers.Range(func(k, v interface{}) bool {
 		server := v.(*config.ServerInfo)

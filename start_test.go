@@ -26,14 +26,12 @@ import (
 	"time"
 
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v3/agcache/memory"
-	"github.com/zouyx/agollo/v3/component/log"
-	"github.com/zouyx/agollo/v3/component/notify"
-	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/env/config"
-	jsonFile "github.com/zouyx/agollo/v3/env/config/json"
-	"github.com/zouyx/agollo/v3/extension"
-	"github.com/zouyx/agollo/v3/storage"
+	"github.com/zouyx/agollo/v4/agcache/memory"
+	"github.com/zouyx/agollo/v4/component/log"
+	"github.com/zouyx/agollo/v4/env"
+	"github.com/zouyx/agollo/v4/env/config"
+	jsonFile "github.com/zouyx/agollo/v4/env/config/json"
+	"github.com/zouyx/agollo/v4/extension"
 )
 
 var (
@@ -66,45 +64,39 @@ func TestStart(t *testing.T) {
 	c := appConfig
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
-	server := runMockConfigServer(handlerMap, onlyNormalResponse, c)
+	server := runMockConfigFilesServer(handlerMap, nil, c)
 	c.IP = server.URL
 
 	b, _ := json.Marshal(c)
 	writeFile(b, "app.properties")
 
-	Start()
+	client, _ := Start()
 
-	value := GetValue("key1")
+	value := client.GetValue("key1")
 	Assert(t, "value1", Equal(value))
 	handler := extension.GetFileHandler()
 	Assert(t, handler, NotNilVal())
 }
 
 func TestStartWithMultiNamespace(t *testing.T) {
-	notify.InitAllNotifications(nil)
 	c := appConfig
 	app1 := "abc1"
-
-	appConfig := env.GetPlainAppConfig()
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
 	handlerMap[app1] = onlyNormalSecondConfigResponse
-	server := runMockConfigServer(handlerMap, onlyNormalTwoResponse, appConfig)
+	server := runMockConfigFilesServer(handlerMap, nil, appConfig)
 
 	c.NamespaceName = "application,abc1"
 	c.IP = server.URL
 	b, _ := json.Marshal(c)
 	writeFile(b, "app.properties")
 
-	Start()
+	client, _ := Start()
 
-	time.Sleep(1 * time.Second)
-
-	value := GetValue("key1")
+	value := client.GetValue("key1")
 	Assert(t, "value1", Equal(value))
 
-	time.Sleep(1 * time.Second)
-	config := storage.GetConfig(app1)
+	config := client.GetConfig(app1)
 	Assert(t, config, NotNilVal())
 	Assert(t, config.GetValue("key1-1"), Equal("value1-1"))
 
@@ -120,16 +112,15 @@ func TestErrorStart(t *testing.T) {
 	server := runErrorResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.IP = server.URL
-	notify.InitAllNotifications(nil)
 
 	time.Sleep(1 * time.Second)
 
-	Start()
+	client, _ := Start()
 
-	value := GetValue("key1")
+	value := client.GetValue("key1")
 	Assert(t, "value1", Equal(value))
 
-	value2 := GetValue("key2")
+	value2 := client.GetValue("key2")
 	Assert(t, "value2", Equal(value2))
 
 }
@@ -144,7 +135,9 @@ func getTestAppConfig() *config.AppConfig {
 	}`
 	c, _ := env.Unmarshal([]byte(jsonStr))
 
-	return c.(*config.AppConfig)
+	c2 := c.(*config.AppConfig)
+	c2.Init()
+	return c2
 }
 
 func TestStructInit(t *testing.T) {
@@ -156,21 +149,20 @@ func TestStructInit(t *testing.T) {
 		IP:            "localhost:8889",
 	}
 
-	InitCustomConfig(func() (*config.AppConfig, error) {
+	client, _ := StartWithConfig(func() (*config.AppConfig, error) {
 		return readyConfig, nil
 	})
-	notify.InitAllNotifications(nil)
 
 	time.Sleep(1 * time.Second)
 
-	config := env.GetAppConfig(nil)
-	Assert(t, config, NotNilVal())
-	Assert(t, "test1", Equal(config.AppID))
-	Assert(t, "dev1", Equal(config.Cluster))
-	Assert(t, "application1", Equal(config.NamespaceName))
-	Assert(t, "localhost:8889", Equal(config.IP))
+	c := client.appConfig
+	Assert(t, c, NotNilVal())
+	Assert(t, "test1", Equal(c.AppID))
+	Assert(t, "dev1", Equal(c.Cluster))
+	Assert(t, "application1", Equal(c.NamespaceName))
+	Assert(t, "localhost:8889", Equal(c.IP))
 
-	apolloConfig := env.GetCurrentApolloConfig()[config.NamespaceName]
+	apolloConfig := c.GetCurrentApolloConfig().Get()[c.NamespaceName]
 	Assert(t, "test1", Equal(apolloConfig.AppID))
 	Assert(t, "dev1", Equal(apolloConfig.Cluster))
 	Assert(t, "application1", Equal(apolloConfig.NamespaceName))
@@ -179,25 +171,10 @@ func TestStructInit(t *testing.T) {
 	env.InitFileConfig()
 }
 
-func TestInitCustomConfig(t *testing.T) {
-	initAppConfigFunc = nil
-	f := func() (*config.AppConfig, error) {
-		return appConfig, nil
-	}
-	InitCustomConfig(f)
-	Assert(t, initAppConfigFunc, NotNilVal())
-}
-
 func TestSetLogger(t *testing.T) {
 	logger := &log.DefaultLogger{}
 	SetLogger(logger)
 	Assert(t, log.Logger, Equal(logger))
-}
-
-func TestUseEventDispatch(t *testing.T) {
-	UseEventDispatch()
-	l := storage.GetChangeListeners()
-	Assert(t, l.Len(), Equal(1))
 }
 
 func TestSetCache(t *testing.T) {
@@ -210,7 +187,7 @@ type TestLoadBalance struct {
 }
 
 //Load 负载均衡
-func (r *TestLoadBalance) Load(servers *sync.Map) *config.ServerInfo {
+func (r *TestLoadBalance) Load(servers sync.Map) *config.ServerInfo {
 	return nil
 }
 
@@ -228,17 +205,17 @@ type testFileHandler struct {
 }
 
 // WriteConfigFile write config to file
-func (fileHandler *testFileHandler) WriteConfigFile(config *env.ApolloConfig, configPath string) error {
+func (fileHandler *testFileHandler) WriteConfigFile(config *config.ApolloConfig, configPath string) error {
 	return nil
 }
 
 // GetConfigFile get real config file
-func (fileHandler *testFileHandler) GetConfigFile(configDir string, namespace string) string {
+func (fileHandler *testFileHandler) GetConfigFile(configDir string, appID string, namespace string) string {
 	return ""
 }
 
 // LoadConfigFile load config from file
-func (fileHandler *testFileHandler) LoadConfigFile(configDir string, namespace string) (*env.ApolloConfig, error) {
+func (fileHandler *testFileHandler) LoadConfigFile(configDir string, appID string, namespace string) (*config.ApolloConfig, error) {
 	return nil, nil
 }
 

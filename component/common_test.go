@@ -18,15 +18,23 @@
 package component
 
 import (
+	"github.com/zouyx/agollo/v4/component/log"
+	"github.com/zouyx/agollo/v4/protocol/http"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
-	_ "github.com/zouyx/agollo/v3/cluster/roundrobin"
-	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/env/config"
-	"github.com/zouyx/agollo/v3/env/config/json"
-	"github.com/zouyx/agollo/v3/extension"
+	"github.com/zouyx/agollo/v4/cluster/roundrobin"
+	"github.com/zouyx/agollo/v4/env"
+	"github.com/zouyx/agollo/v4/env/config"
+	"github.com/zouyx/agollo/v4/env/config/json"
+	"github.com/zouyx/agollo/v4/extension"
+
+	json2 "encoding/json"
 )
+
+func init() {
+	extension.SetLoadBalance(&roundrobin.RoundRobin{})
+}
 
 const servicesConfigResponseStr = `[{
 "appName": "APOLLO-CONFIGSERVICE",
@@ -85,22 +93,26 @@ var (
 )
 
 func TestSelectOnlyOneHost(t *testing.T) {
-	trySyncServerIPList()
-	appConfig := env.GetPlainAppConfig()
+	appConfig := env.InitFileConfig()
+	trySyncServerIPList(appConfig)
 	host := "http://localhost:8888/"
 	Assert(t, host, Equal(appConfig.GetHost()))
-	load := extension.GetLoadBalance().Load(env.GetServers())
+	load := extension.GetLoadBalance().Load(*appConfig.GetServers())
 	Assert(t, load, NotNilVal())
 	Assert(t, host, NotEqual(load.HomepageURL))
-}
 
-func TestGetConfigURLSuffix(t *testing.T) {
-	appConfig := &config.AppConfig{}
-	uri := GetConfigURLSuffix(appConfig, "kk")
-	Assert(t, "", NotEqual(uri))
+	appConfig.IP = host
+	Assert(t, host, Equal(appConfig.GetHost()))
+	load = extension.GetLoadBalance().Load(*appConfig.GetServers())
+	Assert(t, load, NotNilVal())
+	Assert(t, host, NotEqual(load.HomepageURL))
 
-	uri = GetConfigURLSuffix(nil, "kk")
-	Assert(t, "", Equal(uri))
+	appConfig.IP = "https://localhost:8888"
+	https := "https://localhost:8888/"
+	Assert(t, https, Equal(appConfig.GetHost()))
+	load = extension.GetLoadBalance().Load(*appConfig.GetServers())
+	Assert(t, load, NotNilVal())
+	Assert(t, host, NotEqual(load.HomepageURL))
 }
 
 type testComponent struct {
@@ -118,6 +130,33 @@ func TestName(t *testing.T) {
 
 }
 
-func trySyncServerIPList() {
-	env.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr))
+func trySyncServerIPList(appConfig *config.AppConfig) {
+	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfig: appConfig})
+}
+
+//SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
+func SyncServerIPListSuccessCallBack(responseBody []byte, callback http.CallBack) (o interface{}, err error) {
+	log.Debug("get all server info:", string(responseBody))
+
+	tmpServerInfo := make([]*config.ServerInfo, 0)
+
+	err = json2.Unmarshal(responseBody, &tmpServerInfo)
+
+	if err != nil {
+		log.Error("Unmarshal json Fail,Error:", err)
+		return
+	}
+
+	if len(tmpServerInfo) == 0 {
+		log.Info("get no real server!")
+		return
+	}
+
+	for _, server := range tmpServerInfo {
+		if server == nil {
+			continue
+		}
+		callback.AppConfig.GetServers().Store(server.HomepageURL, server)
+	}
+	return
 }

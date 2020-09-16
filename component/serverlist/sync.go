@@ -18,13 +18,14 @@
 package serverlist
 
 import (
+	"encoding/json"
 	"time"
 
-	"github.com/zouyx/agollo/v3/component"
-	"github.com/zouyx/agollo/v3/component/log"
-	"github.com/zouyx/agollo/v3/env"
-	"github.com/zouyx/agollo/v3/env/config"
-	"github.com/zouyx/agollo/v3/protocol/http"
+	"github.com/zouyx/agollo/v4/component"
+	"github.com/zouyx/agollo/v4/component/log"
+	"github.com/zouyx/agollo/v4/env"
+	"github.com/zouyx/agollo/v4/env/config"
+	"github.com/zouyx/agollo/v4/protocol/http"
 )
 
 const (
@@ -37,25 +38,26 @@ func init() {
 }
 
 //InitSyncServerIPList 初始化同步服务器信息列表
-func InitSyncServerIPList() {
-	go component.StartRefreshConfig(&SyncServerIPListComponent{})
+func InitSyncServerIPList(appConfig *config.AppConfig) {
+	go component.StartRefreshConfig(&SyncServerIPListComponent{appConfig})
 }
 
 //SyncServerIPListComponent set timer for update ip list
 //interval : 20m
 type SyncServerIPListComponent struct {
+	appConfig *config.AppConfig
 }
 
 //Start 启动同步服务器列表
 func (s *SyncServerIPListComponent) Start() {
-	SyncServerIPList(nil)
+	SyncServerIPList(s.appConfig)
 	log.Debug("syncServerIpList started")
 
 	t2 := time.NewTimer(refreshIPListInterval)
 	for {
 		select {
 		case <-t2.C:
-			SyncServerIPList(nil)
+			SyncServerIPList(s.appConfig)
 			t2.Reset(refreshIPListInterval)
 		}
 	}
@@ -65,18 +67,45 @@ func (s *SyncServerIPListComponent) Start() {
 //then
 //1.update agcache
 //2.store in disk
-func SyncServerIPList(newAppConfig *config.AppConfig) error {
-	appConfig := env.GetAppConfig(newAppConfig)
+func SyncServerIPList(appConfig *config.AppConfig) error {
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}
 
-	_, err := http.Request(env.GetServicesConfigURL(appConfig), &env.ConnectConfig{
+	_, err := http.Request(appConfig.GetServicesConfigURL(), &env.ConnectConfig{
 		AppID:  appConfig.AppID,
 		Secret: appConfig.Secret,
 	}, &http.CallBack{
-		SuccessCallBack: env.SyncServerIPListSuccessCallBack,
+		SuccessCallBack: SyncServerIPListSuccessCallBack,
+		AppConfig:       appConfig,
 	})
 
 	return err
+}
+
+//SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
+func SyncServerIPListSuccessCallBack(responseBody []byte, callback http.CallBack) (o interface{}, err error) {
+	log.Debug("get all server info:", string(responseBody))
+
+	tmpServerInfo := make([]*config.ServerInfo, 0)
+
+	err = json.Unmarshal(responseBody, &tmpServerInfo)
+
+	if err != nil {
+		log.Error("Unmarshal json Fail,Error:", err)
+		return
+	}
+
+	if len(tmpServerInfo) == 0 {
+		log.Info("get no real server!")
+		return
+	}
+
+	for _, server := range tmpServerInfo {
+		if server == nil {
+			continue
+		}
+		callback.AppConfig.GetServers().Store(server.HomepageURL, server)
+	}
+	return
 }
