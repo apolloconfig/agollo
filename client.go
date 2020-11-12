@@ -42,16 +42,7 @@ import (
 	"strconv"
 )
 
-var syncApolloConfig = remote.CreateSyncApolloConfig()
-
-// Client apollo 客户端实例
-type Client struct {
-	initAppConfigFunc func() (*config.AppConfig, error)
-	appConfig         *config.AppConfig
-	cache             *storage.Cache
-}
-
-func create() *Client {
+func init() {
 	extension.SetCacheFactory(&memory.DefaultCacheFactory{})
 	extension.SetLoadBalance(&roundrobin.RoundRobin{})
 	extension.SetFileHandler(&jsonFile.FileHandler{})
@@ -62,9 +53,20 @@ func create() *Client {
 	extension.AddFormatParser(constant.Properties, &properties.Parser{})
 	extension.AddFormatParser(constant.YML, &yml.Parser{})
 	extension.AddFormatParser(constant.YAML, &yaml.Parser{})
+}
+
+var syncApolloConfig = remote.CreateSyncApolloConfig()
+
+// Client apollo 客户端实例
+type Client struct {
+	initAppConfigFunc func() (*config.AppConfig, error)
+	appConfig         *config.AppConfig
+	cache             *storage.Cache
+}
+
+func create() *Client {
 
 	appConfig := env.InitFileConfig()
-
 	return &Client{
 		appConfig: appConfig,
 	}
