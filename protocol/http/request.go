@@ -84,9 +84,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		return nil, err
 	}
 	if strings.HasPrefix(url.Scheme, "https") {
-		tp.TLSClientConfig = &tls.Config{
-			InsecureSkipVerify: true,
-		}
+		tp.TLSClientConfig = &tls.Config{}
 	}
 	client.Transport = tp
 	retry := 0
