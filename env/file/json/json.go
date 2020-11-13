@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/zouyx/agollo/v4/env/config"
+	"sync"
 
 	"github.com/zouyx/agollo/v4/component/log"
 	jsonConfig "github.com/zouyx/agollo/v4/env/config/json"
@@ -35,6 +36,8 @@ var (
 	jsonFileConfig = &jsonConfig.ConfigFile{}
 	//configFileMap 存取namespace文件地址
 	configFileMap = make(map[string]string, 1)
+	//configFileMapLock configFileMap的读取锁
+	configFileMapLock sync.Mutex
 )
 
 // FileHandler 默认备份文件读写
@@ -49,6 +52,8 @@ func (fileHandler *FileHandler) WriteConfigFile(config *config.ApolloConfig, con
 // GetConfigFile get real config file
 func (fileHandler *FileHandler) GetConfigFile(configDir string, appID string, namespace string) string {
 	key := fmt.Sprintf("%s-%s", appID, namespace)
+	configFileMapLock.Lock()
+	defer configFileMapLock.Unlock()
 	fullPath := configFileMap[key]
 	if fullPath == "" {
 		filePath := fmt.Sprintf("%s%s", key, Suffix)
