@@ -90,8 +90,6 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 	}
 	client.Transport = tp
 	retry := 0
-	var responseBody []byte
-	var res *http.Response
 	var retries = maxRetries
 	if connectionConfig != nil && !connectionConfig.IsRetry {
 		retries = 1
@@ -119,7 +117,10 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			}
 		}
 
-		res, err = client.Do(req)
+		res, err := client.Do(req)
+		if res != nil {
+			defer res.Body.Close()
+		}
 
 		if res == nil || err != nil {
 			log.Error("Connect Apollo Server Fail,url:%s,Error:%s", requestURL, err)
@@ -131,7 +132,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		//not modified break
 		switch res.StatusCode {
 		case http.StatusOK:
-			responseBody, err = ioutil.ReadAll(res.Body)
+			responseBody, err := ioutil.ReadAll(res.Body)
 			if err != nil {
 				log.Error("Connect Apollo Server Fail,url:%s,Error:", requestURL, err)
 				// if error then sleep
