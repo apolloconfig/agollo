@@ -51,5 +51,5 @@ func TestAppConfig_IsConnectDirectly(t *testing.T) {
 
 	SetNextTryConnTime(name, 10)
 	isConnectDirectly = IsConnectDirectly(name)
-	Assert(t, isConnectDirectly, Equal(true))
+	Assert(t, isConnectDirectly, Equal(false))
 }

@@ -62,10 +62,11 @@ func getTestAppConfig() *config.AppConfig {
 
 func TestSyncServerIpListSuccessCallBack(t *testing.T) {
 	appConfig := getTestAppConfig()
-	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfigFunc: func() config.AppConfig {
+	serverMap, _ := SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfigFunc: func() config.AppConfig {
 		return *appConfig
 	}})
-	Assert(t, server.GetServersLen(appConfig.GetHost()), Equal(10))
+	m := serverMap.(map[string]*config.ServerInfo)
+	Assert(t, len(m), Equal(10))
 }
 
 func TestSetDownNode(t *testing.T) {
