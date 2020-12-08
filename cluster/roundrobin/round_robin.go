@@ -18,8 +18,6 @@
 package roundrobin
 
 import (
-	"sync"
-
 	"github.com/zouyx/agollo/v4/env/config"
 )
 
@@ -28,16 +26,15 @@ type RoundRobin struct {
 }
 
 //Load 负载均衡
-func (r *RoundRobin) Load(servers sync.Map) *config.ServerInfo {
+func (r *RoundRobin) Load(servers map[string]*config.ServerInfo) *config.ServerInfo {
 	var returnServer *config.ServerInfo
-	servers.Range(func(k, v interface{}) bool {
-		server := v.(*config.ServerInfo)
+	for _, server := range servers {
 		// if some node has down then select next node
 		if server.IsDown {
-			return true
+			continue
 		}
 		returnServer = server
-		return false
-	})
+		break
+	}
 	return returnServer
 }

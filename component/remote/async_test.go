@@ -24,6 +24,7 @@ import (
 	"github.com/zouyx/agollo/v4/env"
 	"github.com/zouyx/agollo/v4/env/config"
 	jsonFile "github.com/zouyx/agollo/v4/env/file/json"
+	"github.com/zouyx/agollo/v4/env/server"
 	"github.com/zouyx/agollo/v4/extension"
 	http2 "github.com/zouyx/agollo/v4/protocol/http"
 	"net/http"
@@ -140,7 +141,9 @@ func TestApolloConfig_Sync(t *testing.T) {
 	server := initMockNotifyAndConfigServer()
 	appConfig := initNotifications()
 	appConfig.IP = server.URL
-	apolloConfigs := asyncApollo.Sync(appConfig)
+	apolloConfigs := asyncApollo.Sync(func() config.AppConfig {
+		return *appConfig
+	})
 	//err keep nil
 	Assert(t, apolloConfigs, NotNilVal())
 	Assert(t, len(apolloConfigs), Equal(2))
@@ -162,7 +165,9 @@ func TestGetRemoteConfig(t *testing.T) {
 	var err error
 	appConfig := initNotifications()
 	appConfig.IP = server.URL
-	remoteConfigs, err = asyncApollo.notifyRemoteConfig(appConfig, EMPTY)
+	remoteConfigs, err = asyncApollo.notifyRemoteConfig(func() config.AppConfig {
+		return *appConfig
+	}, EMPTY)
 
 	//err keep nil
 	Assert(t, err, NilVal())
@@ -182,16 +187,18 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 	//clear
 	initNotifications()
 	appConfig := initNotifications()
-	server := runErrorResponse()
-	appConfig.IP = server.URL
-	appConfig.NextTryConnTime = 0
+	server1 := runErrorResponse()
+	appConfig.IP = server1.URL
+	server.SetNextTryConnTime(appConfig.GetHost(), 0)
 
 	time.Sleep(1 * time.Second)
 
 	var remoteConfigs []*config.Notification
 	var err error
 
-	remoteConfigs, err = asyncApollo.notifyRemoteConfig(appConfig, EMPTY)
+	remoteConfigs, err = asyncApollo.notifyRemoteConfig(func() config.AppConfig {
+		return *appConfig
+	}, EMPTY)
 
 	Assert(t, err, NotNilVal())
 	Assert(t, remoteConfigs, NilVal())

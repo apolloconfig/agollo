@@ -219,12 +219,13 @@ func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
 
 //UpdateApolloConfig 根据config server返回的内容更新内存
 //并判断是否需要写备份文件
-func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfig *config.AppConfig, isBackupConfig bool) {
+func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfigFunc func() config.AppConfig, isBackupConfig bool) {
 	if apolloConfig == nil {
 		log.Error("apolloConfig is null,can't update!")
 		return
 	}
 
+	appConfig := appConfigFunc()
 	//update apollo connection config
 	appConfig.SetCurrentApolloConfig(&apolloConfig.ApolloConnConfig)
 

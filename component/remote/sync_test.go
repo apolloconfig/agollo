@@ -21,6 +21,8 @@ import (
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v4/constant"
 	"github.com/zouyx/agollo/v4/env"
+	"github.com/zouyx/agollo/v4/env/config"
+	"github.com/zouyx/agollo/v4/env/server"
 	"github.com/zouyx/agollo/v4/extension"
 	"github.com/zouyx/agollo/v4/utils/parse/normal"
 	"github.com/zouyx/agollo/v4/utils/parse/properties"
@@ -86,7 +88,9 @@ func TestAutoSyncConfigServices(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	apolloConfigs := syncApollo.Sync(newAppConfig)
+	apolloConfigs := syncApollo.Sync(func() config.AppConfig {
+		return *newAppConfig
+	})
 
 	Assert(t, apolloConfigs, NotNilVal())
 	Assert(t, len(apolloConfigs), Equal(1))
@@ -101,22 +105,26 @@ func TestAutoSyncConfigServices(t *testing.T) {
 
 func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
 	appConfig := initNotifications()
-	server := runNormalConfigResponse()
+	server1 := runNormalConfigResponse()
 	newAppConfig := initNotifications()
-	newAppConfig.IP = server.URL
+	newAppConfig.IP = server1.URL
 	appConfig.IsBackupConfig = false
 	configFilePath := extension.GetFileHandler().GetConfigFile(newAppConfig.GetBackupConfigPath(), newAppConfig.AppID, "application")
 	os.Remove(configFilePath)
 
 	time.Sleep(1 * time.Second)
 
-	newAppConfig.NextTryConnTime = 0
+	server.SetNextTryConnTime(appConfig.GetHost(), 0)
 	newAppConfig.IsBackupConfig = false
-	syncApollo.Sync(newAppConfig)
+	syncApollo.Sync(func() config.AppConfig {
+		return *newAppConfig
+	})
 
-	newAppConfig.NextTryConnTime = 0
+	server.SetNextTryConnTime(appConfig.GetHost(), 0)
 	newAppConfig.IsBackupConfig = true
-	configs := syncApollo.Sync(newAppConfig)
+	configs := syncApollo.Sync(func() config.AppConfig {
+		return *newAppConfig
+	})
 
 	Assert(t, len(configs), GreaterThan(0))
 	checkNilBackupFile(t)
@@ -138,7 +146,9 @@ func TestAutoSyncConfigServicesError(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	apolloConfigs := syncApollo.Sync(newAppConfig)
+	apolloConfigs := syncApollo.Sync(func() config.AppConfig {
+		return *newAppConfig
+	})
 
 	Assert(t, len(apolloConfigs), Equal(0))
 }

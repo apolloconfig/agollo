@@ -19,12 +19,10 @@ package config
 
 import (
 	"encoding/json"
-	"sync"
-	"testing"
-	"time"
-
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v4/utils"
+	"sync"
+	"testing"
 )
 
 var (
@@ -52,12 +50,6 @@ func TestGetIsBackupConfig(t *testing.T) {
 func TestGetBackupConfigPath(t *testing.T) {
 	config := appConfig.GetBackupConfigPath()
 	Assert(t, config, Equal("/app/"))
-}
-
-func TestSetNextTryConnTime(t *testing.T) {
-	appConfig.SetNextTryConnTime(10)
-
-	Assert(t, int(appConfig.NextTryConnTime), GreaterThan(int(time.Now().Unix())))
 }
 
 func Unmarshal(b []byte) (interface{}, error) {
@@ -89,20 +81,6 @@ func TestGetHost(t *testing.T) {
 	Assert(t, host, Equal("http://163.com/"))
 
 	appConfig.IP = ip
-}
-
-func TestAppConfig_IsConnectDirectly(t *testing.T) {
-	backup := appConfig.NextTryConnTime
-
-	appConfig.NextTryConnTime = 0
-	isConnectDirectly := appConfig.IsConnectDirectly()
-	Assert(t, isConnectDirectly, Equal(false))
-
-	appConfig.NextTryConnTime = time.Now().Unix() + 10
-	isConnectDirectly = appConfig.IsConnectDirectly()
-	Assert(t, isConnectDirectly, Equal(true))
-
-	appConfig.NextTryConnTime = backup
 }
 
 func TestSplitNamespaces(t *testing.T) {

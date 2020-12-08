@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"github.com/zouyx/agollo/v4/agcache/memory"
 	"github.com/zouyx/agollo/v4/env/config"
+	"github.com/zouyx/agollo/v4/env/server"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -197,15 +198,17 @@ func TestGetStringValue(t *testing.T) {
 
 func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	client := createMockApolloConfig(120)
-	server := runLongNotmodifiedConfigResponse()
+	serverResponse := runLongNotmodifiedConfigResponse()
 	newAppConfig := getTestAppConfig()
-	newAppConfig.IP = server.URL
+	newAppConfig.IP = serverResponse.URL
 	time.Sleep(1 * time.Second)
-	newAppConfig.NextTryConnTime = 0
+	server.SetServers(newAppConfig.GetHost(), nil)
 	client.appConfig = newAppConfig
 
 	apolloConfig, _ := createApolloConfigWithJSON([]byte(configResponseStr))
-	client.cache.UpdateApolloConfig(apolloConfig.(*config.ApolloConfig), newAppConfig, true)
+	client.cache.UpdateApolloConfig(apolloConfig.(*config.ApolloConfig), func() config.AppConfig {
+		return *newAppConfig
+	}, true)
 
 	config := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]
 
