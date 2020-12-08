@@ -13,6 +13,8 @@ pull_request_rules:
       merge:
         method: merge
   - name: say hi on Pull Request
+    conditions:
+      - author!=a
     actions:
       comment:
         message: |
@@ -29,4 +31,4 @@ pull_request_rules:
     actions:
       comment:
         message: |
-          这个 PR 发生了检查失败，@{{author}} 是否能帮忙修复呢？🙏
+          这个 PR 发生了检查失败，@{{author}} 是否能帮忙修复呢？🙏pull_request_rules:
