@@ -102,7 +102,8 @@ func (a *asyncApolloConfig) notifyRemoteConfig(appConfig *config.AppConfig, name
 	if appConfig == nil {
 		panic("can not find apollo config!please confirm!")
 	}
-	urlSuffix := a.GetNotifyURLSuffix(appConfig.GetNotificationsMap().GetNotifies(namespace), *appConfig)
+	notificationsMap := appConfig.GetNotificationsMap()
+	urlSuffix := a.GetNotifyURLSuffix(notificationsMap.GetNotifies(namespace), *appConfig)
 
 	connectConfig := &env.ConnectConfig{
 		URI:    urlSuffix,

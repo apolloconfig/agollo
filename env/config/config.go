@@ -52,6 +52,7 @@ type AppConfig struct {
 	IsBackupConfig   bool   `default:"true" json:"isBackupConfig"`
 	BackupConfigPath string `json:"backupConfigPath"`
 	Secret           string `json:"secret"`
+	appConfigLock    sync.Mutex
 	//real servers ip
 	servers                 sync.Map
 	notificationsMap        *notificationsMap
@@ -92,6 +93,8 @@ func (a *AppConfig) GetHost() string {
 
 // Init 初始化notificationsMap
 func (a *AppConfig) Init() {
+	a.appConfigLock.Lock()
+	defer a.appConfigLock.Unlock()
 	a.currentConnApolloConfig = CreateCurrentApolloConfig()
 	a.initAllNotifications(nil)
 }
@@ -125,6 +128,8 @@ func SplitNamespaces(namespacesStr string, callback func(namespace string)) sync
 
 // GetNotificationsMap 获取notificationsMap
 func (a *AppConfig) GetNotificationsMap() *notificationsMap {
+	a.appConfigLock.Lock()
+	defer a.appConfigLock.Unlock()
 	return a.notificationsMap
 }
 
@@ -167,6 +172,8 @@ func (a *AppConfig) SetDownNode(host string) {
 
 //GetServers 获取服务器数组
 func (a *AppConfig) GetServers() *sync.Map {
+	a.appConfigLock.Lock()
+	defer a.appConfigLock.Unlock()
 	return &a.servers
 }
 
@@ -191,11 +198,15 @@ func (a *AppConfig) GetServicesConfigURL() string {
 
 // SetCurrentApolloConfig nolint
 func (a *AppConfig) SetCurrentApolloConfig(apolloConfig *ApolloConnConfig) {
+	a.appConfigLock.Lock()
+	defer a.appConfigLock.Unlock()
 	a.currentConnApolloConfig.Set(apolloConfig.NamespaceName, apolloConfig)
 }
 
 // GetCurrentApolloConfig nolint
 func (a *AppConfig) GetCurrentApolloConfig() *CurrentApolloConfig {
+	a.appConfigLock.Lock()
+	defer a.appConfigLock.Unlock()
 	return a.currentConnApolloConfig
 }
 
