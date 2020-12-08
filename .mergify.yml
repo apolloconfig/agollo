@@ -6,16 +6,16 @@ pull_request_rules:
       merge:
         method: merge
   - name: automatic merge on Travis CI success if some files are changed
-      conditions:
-        - check-success=Travis CI - Pull Request
-        - files~=^./
-      actions:
-        merge:
-          method: merge
+    conditions:
+      - check-success=Travis CI - Pull Request
+      - files~=^./
+    actions:
+      merge:
+        method: merge
   - name: say hi on new contribution
-      conditions:
-        - author!=@myorg/regularcontributors
-      actions:
-        comment:
-          message: |
-            感谢您提出Pull Request，我会尽快Review。我会在1-2日内进行查看或者回复，如果遇到节假日可能会处理较慢，敬请谅解。
+    conditions:
+      - author!=@myorg/regularcontributors
+    actions:
+      comment:
+        message: |
+          感谢您提出Pull Request，我会尽快Review。我会在1-2日内进行查看或者回复，如果遇到节假日可能会处理较慢，敬请谅解。
