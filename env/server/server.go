@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-package serverlist
+package server
 
 import (
 	"github.com/zouyx/agollo/v4/env/config"
@@ -26,13 +26,17 @@ import (
 
 // ip -> server
 var (
-	ipMap      map[string]*Server
+	ipMap      map[string]*Info
 	serverLock sync.Mutex
 	//next try connect period - 60 second
 	nextTryConnectPeriod int64 = 30
 )
 
-type Server struct {
+func init() {
+	ipMap = make(map[string]*Info)
+}
+
+type Info struct {
 	//real servers ip
 	serverMap       map[string]*config.ServerInfo
 	nextTryConnTime int64
@@ -62,7 +66,7 @@ func GetServersLen(configIp string) int {
 func SetServers(configIp string, serverMap map[string]*config.ServerInfo) {
 	serverLock.Lock()
 	defer serverLock.Unlock()
-	ipMap[configIp] = &Server{
+	ipMap[configIp] = &Info{
 		serverMap: serverMap,
 	}
 }
@@ -95,6 +99,9 @@ func IsConnectDirectly(configIp string) bool {
 	serverLock.Lock()
 	defer serverLock.Unlock()
 	s := ipMap[configIp]
+	if s == nil {
+		return true
+	}
 	if s.nextTryConnTime >= 0 && s.nextTryConnTime > time.Now().Unix() {
 		return true
 	}
@@ -103,12 +110,20 @@ func IsConnectDirectly(configIp string) bool {
 }
 
 //SetNextTryConnTime if this connect is fail will set this time
-func setNextTryConnTime(configIp string) {
+func SetNextTryConnTime(configIp string, nextPeriod int64) {
 	serverLock.Lock()
 	defer serverLock.Unlock()
 	s := ipMap[configIp]
 	if s == nil || len(s.serverMap) == 0 {
-		return
+		s = &Info{
+			serverMap:       nil,
+			nextTryConnTime: 0,
+		}
+		ipMap[configIp] = s
 	}
-	s.nextTryConnTime = time.Now().Unix() + nextTryConnectPeriod
+	tmp := nextPeriod
+	if tmp == 0 {
+		tmp = nextTryConnectPeriod
+	}
+	s.nextTryConnTime = time.Now().Unix() + tmp
 }

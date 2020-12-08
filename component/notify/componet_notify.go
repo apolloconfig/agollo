@@ -31,13 +31,13 @@ const (
 
 //ConfigComponent 配置组件
 type ConfigComponent struct {
-	appConfig *config.AppConfig
-	cache     *storage.Cache
+	appConfigFunc func() config.AppConfig
+	cache         *storage.Cache
 }
 
 // SetAppConfig nolint
-func (c *ConfigComponent) SetAppConfig(appConfig *config.AppConfig) {
-	c.appConfig = appConfig
+func (c *ConfigComponent) SetAppConfig(appConfigFunc func() config.AppConfig) {
+	c.appConfigFunc = appConfigFunc
 }
 
 // SetCache nolint
@@ -53,9 +53,9 @@ func (c *ConfigComponent) Start() {
 	for {
 		select {
 		case <-t2.C:
-			configs := instance.Sync(c.appConfig)
+			configs := instance.Sync(c.appConfigFunc)
 			for _, apolloConfig := range configs {
-				c.cache.UpdateApolloConfig(apolloConfig, c.appConfig, true)
+				c.cache.UpdateApolloConfig(apolloConfig, c.appConfigFunc, true)
 			}
 			t2.Reset(longPollInterval)
 		}

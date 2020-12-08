@@ -157,13 +157,6 @@ func TestLoadEnvConfig(t *testing.T) {
 	os.Remove(envConfigFile)
 }
 
-func TestGetServersLen(t *testing.T) {
-	appConfig := getTestAppConfig()
-	appConfig.GetServers().Store("a", "a")
-	serversLen := appConfig.GetServersLen()
-	Assert(t, serversLen, Equal(1))
-}
-
 func getNotifyLen(s sync.Map) int {
 	l := 0
 	s.Range(func(k, v interface{}) bool {

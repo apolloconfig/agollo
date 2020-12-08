@@ -15,19 +15,41 @@
  * limitations under the License.
  */
 
-package serverlist
+package server
 
 import (
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v4/env/config"
 	"testing"
+	"time"
 )
+
+var name = "abc"
 
 func TestGetServersLen(t *testing.T) {
 	m := make(map[string]*config.ServerInfo, 2)
 	m["b"] = &config.ServerInfo{}
 	m["c"] = &config.ServerInfo{}
-	SetServers("a", m)
-	serversLen := GetServersLen("a")
+	SetServers(name, m)
+	serversLen := GetServersLen(name)
 	Assert(t, serversLen, Equal(2))
+}
+
+func TestSetNextTryConnTime(t *testing.T) {
+	SetNextTryConnTime(name, 10)
+	Assert(t, int(ipMap[name].nextTryConnTime), GreaterThan(int(time.Now().Unix())))
+}
+
+func TestAppConfig_IsConnectDirectly(t *testing.T) {
+	s := &Info{
+		serverMap:       nil,
+		nextTryConnTime: 0,
+	}
+	ipMap[name] = s
+	isConnectDirectly := IsConnectDirectly(name)
+	Assert(t, isConnectDirectly, Equal(false))
+
+	SetNextTryConnTime(name, 10)
+	isConnectDirectly = IsConnectDirectly(name)
+	Assert(t, isConnectDirectly, Equal(true))
 }
