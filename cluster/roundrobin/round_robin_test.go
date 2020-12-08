@@ -100,9 +100,9 @@ func TestSelectHost(t *testing.T) {
 
 	//check servers
 	server.SetNextTryConnTime(appConfig.GetHost(), 5)
-	firstHost := balanace.Load(server.GetServers(appConfig.GetHost()))
-	Assert(t, host, NotEqual(firstHost.HomepageURL))
-	server.SetDownNode(appConfig.GetHost(), firstHost.HomepageURL)
+	firstHost := balanace.Load(server.GetServers(appConfig.GetHost())).HomepageURL
+	Assert(t, host, NotEqual(firstHost))
+	server.SetDownNode(appConfig.GetHost(), firstHost)
 
 	secondHost := balanace.Load(server.GetServers(appConfig.GetHost())).HomepageURL
 	Assert(t, host, NotEqual(secondHost))

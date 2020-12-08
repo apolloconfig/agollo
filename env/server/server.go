@@ -72,11 +72,11 @@ func SetServers(configIp string, serverMap map[string]*config.ServerInfo) {
 }
 
 //SetDownNode 设置失效节点
-func SetDownNode(host string, configIp string) {
+func SetDownNode(configIp string, host string) {
 	serverLock.Lock()
 	defer serverLock.Unlock()
 	s := ipMap[configIp]
-	if host == "" || s == nil {
+	if host == "" || s == nil || len(s.serverMap) == 0 {
 		return
 	}
 
@@ -93,14 +93,14 @@ func SetDownNode(host string, configIp string) {
 }
 
 //IsConnectDirectly is connect by ip directly
-//false : no
-//true : yes
+//false : yes
+//true : no
 func IsConnectDirectly(configIp string) bool {
 	serverLock.Lock()
 	defer serverLock.Unlock()
 	s := ipMap[configIp]
-	if s == nil {
-		return true
+	if s == nil || len(s.serverMap) == 0 {
+		return false
 	}
 	if s.nextTryConnTime >= 0 && s.nextTryConnTime > time.Now().Unix() {
 		return true
