@@ -20,6 +20,7 @@ package roundrobin
 import (
 	"github.com/zouyx/agollo/v4/component/serverlist"
 	"github.com/zouyx/agollo/v4/env/config"
+	"github.com/zouyx/agollo/v4/env/server"
 	"github.com/zouyx/agollo/v4/protocol/http"
 	"testing"
 
@@ -84,57 +85,57 @@ func TestSelectHost(t *testing.T) {
 
 	appConfig := env.InitFileConfig()
 	//mock ip data
-	trySyncServerIPList(appConfig)
+	trySyncServerIPList(*appConfig)
 
-	servers := appConfig.GetServers()
 	t.Log("appconfig host:" + appConfig.GetHost())
-	t.Log("appconfig select host:", balanace.Load(*appConfig.GetServers()).HomepageURL)
+	t.Log("appconfig select host:", balanace.Load(server.GetServers(appConfig.GetHost())).HomepageURL)
 
 	host := "http://localhost:8888/"
 	Assert(t, host, Equal(appConfig.GetHost()))
-	Assert(t, host, NotEqual(balanace.Load(*appConfig.GetServers()).HomepageURL))
+	Assert(t, host, NotEqual(balanace.Load(server.GetServers(appConfig.GetHost())).HomepageURL))
 
 	//check select next time
-	appConfig.SetNextTryConnTime(5)
-	Assert(t, host, NotEqual(balanace.Load(*appConfig.GetServers()).HomepageURL))
+	server.SetNextTryConnTime(appConfig.GetHost(), 5)
+	Assert(t, host, NotEqual(balanace.Load(server.GetServers(appConfig.GetHost())).HomepageURL))
 
 	//check servers
-	appConfig.SetNextTryConnTime(5)
-	firstHost := balanace.Load(*appConfig.GetServers())
-	Assert(t, host, NotEqual(firstHost.HomepageURL))
-	appConfig.SetDownNode(firstHost.HomepageURL)
+	server.SetNextTryConnTime(appConfig.GetHost(), 5)
+	firstHost := balanace.Load(server.GetServers(appConfig.GetHost())).HomepageURL
+	Assert(t, host, NotEqual(firstHost))
+	server.SetDownNode(appConfig.GetHost(), firstHost)
 
-	secondHost := balanace.Load(*appConfig.GetServers()).HomepageURL
+	secondHost := balanace.Load(server.GetServers(appConfig.GetHost())).HomepageURL
 	Assert(t, host, NotEqual(secondHost))
 	Assert(t, firstHost, NotEqual(secondHost))
-	appConfig.SetDownNode(secondHost)
+	server.SetDownNode(appConfig.GetHost(), secondHost)
 
-	thirdHost := balanace.Load(*appConfig.GetServers()).HomepageURL
+	thirdHost := balanace.Load(server.GetServers(appConfig.GetHost())).HomepageURL
 	Assert(t, host, NotEqual(thirdHost))
 	Assert(t, firstHost, NotEqual(thirdHost))
 	Assert(t, secondHost, NotEqual(thirdHost))
 
-	servers.Range(func(k, v interface{}) bool {
-		appConfig.SetDownNode(k.(string))
-		return true
-	})
+	for _, info := range server.GetServers(appConfig.GetHost()) {
+		info.IsDown = true
+	}
 
-	Assert(t, balanace.Load(*appConfig.GetServers()), NilVal())
+	Assert(t, balanace.Load(server.GetServers(appConfig.GetHost())), NilVal())
 
 	//no servers
 	//servers = make(map[string]*serverInfo, 0)
 	deleteServers(appConfig)
-	Assert(t, balanace.Load(*appConfig.GetServers()), NilVal())
+	Assert(t, balanace.Load(server.GetServers(appConfig.GetHost())), NilVal())
 }
 
 func deleteServers(appConfig *config.AppConfig) {
-	servers := appConfig.GetServers()
-	servers.Range(func(k, v interface{}) bool {
-		servers.Delete(k)
-		return true
-	})
+	servers := make(map[string]*config.ServerInfo)
+	server.SetServers(appConfig.GetHost(), servers)
 }
 
-func trySyncServerIPList(appConfig *config.AppConfig) {
-	serverlist.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfig: appConfig})
+func trySyncServerIPList(appConfig config.AppConfig) {
+	// 里面已经设置了
+	serverMap, _ := serverlist.SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfigFunc: func() config.AppConfig {
+		return appConfig
+	}})
+	m := serverMap.(map[string]*config.ServerInfo)
+	server.SetServers(appConfig.GetHost(), m)
 }

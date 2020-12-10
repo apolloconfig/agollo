@@ -49,7 +49,9 @@ func creatTestApolloConfig(configurations map[string]interface{}, namespace stri
 	apolloConfig.AppID = "test"
 	apolloConfig.Cluster = "dev"
 	apolloConfig.Configurations = configurations
-	c.UpdateApolloConfig(apolloConfig, appConfig, true)
+	c.UpdateApolloConfig(apolloConfig, func() config.AppConfig {
+		return *appConfig
+	}, true)
 	return c
 
 }
@@ -71,7 +73,9 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 	apolloConfig.AppID = "test"
 	apolloConfig.Cluster = "dev"
 	apolloConfig.Configurations = configurations
-	c.UpdateApolloConfig(apolloConfig, appConfig, true)
+	c.UpdateApolloConfig(apolloConfig, func() config.AppConfig {
+		return *appConfig
+	}, true)
 
 	currentConnApolloConfig := appConfig.GetCurrentApolloConfig().Get()
 	config := currentConnApolloConfig[defaultNamespace]
