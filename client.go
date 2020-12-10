@@ -42,6 +42,11 @@ import (
 	"strconv"
 )
 
+var (
+	//next try connect period - 60 second
+	nextTryConnectPeriod int64 = 60
+)
+
 func init() {
 	extension.SetCacheFactory(&memory.DefaultCacheFactory{})
 	extension.SetLoadBalance(&roundrobin.RoundRobin{})
@@ -62,6 +67,10 @@ type Client struct {
 	initAppConfigFunc func() (*config.AppConfig, error)
 	appConfig         *config.AppConfig
 	cache             *storage.Cache
+}
+
+func (c *Client) getAppConfig() config.AppConfig {
+	return *c.appConfig
 }
 
 func create() *Client {
@@ -93,13 +102,13 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (*Client, 
 	c.cache = storage.CreateNamespaceConfig(appConfig.NamespaceName)
 	appConfig.Init()
 
-	serverlist.InitSyncServerIPList(c.appConfig)
+	serverlist.InitSyncServerIPList(c.getAppConfig)
 
 	//first sync
-	configs := syncApolloConfig.Sync(c.appConfig)
+	configs := syncApolloConfig.Sync(c.getAppConfig)
 	if len(configs) > 0 {
 		for _, apolloConfig := range configs {
-			c.cache.UpdateApolloConfig(apolloConfig, c.appConfig, true)
+			c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig, true)
 		}
 	}
 
@@ -107,7 +116,7 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (*Client, 
 
 	//start long poll sync config
 	configComponent := &notify.ConfigComponent{}
-	configComponent.SetAppConfig(c.appConfig)
+	configComponent.SetAppConfig(c.getAppConfig)
 	configComponent.SetCache(c.cache)
 	go component.StartRefreshConfig(configComponent)
 
@@ -134,7 +143,7 @@ func (c *Client) GetConfigAndInit(namespace string) *storage.Config {
 		storage.CreateNamespaceConfig(namespace)
 
 		//sync config
-		syncApolloConfig.SyncWithNamespace(namespace, c.appConfig)
+		syncApolloConfig.SyncWithNamespace(namespace, c.getAppConfig)
 	}
 
 	config = c.cache.GetConfig(namespace)

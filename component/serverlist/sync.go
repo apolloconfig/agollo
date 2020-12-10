@@ -19,6 +19,7 @@ package serverlist
 
 import (
 	"encoding/json"
+	"github.com/zouyx/agollo/v4/env/server"
 	"time"
 
 	"github.com/zouyx/agollo/v4/component"
@@ -38,14 +39,14 @@ func init() {
 }
 
 //InitSyncServerIPList 初始化同步服务器信息列表
-func InitSyncServerIPList(appConfig *config.AppConfig) {
+func InitSyncServerIPList(appConfig func() config.AppConfig) {
 	go component.StartRefreshConfig(&SyncServerIPListComponent{appConfig})
 }
 
 //SyncServerIPListComponent set timer for update ip list
 //interval : 20m
 type SyncServerIPListComponent struct {
-	appConfig *config.AppConfig
+	appConfig func() config.AppConfig
 }
 
 //Start 启动同步服务器列表
@@ -67,20 +68,26 @@ func (s *SyncServerIPListComponent) Start() {
 //then
 //1.update agcache
 //2.store in disk
-func SyncServerIPList(appConfig *config.AppConfig) error {
-	if appConfig == nil {
+func SyncServerIPList(appConfigFunc func() config.AppConfig) (map[string]*config.ServerInfo, error) {
+	if appConfigFunc == nil {
 		panic("can not find apollo config!please confirm!")
 	}
 
-	_, err := http.Request(appConfig.GetServicesConfigURL(), &env.ConnectConfig{
+	appConfig := appConfigFunc()
+	serverMap, err := http.Request(appConfig.GetServicesConfigURL(), &env.ConnectConfig{
 		AppID:  appConfig.AppID,
 		Secret: appConfig.Secret,
 	}, &http.CallBack{
 		SuccessCallBack: SyncServerIPListSuccessCallBack,
-		AppConfig:       appConfig,
+		AppConfigFunc:   appConfigFunc,
 	})
+	if serverMap == nil {
+		return nil, err
+	}
 
-	return err
+	m := serverMap.(map[string]*config.ServerInfo)
+	server.SetServers(appConfig.GetHost(), m)
+	return m, err
 }
 
 //SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
@@ -101,11 +108,13 @@ func SyncServerIPListSuccessCallBack(responseBody []byte, callback http.CallBack
 		return
 	}
 
+	m := make(map[string]*config.ServerInfo)
 	for _, server := range tmpServerInfo {
 		if server == nil {
 			continue
 		}
-		callback.AppConfig.GetServers().Store(server.HomepageURL, server)
+		m[server.HomepageURL] = server
 	}
+	o = m
 	return
 }

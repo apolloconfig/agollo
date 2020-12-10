@@ -15,23 +15,41 @@
  * limitations under the License.
  */
 
-package remote
+package server
 
 import (
+	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v4/env/config"
-	"github.com/zouyx/agollo/v4/protocol/http"
+	"testing"
+	"time"
 )
 
-// ApolloConfig apollo 配置
-type ApolloConfig interface {
-	// GetNotifyURLSuffix 获取异步更新路径
-	GetNotifyURLSuffix(notifications string, config config.AppConfig) string
-	// GetSyncURI 获取同步路径
-	GetSyncURI(config config.AppConfig, namespaceName string) string
-	// Sync 同步获取 Apollo 配置
-	Sync(appConfigFunc func() config.AppConfig) []*config.ApolloConfig
-	// CallBack 根据 namespace 获取 callback 方法
-	CallBack(namespace string) http.CallBack
-	// SyncWithNamespace 通过 namespace 同步 apollo 配置
-	SyncWithNamespace(namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig
+var name = "abc"
+
+func TestGetServersLen(t *testing.T) {
+	m := make(map[string]*config.ServerInfo, 2)
+	m["b"] = &config.ServerInfo{}
+	m["c"] = &config.ServerInfo{}
+	SetServers(name, m)
+	serversLen := GetServersLen(name)
+	Assert(t, serversLen, Equal(2))
+}
+
+func TestSetNextTryConnTime(t *testing.T) {
+	SetNextTryConnTime(name, 10)
+	Assert(t, int(ipMap[name].nextTryConnTime), GreaterThan(int(time.Now().Unix())))
+}
+
+func TestAppConfig_IsConnectDirectly(t *testing.T) {
+	s := &Info{
+		serverMap:       nil,
+		nextTryConnTime: 0,
+	}
+	ipMap[name] = s
+	isConnectDirectly := IsConnectDirectly(name)
+	Assert(t, isConnectDirectly, Equal(false))
+
+	SetNextTryConnTime(name, 10)
+	isConnectDirectly = IsConnectDirectly(name)
+	Assert(t, isConnectDirectly, Equal(false))
 }

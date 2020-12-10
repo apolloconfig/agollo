@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"github.com/zouyx/agollo/v4/cluster/roundrobin"
 	"github.com/zouyx/agollo/v4/component/log"
+	"github.com/zouyx/agollo/v4/env/server"
 	"github.com/zouyx/agollo/v4/extension"
 	"net/url"
 	"testing"
@@ -64,10 +65,12 @@ func TestRequestRecovery(t *testing.T) {
 	appConfig := getTestAppConfig()
 	appConfig.IP = server.URL
 
-	mockIPList(t, appConfig)
+	mockIPList(t, func() config.AppConfig {
+		return *appConfig
+	})
 	urlSuffix := getConfigURLSuffix(appConfig, appConfig.NamespaceName)
 
-	o, err := RequestRecovery(appConfig, &env.ConnectConfig{
+	o, err := RequestRecovery(*appConfig, &env.ConnectConfig{
 		URI:     urlSuffix,
 		IsRetry: true,
 	}, &CallBack{
@@ -84,10 +87,12 @@ func TestHttpsRequestRecovery(t *testing.T) {
 	appConfig := getTestAppConfig()
 	appConfig.IP = server.URL
 
-	mockIPList(t, appConfig)
+	mockIPList(t, func() config.AppConfig {
+		return *appConfig
+	})
 	urlSuffix := getConfigURLSuffix(appConfig, appConfig.NamespaceName)
 
-	o, err := RequestRecovery(appConfig, &env.ConnectConfig{
+	o, err := RequestRecovery(*appConfig, &env.ConnectConfig{
 		URI:     urlSuffix,
 		IsRetry: true,
 	}, &CallBack{
@@ -105,10 +110,12 @@ func TestCustomTimeout(t *testing.T) {
 	appConfig.IP = server.URL
 
 	startTime := time.Now().Unix()
-	mockIPList(t, appConfig)
+	mockIPList(t, func() config.AppConfig {
+		return *appConfig
+	})
 	urlSuffix := getConfigURLSuffix(appConfig, appConfig.NamespaceName)
 
-	o, err := RequestRecovery(appConfig, &env.ConnectConfig{
+	o, err := RequestRecovery(*appConfig, &env.ConnectConfig{
 		URI:     urlSuffix,
 		Timeout: 11 * time.Second,
 	}, &CallBack{
@@ -125,14 +132,16 @@ func TestCustomTimeout(t *testing.T) {
 	Assert(t, o, NilVal())
 }
 
-func mockIPList(t *testing.T, appConfig *config.AppConfig) {
+func mockIPList(t *testing.T, appConfigFunc func() config.AppConfig) {
 	time.Sleep(1 * time.Second)
 
-	_, err := SyncServerIPListSuccessCallBack([]byte(servicesResponseStr), CallBack{AppConfig: appConfig})
+	_, err := SyncServerIPListSuccessCallBack([]byte(servicesResponseStr), CallBack{AppConfigFunc: appConfigFunc})
 
 	Assert(t, err, NilVal())
 
-	serverLen := appConfig.GetServersLen()
+	configFunc := appConfigFunc()
+	c := &configFunc
+	serverLen := server.GetServersLen(c.GetHost())
 
 	Assert(t, 2, Equal(serverLen))
 }
@@ -167,11 +176,15 @@ func SyncServerIPListSuccessCallBack(responseBody []byte, callback CallBack) (o 
 		return
 	}
 
+	m := make(map[string]*config.ServerInfo)
 	for _, server := range tmpServerInfo {
 		if server == nil {
 			continue
 		}
-		callback.AppConfig.GetServers().Store(server.HomepageURL, server)
+		m[server.HomepageURL] = server
 	}
+	configFunc := callback.AppConfigFunc()
+	c := &configFunc
+	server.SetServers(c.GetHost(), m)
 	return
 }

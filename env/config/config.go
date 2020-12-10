@@ -24,13 +24,9 @@ import (
 	"net/url"
 	"strings"
 	"sync"
-	"time"
 )
 
 var (
-	//next try connect period - 60 second
-	nextTryConnectPeriod int64 = 60
-
 	defaultNotificationID = int64(-1)
 	comma                 = ","
 )
@@ -44,16 +40,13 @@ type File interface {
 
 //AppConfig 配置文件
 type AppConfig struct {
-	AppID            string `json:"appId"`
-	Cluster          string `json:"cluster"`
-	NamespaceName    string `json:"namespaceName"`
-	IP               string `json:"ip"`
-	NextTryConnTime  int64  `json:"-"`
-	IsBackupConfig   bool   `default:"true" json:"isBackupConfig"`
-	BackupConfigPath string `json:"backupConfigPath"`
-	Secret           string `json:"secret"`
-	//real servers ip
-	servers                 sync.Map
+	AppID                   string `json:"appId"`
+	Cluster                 string `json:"cluster"`
+	NamespaceName           string `json:"namespaceName"`
+	IP                      string `json:"ip"`
+	IsBackupConfig          bool   `default:"true" json:"isBackupConfig"`
+	BackupConfigPath        string `json:"backupConfigPath"`
+	Secret                  string `json:"secret"`
 	notificationsMap        *notificationsMap
 	currentConnApolloConfig *CurrentApolloConfig
 }
@@ -126,59 +119,6 @@ func SplitNamespaces(namespacesStr string, callback func(namespace string)) sync
 // GetNotificationsMap 获取notificationsMap
 func (a *AppConfig) GetNotificationsMap() *notificationsMap {
 	return a.notificationsMap
-}
-
-//SetNextTryConnTime if this connect is fail will set this time
-func (a *AppConfig) SetNextTryConnTime(nextTryConnectPeriod int64) {
-	a.NextTryConnTime = time.Now().Unix() + nextTryConnectPeriod
-}
-
-//IsConnectDirectly is connect by ip directly
-//false : no
-//true : yes
-func (a *AppConfig) IsConnectDirectly() bool {
-	if a.NextTryConnTime >= 0 && a.NextTryConnTime > time.Now().Unix() {
-		return true
-	}
-
-	return false
-}
-
-//SetDownNode 设置失效节点
-func (a *AppConfig) SetDownNode(host string) {
-	if host == "" {
-		return
-	}
-
-	if host == a.GetHost() {
-		a.SetNextTryConnTime(nextTryConnectPeriod)
-	}
-
-	a.GetServers().Range(func(k, v interface{}) bool {
-		server := v.(*ServerInfo)
-		// if some node has down then select next node
-		if strings.Index(k.(string), host) > -1 {
-			server.IsDown = true
-			return false
-		}
-		return true
-	})
-}
-
-//GetServers 获取服务器数组
-func (a *AppConfig) GetServers() *sync.Map {
-	return &a.servers
-}
-
-//GetServersLen 获取服务器数组长度
-func (a *AppConfig) GetServersLen() int {
-	s := a.GetServers()
-	l := 0
-	s.Range(func(k, v interface{}) bool {
-		l++
-		return true
-	})
-	return l
 }
 
 //GetServicesConfigURL 获取服务器列表url
