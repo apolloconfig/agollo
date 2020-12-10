@@ -19,6 +19,7 @@ package component
 
 import (
 	"github.com/zouyx/agollo/v4/component/log"
+	"github.com/zouyx/agollo/v4/env/server"
 	"github.com/zouyx/agollo/v4/protocol/http"
 	"testing"
 
@@ -94,25 +95,26 @@ var (
 
 func TestSelectOnlyOneHost(t *testing.T) {
 	appConfig := env.InitFileConfig()
-	trySyncServerIPList(appConfig)
+	trySyncServerIPList(func() config.AppConfig {
+		return *appConfig
+	})
 	host := "http://localhost:8888/"
 	Assert(t, host, Equal(appConfig.GetHost()))
-	load := extension.GetLoadBalance().Load(*appConfig.GetServers())
+	load := extension.GetLoadBalance().Load(server.GetServers(appConfig.GetHost()))
 	Assert(t, load, NotNilVal())
 	Assert(t, host, NotEqual(load.HomepageURL))
 
 	appConfig.IP = host
 	Assert(t, host, Equal(appConfig.GetHost()))
-	load = extension.GetLoadBalance().Load(*appConfig.GetServers())
+	load = extension.GetLoadBalance().Load(server.GetServers(appConfig.GetHost()))
 	Assert(t, load, NotNilVal())
 	Assert(t, host, NotEqual(load.HomepageURL))
 
 	appConfig.IP = "https://localhost:8888"
 	https := "https://localhost:8888/"
 	Assert(t, https, Equal(appConfig.GetHost()))
-	load = extension.GetLoadBalance().Load(*appConfig.GetServers())
-	Assert(t, load, NotNilVal())
-	Assert(t, host, NotEqual(load.HomepageURL))
+	load = extension.GetLoadBalance().Load(server.GetServers(appConfig.GetHost()))
+	Assert(t, load, NilVal())
 }
 
 type testComponent struct {
@@ -130,8 +132,8 @@ func TestName(t *testing.T) {
 
 }
 
-func trySyncServerIPList(appConfig *config.AppConfig) {
-	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfig: appConfig})
+func trySyncServerIPList(appConfigFunc func() config.AppConfig) {
+	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfigFunc: appConfigFunc})
 }
 
 //SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
@@ -152,11 +154,15 @@ func SyncServerIPListSuccessCallBack(responseBody []byte, callback http.CallBack
 		return
 	}
 
-	for _, server := range tmpServerInfo {
-		if server == nil {
+	serverMap := make(map[string]*config.ServerInfo)
+	for _, server1 := range tmpServerInfo {
+		if server1 == nil {
 			continue
 		}
-		callback.AppConfig.GetServers().Store(server.HomepageURL, server)
+		serverMap[server1.HomepageURL] = server1
 	}
+	configFunc := callback.AppConfigFunc()
+	c := &configFunc
+	server.SetServers(c.GetHost(), serverMap)
 	return
 }

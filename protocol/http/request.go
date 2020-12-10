@@ -21,6 +21,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/zouyx/agollo/v4/env/server"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -56,7 +57,7 @@ var (
 type CallBack struct {
 	SuccessCallBack   func([]byte, CallBack) (interface{}, error)
 	NotModifyCallBack func() error
-	AppConfig         *config.AppConfig
+	AppConfigFunc     func() config.AppConfig
 	Namespace         string
 }
 
@@ -166,7 +167,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 }
 
 //RequestRecovery 可以恢复的请求
-func RequestRecovery(appConfig *config.AppConfig,
+func RequestRecovery(appConfig config.AppConfig,
 	connectConfig *env.ConnectConfig,
 	callBack *CallBack) (interface{}, error) {
 	format := "%s%s"
@@ -182,18 +183,22 @@ func RequestRecovery(appConfig *config.AppConfig,
 		requestURL := fmt.Sprintf(format, host, connectConfig.URI)
 		response, err = Request(requestURL, connectConfig, callBack)
 		if err == nil {
+			return response, nil
+		}
+
+		if host == appConfig.GetHost() {
 			return response, err
 		}
 
-		appConfig.SetDownNode(host)
+		server.SetDownNode(host, appConfig.GetHost())
 	}
 }
 
-func loadBalance(appConfig *config.AppConfig) string {
-	if !appConfig.IsConnectDirectly() {
+func loadBalance(appConfig config.AppConfig) string {
+	if !server.IsConnectDirectly(appConfig.GetHost()) {
 		return appConfig.GetHost()
 	}
-	serverInfo := extension.GetLoadBalance().Load(*appConfig.GetServers())
+	serverInfo := extension.GetLoadBalance().Load(server.GetServers(appConfig.GetHost()))
 	if serverInfo == nil {
 		return utils.Empty
 	}

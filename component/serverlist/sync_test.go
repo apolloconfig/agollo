@@ -18,6 +18,7 @@
 package serverlist
 
 import (
+	"github.com/zouyx/agollo/v4/env/server"
 	"github.com/zouyx/agollo/v4/protocol/http"
 	"testing"
 
@@ -36,17 +37,13 @@ func trySyncServerIPList(t *testing.T) {
 
 	newAppConfig := getTestAppConfig()
 	newAppConfig.IP = server.URL
-	err := SyncServerIPList(newAppConfig)
+	serverMap, err := SyncServerIPList(func() config.AppConfig {
+		return *newAppConfig
+	})
 
 	Assert(t, err, NilVal())
 
-	serverLen := 0
-	newAppConfig.GetServers().Range(func(k, v interface{}) bool {
-		serverLen++
-		return true
-	})
-
-	Assert(t, 10, Equal(serverLen))
+	Assert(t, 10, Equal(len(serverMap)))
 
 }
 
@@ -65,20 +62,24 @@ func getTestAppConfig() *config.AppConfig {
 
 func TestSyncServerIpListSuccessCallBack(t *testing.T) {
 	appConfig := getTestAppConfig()
-	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfig: appConfig})
-	Assert(t, appConfig.GetServersLen(), Equal(10))
+	serverMap, _ := SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfigFunc: func() config.AppConfig {
+		return *appConfig
+	}})
+	m := serverMap.(map[string]*config.ServerInfo)
+	Assert(t, len(m), Equal(10))
 }
 
 func TestSetDownNode(t *testing.T) {
 	t.SkipNow()
 	appConfig := getTestAppConfig()
-	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfig: appConfig})
+	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfigFunc: func() config.AppConfig {
+		return *appConfig
+	}})
 
 	downNode := "10.15.128.102:8080"
-	appConfig.SetDownNode(downNode)
+	server.SetDownNode(appConfig.GetHost(), downNode)
 
-	value, ok := appConfig.GetServers().Load("http://10.15.128.102:8080/")
-	info := value.(*config.ServerInfo)
+	info, ok := server.GetServers(appConfig.IP)["http://10.15.128.102:8080/"]
 	Assert(t, ok, Equal(true))
 	Assert(t, info.IsDown, Equal(true))
 }

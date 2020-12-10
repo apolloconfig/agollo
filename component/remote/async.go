@@ -66,8 +66,9 @@ func (*asyncApolloConfig) GetSyncURI(config config.AppConfig, namespaceName stri
 		utils.GetInternal())
 }
 
-func (a *asyncApolloConfig) Sync(appConfig *config.AppConfig) []*config.ApolloConfig {
-	remoteConfigs, err := a.notifyRemoteConfig(appConfig, utils.Empty)
+func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*config.ApolloConfig {
+	appConfig := appConfigFunc()
+	remoteConfigs, err := a.notifyRemoteConfig(appConfigFunc, utils.Empty)
 
 	var apolloConfigs []*config.ApolloConfig
 	if err != nil {
@@ -83,7 +84,7 @@ func (a *asyncApolloConfig) Sync(appConfig *config.AppConfig) []*config.ApolloCo
 	notifications := appConfig.GetNotificationsMap().GetNotifications()
 	n := &notifications
 	n.Range(func(key, value interface{}) bool {
-		apolloConfig := a.SyncWithNamespace(key.(string), appConfig)
+		apolloConfig := a.SyncWithNamespace(key.(string), appConfigFunc)
 		apolloConfigs = append(apolloConfigs, apolloConfig)
 		return true
 	})
@@ -98,11 +99,13 @@ func (*asyncApolloConfig) CallBack(namespace string) http.CallBack {
 	}
 }
 
-func (a *asyncApolloConfig) notifyRemoteConfig(appConfig *config.AppConfig, namespace string) ([]*config.Notification, error) {
-	if appConfig == nil {
+func (a *asyncApolloConfig) notifyRemoteConfig(appConfigFunc func() config.AppConfig, namespace string) ([]*config.Notification, error) {
+	if appConfigFunc == nil {
 		panic("can not find apollo config!please confirm!")
 	}
-	urlSuffix := a.GetNotifyURLSuffix(appConfig.GetNotificationsMap().GetNotifies(namespace), *appConfig)
+	appConfig := appConfigFunc()
+	notificationsMap := appConfig.GetNotificationsMap()
+	urlSuffix := a.GetNotifyURLSuffix(notificationsMap.GetNotifies(namespace), appConfig)
 
 	connectConfig := &env.ConnectConfig{
 		URI:    urlSuffix,
@@ -141,7 +144,7 @@ func toApolloConfig(resBody []byte) ([]*config.Notification, error) {
 	return remoteConfig, nil
 }
 
-func loadBackupConfig(namespace string, appConfig *config.AppConfig) []*config.ApolloConfig {
+func loadBackupConfig(namespace string, appConfig config.AppConfig) []*config.ApolloConfig {
 	apolloConfigs := make([]*config.ApolloConfig, 0)
 	config.SplitNamespaces(namespace, func(namespace string) {
 		c, err := extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, appConfig.AppID, namespace)
