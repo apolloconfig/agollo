@@ -37,7 +37,8 @@ type ConfigChangeType int
 
 //config change event
 type baseChangeEvent struct {
-	Namespace string
+	Namespace      string
+	NotificationID int64
 }
 
 //config change event
@@ -84,10 +85,11 @@ func createDeletedConfigChange(oldValue interface{}) *ConfigChange {
 }
 
 //base on changeList create Change event
-func createConfigChangeEvent(changes map[string]*ConfigChange, nameSpace string) *ChangeEvent {
+func createConfigChangeEvent(changes map[string]*ConfigChange, nameSpace string, notificationID int64) *ChangeEvent {
 	c := &ChangeEvent{
 		Changes: changes,
 	}
 	c.Namespace = nameSpace
+	c.NotificationID = notificationID
 	return c
 }
