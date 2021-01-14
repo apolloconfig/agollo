@@ -20,11 +20,12 @@ package storage
 import (
 	"container/list"
 	"fmt"
-	"github.com/zouyx/agollo/v4/env/config"
 	"reflect"
 	"strconv"
 	"sync"
 	"sync/atomic"
+
+	"github.com/zouyx/agollo/v4/env/config"
 
 	"github.com/zouyx/agollo/v4/agcache"
 	"github.com/zouyx/agollo/v4/component/log"
@@ -232,12 +233,14 @@ func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfigF
 	//get change list
 	changeList := c.UpdateApolloConfigCache(apolloConfig.Configurations, configCacheExpireTime, apolloConfig.NamespaceName)
 
+	notify := appConfig.GetNotificationsMap().GetNotify(apolloConfig.NamespaceName)
+
 	//push all newest changes
-	c.pushNewestChanges(apolloConfig.NamespaceName, apolloConfig.Configurations)
+	c.pushNewestChanges(apolloConfig.NamespaceName, apolloConfig.Configurations, notify)
 
 	if len(changeList) > 0 {
 		//create config change event base on change list
-		event := createConfigChangeEvent(changeList, apolloConfig.NamespaceName)
+		event := createConfigChangeEvent(changeList, apolloConfig.NamespaceName, notify)
 
 		//push change event to channel
 		c.pushChangeEvent(event)
@@ -375,11 +378,12 @@ func (c *Cache) pushChangeEvent(event *ChangeEvent) {
 	})
 }
 
-func (c *Cache) pushNewestChanges(namespace string, configuration map[string]interface{}) {
+func (c *Cache) pushNewestChanges(namespace string, configuration map[string]interface{}, notificationID int64) {
 	e := &FullChangeEvent{
 		Changes: configuration,
 	}
 	e.Namespace = namespace
+	e.NotificationID = notificationID
 	c.pushChange(func(listener ChangeListener) {
 		go listener.OnNewestChange(e)
 	})
