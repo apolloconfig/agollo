@@ -24,6 +24,49 @@ Agollo - Go Client for Apollo
  
 # Usage
 
+## 快速入门
+
+### 导入 agollo
+```
+go get -u github.com/zouyx/agollo/v4@latest
+```
+
+### 启动 agollo
+```
+package main
+
+import (
+	"fmt"
+	"github.com/zouyx/agollo/v4"
+	"github.com/zouyx/agollo/v4/env/config"
+)
+
+func main(){
+           c := &config.AppConfig{
+		AppID:          "testApplication_yang",
+		Cluster:        "dev",
+		IP:             "http://106.54.227.205:8080",
+		NamespaceName:  "dubbo",
+		IsBackupConfig: true,
+		Secret:         "6ce3ff7e96a24335a9634fe9abca6d51",
+	}
+	agollo.SetLogger(&DefaultLogger{})
+
+	client,err:=agollo.StartWithConfig(func() (*config.AppConfig, error) {
+		return c, nil
+	})
+    fmt.Println("初始化Apollo配置成功")
+    
+    //Use your apollo key to test
+    cache := client.GetConfigCache(c.NamespaceName)
+    value,_ := client.Get("key")
+    fmt.Println(value)
+}
+```
+
+
+## 更多用法
+
 ***使用Demo*** ：[agollo_demo](https://github.com/zouyx/agollo_demo)
 
 ***其他语言*** ： [agollo-agent](https://github.com/zouyx/agollo-agent.git) 做本地agent接入，如：PHP
