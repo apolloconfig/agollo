@@ -19,6 +19,12 @@ package remote
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
+	"time"
+
 	. "github.com/tevid/gohamcrest"
 	"github.com/zouyx/agollo/v4/cluster/roundrobin"
 	"github.com/zouyx/agollo/v4/env"
@@ -27,11 +33,6 @@ import (
 	"github.com/zouyx/agollo/v4/env/server"
 	"github.com/zouyx/agollo/v4/extension"
 	http2 "github.com/zouyx/agollo/v4/protocol/http"
-	"net/http"
-	"net/http/httptest"
-	"strings"
-	"testing"
-	"time"
 )
 
 var asyncApollo *asyncApolloConfig
@@ -72,6 +73,7 @@ const configAbc1ResponseStr = `{
 }`
 
 const responseStr = `[{"namespaceName":"application","notificationId":%d}]`
+const tworesponseStr = `[{"namespaceName":"application","notificationId":%d},{"namespaceName":"abc1","notificationId":%d}]`
 
 func onlyNormalConfigResponse(rw http.ResponseWriter, req *http.Request) {
 	rw.WriteHeader(http.StatusOK)
@@ -83,8 +85,17 @@ func onlyNormalTwoConfigResponse(rw http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(rw, configAbc1ResponseStr)
 }
 
-func onlyNormalResponse(rw http.ResponseWriter, req *http.Request) {
+func serverErrorTwoConfigResponse(rw http.ResponseWriter, req *http.Request) {
+	rw.WriteHeader(http.StatusInternalServerError)
+}
+
+func onlynormalresponse(rw http.ResponseWriter, req *http.Request) {
 	result := fmt.Sprintf(responseStr, 3)
+	fmt.Fprintf(rw, "%s", result)
+}
+
+func onlynormaltworesponse(rw http.ResponseWriter, req *http.Request) {
+	result := fmt.Sprintf(tworesponseStr, 3, 3)
 	fmt.Fprintf(rw, "%s", result)
 }
 
@@ -93,7 +104,23 @@ func initMockNotifyAndConfigServer() *httptest.Server {
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
 	handlerMap["abc1"] = onlyNormalTwoConfigResponse
-	return runMockConfigServer(handlerMap, onlyNormalResponse)
+	return runMockConfigServer(handlerMap, onlynormalresponse)
+}
+
+func initMockNotifyAndConfigServerWithTwo() *httptest.Server {
+	//clear
+	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
+	handlerMap["application"] = onlyNormalConfigResponse
+	handlerMap["abc1"] = onlyNormalTwoConfigResponse
+	return runMockConfigServer(handlerMap, onlynormaltworesponse)
+}
+
+func initMockNotifyAndConfigServerWithTwoErrResponse() *httptest.Server {
+	//clear
+	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
+	handlerMap["application"] = onlyNormalConfigResponse
+	handlerMap["abc1"] = serverErrorTwoConfigResponse
+	return runMockConfigServer(handlerMap, onlynormaltworesponse)
 }
 
 //run mock config server
@@ -146,7 +173,37 @@ func TestApolloConfig_Sync(t *testing.T) {
 	})
 	//err keep nil
 	Assert(t, apolloConfigs, NotNilVal())
+	Assert(t, len(apolloConfigs), Equal(1))
+	Assert(t, appConfig.GetNotificationsMap().GetNotify("application"), Equal(int64(3)))
+	Assert(t, appConfig.GetNotificationsMap().GetNotify("abc1"), Equal(int64(-1)))
+}
+
+func TestApolloConfig_SyncTwoOk(t *testing.T) {
+	server := initMockNotifyAndConfigServerWithTwo()
+	appConfig := initNotifications()
+	appConfig.IP = server.URL
+	apolloConfigs := asyncApollo.Sync(func() config.AppConfig {
+		return *appConfig
+	})
+	//err keep nil
+	Assert(t, apolloConfigs, NotNilVal())
 	Assert(t, len(apolloConfigs), Equal(2))
+	Assert(t, appConfig.GetNotificationsMap().GetNotify("application"), Equal(int64(3)))
+	Assert(t, appConfig.GetNotificationsMap().GetNotify("abc1"), Equal(int64(3)))
+}
+
+func TestApolloConfig_SyncABC1Error(t *testing.T) {
+	server := initMockNotifyAndConfigServerWithTwoErrResponse()
+	appConfig := initNotifications()
+	appConfig.IP = server.URL
+	apolloConfigs := asyncApollo.Sync(func() config.AppConfig {
+		return *appConfig
+	})
+	//err keep nil
+	Assert(t, apolloConfigs, NotNilVal())
+	Assert(t, len(apolloConfigs), Equal(1))
+	Assert(t, appConfig.GetNotificationsMap().GetNotify("application"), Equal(int64(3)))
+	Assert(t, appConfig.GetNotificationsMap().GetNotify("abc1"), Equal(int64(-1)))
 }
 
 func TestToApolloConfigError(t *testing.T) {

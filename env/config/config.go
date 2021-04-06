@@ -157,6 +157,13 @@ func (n *notificationsMap) UpdateAllNotifications(remoteConfigs []*Notification)
 	}
 }
 
+// UpdateNotify update namespace's notification ID
+func (n *notificationsMap) UpdateNotify(namespaceName string, notificationID int64) {
+	if namespaceName != "" {
+		n.setNotify(namespaceName, notificationID)
+	}
+}
+
 func (n *notificationsMap) setNotify(namespaceName string, notificationID int64) {
 	n.notifications.Store(namespaceName, notificationID)
 }
