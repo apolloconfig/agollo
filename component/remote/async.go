@@ -20,6 +20,10 @@ package remote
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
+	"path"
+	"time"
+
 	"github.com/zouyx/agollo/v4/component/log"
 	"github.com/zouyx/agollo/v4/constant"
 	"github.com/zouyx/agollo/v4/env"
@@ -27,9 +31,6 @@ import (
 	"github.com/zouyx/agollo/v4/extension"
 	"github.com/zouyx/agollo/v4/protocol/http"
 	"github.com/zouyx/agollo/v4/utils"
-	"net/url"
-	"path"
-	"time"
 )
 
 const (
@@ -78,16 +79,14 @@ func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*confi
 	if len(remoteConfigs) == 0 || len(apolloConfigs) > 0 {
 		return apolloConfigs
 	}
-
-	appConfig.GetNotificationsMap().UpdateAllNotifications(remoteConfigs)
-
-	notifications := appConfig.GetNotificationsMap().GetNotifications()
-	n := &notifications
-	n.Range(func(key, value interface{}) bool {
-		apolloConfig := a.SyncWithNamespace(key.(string), appConfigFunc)
-		apolloConfigs = append(apolloConfigs, apolloConfig)
-		return true
-	})
+	//只是拉去有变化的配置, 并更新拉取成功的namespace的notify ID
+	for _, notifyConfig := range remoteConfigs {
+		apolloConfig := a.SyncWithNamespace(notifyConfig.NamespaceName, appConfigFunc)
+		if apolloConfig != nil {
+			appConfig.GetNotificationsMap().UpdateNotify(notifyConfig.NamespaceName, notifyConfig.NotificationID)
+			apolloConfigs = append(apolloConfigs, apolloConfig)
+		}
+	}
 	return apolloConfigs
 }
 

@@ -99,3 +99,22 @@ func TestSplitNamespaces(t *testing.T) {
 	Assert(t, l, Equal(3))
 	w.Wait()
 }
+
+func TestNotificationsMap(t *testing.T) {
+	appConfig.Init()
+	ID := appConfig.GetNotificationsMap().GetNotify("application")
+	Assert(t, ID, Equal(int64(-1)))
+
+	appConfig.GetNotificationsMap().UpdateNotify("application", 3)
+	newID := appConfig.GetNotificationsMap().GetNotify("application")
+	Assert(t, newID, Equal(int64(3)))
+
+	appConfig.GetNotificationsMap().UpdateNotify("", 100)
+	noID := appConfig.GetNotificationsMap().GetNotify("")
+	Assert(t, noID, Equal(int64(0)))
+
+	appConfig.GetNotificationsMap().UpdateNotify("noExistNS", 3)
+	noExistID := appConfig.GetNotificationsMap().GetNotify("noExistNs")
+	Assert(t, noExistID, Equal(int64(0)))
+
+}
