@@ -53,6 +53,7 @@ func getTestAppConfig() *config.AppConfig {
     "cluster": "dev",
     "namespaceName": "application",
     "ip": "localhost:8888",
+	"syncServerTimeout":2,
     "releaseKey": "1"
 	}`
 	c, _ := env.Unmarshal([]byte(jsonStr))
