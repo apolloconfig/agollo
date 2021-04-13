@@ -20,6 +20,7 @@ package serverlist
 import (
 	"encoding/json"
 	"github.com/zouyx/agollo/v4/env/server"
+	"strconv"
 	"time"
 
 	"github.com/zouyx/agollo/v4/component"
@@ -74,10 +75,18 @@ func SyncServerIPList(appConfigFunc func() config.AppConfig) (map[string]*config
 	}
 
 	appConfig := appConfigFunc()
-	serverMap, err := http.Request(appConfig.GetServicesConfigURL(), &env.ConnectConfig{
+	c := &env.ConnectConfig{
 		AppID:  appConfig.AppID,
 		Secret: appConfig.Secret,
-	}, &http.CallBack{
+	}
+	if appConfigFunc().SyncServerTimeout > 0 {
+		duration, err := time.ParseDuration(strconv.Itoa(appConfigFunc().SyncServerTimeout) + "s")
+		if err != nil {
+			return nil, err
+		}
+		c.Timeout = duration
+	}
+	serverMap, err := http.Request(appConfig.GetServicesConfigURL(), c, &http.CallBack{
 		SuccessCallBack: SyncServerIPListSuccessCallBack,
 		AppConfigFunc:   appConfigFunc,
 	})
