@@ -47,6 +47,7 @@ type AppConfig struct {
 	IsBackupConfig          bool   `default:"true" json:"isBackupConfig"`
 	BackupConfigPath        string `json:"backupConfigPath"`
 	Secret                  string `json:"secret"`
+	SyncServerTimeout       int    `json:"syncServerTimeout"`
 	notificationsMap        *notificationsMap
 	currentConnApolloConfig *CurrentApolloConfig
 }

@@ -104,7 +104,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		}
 		req, err := http.NewRequest("GET", requestURL, nil)
 		if req == nil || err != nil {
-			log.Error("Generate connect Apollo request Fail,url:%s,Error:%s", requestURL, err)
+			log.Errorf("Generate connect Apollo request Fail,url:%s,Error:%s", requestURL, err)
 			// if error then sleep
 			return nil, errors.New("generate connect Apollo request fail")
 		}
@@ -124,7 +124,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		}
 
 		if res == nil || err != nil {
-			log.Error("Connect Apollo Server Fail,url:%s,Error:%s", requestURL, err)
+			log.Errorf("Connect Apollo Server Fail,url:%s,Error:%s", requestURL, err)
 			// if error then sleep
 			time.Sleep(onErrorRetryInterval)
 			continue
@@ -135,7 +135,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		case http.StatusOK:
 			responseBody, err := ioutil.ReadAll(res.Body)
 			if err != nil {
-				log.Error("Connect Apollo Server Fail,url:%s,Error:", requestURL, err)
+				log.Errorf("Connect Apollo Server Fail,url:%s,Error:", requestURL, err)
 				// if error then sleep
 				time.Sleep(onErrorRetryInterval)
 				continue
@@ -152,7 +152,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			}
 			return nil, nil
 		default:
-			log.Error("Connect Apollo Server Fail,url:%s,StatusCode:%s", requestURL, res.StatusCode)
+			log.Errorf("Connect Apollo Server Fail,url:%s,StatusCode:%s", requestURL, res.StatusCode)
 			// if error then sleep
 			time.Sleep(onErrorRetryInterval)
 			continue
