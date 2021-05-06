@@ -55,7 +55,7 @@ func (c *ConfigComponent) Start() {
 		case <-t2.C:
 			configs := instance.Sync(c.appConfigFunc)
 			for _, apolloConfig := range configs {
-				c.cache.UpdateApolloConfig(apolloConfig, c.appConfigFunc, true)
+				c.cache.UpdateApolloConfig(apolloConfig, c.appConfigFunc)
 			}
 			t2.Reset(longPollInterval)
 		}

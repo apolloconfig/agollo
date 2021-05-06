@@ -220,7 +220,7 @@ func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
 
 //UpdateApolloConfig 根据config server返回的内容更新内存
 //并判断是否需要写备份文件
-func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfigFunc func() config.AppConfig, isBackupConfig bool) {
+func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfigFunc func() config.AppConfig) {
 	if apolloConfig == nil {
 		log.Error("apolloConfig is null,can't update!")
 		return
@@ -246,7 +246,7 @@ func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfigF
 		c.pushChangeEvent(event)
 	}
 
-	if isBackupConfig {
+	if appConfig.GetIsBackupConfig() {
 		//write config file async
 		apolloConfig.AppID = appConfig.AppID
 		go extension.GetFileHandler().WriteConfigFile(apolloConfig, appConfig.GetBackupConfigPath())

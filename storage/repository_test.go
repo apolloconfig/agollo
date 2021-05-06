@@ -51,7 +51,7 @@ func creatTestApolloConfig(configurations map[string]interface{}, namespace stri
 	apolloConfig.Configurations = configurations
 	c.UpdateApolloConfig(apolloConfig, func() config.AppConfig {
 		return *appConfig
-	}, true)
+	})
 	return c
 
 }
@@ -75,7 +75,7 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 	apolloConfig.Configurations = configurations
 	c.UpdateApolloConfig(apolloConfig, func() config.AppConfig {
 		return *appConfig
-	}, true)
+	})
 
 	currentConnApolloConfig := appConfig.GetCurrentApolloConfig().Get()
 	config := currentConnApolloConfig[defaultNamespace]

@@ -108,7 +108,7 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (*Client, 
 	configs := syncApolloConfig.Sync(c.getAppConfig)
 	if len(configs) > 0 {
 		for _, apolloConfig := range configs {
-			c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig, true)
+			c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
 		}
 	}
 
