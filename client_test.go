@@ -208,7 +208,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 	apolloConfig, _ := createApolloConfigWithJSON([]byte(configResponseStr))
 	client.cache.UpdateApolloConfig(apolloConfig.(*config.ApolloConfig), func() config.AppConfig {
 		return *newAppConfig
-	}, true)
+	})
 
 	config := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]
 
