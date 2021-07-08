@@ -18,13 +18,15 @@ jobs:
         with:
           go-version: 1.12
 
-      - name: Before
-        run: go get github.com/mattn/goveralls
-
-      - name: Test
+      - name: Build
         run: |
-          echo "Test apps ..."
-          chmod u+x coverage.sh
-          "./coverage.sh --coveralls"
-          echo "Build apps ..."
+          go test -covermode=count ./...
+
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@1.1.3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build
+        run: |
           go build -o "$Project"
