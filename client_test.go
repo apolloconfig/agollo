@@ -20,18 +20,18 @@ package agollo
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/v4/agcache/memory"
-	"github.com/zouyx/agollo/v4/env/config"
-	"github.com/zouyx/agollo/v4/env/server"
+	"github.com/apolloconfig/agollo/v4/agcache/memory"
+	"github.com/apolloconfig/agollo/v4/env/config"
+	"github.com/apolloconfig/agollo/v4/env/server"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
 
+	_ "github.com/apolloconfig/agollo/v4/env/file/json"
+	"github.com/apolloconfig/agollo/v4/extension"
+	"github.com/apolloconfig/agollo/v4/storage"
 	. "github.com/tevid/gohamcrest"
-	_ "github.com/zouyx/agollo/v4/env/file/json"
-	"github.com/zouyx/agollo/v4/extension"
-	"github.com/zouyx/agollo/v4/storage"
 )
 
 const testDefaultNamespace = "application"

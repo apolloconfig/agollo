@@ -20,7 +20,7 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/v4/utils"
+	"github.com/apolloconfig/agollo/v4/utils"
 	"net/url"
 	"strings"
 	"sync"
