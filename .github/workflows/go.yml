@@ -20,7 +20,7 @@ jobs:
 
       - name: Build
         run: |
-          go test -covermode=count ./...
+          go test -covermode=count ./... -coverprofile=./coverage/lcov.info
 
       - name: Coveralls GitHub Action
         uses: coverallsapp/github-action@1.1.3
