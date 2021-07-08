@@ -18,11 +18,12 @@
 package extension
 
 import (
-	"github.com/zouyx/agollo/v4/env/config"
 	"testing"
 
+	"github.com/apolloconfig/agollo/v4/env/config"
+
+	"github.com/apolloconfig/agollo/v4/env/file"
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v4/env/file"
 )
 
 type TestFileHandler struct {

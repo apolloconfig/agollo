@@ -20,20 +20,21 @@ package notify
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/zouyx/agollo/v4/agcache/memory"
-	"github.com/zouyx/agollo/v4/cluster/roundrobin"
-	"github.com/zouyx/agollo/v4/component/remote"
-	"github.com/zouyx/agollo/v4/env/config"
-	jsonFile "github.com/zouyx/agollo/v4/env/file/json"
-	"github.com/zouyx/agollo/v4/extension"
 	"sync"
 	"testing"
 	"time"
 
+	"github.com/apolloconfig/agollo/v4/agcache/memory"
+	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
+	"github.com/apolloconfig/agollo/v4/component/remote"
+	"github.com/apolloconfig/agollo/v4/env/config"
+	jsonFile "github.com/apolloconfig/agollo/v4/env/file/json"
+	"github.com/apolloconfig/agollo/v4/extension"
+
+	_ "github.com/apolloconfig/agollo/v4/agcache/memory"
+	_ "github.com/apolloconfig/agollo/v4/env/file/json"
+	"github.com/apolloconfig/agollo/v4/storage"
 	. "github.com/tevid/gohamcrest"
-	_ "github.com/zouyx/agollo/v4/agcache/memory"
-	_ "github.com/zouyx/agollo/v4/env/file/json"
-	"github.com/zouyx/agollo/v4/storage"
 )
 
 func init() {

@@ -22,9 +22,9 @@ import (
 	"os"
 	"testing"
 
+	"github.com/apolloconfig/agollo/v4/env/config"
+	"github.com/apolloconfig/agollo/v4/utils"
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v4/env/config"
-	"github.com/zouyx/agollo/v4/utils"
 )
 
 var (
