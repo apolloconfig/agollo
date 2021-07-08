@@ -18,10 +18,11 @@
 package server
 
 import (
-	"github.com/apolloconfig/agollo/v4/env/config"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/apolloconfig/agollo/v4/env/config"
 )
 
 // ip -> server

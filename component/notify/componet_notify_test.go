@@ -19,6 +19,8 @@ package notify
 
 import (
 	"encoding/json"
+	"testing"
+
 	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
 	_ "github.com/apolloconfig/agollo/v4/cluster/roundrobin"
 	"github.com/apolloconfig/agollo/v4/env"
@@ -28,7 +30,6 @@ import (
 	jsonFile "github.com/apolloconfig/agollo/v4/env/file/json"
 	"github.com/apolloconfig/agollo/v4/extension"
 	. "github.com/tevid/gohamcrest"
-	"testing"
 )
 
 func init() {

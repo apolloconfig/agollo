@@ -20,8 +20,9 @@ package storage
 import (
 	"errors"
 	"fmt"
-	"github.com/apolloconfig/agollo/v4/component/log"
 	"regexp"
+
+	"github.com/apolloconfig/agollo/v4/component/log"
 )
 
 const (

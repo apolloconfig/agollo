@@ -18,13 +18,14 @@
 package storage
 
 import (
+	"strings"
+	"testing"
+	"time"
+
 	"github.com/apolloconfig/agollo/v4/agcache/memory"
 	"github.com/apolloconfig/agollo/v4/env/config"
 	jsonFile "github.com/apolloconfig/agollo/v4/env/file/json"
 	"github.com/apolloconfig/agollo/v4/extension"
-	"strings"
-	"testing"
-	"time"
 
 	_ "github.com/apolloconfig/agollo/v4/agcache/memory"
 	"github.com/apolloconfig/agollo/v4/env"

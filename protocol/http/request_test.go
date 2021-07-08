@@ -19,13 +19,14 @@ package http
 
 import (
 	"fmt"
+	"net/url"
+	"testing"
+	"time"
+
 	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
 	"github.com/apolloconfig/agollo/v4/component/log"
 	"github.com/apolloconfig/agollo/v4/env/server"
 	"github.com/apolloconfig/agollo/v4/extension"
-	"net/url"
-	"testing"
-	"time"
 
 	"github.com/apolloconfig/agollo/v4/env"
 	"github.com/apolloconfig/agollo/v4/env/config"

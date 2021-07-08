@@ -18,6 +18,12 @@
 package remote
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+	"time"
+
 	"github.com/apolloconfig/agollo/v4/constant"
 	"github.com/apolloconfig/agollo/v4/env"
 	"github.com/apolloconfig/agollo/v4/env/config"
@@ -28,11 +34,6 @@ import (
 	"github.com/apolloconfig/agollo/v4/utils/parse/yaml"
 	"github.com/apolloconfig/agollo/v4/utils/parse/yml"
 	. "github.com/tevid/gohamcrest"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"testing"
-	"time"
 )
 
 var (

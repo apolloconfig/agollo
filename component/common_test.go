@@ -18,10 +18,11 @@
 package component
 
 import (
+	"testing"
+
 	"github.com/apolloconfig/agollo/v4/component/log"
 	"github.com/apolloconfig/agollo/v4/env/server"
 	"github.com/apolloconfig/agollo/v4/protocol/http"
-	"testing"
 
 	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
 	"github.com/apolloconfig/agollo/v4/env"

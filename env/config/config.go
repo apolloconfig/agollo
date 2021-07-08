@@ -20,10 +20,11 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/apolloconfig/agollo/v4/utils"
 	"net/url"
 	"strings"
 	"sync"
+
+	"github.com/apolloconfig/agollo/v4/utils"
 )
 
 var (

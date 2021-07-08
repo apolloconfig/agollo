@@ -18,10 +18,11 @@
 package server
 
 import (
-	"github.com/apolloconfig/agollo/v4/env/config"
-	. "github.com/tevid/gohamcrest"
 	"testing"
 	"time"
+
+	"github.com/apolloconfig/agollo/v4/env/config"
+	. "github.com/tevid/gohamcrest"
 )
 
 var name = "abc"

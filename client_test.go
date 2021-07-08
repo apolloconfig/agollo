@@ -20,13 +20,14 @@ package agollo
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/apolloconfig/agollo/v4/agcache/memory"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/env/server"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 	"time"
+
+	"github.com/apolloconfig/agollo/v4/agcache/memory"
+	"github.com/apolloconfig/agollo/v4/env/config"
+	"github.com/apolloconfig/agollo/v4/env/server"
 
 	_ "github.com/apolloconfig/agollo/v4/env/file/json"
 	"github.com/apolloconfig/agollo/v4/extension"

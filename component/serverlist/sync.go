@@ -19,9 +19,10 @@ package serverlist
 
 import (
 	"encoding/json"
-	"github.com/apolloconfig/agollo/v4/env/server"
 	"strconv"
 	"time"
+
+	"github.com/apolloconfig/agollo/v4/env/server"
 
 	"github.com/apolloconfig/agollo/v4/component"
 	"github.com/apolloconfig/agollo/v4/component/log"

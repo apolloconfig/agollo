@@ -19,6 +19,8 @@ package agollo
 
 import (
 	"container/list"
+	"strconv"
+
 	"github.com/apolloconfig/agollo/v4/agcache"
 	"github.com/apolloconfig/agollo/v4/agcache/memory"
 	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
@@ -39,7 +41,6 @@ import (
 	"github.com/apolloconfig/agollo/v4/utils/parse/properties"
 	"github.com/apolloconfig/agollo/v4/utils/parse/yaml"
 	"github.com/apolloconfig/agollo/v4/utils/parse/yml"
-	"strconv"
 )
 
 var (
