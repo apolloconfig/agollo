@@ -2,7 +2,7 @@ Agollo - Go Client for Apollo
 ================
 
 [![golang](https://img.shields.io/badge/Language-Go-green.svg?style=flat)](https://golang.org)
-[![Build Status](https://travis-ci.com/apolloconfig/agollo.svg?branch=master)](https://travis-ci.com/apolloconfig/agollo)
+[![Build Status](https://github.com/apolloconfig/agollo/actions/workflows/go.yml/badge.svg)](https://github.com/apolloconfig/agollo/actions/workflows/go.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/apolloconfig/agollo)](https://goreportcard.com/report/github.com/apolloconfig/agollo)
 [![codebeat badge](https://codebeat.co/badges/bc2009d6-84f1-4f11-803e-fc571a12a1c0)](https://codebeat.co/projects/github-com-apolloconfig-agollo-master)
 [![Coverage Status](https://coveralls.io/repos/github/apolloconfig/agollo/badge.svg?branch=master)](https://coveralls.io/github/apolloconfig/agollo?branch=master)
