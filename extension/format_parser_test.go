@@ -18,8 +18,9 @@
 package extension
 
 import (
-	"github.com/zouyx/agollo/v4/constant"
 	"testing"
+
+	"github.com/apolloconfig/agollo/v4/constant"
 
 	. "github.com/tevid/gohamcrest"
 )

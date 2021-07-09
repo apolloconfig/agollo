@@ -5,9 +5,9 @@ pull_request_rules:
     actions:
       merge:
         method: merge
-  - name: automatic merge on Travis CI success if some files are changed
+  - name: automatic merge on Github Action success if some files are changed
     conditions:
-      - check-success=Travis CI - Pull Request
+      - check-success=build
       - files~=^./
     actions:
       merge:

@@ -1,4 +1,2 @@
-# These are supported funding model platforms
-
-github: [zouyx]
-custom: ["https://zouyx.github.io/images/code.jpg"]
+github: [apolloconfig] # Replace with up to 4 GitHub Sponsors-enabled usernames e.g., [user1, user2]
+open_collective: apollo # Replace with a single Open Collective username

@@ -19,10 +19,11 @@ package config
 
 import (
 	"encoding/json"
-	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v4/utils"
 	"sync"
 	"testing"
+
+	"github.com/apolloconfig/agollo/v4/utils"
+	. "github.com/tevid/gohamcrest"
 )
 
 var (

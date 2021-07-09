@@ -19,9 +19,10 @@ package memory
 
 import (
 	"errors"
-	"github.com/zouyx/agollo/v4/agcache"
 	"sync"
 	"sync/atomic"
+
+	"github.com/apolloconfig/agollo/v4/agcache"
 )
 
 //DefaultCache 默认缓存

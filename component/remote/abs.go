@@ -18,10 +18,13 @@
 package remote
 
 import (
-	"github.com/zouyx/agollo/v4/component/log"
-	"github.com/zouyx/agollo/v4/env"
-	"github.com/zouyx/agollo/v4/env/config"
-	"github.com/zouyx/agollo/v4/protocol/http"
+	"strconv"
+	"time"
+
+	"github.com/apolloconfig/agollo/v4/component/log"
+	"github.com/apolloconfig/agollo/v4/env"
+	"github.com/apolloconfig/agollo/v4/env/config"
+	"github.com/apolloconfig/agollo/v4/protocol/http"
 )
 
 // AbsApolloConfig 抽象 apollo 配置
@@ -36,12 +39,23 @@ func (a *AbsApolloConfig) SyncWithNamespace(namespace string, appConfigFunc func
 	appConfig := appConfigFunc()
 	urlSuffix := a.remoteApollo.GetSyncURI(appConfig, namespace)
 
+	c := &env.ConnectConfig{
+		URI:     urlSuffix,
+		AppID:   appConfig.AppID,
+		Secret:  appConfig.Secret,
+		Timeout: notifyConnectTimeout,
+	}
+	if appConfig.SyncServerTimeout > 0 {
+		duration, err := time.ParseDuration(strconv.Itoa(appConfig.SyncServerTimeout) + "s")
+		if err != nil {
+			log.Errorf("parse sync server timeout %s fail, error:%v", err)
+			return nil
+		}
+		c.Timeout = duration
+	}
+
 	callback := a.remoteApollo.CallBack(namespace)
-	apolloConfig, err := http.RequestRecovery(appConfig, &env.ConnectConfig{
-		URI:    urlSuffix,
-		AppID:  appConfig.AppID,
-		Secret: appConfig.Secret,
-	}, &callback)
+	apolloConfig, err := http.RequestRecovery(appConfig, c, &callback)
 	if err != nil {
 		log.Errorf("request %s fail, error:%v", urlSuffix, err)
 		return nil

@@ -18,9 +18,10 @@
 package storage
 
 import (
-	. "github.com/tevid/gohamcrest"
 	"sync"
 	"testing"
+
+	. "github.com/tevid/gohamcrest"
 )
 
 type CustomListener struct {

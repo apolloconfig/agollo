@@ -24,13 +24,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/apolloconfig/agollo/v4/agcache/memory"
+	"github.com/apolloconfig/agollo/v4/component/log"
+	"github.com/apolloconfig/agollo/v4/env"
+	"github.com/apolloconfig/agollo/v4/env/config"
+	jsonFile "github.com/apolloconfig/agollo/v4/env/config/json"
+	"github.com/apolloconfig/agollo/v4/extension"
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v4/agcache/memory"
-	"github.com/zouyx/agollo/v4/component/log"
-	"github.com/zouyx/agollo/v4/env"
-	"github.com/zouyx/agollo/v4/env/config"
-	jsonFile "github.com/zouyx/agollo/v4/env/config/json"
-	"github.com/zouyx/agollo/v4/extension"
 )
 
 var (
@@ -154,7 +154,7 @@ func TestStructInit(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	c := client.appConfig
+	c := client.(*internalClient).appConfig
 	Assert(t, c, NotNilVal())
 	Assert(t, "test1", Equal(c.AppID))
 	Assert(t, "dev1", Equal(c.Cluster))

@@ -24,10 +24,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/apolloconfig/agollo/v4/env/config"
+	jsonConfig "github.com/apolloconfig/agollo/v4/env/config/json"
+	"github.com/apolloconfig/agollo/v4/utils"
 	. "github.com/tevid/gohamcrest"
-	"github.com/zouyx/agollo/v4/env/config"
-	jsonConfig "github.com/zouyx/agollo/v4/env/config/json"
-	"github.com/zouyx/agollo/v4/utils"
 )
 
 const servicesConfigResponseStr = `[{

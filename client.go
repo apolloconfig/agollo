@@ -19,27 +19,28 @@ package agollo
 
 import (
 	"container/list"
-	"github.com/zouyx/agollo/v4/agcache"
-	"github.com/zouyx/agollo/v4/agcache/memory"
-	"github.com/zouyx/agollo/v4/cluster/roundrobin"
-	"github.com/zouyx/agollo/v4/component"
-	"github.com/zouyx/agollo/v4/component/log"
-	"github.com/zouyx/agollo/v4/component/notify"
-	"github.com/zouyx/agollo/v4/component/remote"
-	"github.com/zouyx/agollo/v4/component/serverlist"
-	"github.com/zouyx/agollo/v4/constant"
-	"github.com/zouyx/agollo/v4/env"
-	"github.com/zouyx/agollo/v4/env/config"
-	jsonFile "github.com/zouyx/agollo/v4/env/file/json"
-	"github.com/zouyx/agollo/v4/extension"
-	"github.com/zouyx/agollo/v4/protocol/auth/sign"
-	"github.com/zouyx/agollo/v4/storage"
-	"github.com/zouyx/agollo/v4/utils"
-	"github.com/zouyx/agollo/v4/utils/parse/normal"
-	"github.com/zouyx/agollo/v4/utils/parse/properties"
-	"github.com/zouyx/agollo/v4/utils/parse/yaml"
-	"github.com/zouyx/agollo/v4/utils/parse/yml"
 	"strconv"
+
+	"github.com/apolloconfig/agollo/v4/agcache"
+	"github.com/apolloconfig/agollo/v4/agcache/memory"
+	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
+	"github.com/apolloconfig/agollo/v4/component"
+	"github.com/apolloconfig/agollo/v4/component/log"
+	"github.com/apolloconfig/agollo/v4/component/notify"
+	"github.com/apolloconfig/agollo/v4/component/remote"
+	"github.com/apolloconfig/agollo/v4/component/serverlist"
+	"github.com/apolloconfig/agollo/v4/constant"
+	"github.com/apolloconfig/agollo/v4/env"
+	"github.com/apolloconfig/agollo/v4/env/config"
+	jsonFile "github.com/apolloconfig/agollo/v4/env/file/json"
+	"github.com/apolloconfig/agollo/v4/extension"
+	"github.com/apolloconfig/agollo/v4/protocol/auth/sign"
+	"github.com/apolloconfig/agollo/v4/storage"
+	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/apolloconfig/agollo/v4/utils/parse/normal"
+	"github.com/apolloconfig/agollo/v4/utils/parse/properties"
+	"github.com/apolloconfig/agollo/v4/utils/parse/yaml"
+	"github.com/apolloconfig/agollo/v4/utils/parse/yml"
 )
 
 var (
@@ -62,32 +63,52 @@ func init() {
 
 var syncApolloConfig = remote.CreateSyncApolloConfig()
 
-// Client apollo 客户端实例
-type Client struct {
+//Client apollo 客户端接口
+type Client interface {
+	GetConfig(namespace string) *storage.Config
+	GetConfigAndInit(namespace string) *storage.Config
+	GetConfigCache(namespace string) agcache.CacheInterface
+	GetDefaultConfigCache() agcache.CacheInterface
+	GetApolloConfigCache() agcache.CacheInterface
+	GetValue(key string) string
+	GetStringValue(key string, defaultValue string) string
+	GetIntValue(key string, defaultValue int) int
+	GetFloatValue(key string, defaultValue float64) float64
+	GetBoolValue(key string, defaultValue bool) bool
+	GetStringSliceValue(key string, defaultValue []string) []string
+	GetIntSliceValue(key string, defaultValue []int) []int
+	AddChangeListener(listener storage.ChangeListener)
+	RemoveChangeListener(listener storage.ChangeListener)
+	GetChangeListeners() *list.List
+	UseEventDispatch()
+}
+
+// internalClient apollo 客户端实例
+type internalClient struct {
 	initAppConfigFunc func() (*config.AppConfig, error)
 	appConfig         *config.AppConfig
 	cache             *storage.Cache
 }
 
-func (c *Client) getAppConfig() config.AppConfig {
+func (c *internalClient) getAppConfig() config.AppConfig {
 	return *c.appConfig
 }
 
-func create() *Client {
+func create() *internalClient {
 
 	appConfig := env.InitFileConfig()
-	return &Client{
+	return &internalClient{
 		appConfig: appConfig,
 	}
 }
 
 // Start 根据默认文件启动
-func Start() (*Client, error) {
+func Start() (Client, error) {
 	return StartWithConfig(nil)
 }
 
 // StartWithConfig 根据配置启动
-func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (*Client, error) {
+func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, error) {
 	// 有了配置之后才能进行初始化
 	appConfig, err := env.InitConfig(loadAppConfig)
 	if err != nil {
@@ -126,12 +147,12 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (*Client, 
 }
 
 //GetConfig 根据namespace获取apollo配置
-func (c *Client) GetConfig(namespace string) *storage.Config {
+func (c *internalClient) GetConfig(namespace string) *storage.Config {
 	return c.GetConfigAndInit(namespace)
 }
 
 //GetConfigAndInit 根据namespace获取apollo配置
-func (c *Client) GetConfigAndInit(namespace string) *storage.Config {
+func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 	if namespace == "" {
 		return nil
 	}
@@ -152,7 +173,7 @@ func (c *Client) GetConfigAndInit(namespace string) *storage.Config {
 }
 
 //GetConfigCache 根据namespace获取apollo配置的缓存
-func (c *Client) GetConfigCache(namespace string) agcache.CacheInterface {
+func (c *internalClient) GetConfigCache(namespace string) agcache.CacheInterface {
 	config := c.GetConfigAndInit(namespace)
 	if config == nil {
 		return nil
@@ -162,7 +183,7 @@ func (c *Client) GetConfigCache(namespace string) agcache.CacheInterface {
 }
 
 //GetDefaultConfigCache 获取默认缓存
-func (c *Client) GetDefaultConfigCache() agcache.CacheInterface {
+func (c *internalClient) GetDefaultConfigCache() agcache.CacheInterface {
 	config := c.GetConfigAndInit(storage.GetDefaultNamespace())
 	if config != nil {
 		return config.GetCache()
@@ -171,12 +192,12 @@ func (c *Client) GetDefaultConfigCache() agcache.CacheInterface {
 }
 
 //GetApolloConfigCache 获取默认namespace的apollo配置
-func (c *Client) GetApolloConfigCache() agcache.CacheInterface {
+func (c *internalClient) GetApolloConfigCache() agcache.CacheInterface {
 	return c.GetDefaultConfigCache()
 }
 
 //GetValue 获取配置
-func (c *Client) GetValue(key string) string {
+func (c *internalClient) GetValue(key string) string {
 	value := c.getConfigValue(key)
 	if value == nil {
 		return utils.Empty
@@ -186,7 +207,7 @@ func (c *Client) GetValue(key string) string {
 }
 
 //GetStringValue 获取string配置值
-func (c *Client) GetStringValue(key string, defaultValue string) string {
+func (c *internalClient) GetStringValue(key string, defaultValue string) string {
 	value := c.GetValue(key)
 	if value == utils.Empty {
 		return defaultValue
@@ -196,7 +217,7 @@ func (c *Client) GetStringValue(key string, defaultValue string) string {
 }
 
 //GetIntValue 获取int配置值
-func (c *Client) GetIntValue(key string, defaultValue int) int {
+func (c *internalClient) GetIntValue(key string, defaultValue int) int {
 	value := c.GetValue(key)
 
 	i, err := strconv.Atoi(value)
@@ -209,7 +230,7 @@ func (c *Client) GetIntValue(key string, defaultValue int) int {
 }
 
 //GetFloatValue 获取float配置值
-func (c *Client) GetFloatValue(key string, defaultValue float64) float64 {
+func (c *internalClient) GetFloatValue(key string, defaultValue float64) float64 {
 	value := c.GetValue(key)
 
 	i, err := strconv.ParseFloat(value, 64)
@@ -222,7 +243,7 @@ func (c *Client) GetFloatValue(key string, defaultValue float64) float64 {
 }
 
 //GetBoolValue 获取bool 配置值
-func (c *Client) GetBoolValue(key string, defaultValue bool) bool {
+func (c *internalClient) GetBoolValue(key string, defaultValue bool) bool {
 	value := c.GetValue(key)
 
 	b, err := strconv.ParseBool(value)
@@ -235,7 +256,7 @@ func (c *Client) GetBoolValue(key string, defaultValue bool) bool {
 }
 
 //GetStringSliceValue 获取[]string 配置值
-func (c *Client) GetStringSliceValue(key string, defaultValue []string) []string {
+func (c *internalClient) GetStringSliceValue(key string, defaultValue []string) []string {
 	value := c.getConfigValue(key)
 
 	if value == nil {
@@ -249,7 +270,7 @@ func (c *Client) GetStringSliceValue(key string, defaultValue []string) []string
 }
 
 //GetIntSliceValue 获取[]int 配置值
-func (c *Client) GetIntSliceValue(key string, defaultValue []int) []int {
+func (c *internalClient) GetIntSliceValue(key string, defaultValue []int) []int {
 	value := c.getConfigValue(key)
 
 	if value == nil {
@@ -262,7 +283,7 @@ func (c *Client) GetIntSliceValue(key string, defaultValue []int) []int {
 	return s
 }
 
-func (c *Client) getConfigValue(key string) interface{} {
+func (c *internalClient) getConfigValue(key string) interface{} {
 	cache := c.GetDefaultConfigCache()
 	if cache == nil {
 		return utils.Empty
@@ -278,21 +299,21 @@ func (c *Client) getConfigValue(key string) interface{} {
 }
 
 // AddChangeListener 增加变更监控
-func (c *Client) AddChangeListener(listener storage.ChangeListener) {
+func (c *internalClient) AddChangeListener(listener storage.ChangeListener) {
 	c.cache.AddChangeListener(listener)
 }
 
 // RemoveChangeListener 增加变更监控
-func (c *Client) RemoveChangeListener(listener storage.ChangeListener) {
+func (c *internalClient) RemoveChangeListener(listener storage.ChangeListener) {
 	c.cache.RemoveChangeListener(listener)
 }
 
 // GetChangeListeners 获取配置修改监听器列表
-func (c *Client) GetChangeListeners() *list.List {
+func (c *internalClient) GetChangeListeners() *list.List {
 	return c.cache.GetChangeListeners()
 }
 
 // UseEventDispatch  添加为某些key分发event功能
-func (c *Client) UseEventDispatch() {
+func (c *internalClient) UseEventDispatch() {
 	c.AddChangeListener(storage.UseEventDispatch())
 }

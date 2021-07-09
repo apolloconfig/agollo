@@ -19,15 +19,16 @@ package serverlist
 
 import (
 	"encoding/json"
-	"github.com/zouyx/agollo/v4/env/server"
 	"strconv"
 	"time"
 
-	"github.com/zouyx/agollo/v4/component"
-	"github.com/zouyx/agollo/v4/component/log"
-	"github.com/zouyx/agollo/v4/env"
-	"github.com/zouyx/agollo/v4/env/config"
-	"github.com/zouyx/agollo/v4/protocol/http"
+	"github.com/apolloconfig/agollo/v4/env/server"
+
+	"github.com/apolloconfig/agollo/v4/component"
+	"github.com/apolloconfig/agollo/v4/component/log"
+	"github.com/apolloconfig/agollo/v4/env"
+	"github.com/apolloconfig/agollo/v4/env/config"
+	"github.com/apolloconfig/agollo/v4/protocol/http"
 )
 
 const (
