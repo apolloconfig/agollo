@@ -26,6 +26,7 @@ import (
 	"net/http"
 	url2 "net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/apolloconfig/agollo/v4/env/server"
@@ -52,7 +53,33 @@ var (
 	defaultTimeoutBySecond = 1 * time.Second
 	//defaultKeepAliveSecond defines the connection time
 	defaultKeepAliveSecond = 60 * time.Second
+	// once for single http.Transport
+	once sync.Once
+	// defaultTransport http.Transport
+	defaultTransport *http.Transport
 )
+
+func getDefaultTransport(insecureSkipVerify bool) *http.Transport {
+	if defaultTransport == nil {
+		once.Do(func() {
+			defaultTransport = &http.Transport{
+				MaxIdleConns:        defaultMaxConnsPerHost,
+				MaxIdleConnsPerHost: defaultMaxConnsPerHost,
+				DialContext: (&net.Dialer{
+					KeepAlive: defaultKeepAliveSecond,
+					Timeout:   defaultTimeoutBySecond,
+				}).DialContext,
+			}
+			if insecureSkipVerify {
+				defaultTransport.TLSClientConfig = &tls.Config{
+					InsecureSkipVerify: insecureSkipVerify,
+				}
+			}
+		})
+	}
+
+	return defaultTransport
+}
 
 //CallBack 请求回调函数
 type CallBack struct {
@@ -71,26 +98,17 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 	} else {
 		client.Timeout = connectTimeout
 	}
-	tp := &http.Transport{
-		MaxIdleConns:        defaultMaxConnsPerHost,
-		MaxIdleConnsPerHost: defaultMaxConnsPerHost,
-		DialContext: (&net.Dialer{
-			KeepAlive: defaultKeepAliveSecond,
-			Timeout:   defaultTimeoutBySecond,
-		}).DialContext,
-	}
 	var err error
 	url, err := url2.Parse(requestURL)
 	if err != nil {
 		log.Error("request Apollo Server url:%s, is invalid %s", requestURL, err)
 		return nil, err
 	}
+	var insecureSkipVerify bool
 	if strings.HasPrefix(url.Scheme, "https") {
-		tp.TLSClientConfig = &tls.Config{
-			InsecureSkipVerify: true,
-		}
+		insecureSkipVerify = true
 	}
-	client.Transport = tp
+	client.Transport = getDefaultTransport(insecureSkipVerify)
 	retry := 0
 	var retries = maxRetries
 	if connectionConfig != nil && !connectionConfig.IsRetry {
