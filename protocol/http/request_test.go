@@ -60,9 +60,9 @@ func getTestAppConfig() *config.AppConfig {
 	return appConfig
 }
 
-func TestRequestRecovery(t *testing.T) {
+func TestHttpsRequestRecovery(t *testing.T) {
 	time.Sleep(1 * time.Second)
-	server := runNormalBackupConfigResponse()
+	server := runNormalBackupConfigResponseWithHTTPS()
 	appConfig := getTestAppConfig()
 	appConfig.IP = server.URL
 
@@ -82,9 +82,9 @@ func TestRequestRecovery(t *testing.T) {
 	Assert(t, o, NilVal())
 }
 
-func TestHttpsRequestRecovery(t *testing.T) {
+func TestRequestRecovery(t *testing.T) {
 	time.Sleep(1 * time.Second)
-	server := runNormalBackupConfigResponseWithHTTPS()
+	server := runNormalBackupConfigResponse()
 	appConfig := getTestAppConfig()
 	appConfig.IP = server.URL
 
