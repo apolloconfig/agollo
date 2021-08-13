@@ -56,14 +56,14 @@ func main() {
 
 	agollo.SetLogger(&DefaultLogger{})
 
-	client, err := agollo.StartWithConfig(func() (*config.AppConfig, error) {
+	client, _ := agollo.StartWithConfig(func() (*config.AppConfig, error) {
 		return c, nil
 	})
 	fmt.Println("初始化Apollo配置成功")
 
 	//Use your apollo key to test
 	cache := client.GetConfigCache(c.NamespaceName)
-	value, _ := client.Get("key")
+	value, _ := cache.Get("key")
 	fmt.Println(value)
 }
 ```
