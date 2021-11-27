@@ -42,7 +42,7 @@ func init() {
 	extension.SetCacheFactory(&memory.DefaultCacheFactory{})
 }
 
-func createMockApolloConfig(expireTime int) *Client {
+func createMockApolloConfig(expireTime int) *client {
 	client := create()
 	client.cache = storage.CreateNamespaceConfig(client.appConfig.NamespaceName)
 	configs := make(map[string]interface{}, 0)
@@ -242,7 +242,7 @@ func createApolloConfigWithJSON(b []byte) (o interface{}, err error) {
 	return apolloConfig, nil
 }
 
-func checkBackupFile(client *Client, t *testing.T) {
+func checkBackupFile(client *client, t *testing.T) {
 	newConfig, e := extension.GetFileHandler().LoadConfigFile(client.appConfig.GetBackupConfigPath(), client.appConfig.AppID, testDefaultNamespace)
 	Assert(t, newConfig, NotNilVal())
 	Assert(t, e, NilVal())
