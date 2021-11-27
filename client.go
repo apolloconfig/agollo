@@ -63,6 +63,7 @@ func init() {
 
 var syncApolloConfig = remote.CreateSyncApolloConfig()
 
+//Client apollo 客户端接口
 type Client interface {
 	GetConfig(namespace string) *storage.Config
 	GetConfigAndInit(namespace string) *storage.Config
@@ -82,32 +83,32 @@ type Client interface {
 	UseEventDispatch()
 }
 
-// client apollo 客户端实例
-type client struct {
+// clientImpl apollo 客户端实例
+type clientImpl struct {
 	initAppConfigFunc func() (*config.AppConfig, error)
 	appConfig         *config.AppConfig
 	cache             *storage.Cache
 }
 
-func (c *client) getAppConfig() config.AppConfig {
+func (c *clientImpl) getAppConfig() config.AppConfig {
 	return *c.appConfig
 }
 
-func create() *client {
+func create() *clientImpl {
 
 	appConfig := env.InitFileConfig()
-	return &client{
+	return &clientImpl{
 		appConfig: appConfig,
 	}
 }
 
 // Start 根据默认文件启动
-func Start() (*client, error) {
+func Start() (Client, error) {
 	return StartWithConfig(nil)
 }
 
 // StartWithConfig 根据配置启动
-func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (*client, error) {
+func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, error) {
 	// 有了配置之后才能进行初始化
 	appConfig, err := env.InitConfig(loadAppConfig)
 	if err != nil {
@@ -146,12 +147,12 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (*client, 
 }
 
 //GetConfig 根据namespace获取apollo配置
-func (c *client) GetConfig(namespace string) *storage.Config {
+func (c *clientImpl) GetConfig(namespace string) *storage.Config {
 	return c.GetConfigAndInit(namespace)
 }
 
 //GetConfigAndInit 根据namespace获取apollo配置
-func (c *client) GetConfigAndInit(namespace string) *storage.Config {
+func (c *clientImpl) GetConfigAndInit(namespace string) *storage.Config {
 	if namespace == "" {
 		return nil
 	}
@@ -172,7 +173,7 @@ func (c *client) GetConfigAndInit(namespace string) *storage.Config {
 }
 
 //GetConfigCache 根据namespace获取apollo配置的缓存
-func (c *client) GetConfigCache(namespace string) agcache.CacheInterface {
+func (c *clientImpl) GetConfigCache(namespace string) agcache.CacheInterface {
 	config := c.GetConfigAndInit(namespace)
 	if config == nil {
 		return nil
@@ -182,7 +183,7 @@ func (c *client) GetConfigCache(namespace string) agcache.CacheInterface {
 }
 
 //GetDefaultConfigCache 获取默认缓存
-func (c *client) GetDefaultConfigCache() agcache.CacheInterface {
+func (c *clientImpl) GetDefaultConfigCache() agcache.CacheInterface {
 	config := c.GetConfigAndInit(storage.GetDefaultNamespace())
 	if config != nil {
 		return config.GetCache()
@@ -191,12 +192,12 @@ func (c *client) GetDefaultConfigCache() agcache.CacheInterface {
 }
 
 //GetApolloConfigCache 获取默认namespace的apollo配置
-func (c *client) GetApolloConfigCache() agcache.CacheInterface {
+func (c *clientImpl) GetApolloConfigCache() agcache.CacheInterface {
 	return c.GetDefaultConfigCache()
 }
 
 //GetValue 获取配置
-func (c *client) GetValue(key string) string {
+func (c *clientImpl) GetValue(key string) string {
 	value := c.getConfigValue(key)
 	if value == nil {
 		return utils.Empty
@@ -206,7 +207,7 @@ func (c *client) GetValue(key string) string {
 }
 
 //GetStringValue 获取string配置值
-func (c *client) GetStringValue(key string, defaultValue string) string {
+func (c *clientImpl) GetStringValue(key string, defaultValue string) string {
 	value := c.GetValue(key)
 	if value == utils.Empty {
 		return defaultValue
@@ -216,7 +217,7 @@ func (c *client) GetStringValue(key string, defaultValue string) string {
 }
 
 //GetIntValue 获取int配置值
-func (c *client) GetIntValue(key string, defaultValue int) int {
+func (c *clientImpl) GetIntValue(key string, defaultValue int) int {
 	value := c.GetValue(key)
 
 	i, err := strconv.Atoi(value)
@@ -229,7 +230,7 @@ func (c *client) GetIntValue(key string, defaultValue int) int {
 }
 
 //GetFloatValue 获取float配置值
-func (c *client) GetFloatValue(key string, defaultValue float64) float64 {
+func (c *clientImpl) GetFloatValue(key string, defaultValue float64) float64 {
 	value := c.GetValue(key)
 
 	i, err := strconv.ParseFloat(value, 64)
@@ -242,7 +243,7 @@ func (c *client) GetFloatValue(key string, defaultValue float64) float64 {
 }
 
 //GetBoolValue 获取bool 配置值
-func (c *client) GetBoolValue(key string, defaultValue bool) bool {
+func (c *clientImpl) GetBoolValue(key string, defaultValue bool) bool {
 	value := c.GetValue(key)
 
 	b, err := strconv.ParseBool(value)
@@ -255,7 +256,7 @@ func (c *client) GetBoolValue(key string, defaultValue bool) bool {
 }
 
 //GetStringSliceValue 获取[]string 配置值
-func (c *client) GetStringSliceValue(key string, defaultValue []string) []string {
+func (c *clientImpl) GetStringSliceValue(key string, defaultValue []string) []string {
 	value := c.getConfigValue(key)
 
 	if value == nil {
@@ -269,7 +270,7 @@ func (c *client) GetStringSliceValue(key string, defaultValue []string) []string
 }
 
 //GetIntSliceValue 获取[]int 配置值
-func (c *client) GetIntSliceValue(key string, defaultValue []int) []int {
+func (c *clientImpl) GetIntSliceValue(key string, defaultValue []int) []int {
 	value := c.getConfigValue(key)
 
 	if value == nil {
@@ -282,7 +283,7 @@ func (c *client) GetIntSliceValue(key string, defaultValue []int) []int {
 	return s
 }
 
-func (c *client) getConfigValue(key string) interface{} {
+func (c *clientImpl) getConfigValue(key string) interface{} {
 	cache := c.GetDefaultConfigCache()
 	if cache == nil {
 		return utils.Empty
@@ -298,21 +299,21 @@ func (c *client) getConfigValue(key string) interface{} {
 }
 
 // AddChangeListener 增加变更监控
-func (c *client) AddChangeListener(listener storage.ChangeListener) {
+func (c *clientImpl) AddChangeListener(listener storage.ChangeListener) {
 	c.cache.AddChangeListener(listener)
 }
 
 // RemoveChangeListener 增加变更监控
-func (c *client) RemoveChangeListener(listener storage.ChangeListener) {
+func (c *clientImpl) RemoveChangeListener(listener storage.ChangeListener) {
 	c.cache.RemoveChangeListener(listener)
 }
 
 // GetChangeListeners 获取配置修改监听器列表
-func (c *client) GetChangeListeners() *list.List {
+func (c *clientImpl) GetChangeListeners() *list.List {
 	return c.cache.GetChangeListeners()
 }
 
 // UseEventDispatch  添加为某些key分发event功能
-func (c *client) UseEventDispatch() {
+func (c *clientImpl) UseEventDispatch() {
 	c.AddChangeListener(storage.UseEventDispatch())
 }
