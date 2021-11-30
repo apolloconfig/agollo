@@ -154,7 +154,7 @@ func TestStructInit(t *testing.T) {
 
 	time.Sleep(1 * time.Second)
 
-	c := client.(*clientImpl).appConfig
+	c := client.(*internalClient).appConfig
 	Assert(t, c, NotNilVal())
 	Assert(t, "test1", Equal(c.AppID))
 	Assert(t, "dev1", Equal(c.Cluster))
