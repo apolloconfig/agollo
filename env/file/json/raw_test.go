@@ -27,7 +27,7 @@ import (
 
 func TestRawHandler_WriteConfigFile(t *testing.T) {
 	extension.SetFileHandler(&rawFileHandler{})
-	configPath := ""
+	configPath := "conf"
 	jsonStr := `{
   "appId": "100004458",
   "cluster": "default",
@@ -41,11 +41,14 @@ func TestRawHandler_WriteConfigFile(t *testing.T) {
 }`
 
 	config, err := createApolloConfigWithJSON([]byte(jsonStr))
+	os.RemoveAll(configPath)
 	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.AppID, config.NamespaceName))
 
 	Assert(t, err, NilVal())
 	e := extension.GetFileHandler().WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
+	os.RemoveAll(configPath)
+	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.AppID, config.NamespaceName))
 }
 
 func TestRawHandler_WriteConfigFileWithContent(t *testing.T) {

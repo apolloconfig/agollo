@@ -28,9 +28,23 @@ import (
 	. "github.com/tevid/gohamcrest"
 )
 
+func TestCreateDir(t *testing.T) {
+	configPath := "conf"
+	f := &FileHandler{}
+	err := f.createDir(configPath)
+	Assert(t, err, NilVal())
+	err = os.Mkdir(configPath, os.ModePerm)
+	Assert(t, os.IsExist(err), Equal(true))
+
+	err = f.createDir("")
+	Assert(t, err, NilVal())
+
+	os.RemoveAll(configPath)
+}
+
 func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
 	extension.SetFileHandler(&FileHandler{})
-	configPath := ""
+	configPath := "conf"
 	jsonStr := `{
   "appId": "100004458",
   "cluster": "default",
@@ -44,11 +58,14 @@ func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
 }`
 
 	config, err := createApolloConfigWithJSON([]byte(jsonStr))
+	os.RemoveAll(configPath)
 	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.AppID, config.NamespaceName))
 
 	Assert(t, err, NilVal())
 	e := extension.GetFileHandler().WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
+	os.RemoveAll(configPath)
+	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.AppID, config.NamespaceName))
 }
 
 func TestJSONFileHandler_LoadConfigFile(t *testing.T) {

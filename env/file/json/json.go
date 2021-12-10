@@ -22,6 +22,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/apolloconfig/agollo/v4/env/config"
+	"os"
 	"sync"
 
 	"github.com/apolloconfig/agollo/v4/component/log"
@@ -38,6 +39,11 @@ var (
 	configFileMap = make(map[string]string, 1)
 	//configFileMapLock configFileMap的读取锁
 	configFileMapLock sync.Mutex
+
+	//configFileDirMap 存取 configFileDir 文件所在地址，用于判断是否已经存在目录
+	configFileDirMap = make(map[string]bool, 1)
+	//configFileDirMapLock configFileDirMap的读取锁
+	configFileDirMapLock sync.Mutex
 )
 
 // FileHandler 默认备份文件读写
@@ -45,7 +51,29 @@ type FileHandler struct {
 }
 
 // WriteConfigFile write config to file
+func (fileHandler *FileHandler) createDir(configPath string) error {
+	if configPath == "" {
+		return nil
+	}
+
+	configFileDirMapLock.Lock()
+	defer configFileDirMapLock.Unlock()
+	if !configFileDirMap[configPath] {
+		err := os.Mkdir(configPath, os.ModePerm)
+		if err != nil {
+			log.Errorf("Create backup dir:%s fail,error:&s", configPath, err)
+			return err
+		}
+	}
+	return nil
+}
+
+// WriteConfigFile write config to file
 func (fileHandler *FileHandler) WriteConfigFile(config *config.ApolloConfig, configPath string) error {
+	err := fileHandler.createDir(configPath)
+	if err != nil {
+		return err
+	}
 	return jsonFileConfig.Write(config, fileHandler.GetConfigFile(configPath, config.AppID, config.NamespaceName))
 }
 
