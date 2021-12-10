@@ -42,7 +42,7 @@ func TestCreateDir(t *testing.T) {
 	os.RemoveAll(configPath)
 }
 
-func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
+func TestJSONFileHandler_WriteConfigDirFile(t *testing.T) {
 	extension.SetFileHandler(&FileHandler{})
 	configPath := "conf"
 	jsonStr := `{
@@ -65,6 +65,30 @@ func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
 	e := extension.GetFileHandler().WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
 	os.RemoveAll(configPath)
+	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.AppID, config.NamespaceName))
+}
+
+func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
+	extension.SetFileHandler(&FileHandler{})
+	configPath := ""
+	jsonStr := `{
+  "appId": "100004458",
+  "cluster": "default",
+  "namespaceName": "application",
+  "configurations": {
+    "key1":"value1",
+    "key2":"value2",
+    "test": [1, 2]
+  },
+  "releaseKey": "20170430092936-dee2d58e74515ff3"
+}`
+
+	config, err := createApolloConfigWithJSON([]byte(jsonStr))
+	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.AppID, config.NamespaceName))
+
+	Assert(t, err, NilVal())
+	e := extension.GetFileHandler().WriteConfigFile(config, configPath)
+	Assert(t, e, NilVal())
 	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.AppID, config.NamespaceName))
 }
 
