@@ -25,6 +25,30 @@ import (
 	. "github.com/tevid/gohamcrest"
 )
 
+func TestRawHandler_WriteConfigDirFile(t *testing.T) {
+	extension.SetFileHandler(&rawFileHandler{})
+	configPath := "conf"
+	jsonStr := `{
+  "appId": "100004458",
+  "cluster": "default",
+  "namespaceName": "application.json",
+  "configurations": {
+    "key1":"value1",
+    "key2":"value2",
+    "test": ["a", "b"]
+  },
+  "releaseKey": "20170430092936-dee2d58e74515ff3"
+}`
+
+	config, err := createApolloConfigWithJSON([]byte(jsonStr))
+	os.RemoveAll(configPath)
+
+	Assert(t, err, NilVal())
+	e := extension.GetFileHandler().WriteConfigFile(config, configPath)
+	Assert(t, e, NilVal())
+	os.RemoveAll(configPath)
+}
+
 func TestRawHandler_WriteConfigFile(t *testing.T) {
 	extension.SetFileHandler(&rawFileHandler{})
 	configPath := ""

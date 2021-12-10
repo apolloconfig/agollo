@@ -43,11 +43,6 @@ import (
 	"github.com/apolloconfig/agollo/v4/utils/parse/yml"
 )
 
-var (
-	//next try connect period - 60 second
-	nextTryConnectPeriod int64 = 60
-)
-
 func init() {
 	extension.SetCacheFactory(&memory.DefaultCacheFactory{})
 	extension.SetLoadBalance(&roundrobin.RoundRobin{})
