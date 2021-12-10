@@ -89,7 +89,6 @@ func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
 	Assert(t, err, NilVal())
 	e := extension.GetFileHandler().WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
-	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.AppID, config.NamespaceName))
 }
 
 func TestJSONFileHandler_LoadConfigFile(t *testing.T) {
