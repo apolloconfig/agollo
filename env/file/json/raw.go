@@ -19,6 +19,7 @@ package json
 
 import (
 	"fmt"
+	"github.com/apolloconfig/agollo/v4/component/log"
 	"github.com/apolloconfig/agollo/v4/env/config"
 	"os"
 	"sync"
@@ -60,7 +61,15 @@ func writeWithRaw(config *config.ApolloConfig, configDir string) error {
 
 //WriteConfigFile write config to file
 func (fileHandler *rawFileHandler) WriteConfigFile(config *config.ApolloConfig, configPath string) error {
-	writeWithRaw(config, configPath)
+	err := fileHandler.createDir(configPath)
+	if err != nil {
+		return err
+	}
+
+	err = writeWithRaw(config, configPath)
+	if err != nil {
+		log.Errorf("writeWithRaw fail! ", err)
+	}
 	return jsonFileConfig.Write(config, fileHandler.GetConfigFile(configPath, config.AppID, config.NamespaceName))
 }
 
