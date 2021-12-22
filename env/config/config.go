@@ -49,6 +49,7 @@ type AppConfig struct {
 	BackupConfigPath        string `json:"backupConfigPath"`
 	Secret                  string `json:"secret"`
 	SyncServerTimeout       int    `json:"syncServerTimeout"`
+	mustConnect             bool
 	notificationsMap        *notificationsMap
 	currentConnApolloConfig *CurrentApolloConfig
 }
@@ -139,6 +140,16 @@ func (a *AppConfig) SetCurrentApolloConfig(apolloConfig *ApolloConnConfig) {
 // GetCurrentApolloConfig nolint
 func (a *AppConfig) GetCurrentApolloConfig() *CurrentApolloConfig {
 	return a.currentConnApolloConfig
+}
+
+// SetMustConnect 设置mustConnect标志
+func (a *AppConfig) SetMustConnect() {
+	a.mustConnect = true
+}
+
+// GetMustConnect 获取mustConnect标志
+func (a *AppConfig) GetMustConnect() bool {
+	return a.mustConnect
 }
 
 // map[string]int64

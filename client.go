@@ -97,6 +97,21 @@ func create() *internalClient {
 	}
 }
 
+// StartMustReadFromRemote 根据默认文件启动，首次启动必须连接成功，否则panic
+func StartMustReadFromRemote() (Client, error) {
+	return StartWithConfigMustReadFromRemote(nil)
+}
+
+// StartWithConfigMustReadFromRemote 根据配置启动，首次启动必须连接成功，否则panic
+func StartWithConfigMustReadFromRemote(loadAppConfig func() (*config.AppConfig, error)) (Client, error) {
+	appConfig, err := env.InitConfig(loadAppConfig)
+	if err != nil {
+		return nil, err
+	}
+	appConfig.SetMustConnect()
+	return StartWithConfig(func() (*config.AppConfig, error) { return appConfig, nil })
+}
+
 // Start 根据默认文件启动
 func Start() (Client, error) {
 	return StartWithConfig(nil)

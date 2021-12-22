@@ -34,4 +34,8 @@ type ApolloConfig interface {
 	CallBack(namespace string) http.CallBack
 	// SyncWithNamespace 通过 namespace 同步 apollo 配置
 	SyncWithNamespace(namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig
+	// IsFirstConnect 是否第一次启动
+	IsFirstConnect() bool
+	// SetFirst 设置第一次启动标志
+	SetFirst(val bool)
 }
