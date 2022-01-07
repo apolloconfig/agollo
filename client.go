@@ -19,6 +19,7 @@ package agollo
 
 import (
 	"container/list"
+	"errors"
 	"strconv"
 
 	"github.com/apolloconfig/agollo/v4/agcache"
@@ -97,13 +98,23 @@ func create() *internalClient {
 	}
 }
 
+// StartWithConfigMustRead 根据配置启动 首次连接必须读取到配置 否则会返回err
+func StartWithConfigMustRead(loadAppConfig func() (*config.AppConfig, error)) (Client, error) {
+	return StartWithConfigInside(loadAppConfig, true)
+}
+
 // Start 根据默认文件启动
 func Start() (Client, error) {
-	return StartWithConfig(nil)
+	return StartWithConfigInside(nil, false)
 }
 
 // StartWithConfig 根据配置启动
 func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, error) {
+	return StartWithConfigInside(loadAppConfig, false)
+}
+
+// StartWithConfigInside 根据配置启动
+func StartWithConfigInside(loadAppConfig func() (*config.AppConfig, error), mustGetConfigFirst bool) (Client, error) {
 	// 有了配置之后才能进行初始化
 	appConfig, err := env.InitConfig(loadAppConfig)
 	if err != nil {
@@ -125,6 +136,10 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 	if len(configs) > 0 {
 		for _, apolloConfig := range configs {
 			c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
+		}
+	} else {
+		if mustGetConfigFirst {
+			return nil, errors.New("start failed cause no config was read")
 		}
 	}
 
