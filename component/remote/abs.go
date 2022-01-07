@@ -58,14 +58,7 @@ func (a *AbsApolloConfig) SyncWithNamespace(namespace string, appConfigFunc func
 	apolloConfig, err := http.RequestRecovery(appConfig, c, &callback)
 	if err != nil {
 		log.Errorf("request %s fail, error:%v", urlSuffix, err)
-		if a.remoteApollo.IsFirstConnect() && appConfig.GetMustConnect() {
-			panic("read config from remote failed")
-		}
 		return nil
-	}
-
-	if a.remoteApollo.IsFirstConnect() {
-		a.remoteApollo.SetFirst(false)
 	}
 
 	if apolloConfig == nil {

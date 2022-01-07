@@ -33,24 +33,13 @@ import (
 
 // CreateSyncApolloConfig 创建同步获取 Apollo 配置
 func CreateSyncApolloConfig() ApolloConfig {
-	a := &syncApolloConfig{
-		isFirst: true,
-	}
+	a := &syncApolloConfig{}
 	a.remoteApollo = a
 	return a
 }
 
 type syncApolloConfig struct {
 	AbsApolloConfig
-	isFirst bool
-}
-
-func (a *syncApolloConfig) IsFirstConnect() bool {
-	return a.isFirst
-}
-
-func (a *syncApolloConfig) SetFirst(val bool) {
-	a.isFirst = val
 }
 
 func (*syncApolloConfig) GetNotifyURLSuffix(notifications string, config config.AppConfig) string {

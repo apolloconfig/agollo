@@ -42,24 +42,13 @@ const (
 
 // CreateAsyncApolloConfig 创建异步 apollo 配置
 func CreateAsyncApolloConfig() ApolloConfig {
-	a := &asyncApolloConfig{
-		isFirst: true,
-	}
+	a := &asyncApolloConfig{}
 	a.remoteApollo = a
 	return a
 }
 
 type asyncApolloConfig struct {
 	AbsApolloConfig
-	isFirst bool
-}
-
-func (a *asyncApolloConfig) IsFirstConnect() bool {
-	return a.isFirst
-}
-
-func (a *asyncApolloConfig) SetFirst(val bool) {
-	a.isFirst = val
 }
 
 func (*asyncApolloConfig) GetNotifyURLSuffix(notifications string, config config.AppConfig) string {
