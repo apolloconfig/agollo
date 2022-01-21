@@ -46,7 +46,7 @@ func TestCreateDir(t *testing.T) {
 
 func TestJSONFileHandler_WriteConfigDirFile(t *testing.T) {
 	extension.SetFileHandler(&FileHandler{})
-	configPath := "conf"
+	configPath := "json-conf"
 	jsonStr := `{
   "appId": "100004458",
   "cluster": "default",
