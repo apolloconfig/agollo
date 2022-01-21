@@ -33,6 +33,8 @@ func TestCreateDir(t *testing.T) {
 	f := &FileHandler{}
 	err := f.createDir(configPath)
 	Assert(t, err, NilVal())
+	err = f.createDir(configPath)
+	Assert(t, err, NilVal())
 	err = os.Mkdir(configPath, os.ModePerm)
 	Assert(t, os.IsExist(err), Equal(true))
 

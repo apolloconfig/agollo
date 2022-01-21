@@ -60,10 +60,11 @@ func (fileHandler *FileHandler) createDir(configPath string) error {
 	defer configFileDirMapLock.Unlock()
 	if !configFileDirMap[configPath] {
 		err := os.Mkdir(configPath, os.ModePerm)
-		if err != nil {
+		if err != nil && !os.IsExist(err) {
 			log.Errorf("Create backup dir:%s fail,error:&s", configPath, err)
 			return err
 		}
+		configFileDirMap[configPath] = true
 	}
 	return nil
 }
