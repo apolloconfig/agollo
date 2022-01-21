@@ -33,6 +33,8 @@ func TestCreateDir(t *testing.T) {
 	f := &FileHandler{}
 	err := f.createDir(configPath)
 	Assert(t, err, NilVal())
+	err = f.createDir(configPath)
+	Assert(t, err, NilVal())
 	err = os.Mkdir(configPath, os.ModePerm)
 	Assert(t, os.IsExist(err), Equal(true))
 
@@ -44,7 +46,7 @@ func TestCreateDir(t *testing.T) {
 
 func TestJSONFileHandler_WriteConfigDirFile(t *testing.T) {
 	extension.SetFileHandler(&FileHandler{})
-	configPath := "conf"
+	configPath := "json-conf"
 	jsonStr := `{
   "appId": "100004458",
   "cluster": "default",
