@@ -41,14 +41,16 @@ type File interface {
 
 //AppConfig 配置文件
 type AppConfig struct {
-	AppID                   string `json:"appId"`
-	Cluster                 string `json:"cluster"`
-	NamespaceName           string `json:"namespaceName"`
-	IP                      string `json:"ip"`
-	IsBackupConfig          bool   `default:"true" json:"isBackupConfig"`
-	BackupConfigPath        string `json:"backupConfigPath"`
-	Secret                  string `json:"secret"`
-	SyncServerTimeout       int    `json:"syncServerTimeout"`
+	AppID             string `json:"appId"`
+	Cluster           string `json:"cluster"`
+	NamespaceName     string `json:"namespaceName"`
+	IP                string `json:"ip"`
+	IsBackupConfig    bool   `default:"true" json:"isBackupConfig"`
+	BackupConfigPath  string `json:"backupConfigPath"`
+	Secret            string `json:"secret"`
+	SyncServerTimeout int    `json:"syncServerTimeout"`
+	// MustStart 可用于控制第一次同步必须成功
+	MustStart               bool `default:"false"`
 	notificationsMap        *notificationsMap
 	currentConnApolloConfig *CurrentApolloConfig
 }

@@ -246,8 +246,9 @@ func TestErrorStartWithConfigMustReadFromRemote(t *testing.T) {
 	server := runErrorResponse()
 	newAppConfig := getTestAppConfig()
 	newAppConfig.IP = server.URL
+	newAppConfig.MustStart = true
 
-	client, err := StartWithConfigMustRead(func() (*config.AppConfig, error) {
+	client, err := StartWithConfig(func() (*config.AppConfig, error) {
 		return newAppConfig, nil
 	})
 
@@ -261,8 +262,9 @@ func TestStartWithConfigMustReadFromRemote(t *testing.T) {
 	handlerMap["application"] = onlyNormalConfigResponse
 	server := runMockConfigFilesServer(handlerMap, nil, c)
 	c.IP = server.URL
+	c.MustStart = true
 
-	client, err := StartWithConfigMustRead(func() (*config.AppConfig, error) {
+	client, err := StartWithConfig(func() (*config.AppConfig, error) {
 		return c, nil
 	})
 	Assert(t, err, Equal(nil))
