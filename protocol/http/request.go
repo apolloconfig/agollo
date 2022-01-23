@@ -171,7 +171,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			}
 			return nil, nil
 		default:
-			log.Errorf("Connect Apollo Server Fail,url:%s,StatusCode:%s", requestURL, res.StatusCode)
+			log.Errorf("Connect Apollo Server Fail,url:%s,StatusCode:%d", requestURL, res.StatusCode)
 			// if error then sleep
 			time.Sleep(onErrorRetryInterval)
 			continue

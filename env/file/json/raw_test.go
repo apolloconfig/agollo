@@ -27,7 +27,7 @@ import (
 
 func TestRawHandler_WriteConfigDirFile(t *testing.T) {
 	extension.SetFileHandler(&rawFileHandler{})
-	configPath := "conf"
+	configPath := "raw-conf"
 	jsonStr := `{
   "appId": "100004458",
   "cluster": "default",
