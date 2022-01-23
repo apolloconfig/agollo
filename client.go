@@ -19,6 +19,7 @@ package agollo
 
 import (
 	"container/list"
+	"errors"
 	"strconv"
 
 	"github.com/apolloconfig/agollo/v4/agcache"
@@ -90,7 +91,6 @@ func (c *internalClient) getAppConfig() config.AppConfig {
 }
 
 func create() *internalClient {
-
 	appConfig := env.InitFileConfig()
 	return &internalClient{
 		appConfig: appConfig,
@@ -122,10 +122,12 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 
 	//first sync
 	configs := syncApolloConfig.Sync(c.getAppConfig)
-	if len(configs) > 0 {
-		for _, apolloConfig := range configs {
-			c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
-		}
+	if len(configs) == 0 && appConfig != nil && appConfig.MustStart {
+		return nil, errors.New("start failed cause no config was read")
+	}
+
+	for _, apolloConfig := range configs {
+		c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
 	}
 
 	log.Debug("init notifySyncConfigServices finished")

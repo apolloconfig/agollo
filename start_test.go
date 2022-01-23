@@ -241,3 +241,37 @@ func TestSetSignature(t *testing.T) {
 
 	Assert(t, t2, Equal(extension.GetHTTPAuth()))
 }
+
+func TestErrorStartWithConfigMustReadFromRemote(t *testing.T) {
+	server := runErrorResponse()
+	newAppConfig := getTestAppConfig()
+	newAppConfig.IP = server.URL
+	newAppConfig.MustStart = true
+
+	client, err := StartWithConfig(func() (*config.AppConfig, error) {
+		return newAppConfig, nil
+	})
+
+	Assert(t, client, Equal(nil))
+	Assert(t, err, NotNilVal())
+}
+
+func TestStartWithConfigMustReadFromRemote(t *testing.T) {
+	c := appConfig
+	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
+	handlerMap["application"] = onlyNormalConfigResponse
+	server := runMockConfigFilesServer(handlerMap, nil, c)
+	c.IP = server.URL
+	c.MustStart = true
+
+	client, err := StartWithConfig(func() (*config.AppConfig, error) {
+		return c, nil
+	})
+	Assert(t, err, Equal(nil))
+
+	value := client.GetValue("key1")
+	Assert(t, "value1", Equal(value))
+	handler := extension.GetFileHandler()
+	Assert(t, handler, NotNilVal())
+
+}
