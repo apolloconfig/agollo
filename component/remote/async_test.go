@@ -51,7 +51,7 @@ const configResponseStr = `{
   "namespaceName": "application",
   "configurations": {
     "key1":"value1",
-    "key2":"value2"
+    "key2":"value2",
   },
   "releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
@@ -67,9 +67,9 @@ const configAbc1ResponseStr = `{
   "namespaceName": "abc1",
   "configurations": {
     "key1":"value1",
-    "key2":"value2"
+    "key2":"value2",
   },
-  "releaseKey": "20170430092936-dee2d58e74515ff3"
+  "releaseKey": "20170430092936-dee2d58e74515ff3",
 }`
 
 const responseStr = `[{"namespaceName":"application","notificationId":%d}]`
@@ -273,9 +273,9 @@ func TestCreateApolloConfigWithJson(t *testing.T) {
   "namespaceName": "application",
   "configurations": {
     "key1":"value1",
-    "key2":"value2"
+    "key2":"value2",
   },
-  "releaseKey": "20170430092936-dee2d58e74515ff3"
+  "releaseKey": "20170430092936-dee2d58e74515ff3",
 }`
 	o, err := createApolloConfigWithJSON([]byte(jsonStr), http2.CallBack{})
 	c := o.(*config.ApolloConfig)

@@ -40,7 +40,7 @@ var (
     "cluster": "dev",
     "namespaceName": "application",
     "ip": "localhost:8888",
-    "backupConfigPath":""
+    "backupConfigPath":"",
 }`
 	appConfig = &config.AppConfig{
 		AppID:         "test",
