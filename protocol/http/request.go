@@ -135,6 +135,10 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			if len(headers) > 0 {
 				req.Header = headers
 			}
+			host := req.Header.Get("Host")
+			if len(host) > 0 {
+				req.Host = host
+			}
 		}
 
 		res, err := client.Do(req)
