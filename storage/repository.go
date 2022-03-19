@@ -21,7 +21,6 @@ import (
 	"container/list"
 	"fmt"
 	"reflect"
-	"strconv"
 	"sync"
 	"sync/atomic"
 
@@ -182,40 +181,32 @@ func (c *Config) GetSliceValue(key string) []interface{} {
 
 //GetIntValue 获取配置值（int），获取不到则取默认值
 func (c *Config) GetIntValue(key string, defaultValue int) int {
-	value := c.GetValue(key)
+	value := c.getConfigValue(key)
 
-	i, err := strconv.Atoi(value)
-	if err != nil {
-		log.Debug("convert to int fail!error:", err)
+	if value == nil {
 		return defaultValue
 	}
-	return i
+	return value.(int)
 }
 
 //GetFloatValue 获取配置值（float），获取不到则取默认值
 func (c *Config) GetFloatValue(key string, defaultValue float64) float64 {
-	value := c.GetValue(key)
+	value := c.getConfigValue(key)
 
-	i, err := strconv.ParseFloat(value, 64)
-	if err != nil {
-		log.Debug("convert to float fail!error:", err)
+	if value == nil {
 		return defaultValue
 	}
-
-	return i
+	return value.(float64)
 }
 
 //GetBoolValue 获取配置值（bool），获取不到则取默认值
 func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
-	value := c.GetValue(key)
+	value := c.getConfigValue(key)
 
-	b, err := strconv.ParseBool(value)
-	if err != nil {
-		log.Debug("convert to bool fail!error:", err)
+	if value == nil {
 		return defaultValue
 	}
-
-	return b
+	return value.(bool)
 }
 
 //UpdateApolloConfig 根据config server返回的内容更新内存
