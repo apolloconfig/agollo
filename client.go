@@ -20,8 +20,6 @@ package agollo
 import (
 	"container/list"
 	"errors"
-	"strconv"
-
 	"github.com/apolloconfig/agollo/v4/agcache"
 	"github.com/apolloconfig/agollo/v4/agcache/memory"
 	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
@@ -195,89 +193,37 @@ func (c *internalClient) GetApolloConfigCache() agcache.CacheInterface {
 
 //GetValue 获取配置
 func (c *internalClient) GetValue(key string) string {
-	value := c.getConfigValue(key)
-	if value == nil {
-		return utils.Empty
-	}
-
-	return value.(string)
+	return c.GetConfig(storage.GetDefaultNamespace()).GetValue(key)
 }
 
 //GetStringValue 获取string配置值
 func (c *internalClient) GetStringValue(key string, defaultValue string) string {
-	value := c.GetValue(key)
-	if value == utils.Empty {
-		return defaultValue
-	}
-
-	return value
+	return c.GetConfig(storage.GetDefaultNamespace()).GetStringValue(key, defaultValue)
 }
 
 //GetIntValue 获取int配置值
 func (c *internalClient) GetIntValue(key string, defaultValue int) int {
-	value := c.GetValue(key)
-
-	i, err := strconv.Atoi(value)
-	if err != nil {
-		log.Debug("convert to int fail!error:", err)
-		return defaultValue
-	}
-
-	return i
+	return c.GetConfig(storage.GetDefaultNamespace()).GetIntValue(key, defaultValue)
 }
 
 //GetFloatValue 获取float配置值
 func (c *internalClient) GetFloatValue(key string, defaultValue float64) float64 {
-	value := c.GetValue(key)
-
-	i, err := strconv.ParseFloat(value, 64)
-	if err != nil {
-		log.Debug("convert to float fail!error:", err)
-		return defaultValue
-	}
-
-	return i
+	return c.GetConfig(storage.GetDefaultNamespace()).GetFloatValue(key, defaultValue)
 }
 
 //GetBoolValue 获取bool 配置值
 func (c *internalClient) GetBoolValue(key string, defaultValue bool) bool {
-	value := c.GetValue(key)
-
-	b, err := strconv.ParseBool(value)
-	if err != nil {
-		log.Debug("convert to bool fail!error:", err)
-		return defaultValue
-	}
-
-	return b
+	return c.GetConfig(storage.GetDefaultNamespace()).GetBoolValue(key, defaultValue)
 }
 
 //GetStringSliceValue 获取[]string 配置值
 func (c *internalClient) GetStringSliceValue(key string, defaultValue []string) []string {
-	value := c.getConfigValue(key)
-
-	if value == nil {
-		return defaultValue
-	}
-	s, ok := value.([]string)
-	if !ok {
-		return defaultValue
-	}
-	return s
+	return c.GetConfig(storage.GetDefaultNamespace()).GetStringSliceValue(key, defaultValue)
 }
 
 //GetIntSliceValue 获取[]int 配置值
 func (c *internalClient) GetIntSliceValue(key string, defaultValue []int) []int {
-	value := c.getConfigValue(key)
-
-	if value == nil {
-		return defaultValue
-	}
-	s, ok := value.([]int)
-	if !ok {
-		return defaultValue
-	}
-	return s
+	return c.GetConfig(storage.GetDefaultNamespace()).GetIntSliceValue(key, defaultValue)
 }
 
 func (c *internalClient) getConfigValue(key string) interface{} {
