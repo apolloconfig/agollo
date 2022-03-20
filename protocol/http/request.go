@@ -158,7 +158,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		case http.StatusOK:
 			responseBody, err := ioutil.ReadAll(res.Body)
 			if err != nil {
-				log.Errorf("Connect Apollo Server Fail,url:%s,Error:", requestURL, err)
+				log.Errorf("Connect Apollo Server Fail,url : %s ,Error: %s ", requestURL, err)
 				// if error then sleep
 				time.Sleep(onErrorRetryInterval)
 				continue
