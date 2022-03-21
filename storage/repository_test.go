@@ -64,9 +64,9 @@ func TestUpdateApolloConfigNull(t *testing.T) {
 
 	configurations := make(map[string]interface{})
 	configurations["string"] = "string"
-	configurations["int"] = "1"
-	configurations["float"] = "1"
-	configurations["bool"] = "true"
+	configurations["int"] = 1
+	configurations["float"] = 1.9
+	configurations["bool"] = true
 	configurations["slice"] = []int{1, 2}
 
 	apolloConfig := &config.ApolloConfig{}
@@ -98,9 +98,9 @@ func TestGetDefaultNamespace(t *testing.T) {
 func TestGetConfig(t *testing.T) {
 	configurations := make(map[string]interface{})
 	configurations["string"] = "string2"
-	configurations["int"] = "2"
-	configurations["float"] = "1"
-	configurations["bool"] = "false"
+	configurations["int"] = 2
+	configurations["float"] = 1.9
+	configurations["bool"] = false
 	configurations["sliceString"] = []string{"1", "2", "3"}
 	configurations["sliceInt"] = []int{1, 2, 3}
 	configurations["sliceInter"] = []interface{}{1, "2", 3}
@@ -123,7 +123,7 @@ func TestGetConfig(t *testing.T) {
 
 	//float
 	f := config.GetFloatValue("float", 2)
-	Assert(t, f, Equal(float64(1)))
+	Assert(t, f, Equal(1.9))
 	f = config.GetFloatValue("f", 2)
 	Assert(t, f, Equal(float64(2)))
 
@@ -134,13 +134,13 @@ func TestGetConfig(t *testing.T) {
 	b = config.GetBoolValue("b", false)
 	Assert(t, b, Equal(false))
 
-	slice := config.GetStringSliceValue("sliceString")
+	slice := config.GetStringSliceValue("sliceString", []string{})
 	Assert(t, slice, Equal([]string{"1", "2", "3"}))
 
-	sliceInt := config.GetIntSliceValue("sliceInt")
+	sliceInt := config.GetIntSliceValue("sliceInt", []int{})
 	Assert(t, sliceInt, Equal([]int{1, 2, 3}))
 
-	sliceInter := config.GetSliceValue("sliceInter")
+	sliceInter := config.GetSliceValue("sliceInter", []interface{}{})
 	Assert(t, sliceInter, Equal([]interface{}{1, "2", 3}))
 
 	//content

@@ -49,11 +49,11 @@ func createMockApolloConfig(expireTime int) *internalClient {
 	//string
 	configs["string"] = "value"
 	//int
-	configs["int"] = "1"
+	configs["int"] = 1
 	//float
-	configs["float"] = "190.3"
+	configs["float"] = 190.3
 	//bool
-	configs["bool"] = "true"
+	configs["bool"] = true
 	//string slice
 	configs["stringSlice"] = []string{"1", "2"}
 
@@ -159,7 +159,7 @@ func TestGetFloatValue(t *testing.T) {
 	//error type
 	v = client.GetFloatValue("int", defaultValue)
 
-	Assert(t, float64(1), Equal(v))
+	Assert(t, defaultValue, Equal(v))
 }
 
 func TestGetBoolValue(t *testing.T) {
@@ -315,7 +315,7 @@ func TestConfig_GetFloatValue(t *testing.T) {
 	//error type
 	v = config.GetFloatValue("int", defaultValue)
 
-	Assert(t, float64(1), Equal(v))
+	Assert(t, defaultValue, Equal(v))
 }
 
 func TestConfig_GetIntValue(t *testing.T) {
