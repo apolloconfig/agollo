@@ -57,30 +57,24 @@ var (
 	once sync.Once
 	// defaultTransport http.Transport
 	defaultTransport *http.Transport
-	lock             sync.Mutex
 )
 
 func getDefaultTransport(insecureSkipVerify bool) *http.Transport {
-	lock.Lock()
-	defer lock.Unlock()
-	if defaultTransport == nil {
-		once.Do(func() {
-			defaultTransport = &http.Transport{
-				MaxIdleConns:        defaultMaxConnsPerHost,
-				MaxIdleConnsPerHost: defaultMaxConnsPerHost,
-				DialContext: (&net.Dialer{
-					KeepAlive: defaultKeepAliveSecond,
-					Timeout:   defaultTimeoutBySecond,
-				}).DialContext,
+	once.Do(func() {
+		defaultTransport = &http.Transport{
+			MaxIdleConns:        defaultMaxConnsPerHost,
+			MaxIdleConnsPerHost: defaultMaxConnsPerHost,
+			DialContext: (&net.Dialer{
+				KeepAlive: defaultKeepAliveSecond,
+				Timeout:   defaultTimeoutBySecond,
+			}).DialContext,
+		}
+		if insecureSkipVerify {
+			defaultTransport.TLSClientConfig = &tls.Config{
+				InsecureSkipVerify: insecureSkipVerify,
 			}
-			if insecureSkipVerify {
-				defaultTransport.TLSClientConfig = &tls.Config{
-					InsecureSkipVerify: insecureSkipVerify,
-				}
-			}
-		})
-	}
-
+		}
+	})
 	return defaultTransport
 }
 
