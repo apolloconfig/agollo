@@ -21,7 +21,6 @@ import (
 	"container/list"
 	"fmt"
 	"reflect"
-	"strconv"
 	"sync"
 	"sync/atomic"
 
@@ -140,7 +139,12 @@ func (c *Config) GetValue(key string) string {
 		return utils.Empty
 	}
 
-	return value.(string)
+	v, ok := value.(string)
+	if !ok {
+		log.Debug("convert to string fail ! source type:%T", value)
+		return utils.Empty
+	}
+	return v
 }
 
 //GetStringValue 获取配置值（string），获取不到则取默认值
@@ -154,68 +158,88 @@ func (c *Config) GetStringValue(key string, defaultValue string) string {
 }
 
 //GetStringSliceValue 获取配置值（[]string）
-func (c *Config) GetStringSliceValue(key string) []string {
+func (c *Config) GetStringSliceValue(key string, defaultValue []string) []string {
 	value := c.getConfigValue(key)
 	if value == nil {
-		return []string{}
+		return defaultValue
 	}
-	return value.([]string)
+	v, ok := value.([]string)
+	if !ok {
+		log.Debug("convert to []string fail ! source type:%T", value)
+		return defaultValue
+	}
+	return v
 }
 
 //GetIntSliceValue 获取配置值（[]int)
-func (c *Config) GetIntSliceValue(key string) []int {
+func (c *Config) GetIntSliceValue(key string, defaultValue []int) []int {
 	value := c.getConfigValue(key)
 	if value == nil {
-		return []int{}
+		return defaultValue
 	}
-	return value.([]int)
+	v, ok := value.([]int)
+	if !ok {
+		log.Debug("convert to []int fail ! source type:%T", value)
+		return defaultValue
+	}
+	return v
 }
 
 //GetSliceValue 获取配置值（[]interface)
-func (c *Config) GetSliceValue(key string) []interface{} {
+func (c *Config) GetSliceValue(key string, defaultValue []interface{}) []interface{} {
 	value := c.getConfigValue(key)
 	if value == nil {
-		return []interface{}{}
+		return defaultValue
 	}
-	return value.([]interface{})
+	v, ok := value.([]interface{})
+	if !ok {
+		log.Debug("convert to []interface{} fail ! source type:%T", value)
+		return defaultValue
+	}
+	return v
 }
 
 //GetIntValue 获取配置值（int），获取不到则取默认值
 func (c *Config) GetIntValue(key string, defaultValue int) int {
-	value := c.GetValue(key)
+	value := c.getConfigValue(key)
 
-	i, err := strconv.Atoi(value)
-	if err != nil {
-		log.Debug("convert to int fail!error:", err)
+	if value == nil {
 		return defaultValue
 	}
-	return i
+	v, ok := value.(int)
+	if !ok {
+		log.Debug("convert to int fail ! source type:%T", value)
+		return defaultValue
+	}
+	return v
 }
 
 //GetFloatValue 获取配置值（float），获取不到则取默认值
 func (c *Config) GetFloatValue(key string, defaultValue float64) float64 {
-	value := c.GetValue(key)
+	value := c.getConfigValue(key)
 
-	i, err := strconv.ParseFloat(value, 64)
-	if err != nil {
-		log.Debug("convert to float fail!error:", err)
+	if value == nil {
 		return defaultValue
 	}
 
-	return i
+	v, ok := value.(float64)
+	if !ok {
+		log.Debug("convert to float64 fail ! source type:%T", value)
+		return defaultValue
+	}
+	return v
 }
 
 //GetBoolValue 获取配置值（bool），获取不到则取默认值
 func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
-	value := c.GetValue(key)
+	value := c.getConfigValue(key)
 
-	b, err := strconv.ParseBool(value)
-	if err != nil {
-		log.Debug("convert to bool fail!error:", err)
+	v, ok := value.(bool)
+	if !ok {
+		log.Debug("convert to bool fail ! source type:%T", value)
 		return defaultValue
 	}
-
-	return b
+	return v
 }
 
 //UpdateApolloConfig 根据config server返回的内容更新内存
