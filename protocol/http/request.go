@@ -18,6 +18,7 @@
 package http
 
 import (
+	"context"
 	"crypto/tls"
 	"errors"
 	"fmt"
@@ -69,11 +70,12 @@ func getDefaultTransport(insecureSkipVerify bool) *http.Transport {
 				KeepAlive: defaultKeepAliveSecond,
 				Timeout:   defaultTimeoutBySecond,
 			}).DialContext,
-		}
-		if insecureSkipVerify {
-			defaultTransport.TLSClientConfig = &tls.Config{
-				InsecureSkipVerify: insecureSkipVerify,
-			}
+			DialTLSContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+				tlsConfig := &tls.Config{
+					InsecureSkipVerify: insecureSkipVerify,
+				}
+				return tls.Dial(network, addr, tlsConfig)
+			},
 		}
 	})
 	return defaultTransport
