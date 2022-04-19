@@ -46,19 +46,35 @@ func init() {
 }
 
 const configResponseStr = `{
-  "appId": "100004458",
-  "cluster": "default",
-  "namespaceName": "application",
-  "configurations": {
-    "key1":"value1",
-    "key2":"value2"
-  },
-  "releaseKey": "20170430092936-dee2d58e74515ff3"
+	"appId": "100004458",
+	"cluster": "default",
+	"namespaceName": "application",
+	"configurations": {
+	  "key1":"value1",
+	  "key2":"value2"
+	},
+	"releaseKey": "20170430092936-dee2d58e74515ff3"
+}`
+
+const grayConfigResponseStr = `{
+	"appId": "100004458",
+	"cluster": "default",
+	"namespaceName": "application",
+	"configurations": {
+	  "key1":"gray_value1",
+	  "key2":"gray_value2"
+	},
+	"releaseKey": "20170430092936-dee2d58e74515ff3"
 }`
 
 const configFilesResponseStr = `{
     "key1":"value1",
     "key2":"value2"
+}`
+
+const grayConfigFilesResponseStr = `{
+    "key1":"gray_value1",
+    "key2":"gray_value2"
 }`
 
 const configAbc1ResponseStr = `{
@@ -77,6 +93,13 @@ const tworesponseStr = `[{"namespaceName":"application","notificationId":%d},{"n
 
 func onlyNormalConfigResponse(rw http.ResponseWriter, req *http.Request) {
 	rw.WriteHeader(http.StatusOK)
+
+	label, ok := req.URL.Query()["label"]
+	if ok && len(label) > 0 && label[0] == grayLabel {
+		fmt.Fprintf(rw, grayConfigResponseStr)
+		return
+	}
+
 	fmt.Fprintf(rw, configResponseStr)
 }
 
@@ -190,6 +213,23 @@ func TestApolloConfig_SyncTwoOk(t *testing.T) {
 	Assert(t, len(apolloConfigs), Equal(2))
 	Assert(t, appConfig.GetNotificationsMap().GetNotify("application"), Equal(int64(3)))
 	Assert(t, appConfig.GetNotificationsMap().GetNotify("abc1"), Equal(int64(3)))
+}
+
+func TestApolloConfig_GraySync(t *testing.T) {
+	server := initMockNotifyAndConfigServer()
+	appConfig := initNotifications()
+	appConfig.IP = server.URL
+	appConfig.Label = grayLabel
+	apolloConfigs := asyncApollo.Sync(func() config.AppConfig {
+		return *appConfig
+	})
+	//err keep nil
+	Assert(t, apolloConfigs, NotNilVal())
+	Assert(t, len(apolloConfigs), Equal(1))
+
+	apolloConfig := apolloConfigs[0]
+	Assert(t, "gray_value1", Equal(apolloConfig.Configurations["key1"]))
+	Assert(t, "gray_value2", Equal(apolloConfig.Configurations["key2"]))
 }
 
 func TestApolloConfig_SyncABC1Error(t *testing.T) {
