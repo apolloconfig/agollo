@@ -37,6 +37,7 @@ import (
 )
 
 var (
+	grayLabel         = "gray"
 	normalConfigCount = 1
 	syncApollo        *syncApolloConfig
 )
@@ -60,6 +61,14 @@ func runNormalConfigResponse() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		normalConfigCount++
 		if normalConfigCount%2 == 0 {
+			label, ok := r.URL.Query()["label"]
+			if ok && len(label) > 0 && label[0] == grayLabel {
+				w.WriteHeader(http.StatusOK)
+				w.Write([]byte(grayConfigFilesResponseStr))
+
+				return
+			}
+
 			w.WriteHeader(http.StatusOK)
 			w.Write([]byte(configFilesResponseStr))
 		} else {
@@ -152,4 +161,25 @@ func TestAutoSyncConfigServicesError(t *testing.T) {
 	})
 
 	Assert(t, len(apolloConfigs), Equal(0))
+}
+
+func TestClientLabelConfigService(t *testing.T) {
+	server := runNormalConfigResponse()
+	newAppConfig := initNotifications()
+	newAppConfig.IP = server.URL
+	newAppConfig.Label = grayLabel
+
+	apolloConfigs := syncApollo.Sync(func() config.AppConfig {
+		return *newAppConfig
+	})
+
+	Assert(t, apolloConfigs, NotNilVal())
+	Assert(t, len(apolloConfigs), Equal(1))
+
+	apolloConfig := apolloConfigs[0]
+	newAppConfig.GetCurrentApolloConfig().Set(newAppConfig.NamespaceName, &apolloConfig.ApolloConnConfig)
+	c := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]
+	Assert(t, "application", Equal(c.NamespaceName))
+	Assert(t, "gray_value1", Equal(apolloConfig.Configurations["key1"]))
+	Assert(t, "gray_value2", Equal(apolloConfig.Configurations["key2"]))
 }
