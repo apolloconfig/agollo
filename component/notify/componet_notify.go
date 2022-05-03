@@ -21,13 +21,8 @@ import (
 	"time"
 
 	"github.com/apolloconfig/agollo/v4/component/remote"
-	"github.com/apolloconfig/agollo/v4/storage"
-
 	"github.com/apolloconfig/agollo/v4/env/config"
-)
-
-const (
-	longPollInterval = 2 * time.Second //2s
+	"github.com/apolloconfig/agollo/v4/storage"
 )
 
 //ConfigComponent 配置组件
@@ -48,17 +43,28 @@ func (c *ConfigComponent) SetCache(cache *storage.Cache) {
 
 //Start 启动配置组件定时器
 func (c *ConfigComponent) Start() {
+	longPollInterval := getLongPollInterval(c.appConfigFunc)
 	t2 := time.NewTimer(longPollInterval)
 	instance := remote.CreateAsyncApolloConfig()
 	//long poll for sync
 	for {
-		select {
-		case <-t2.C:
-			configs := instance.Sync(c.appConfigFunc)
-			for _, apolloConfig := range configs {
-				c.cache.UpdateApolloConfig(apolloConfig, c.appConfigFunc)
-			}
-			t2.Reset(longPollInterval)
+		<-t2.C
+		configs := instance.Sync(c.appConfigFunc)
+		for _, apolloConfig := range configs {
+			c.cache.UpdateApolloConfig(apolloConfig, c.appConfigFunc)
 		}
+		longPollInterval := getLongPollInterval(c.appConfigFunc)
+		t2.Reset(longPollInterval)
 	}
+}
+
+func getLongPollInterval(appConfigFunc func() config.AppConfig) time.Duration {
+	appconfig := appConfigFunc()
+	var interval int
+	if appconfig.LongPollInterval == 0 {
+		interval = 2
+	} else {
+		interval = appconfig.LongPollInterval
+	}
+	return time.Duration(interval) * time.Second
 }
