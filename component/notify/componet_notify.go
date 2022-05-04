@@ -48,13 +48,13 @@ func (c *ConfigComponent) Start() {
 	instance := remote.CreateAsyncApolloConfig()
 	//long poll for sync
 	for {
-		<-t2.C
 		configs := instance.Sync(c.appConfigFunc)
 		for _, apolloConfig := range configs {
 			c.cache.UpdateApolloConfig(apolloConfig, c.appConfigFunc)
 		}
 		longPollInterval := getLongPollInterval(c.appConfigFunc)
 		t2.Reset(longPollInterval)
+		<-t2.C
 	}
 }
 
