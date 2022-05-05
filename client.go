@@ -102,7 +102,7 @@ func Start() (Client, error) {
 }
 
 // StartWithConfig 根据配置启动
-func StartWithConfig(loadAppConfig func() (*config.AppConfig, error), beforeAsyncLongPoll func()) (Client, error) {
+func StartWithConfig(loadAppConfig func() (*config.AppConfig, error), beforeAsyncLongPoll func(Client)) (Client, error) {
 	// 有了配置之后才能进行初始化
 	appConfig, err := env.InitConfig(loadAppConfig)
 	if err != nil {
@@ -136,7 +136,7 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error), beforeAsyn
 	configComponent.SetAppConfig(c.getAppConfig)
 	configComponent.SetCache(c.cache)
 	if beforeAsyncLongPoll != nil {
-		beforeAsyncLongPoll() // Avoid initialization race
+		beforeAsyncLongPoll(c) // Avoid initialization race
 	}
 	go component.StartRefreshConfig(configComponent)
 
