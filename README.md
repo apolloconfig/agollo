@@ -58,7 +58,7 @@ func main() {
 
 	client, _ := agollo.StartWithConfig(func() (*config.AppConfig, error) {
 		return c, nil
-	})
+	}, nil)
 	fmt.Println("初始化Apollo配置成功")
 
 	//Use your apollo key to test

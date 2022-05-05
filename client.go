@@ -20,6 +20,7 @@ package agollo
 import (
 	"container/list"
 	"errors"
+
 	"github.com/apolloconfig/agollo/v4/agcache"
 	"github.com/apolloconfig/agollo/v4/agcache/memory"
 	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
@@ -97,11 +98,11 @@ func create() *internalClient {
 
 // Start 根据默认文件启动
 func Start() (Client, error) {
-	return StartWithConfig(nil)
+	return StartWithConfig(nil, nil)
 }
 
 // StartWithConfig 根据配置启动
-func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, error) {
+func StartWithConfig(loadAppConfig func() (*config.AppConfig, error), beforeAsyncLongPoll func()) (Client, error) {
 	// 有了配置之后才能进行初始化
 	appConfig, err := env.InitConfig(loadAppConfig)
 	if err != nil {
@@ -134,6 +135,9 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 	configComponent := &notify.ConfigComponent{}
 	configComponent.SetAppConfig(c.getAppConfig)
 	configComponent.SetCache(c.cache)
+	if beforeAsyncLongPoll != nil {
+		beforeAsyncLongPoll() // Avoid initialization race
+	}
 	go component.StartRefreshConfig(configComponent)
 
 	log.Info("agollo start finished ! ")

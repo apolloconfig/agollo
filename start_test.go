@@ -150,7 +150,7 @@ func TestStructInit(t *testing.T) {
 
 	client, _ := StartWithConfig(func() (*config.AppConfig, error) {
 		return readyConfig, nil
-	})
+	}, nil)
 
 	time.Sleep(1 * time.Second)
 
@@ -250,7 +250,7 @@ func TestErrorStartWithConfigMustReadFromRemote(t *testing.T) {
 
 	client, err := StartWithConfig(func() (*config.AppConfig, error) {
 		return newAppConfig, nil
-	})
+	}, nil)
 
 	Assert(t, client, Equal(nil))
 	Assert(t, err, NotNilVal())
@@ -266,7 +266,7 @@ func TestStartWithConfigMustReadFromRemote(t *testing.T) {
 
 	client, err := StartWithConfig(func() (*config.AppConfig, error) {
 		return c, nil
-	})
+	}, nil)
 	Assert(t, err, Equal(nil))
 
 	value := client.GetValue("key1")
