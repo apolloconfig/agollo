@@ -150,7 +150,7 @@ func (c *Config) GetValueImmediately(key string) string {
 	return v
 }
 
-// GetStringValue 获取配置值（string），获取不到则取默认值，立即返回，初始化未完成直接返回错误
+// GetStringValueImmediately 获取配置值（string），获取不到则取默认值，立即返回，初始化未完成直接返回错误
 func (c *Config) GetStringValueImmediately(key string, defaultValue string) string {
 	value := c.GetValueImmediately(key)
 	if value == utils.Empty {
