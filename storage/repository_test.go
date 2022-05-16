@@ -225,29 +225,73 @@ func TestDispatchInRepository(t *testing.T) {
 	Assert(t, ok, Equal(false))
 }
 
-func TestGetValueNotWait(t *testing.T) {
+func TestGetValueImmediately(t *testing.T) {
 	c := initConfig("namespace", extension.GetCacheFactory())
 
-	res, err := c.GetValueNotWait("namespace")
+	res := c.GetValueImmediately("namespace")
 	Assert(t, res, Equal(utils.Empty))
-	Assert(t, err.Error(), Equal("get config fail, init not done"))
 
 	c.isInit.Store(true)
-	res, err = c.GetValueNotWait("namespace")
+	res = c.GetValueImmediately("namespace")
 	Assert(t, res, Equal(utils.Empty))
-	Assert(t, err.Error(), Equal("get config value fail!key:namespace,err:load default cache fail"))
 
-	res, err = c.GetValueNotWait("namespace1")
+	res = c.GetValueImmediately("namespace1")
 	Assert(t, res, Equal(utils.Empty))
-	Assert(t, err.Error(), Equal("get config value fail!key:namespace1,err:load default cache fail"))
 
 	c.cache.Set("namespace", 1, 3)
-	res, err = c.GetValueNotWait("namespace")
+	res = c.GetValueImmediately("namespace")
 	Assert(t, res, Equal(utils.Empty))
-	Assert(t, err.Error(), Equal("convert to string fail ! source type:int"))
 
 	c.cache.Set("namespace", "config", 3)
-	res, err = c.GetValueNotWait("namespace")
+	res = c.GetValueImmediately("namespace")
 	Assert(t, res, Equal("config"))
-	Assert(t, err, Equal(nil))
+}
+
+func TestGetConfigImmediately(t *testing.T) {
+	configurations := make(map[string]interface{})
+	configurations["string"] = "string2"
+	configurations["int"] = 2
+	configurations["float"] = 1.9
+	configurations["bool"] = false
+	configurations["sliceString"] = []string{"1", "2", "3"}
+	configurations["sliceInt"] = []int{1, 2, 3}
+	configurations["sliceInter"] = []interface{}{1, "2", 3}
+	c := creatTestApolloConfig(configurations, "test")
+	config := c.GetConfig("test")
+	Assert(t, config, NotNilVal())
+
+	// string
+	s := config.GetStringValueImmediately("string", "s")
+	Assert(t, s, Equal(configurations["string"]))
+
+	s = config.GetStringValueImmediately("s", "s")
+	Assert(t, s, Equal("s"))
+
+	// int
+	i := config.GetIntValueImmediately("int", 3)
+	Assert(t, i, Equal(2))
+	i = config.GetIntValueImmediately("i", 3)
+	Assert(t, i, Equal(3))
+
+	// float
+	f := config.GetFloatValueImmediately("float", 2)
+	Assert(t, f, Equal(1.9))
+	f = config.GetFloatValueImmediately("f", 2)
+	Assert(t, f, Equal(float64(2)))
+
+	// bool
+	b := config.GetBoolValueImmediately("bool", true)
+	Assert(t, b, Equal(false))
+
+	b = config.GetBoolValueImmediately("b", false)
+	Assert(t, b, Equal(false))
+
+	slice := config.GetStringSliceValueImmediately("sliceString", []string{})
+	Assert(t, slice, Equal([]string{"1", "2", "3"}))
+
+	sliceInt := config.GetIntSliceValueImmediately("sliceInt", []int{})
+	Assert(t, sliceInt, Equal([]int{1, 2, 3}))
+
+	sliceInter := config.GetSliceValueImmediately("sliceInter", []interface{}{})
+	Assert(t, sliceInter, Equal([]interface{}{1, "2", 3}))
 }
