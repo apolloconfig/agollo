@@ -55,7 +55,7 @@ func (t *ConfigFile) Write(content interface{}, configPath string) error {
 	}
 	file, e := os.Create(configPath)
 	if e != nil {
-		log.Errorf("writeConfigFile fail,error:", e)
+		log.Errorf("writeConfigFile fail,error: %v", e)
 		return e
 	}
 	defer file.Close()
