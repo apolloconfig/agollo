@@ -24,8 +24,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/pkg/errors"
-
 	"github.com/apolloconfig/agollo/v4/agcache"
 	"github.com/apolloconfig/agollo/v4/component/log"
 	"github.com/apolloconfig/agollo/v4/env/config"
@@ -114,47 +112,148 @@ func (c *Config) GetCache() agcache.CacheInterface {
 }
 
 // getConfigValue 获取配置值
-func (c *Config) getConfigValue(key string, waitInit bool) (value interface{}, err error) {
+func (c *Config) getConfigValue(key string, waitInit bool) interface{} {
 	b := c.GetIsInit()
 	if !b {
 		if !waitInit {
-			err = errors.Errorf("get config fail, init not done")
-			return
+			log.Errorf("getConfigValue fail, init not done, namespace:%s key:%s", c.namespace, key)
+			return nil
 		}
 		c.waitInit.Wait()
 	}
 	if c.cache == nil {
-		err = errors.Errorf("get config value fail!namespace:%s is not exist!", c.namespace)
-		return
+		log.Errorf("get config value fail!namespace:%s is not exist!", c.namespace)
+		return nil
 	}
 
-	if value, err = c.cache.Get(key); err != nil {
-		err = errors.Errorf("get config value fail!key:%s,err:%s", key, err)
-		return
+	value, err := c.cache.Get(key)
+	if err != nil {
+		log.Errorf("get config value fail!key:%s,err:%s", key, err)
+		return nil
 	}
 
-	return
+	return value
 }
 
-// GetValueNotWait 获取配置值，不阻塞（string）
-func (c *Config) GetValueNotWait(key string) (string, error) {
-	value, err := c.getConfigValue(key, false)
-	if err != nil {
-		return utils.Empty, err
+// GetValueImmediately 获取配置值（string），立即返回，初始化未完成直接返回错误
+func (c *Config) GetValueImmediately(key string) string {
+	value := c.getConfigValue(key, false)
+	if value == nil {
+		return utils.Empty
 	}
 
 	v, ok := value.(string)
 	if !ok {
-		return utils.Empty, errors.Errorf("convert to string fail ! source type:%T", value)
+		log.Debug("convert to string fail ! source type:%T", value)
+		return utils.Empty
 	}
-	return v, nil
+	return v
+}
+
+// GetStringValue 获取配置值（string），获取不到则取默认值，立即返回，初始化未完成直接返回错误
+func (c *Config) GetStringValueImmediately(key string, defaultValue string) string {
+	value := c.GetValueImmediately(key)
+	if value == utils.Empty {
+		return defaultValue
+	}
+
+	return value
+}
+
+// GetStringSliceValueImmediately 获取配置值（[]string），立即返回，初始化未完成直接返回错误
+func (c *Config) GetStringSliceValueImmediately(key string, defaultValue []string) []string {
+	value := c.getConfigValue(key, false)
+	if value == nil {
+		return defaultValue
+	}
+
+	v, ok := value.([]string)
+	if !ok {
+		log.Debug("convert to []string fail ! source type:%T", value)
+		return defaultValue
+	}
+	return v
+}
+
+// GetIntSliceValueImmediately 获取配置值（[]int)，立即返回，初始化未完成直接返回错误
+func (c *Config) GetIntSliceValueImmediately(key string, defaultValue []int) []int {
+	value := c.getConfigValue(key, false)
+	if value == nil {
+		return defaultValue
+	}
+
+	v, ok := value.([]int)
+	if !ok {
+		log.Debug("convert to []int fail ! source type:%T", value)
+		return defaultValue
+	}
+	return v
+}
+
+// GetSliceValueImmediately 获取配置值（[]interface)，立即返回，初始化未完成直接返回错误
+func (c *Config) GetSliceValueImmediately(key string, defaultValue []interface{}) []interface{} {
+	value := c.getConfigValue(key, false)
+	if value == nil {
+		return defaultValue
+	}
+
+	v, ok := value.([]interface{})
+	if !ok {
+		log.Debug("convert to []interface{} fail ! source type:%T", value)
+		return defaultValue
+	}
+	return v
+}
+
+// GetIntValueImmediately 获取配置值（int），获取不到则取默认值，立即返回，初始化未完成直接返回错误
+func (c *Config) GetIntValueImmediately(key string, defaultValue int) int {
+	value := c.getConfigValue(key, false)
+	if value == nil {
+		return defaultValue
+	}
+
+	v, ok := value.(int)
+	if !ok {
+		log.Debug("convert to int fail ! source type:%T", value)
+		return defaultValue
+	}
+	return v
+}
+
+// GetFloatValueImmediately 获取配置值（float），获取不到则取默认值，立即返回，初始化未完成直接返回错误
+func (c *Config) GetFloatValueImmediately(key string, defaultValue float64) float64 {
+	value := c.getConfigValue(key, false)
+	if value == nil {
+		return defaultValue
+	}
+
+	v, ok := value.(float64)
+	if !ok {
+		log.Debug("convert to float64 fail ! source type:%T", value)
+		return defaultValue
+	}
+	return v
+}
+
+// GetBoolValueImmediately 获取配置值（bool），获取不到则取默认值，立即返回，初始化未完成直接返回错误
+func (c *Config) GetBoolValueImmediately(key string, defaultValue bool) bool {
+	value := c.getConfigValue(key, false)
+	if value == nil {
+		return defaultValue
+	}
+
+	v, ok := value.(bool)
+	if !ok {
+		log.Debug("convert to bool fail ! source type:%T", value)
+		return defaultValue
+	}
+	return v
 }
 
 // GetValue 获取配置值（string）
 func (c *Config) GetValue(key string) string {
-	value, err := c.getConfigValue(key, true)
-	if err != nil {
-		log.Errorf(err.Error())
+	value := c.getConfigValue(key, true)
+	if value == nil {
 		return utils.Empty
 	}
 
@@ -178,9 +277,8 @@ func (c *Config) GetStringValue(key string, defaultValue string) string {
 
 // GetStringSliceValue 获取配置值（[]string）
 func (c *Config) GetStringSliceValue(key string, defaultValue []string) []string {
-	value, err := c.getConfigValue(key, true)
-	if err != nil {
-		log.Errorf(err.Error())
+	value := c.getConfigValue(key, true)
+	if value == nil {
 		return defaultValue
 	}
 
@@ -194,9 +292,8 @@ func (c *Config) GetStringSliceValue(key string, defaultValue []string) []string
 
 // GetIntSliceValue 获取配置值（[]int)
 func (c *Config) GetIntSliceValue(key string, defaultValue []int) []int {
-	value, err := c.getConfigValue(key, true)
-	if err != nil {
-		log.Errorf(err.Error())
+	value := c.getConfigValue(key, true)
+	if value == nil {
 		return defaultValue
 	}
 
@@ -210,9 +307,8 @@ func (c *Config) GetIntSliceValue(key string, defaultValue []int) []int {
 
 // GetSliceValue 获取配置值（[]interface)
 func (c *Config) GetSliceValue(key string, defaultValue []interface{}) []interface{} {
-	value, err := c.getConfigValue(key, true)
-	if err != nil {
-		log.Errorf(err.Error())
+	value := c.getConfigValue(key, true)
+	if value == nil {
 		return defaultValue
 	}
 
@@ -226,9 +322,8 @@ func (c *Config) GetSliceValue(key string, defaultValue []interface{}) []interfa
 
 // GetIntValue 获取配置值（int），获取不到则取默认值
 func (c *Config) GetIntValue(key string, defaultValue int) int {
-	value, err := c.getConfigValue(key, true)
-	if err != nil {
-		log.Errorf(err.Error())
+	value := c.getConfigValue(key, true)
+	if value == nil {
 		return defaultValue
 	}
 
@@ -242,9 +337,8 @@ func (c *Config) GetIntValue(key string, defaultValue int) int {
 
 // GetFloatValue 获取配置值（float），获取不到则取默认值
 func (c *Config) GetFloatValue(key string, defaultValue float64) float64 {
-	value, err := c.getConfigValue(key, true)
-	if err != nil {
-		log.Errorf(err.Error())
+	value := c.getConfigValue(key, true)
+	if value == nil {
 		return defaultValue
 	}
 
@@ -258,9 +352,8 @@ func (c *Config) GetFloatValue(key string, defaultValue float64) float64 {
 
 // GetBoolValue 获取配置值（bool），获取不到则取默认值
 func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
-	value, err := c.getConfigValue(key, true)
-	if err != nil {
-		log.Errorf(err.Error())
+	value := c.getConfigValue(key, true)
+	if value == nil {
 		return defaultValue
 	}
 
