@@ -44,7 +44,7 @@ const (
 type Cache struct {
 	apolloConfigCache sync.Map
 	changeListeners   *list.List
-	rw                *sync.RWMutex
+	rw                sync.RWMutex
 }
 
 // GetConfig 根据namespace获取apollo配置
