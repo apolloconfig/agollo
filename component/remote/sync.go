@@ -47,11 +47,12 @@ func (*syncApolloConfig) GetNotifyURLSuffix(notifications string, config config.
 }
 
 func (*syncApolloConfig) GetSyncURI(config config.AppConfig, namespaceName string) string {
-	return fmt.Sprintf("configfiles/json/%s/%s/%s?&ip=%s",
+	return fmt.Sprintf("configfiles/json/%s/%s/%s?&ip=%s&label=%s",
 		url.QueryEscape(config.AppID),
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(namespaceName),
-		utils.GetInternal())
+		utils.GetInternal(),
+		url.QueryEscape(config.Label))
 }
 
 func (*syncApolloConfig) CallBack(namespace string) http.CallBack {

@@ -62,6 +62,7 @@ var (
 func getDefaultTransport(insecureSkipVerify bool) *http.Transport {
 	once.Do(func() {
 		defaultTransport = &http.Transport{
+			Proxy:               http.ProxyFromEnvironment,
 			MaxIdleConns:        defaultMaxConnsPerHost,
 			MaxIdleConnsPerHost: defaultMaxConnsPerHost,
 			DialContext: (&net.Dialer{

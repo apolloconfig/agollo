@@ -59,12 +59,13 @@ func (*asyncApolloConfig) GetNotifyURLSuffix(notifications string, config config
 }
 
 func (*asyncApolloConfig) GetSyncURI(config config.AppConfig, namespaceName string) string {
-	return fmt.Sprintf("configs/%s/%s/%s?releaseKey=%s&ip=%s",
+	return fmt.Sprintf("configs/%s/%s/%s?releaseKey=%s&ip=%s&label=%s",
 		url.QueryEscape(config.AppID),
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(namespaceName),
 		url.QueryEscape(config.GetCurrentApolloConfig().GetReleaseKey(namespaceName)),
-		utils.GetInternal())
+		utils.GetInternal(),
+		url.QueryEscape(config.Label))
 }
 
 func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*config.ApolloConfig {
