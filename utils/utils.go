@@ -56,6 +56,7 @@ func GetInternal() string {
 	return internalIP
 }
 
+//SetInternalIP 设置内部 ip
 func SetInternalIP(ip string) {
 	internalIP = ip
 }
