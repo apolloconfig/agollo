@@ -36,6 +36,9 @@ var (
 
 //GetInternal 获取内部ip
 func GetInternal() string {
+	if internalIP != "" {
+		return internalIP
+	}
 	internalIPOnce.Do(func() {
 		addrs, err := net.InterfaceAddrs()
 		if err != nil {
@@ -51,6 +54,10 @@ func GetInternal() string {
 		}
 	})
 	return internalIP
+}
+
+func SetInternalIP(ip string) {
+	internalIP = ip
 }
 
 //IsNotNil 判断是否nil
