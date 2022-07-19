@@ -146,7 +146,7 @@ func SyncServerIPListSuccessCallBack(responseBody []byte, callback http.CallBack
 	err = json2.Unmarshal(responseBody, &tmpServerInfo)
 
 	if err != nil {
-		log.Error("Unmarshal json Fail,Error:", err)
+		log.Errorf("Unmarshal json Fail,Error: %s", err)
 		return
 	}
 

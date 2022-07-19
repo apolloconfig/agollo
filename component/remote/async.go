@@ -138,7 +138,7 @@ func toApolloConfig(resBody []byte) ([]*config.Notification, error) {
 	err := json.Unmarshal(resBody, &remoteConfig)
 
 	if err != nil {
-		log.Error("Unmarshal Msg Fail,Error:", err)
+		log.Errorf("Unmarshal Msg Fail,Error: %v", err)
 		return nil, err
 	}
 	return remoteConfig, nil
@@ -149,7 +149,7 @@ func loadBackupConfig(namespace string, appConfig config.AppConfig) []*config.Ap
 	config.SplitNamespaces(namespace, func(namespace string) {
 		c, err := extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, appConfig.AppID, namespace)
 		if err != nil {
-			log.Error("LoadConfigFile error, error", err)
+			log.Errorf("LoadConfigFile error, error: %v", err)
 			return
 		}
 		if c == nil {
@@ -177,7 +177,7 @@ func createApolloConfigWithJSON(b []byte, callback http.CallBack) (o interface{}
 	}
 	m, err := parser.Parse(apolloConfig.Configurations[defaultContentKey])
 	if err != nil {
-		log.Debug("GetContent fail ! error:", err)
+		log.Debugf("GetContent fail ! error: %v", err)
 	}
 
 	if len(m) > 0 {

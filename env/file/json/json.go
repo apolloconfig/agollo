@@ -98,7 +98,7 @@ func (fileHandler *FileHandler) GetConfigFile(configDir string, appID string, na
 //LoadConfigFile load config from file
 func (fileHandler *FileHandler) LoadConfigFile(configDir string, appID string, namespace string) (*config.ApolloConfig, error) {
 	configFilePath := fileHandler.GetConfigFile(configDir, appID, namespace)
-	log.Info("load config file from :", configFilePath)
+	log.Infof("load config file from: %s", configFilePath)
 	c, e := jsonFileConfig.Load(configFilePath, func(b []byte) (interface{}, error) {
 		config := &config.ApolloConfig{}
 		e := json.NewDecoder(bytes.NewBuffer(b)).Decode(config)
