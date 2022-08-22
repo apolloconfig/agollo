@@ -62,7 +62,7 @@ func (a *AbsApolloConfig) SyncWithNamespace(namespace string, appConfigFunc func
 	}
 
 	if apolloConfig == nil {
-		log.Warn("apolloConfig is nil")
+		log.Debug("apolloConfig is nil")
 		return nil
 	}
 
