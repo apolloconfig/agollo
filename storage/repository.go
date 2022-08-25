@@ -44,6 +44,7 @@ const (
 type Cache struct {
 	apolloConfigCache sync.Map
 	changeListeners   *list.List
+	rw                sync.RWMutex
 }
 
 // GetConfig 根据namespace获取apollo配置
@@ -497,6 +498,8 @@ func (c *Cache) AddChangeListener(listener ChangeListener) {
 	if listener == nil {
 		return
 	}
+	c.rw.Lock()
+	defer c.rw.Unlock()
 	c.changeListeners.PushBack(listener)
 }
 
@@ -505,6 +508,8 @@ func (c *Cache) RemoveChangeListener(listener ChangeListener) {
 	if listener == nil {
 		return
 	}
+	c.rw.Lock()
+	defer c.rw.Unlock()
 	for i := c.changeListeners.Front(); i != nil; i = i.Next() {
 		apolloListener := i.Value.(ChangeListener)
 		if listener == apolloListener {
@@ -515,7 +520,14 @@ func (c *Cache) RemoveChangeListener(listener ChangeListener) {
 
 // GetChangeListeners 获取配置修改监听器列表
 func (c *Cache) GetChangeListeners() *list.List {
-	return c.changeListeners
+	if c.changeListeners == nil {
+		return nil
+	}
+	c.rw.RLock()
+	defer c.rw.RUnlock()
+	l := list.New()
+	l.PushBackList(c.changeListeners)
+	return l
 }
 
 // push config change event
@@ -538,11 +550,12 @@ func (c *Cache) pushNewestChanges(namespace string, configuration map[string]int
 
 func (c *Cache) pushChange(f func(ChangeListener)) {
 	// if channel is null ,mean no listener,don't need to push msg
-	if c.changeListeners == nil || c.changeListeners.Len() == 0 {
+	listeners := c.GetChangeListeners()
+	if listeners == nil || listeners.Len() == 0 {
 		return
 	}
 
-	for i := c.changeListeners.Front(); i != nil; i = i.Next() {
+	for i := listeners.Front(); i != nil; i = i.Next() {
 		listener := i.Value.(ChangeListener)
 		f(listener)
 	}
