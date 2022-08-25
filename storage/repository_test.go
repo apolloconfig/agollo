@@ -192,11 +192,11 @@ func TestRegDispatchInRepository(t *testing.T) {
 	cache.AddChangeListener(dispatch)
 	cache.pushChangeEvent(cEvent)
 	time.Sleep(1 * time.Second)
-	Assert(t, len(l.Keys), Equal(2))
-	v, ok := l.Keys["add"]
+	Assert(t, l.Len(), Equal(2))
+	v, ok := l.Value("add")
 	Assert(t, v, Equal("new"))
 	Assert(t, ok, Equal(true))
-	v, ok = l.Keys["adx"]
+	v, ok = l.Value("adx")
 	Assert(t, v, Equal("new"))
 	Assert(t, ok, Equal(true))
 }
@@ -214,14 +214,14 @@ func TestDispatchInRepository(t *testing.T) {
 	cache.AddChangeListener(dispatch)
 	cache.pushChangeEvent(cEvent)
 	time.Sleep(1 * time.Second)
-	Assert(t, len(l.Keys), Equal(2))
-	v, ok := l.Keys["add"]
+	Assert(t, l.Len(), Equal(2))
+	v, ok := l.Value("add")
 	Assert(t, v, Equal("new"))
 	Assert(t, ok, Equal(true))
-	v, ok = l.Keys["delete"]
+	v, ok = l.Value("delete")
 	Assert(t, ok, Equal(true))
 	Assert(t, v, Equal("old"))
-	_, ok = l.Keys["modify"]
+	_, ok = l.Value("modify")
 	Assert(t, ok, Equal(false))
 }
 

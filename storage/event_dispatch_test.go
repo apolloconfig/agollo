@@ -35,6 +35,19 @@ func (t *CustomListener) Event(event *Event) {
 	t.Keys[event.Key] = event.Value
 }
 
+func (t *CustomListener) Value(key string) (interface{}, bool) {
+	t.l.Lock()
+	defer t.l.Unlock()
+	v, ok := t.Keys[key]
+	return v, ok
+}
+
+func (t *CustomListener) Len() int {
+	t.l.Lock()
+	defer t.l.Unlock()
+	return len(t.Keys)
+}
+
 func TestDispatch(t *testing.T) {
 	dispatch := UseEventDispatch()
 	l := &CustomListener{
@@ -89,5 +102,4 @@ func TestUnRegisterListener(t *testing.T) {
 	Assert(t, err, NilVal())
 	Assert(t, len(dispatch.listeners), Equal(1))
 	Assert(t, len(dispatch.listeners["ad.*"]), Equal(0))
-
 }
