@@ -161,14 +161,14 @@ func getConfigURLSuffix(config *config.AppConfig, namespaceName string) string {
 
 //SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
 func SyncServerIPListSuccessCallBack(responseBody []byte, callback CallBack) (o interface{}, err error) {
-	log.Debug("get all server info:", string(responseBody))
+	log.Debugf("get all server info: %s", string(responseBody))
 
 	tmpServerInfo := make([]*config.ServerInfo, 0)
 
 	err = json2.Unmarshal(responseBody, &tmpServerInfo)
 
 	if err != nil {
-		log.Error("Unmarshal json Fail,Error:", err)
+		log.Errorf("Unmarshal json Fail,Error: %v", err)
 		return
 	}
 

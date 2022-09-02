@@ -85,7 +85,7 @@ func processJSONFiles(b []byte, callback http.CallBack) (o interface{}, err erro
 	}
 	m, err := parser.Parse(configurations[defaultContentKey])
 	if err != nil {
-		log.Debug("GetContent fail ! error:", err)
+		log.Debugf("GetContent fail ! error: %v", err)
 	}
 
 	if len(m) > 0 {
