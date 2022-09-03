@@ -21,6 +21,7 @@ import (
 	"container/list"
 	"fmt"
 	"reflect"
+	"strconv"
 	"sync"
 	"sync/atomic"
 
@@ -214,10 +215,22 @@ func (c *Config) GetIntValueImmediately(key string, defaultValue int) int {
 	}
 
 	v, ok := value.(int)
+	if ok {
+		return v
+	}
+
+	s, ok := value.(string)
 	if !ok {
 		log.Debugf("convert to int fail ! source type:%T", value)
 		return defaultValue
 	}
+
+	v, err := strconv.Atoi(s)
+	if err != nil {
+		log.Debug("Atoi fail err:%s", err.Error())
+		return defaultValue
+	}
+
 	return v
 }
 
@@ -229,10 +242,22 @@ func (c *Config) GetFloatValueImmediately(key string, defaultValue float64) floa
 	}
 
 	v, ok := value.(float64)
+	if ok {
+		return v
+	}
+
+	s, ok := value.(string)
 	if !ok {
 		log.Debugf("convert to float64 fail ! source type:%T", value)
 		return defaultValue
 	}
+
+	v, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		log.Debug("ParseFloat fail err:%s", err.Error())
+		return defaultValue
+	}
+
 	return v
 }
 
@@ -244,10 +269,22 @@ func (c *Config) GetBoolValueImmediately(key string, defaultValue bool) bool {
 	}
 
 	v, ok := value.(bool)
+	if ok {
+		return v
+	}
+
+	s, ok := value.(string)
 	if !ok {
 		log.Debugf("convert to bool fail ! source type:%T", value)
 		return defaultValue
 	}
+
+	v, err := strconv.ParseBool(s)
+	if err != nil {
+		log.Debug("ParseBool fail err:%s", err.Error())
+		return defaultValue
+	}
+
 	return v
 }
 
@@ -329,8 +366,19 @@ func (c *Config) GetIntValue(key string, defaultValue int) int {
 	}
 
 	v, ok := value.(int)
+	if ok {
+		return v
+	}
+
+	s, ok := value.(string)
 	if !ok {
 		log.Debugf("convert to int fail ! source type:%T", value)
+		return defaultValue
+	}
+
+	v, err := strconv.Atoi(s)
+	if err != nil {
+		log.Debug("Atoi fail  err:%s", err.Error())
 		return defaultValue
 	}
 	return v
@@ -344,8 +392,19 @@ func (c *Config) GetFloatValue(key string, defaultValue float64) float64 {
 	}
 
 	v, ok := value.(float64)
+	if ok {
+		return v
+	}
+
+	s, ok := value.(string)
 	if !ok {
 		log.Debugf("convert to float64 fail ! source type:%T", value)
+		return defaultValue
+	}
+
+	v, err := strconv.ParseFloat(s, 64)
+	if err != nil {
+		log.Debug("ParseFloat fail err:%s", err.Error())
 		return defaultValue
 	}
 	return v
@@ -359,8 +418,19 @@ func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
 	}
 
 	v, ok := value.(bool)
+	if ok {
+		return v
+	}
+
+	s, ok := value.(string)
 	if !ok {
 		log.Debugf("convert to bool fail ! source type:%T", value)
+		return defaultValue
+	}
+
+	v, err := strconv.ParseBool(s)
+	if err != nil {
+		log.Debug("ParseBool fail err:%s", err.Error())
 		return defaultValue
 	}
 	return v
