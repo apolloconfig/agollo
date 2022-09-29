@@ -83,7 +83,12 @@ func processJSONFiles(b []byte, callback http.CallBack) (o interface{}, err erro
 	if parser == nil {
 		return apolloConfig, nil
 	}
-	m, err := parser.Parse(configurations[defaultContentKey])
+
+	content, ok := configurations[defaultContentKey]
+	if !ok {
+		content = string(b)
+	}
+	m, err := parser.Parse(content)
 	if err != nil {
 		log.Debugf("GetContent fail ! error: %v", err)
 	}
