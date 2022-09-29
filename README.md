@@ -54,8 +54,6 @@ func main() {
 		Secret:         "6ce3ff7e96a24335a9634fe9abca6d51",
 	}
 
-	agollo.SetLogger(&DefaultLogger{})
-
 	client, _ := agollo.StartWithConfig(func() (*config.AppConfig, error) {
 		return c, nil
 	})
