@@ -99,7 +99,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 	var err error
 	url, err := url2.Parse(requestURL)
 	if err != nil {
-		log.Error("request Apollo Server url:%s, is invalid %s", requestURL, err)
+		log.Errorf("request Apollo Server url: %s, is invalid: %v", requestURL, err)
 		return nil, err
 	}
 	var insecureSkipVerify bool
@@ -167,7 +167,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			}
 			return nil, nil
 		case http.StatusNotModified:
-			log.Debug("Config Not Modified:", err)
+			log.Debugf("Config Not Modified: %v", err)
 			if callBack != nil && callBack.NotModifyCallBack != nil {
 				return nil, callBack.NotModifyCallBack()
 			}
@@ -180,7 +180,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		}
 	}
 
-	log.Error("Over Max Retry Still Error,Error:", err)
+	log.Errorf("Over Max Retry Still Error,Error: %v", err)
 	if retry > retries {
 		err = errors.New("over Max Retry Still Error")
 	}

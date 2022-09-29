@@ -59,7 +59,7 @@ func (fileHandler *FileHandler) createDir(configPath string) error {
 	configFileDirMapLock.Lock()
 	defer configFileDirMapLock.Unlock()
 	if !configFileDirMap[configPath] {
-		err := os.Mkdir(configPath, os.ModePerm)
+		err := os.MkdirAll(configPath, os.ModePerm)
 		if err != nil && !os.IsExist(err) {
 			log.Errorf("Create backup dir:%s fail,error:&s", configPath, err)
 			return err
@@ -98,7 +98,7 @@ func (fileHandler *FileHandler) GetConfigFile(configDir string, appID string, na
 //LoadConfigFile load config from file
 func (fileHandler *FileHandler) LoadConfigFile(configDir string, appID string, namespace string) (*config.ApolloConfig, error) {
 	configFilePath := fileHandler.GetConfigFile(configDir, appID, namespace)
-	log.Info("load config file from :", configFilePath)
+	log.Infof("load config file from: %s", configFilePath)
 	c, e := jsonFileConfig.Load(configFilePath, func(b []byte) (interface{}, error) {
 		config := &config.ApolloConfig{}
 		e := json.NewDecoder(bytes.NewBuffer(b)).Decode(config)

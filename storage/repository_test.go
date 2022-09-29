@@ -98,8 +98,11 @@ func TestGetConfig(t *testing.T) {
 	configurations := make(map[string]interface{})
 	configurations["string"] = "string2"
 	configurations["int"] = 2
+	configurations["string_int"] = "2"
 	configurations["float"] = 1.9
+	configurations["string_float"] = "1.9"
 	configurations["bool"] = false
+	configurations["string_bool"] = "false"
 	configurations["sliceString"] = []string{"1", "2", "3"}
 	configurations["sliceInt"] = []int{1, 2, 3}
 	configurations["sliceInter"] = []interface{}{1, "2", 3}
@@ -117,18 +120,30 @@ func TestGetConfig(t *testing.T) {
 	// int
 	i := config.GetIntValue("int", 3)
 	Assert(t, i, Equal(2))
+	i = config.GetIntValue("string_int", 3)
+	Assert(t, i, Equal(2))
+	i = config.GetIntValue("float", 3)
+	Assert(t, i, Equal(3))
 	i = config.GetIntValue("i", 3)
 	Assert(t, i, Equal(3))
 
 	// float
 	f := config.GetFloatValue("float", 2)
 	Assert(t, f, Equal(1.9))
+	f = config.GetFloatValue("string_float", 2)
+	Assert(t, f, Equal(1.9))
+	f = config.GetFloatValue("int", 2)
+	Assert(t, f, Equal(float64(2)))
 	f = config.GetFloatValue("f", 2)
 	Assert(t, f, Equal(float64(2)))
 
 	// bool
 	b := config.GetBoolValue("bool", true)
 	Assert(t, b, Equal(false))
+	b = config.GetBoolValue("string_bool", true)
+	Assert(t, b, Equal(false))
+	b = config.GetBoolValue("int", true)
+	Assert(t, b, Equal(true))
 
 	b = config.GetBoolValue("b", false)
 	Assert(t, b, Equal(false))
@@ -192,11 +207,11 @@ func TestRegDispatchInRepository(t *testing.T) {
 	cache.AddChangeListener(dispatch)
 	cache.pushChangeEvent(cEvent)
 	time.Sleep(1 * time.Second)
-	Assert(t, len(l.Keys), Equal(2))
-	v, ok := l.Keys["add"]
+	Assert(t, l.Len(), Equal(2))
+	v, ok := l.Value("add")
 	Assert(t, v, Equal("new"))
 	Assert(t, ok, Equal(true))
-	v, ok = l.Keys["adx"]
+	v, ok = l.Value("adx")
 	Assert(t, v, Equal("new"))
 	Assert(t, ok, Equal(true))
 }
@@ -214,14 +229,14 @@ func TestDispatchInRepository(t *testing.T) {
 	cache.AddChangeListener(dispatch)
 	cache.pushChangeEvent(cEvent)
 	time.Sleep(1 * time.Second)
-	Assert(t, len(l.Keys), Equal(2))
-	v, ok := l.Keys["add"]
+	Assert(t, l.Len(), Equal(2))
+	v, ok := l.Value("add")
 	Assert(t, v, Equal("new"))
 	Assert(t, ok, Equal(true))
-	v, ok = l.Keys["delete"]
+	v, ok = l.Value("delete")
 	Assert(t, ok, Equal(true))
 	Assert(t, v, Equal("old"))
-	_, ok = l.Keys["modify"]
+	_, ok = l.Value("modify")
 	Assert(t, ok, Equal(false))
 }
 
@@ -251,8 +266,11 @@ func TestGetConfigImmediately(t *testing.T) {
 	configurations := make(map[string]interface{})
 	configurations["string"] = "string2"
 	configurations["int"] = 2
+	configurations["string_int"] = "2"
 	configurations["float"] = 1.9
+	configurations["string_float"] = "1.9"
 	configurations["bool"] = false
+	configurations["string_bool"] = "false"
 	configurations["sliceString"] = []string{"1", "2", "3"}
 	configurations["sliceInt"] = []int{1, 2, 3}
 	configurations["sliceInter"] = []interface{}{1, "2", 3}
@@ -270,19 +288,30 @@ func TestGetConfigImmediately(t *testing.T) {
 	// int
 	i := config.GetIntValueImmediately("int", 3)
 	Assert(t, i, Equal(2))
+	i = config.GetIntValueImmediately("string_int", 3)
+	Assert(t, i, Equal(2))
+	i = config.GetIntValueImmediately("float", 3)
+	Assert(t, i, Equal(3))
 	i = config.GetIntValueImmediately("i", 3)
 	Assert(t, i, Equal(3))
 
 	// float
 	f := config.GetFloatValueImmediately("float", 2)
 	Assert(t, f, Equal(1.9))
+	f = config.GetFloatValueImmediately("string_float", 2)
+	Assert(t, f, Equal(1.9))
 	f = config.GetFloatValueImmediately("f", 2)
+	Assert(t, f, Equal(float64(2)))
+	f = config.GetFloatValueImmediately("int", 2)
 	Assert(t, f, Equal(float64(2)))
 
 	// bool
 	b := config.GetBoolValueImmediately("bool", true)
 	Assert(t, b, Equal(false))
-
+	b = config.GetBoolValueImmediately("string_bool", true)
+	Assert(t, b, Equal(false))
+	b = config.GetBoolValueImmediately("int", false)
+	Assert(t, b, Equal(false))
 	b = config.GetBoolValueImmediately("b", false)
 	Assert(t, b, Equal(false))
 
