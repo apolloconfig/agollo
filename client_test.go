@@ -25,19 +25,19 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/tevid/gohamcrest"
+
 	"github.com/apolloconfig/agollo/v4/agcache/memory"
 	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/env/server"
-
 	_ "github.com/apolloconfig/agollo/v4/env/file/json"
+	"github.com/apolloconfig/agollo/v4/env/server"
 	"github.com/apolloconfig/agollo/v4/extension"
 	"github.com/apolloconfig/agollo/v4/storage"
-	. "github.com/tevid/gohamcrest"
 )
 
 const testDefaultNamespace = "application"
 
-//init param
+// init param
 func init() {
 	extension.SetCacheFactory(&memory.DefaultCacheFactory{})
 }
@@ -46,18 +46,18 @@ func createMockApolloConfig(expireTime int) *internalClient {
 	client := create()
 	client.cache = storage.CreateNamespaceConfig(client.appConfig.NamespaceName)
 	configs := make(map[string]interface{}, 0)
-	//string
+	// string
 	configs["string"] = "value"
-	//int
+	// int
 	configs["int"] = 1
-	//float
+	// float
 	configs["float"] = 190.3
-	//bool
+	// bool
 	configs["bool"] = true
-	//string slice
+	// string slice
 	configs["stringSlice"] = []string{"1", "2"}
 
-	//int slice
+	// int slice
 	configs["intSlice"] = []int{1, 2}
 
 	client.cache.UpdateApolloConfigCache(configs, expireTime, storage.GetDefaultNamespace())
@@ -67,15 +67,15 @@ func createMockApolloConfig(expireTime int) *internalClient {
 
 func TestGetConfigValueNullApolloConfig(t *testing.T) {
 	client := createMockApolloConfig(120)
-	//test getValue
+	// test getValue
 	value := client.GetValue("joe")
 
 	Assert(t, "", Equal(value))
 
-	//test GetStringValue
+	// test GetStringValue
 	defaultValue := "j"
 
-	//test default
+	// test default
 	v := client.GetStringValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
@@ -86,17 +86,17 @@ func TestGetIntValue(t *testing.T) {
 	client := createMockApolloConfig(120)
 	defaultValue := 100000
 
-	//test default
+	// test default
 	v := client.GetIntValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 
-	//normal value
+	// normal value
 	v = client.GetIntValue("int", defaultValue)
 
 	Assert(t, 1, Equal(v))
 
-	//error type
+	// error type
 	v = client.GetIntValue("float", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
@@ -106,17 +106,17 @@ func TestGetIntSliceValue(t *testing.T) {
 	client := createMockApolloConfig(120)
 	defaultValue := []int{100}
 
-	//test default
+	// test default
 	v := client.GetIntSliceValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 
-	//normal value
+	// normal value
 	v = client.GetIntSliceValue("intSlice", defaultValue)
 
 	Assert(t, []int{1, 2}, Equal(v))
 
-	//error type
+	// error type
 	v = client.GetIntSliceValue("float", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
@@ -126,17 +126,17 @@ func TestGetStringSliceValue(t *testing.T) {
 	client := createMockApolloConfig(120)
 	defaultValue := []string{"100"}
 
-	//test default
+	// test default
 	v := client.GetStringSliceValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 
-	//normal value
+	// normal value
 	v = client.GetStringSliceValue("stringSlice", defaultValue)
 
 	Assert(t, []string{"1", "2"}, Equal(v))
 
-	//error type
+	// error type
 	v = client.GetStringSliceValue("float", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
@@ -146,17 +146,17 @@ func TestGetFloatValue(t *testing.T) {
 	client := createMockApolloConfig(120)
 	defaultValue := 100000.1
 
-	//test default
+	// test default
 	v := client.GetFloatValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 
-	//normal value
+	// normal value
 	v = client.GetFloatValue("float", defaultValue)
 
 	Assert(t, 190.3, Equal(v))
 
-	//error type
+	// error type
 	v = client.GetFloatValue("int", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
@@ -166,17 +166,17 @@ func TestGetBoolValue(t *testing.T) {
 	client := createMockApolloConfig(120)
 	defaultValue := false
 
-	//test default
+	// test default
 	v := client.GetBoolValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 
-	//normal value
+	// normal value
 	v = client.GetBoolValue("bool", defaultValue)
 
 	Assert(t, true, Equal(v))
 
-	//error type
+	// error type
 	v = client.GetBoolValue("float", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
@@ -186,12 +186,12 @@ func TestGetStringValue(t *testing.T) {
 	client := createMockApolloConfig(120)
 	defaultValue := "j"
 
-	//test default
+	// test default
 	v := client.GetStringValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 
-	//normal value
+	// normal value
 	v = client.GetStringValue("string", defaultValue)
 
 	Assert(t, "value", Equal(v))
@@ -266,11 +266,11 @@ func TestConfig_GetStringValue(t *testing.T) {
 	config := client.GetConfig(testDefaultNamespace)
 
 	defaultValue := "j"
-	//test default
+	// test default
 	v := config.GetStringValue("joe", defaultValue)
 	Assert(t, defaultValue, Equal(v))
 
-	//normal value
+	// normal value
 	v = config.GetStringValue("string", defaultValue)
 
 	Assert(t, "value", Equal(v))
@@ -281,17 +281,17 @@ func TestConfig_GetBoolValue(t *testing.T) {
 	defaultValue := false
 	config := client.GetConfig(testDefaultNamespace)
 
-	//test default
+	// test default
 	v := config.GetBoolValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 
-	//normal value
+	// normal value
 	v = config.GetBoolValue("bool", defaultValue)
 
 	Assert(t, true, Equal(v))
 
-	//error type
+	// error type
 	v = config.GetBoolValue("float", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
@@ -302,17 +302,17 @@ func TestConfig_GetFloatValue(t *testing.T) {
 	defaultValue := 100000.1
 	config := client.GetConfig(testDefaultNamespace)
 
-	//test default
+	// test default
 	v := config.GetFloatValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 
-	//normal value
+	// normal value
 	v = config.GetFloatValue("float", defaultValue)
 
 	Assert(t, 190.3, Equal(v))
 
-	//error type
+	// error type
 	v = config.GetFloatValue("int", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
@@ -323,17 +323,17 @@ func TestConfig_GetIntValue(t *testing.T) {
 	defaultValue := 100000
 	config := client.GetConfig(testDefaultNamespace)
 
-	//test default
+	// test default
 	v := config.GetIntValue("joe", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))
 
-	//normal value
+	// normal value
 	v = config.GetIntValue("int", defaultValue)
 
 	Assert(t, 1, Equal(v))
 
-	//error type
+	// error type
 	v = config.GetIntValue("float", defaultValue)
 
 	Assert(t, defaultValue, Equal(v))

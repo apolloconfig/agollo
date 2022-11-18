@@ -25,6 +25,8 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/tevid/gohamcrest"
+
 	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
 	"github.com/apolloconfig/agollo/v4/env"
 	"github.com/apolloconfig/agollo/v4/env/config"
@@ -32,7 +34,6 @@ import (
 	"github.com/apolloconfig/agollo/v4/env/server"
 	"github.com/apolloconfig/agollo/v4/extension"
 	http2 "github.com/apolloconfig/agollo/v4/protocol/http"
-	. "github.com/tevid/gohamcrest"
 )
 
 var asyncApollo *asyncApolloConfig
@@ -123,7 +124,7 @@ func onlynormaltworesponse(rw http.ResponseWriter, req *http.Request) {
 }
 
 func initMockNotifyAndConfigServer() *httptest.Server {
-	//clear
+	// clear
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
 	handlerMap["abc1"] = onlyNormalTwoConfigResponse
@@ -131,7 +132,7 @@ func initMockNotifyAndConfigServer() *httptest.Server {
 }
 
 func initMockNotifyAndConfigServerWithTwo() *httptest.Server {
-	//clear
+	// clear
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
 	handlerMap["abc1"] = onlyNormalTwoConfigResponse
@@ -139,14 +140,14 @@ func initMockNotifyAndConfigServerWithTwo() *httptest.Server {
 }
 
 func initMockNotifyAndConfigServerWithTwoErrResponse() *httptest.Server {
-	//clear
+	// clear
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
 	handlerMap["abc1"] = serverErrorTwoConfigResponse
 	return runMockConfigServer(handlerMap, onlynormaltworesponse)
 }
 
-//run mock config server
+// run mock config server
 func runMockConfigServer(handlerMap map[string]func(http.ResponseWriter, *http.Request),
 	notifyHandler func(http.ResponseWriter, *http.Request)) *httptest.Server {
 	appConfig := env.InitFileConfig()
@@ -177,8 +178,8 @@ func initNotifications() *config.AppConfig {
 	return appConfig
 }
 
-//Error response
-//will hold 5s and keep response 404
+// Error response
+// will hold 5s and keep response 404
 func runErrorResponse() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
@@ -194,7 +195,7 @@ func TestApolloConfig_Sync(t *testing.T) {
 	apolloConfigs := asyncApollo.Sync(func() config.AppConfig {
 		return *appConfig
 	})
-	//err keep nil
+	// err keep nil
 	Assert(t, apolloConfigs, NotNilVal())
 	Assert(t, len(apolloConfigs), Equal(1))
 	Assert(t, appConfig.GetNotificationsMap().GetNotify("application"), Equal(int64(3)))
@@ -208,7 +209,7 @@ func TestApolloConfig_SyncTwoOk(t *testing.T) {
 	apolloConfigs := asyncApollo.Sync(func() config.AppConfig {
 		return *appConfig
 	})
-	//err keep nil
+	// err keep nil
 	Assert(t, apolloConfigs, NotNilVal())
 	Assert(t, len(apolloConfigs), Equal(2))
 	Assert(t, appConfig.GetNotificationsMap().GetNotify("application"), Equal(int64(3)))
@@ -223,7 +224,7 @@ func TestApolloConfig_GraySync(t *testing.T) {
 	apolloConfigs := asyncApollo.Sync(func() config.AppConfig {
 		return *appConfig
 	})
-	//err keep nil
+	// err keep nil
 	Assert(t, apolloConfigs, NotNilVal())
 	Assert(t, len(apolloConfigs), Equal(1))
 
@@ -239,7 +240,7 @@ func TestApolloConfig_SyncABC1Error(t *testing.T) {
 	apolloConfigs := asyncApollo.Sync(func() config.AppConfig {
 		return *appConfig
 	})
-	//err keep nil
+	// err keep nil
 	Assert(t, apolloConfigs, NotNilVal())
 	Assert(t, len(apolloConfigs), Equal(1))
 	Assert(t, appConfig.GetNotificationsMap().GetNotify("application"), Equal(int64(3)))
@@ -266,7 +267,7 @@ func TestGetRemoteConfig(t *testing.T) {
 		return *appConfig
 	}, EMPTY)
 
-	//err keep nil
+	// err keep nil
 	Assert(t, err, NilVal())
 
 	Assert(t, remoteConfigs, NotNilVal())
@@ -281,7 +282,7 @@ func TestGetRemoteConfig(t *testing.T) {
 }
 
 func TestErrorGetRemoteConfig(t *testing.T) {
-	//clear
+	// clear
 	initNotifications()
 	appConfig := initNotifications()
 	server1 := runErrorResponse()

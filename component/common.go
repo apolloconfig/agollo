@@ -17,12 +17,12 @@
 
 package component
 
-//AbsComponent 定时组件
+// AbsComponent 定时组件
 type AbsComponent interface {
 	Start()
 }
 
-//StartRefreshConfig 开始定时服务
+// StartRefreshConfig 开始定时服务
 func StartRefreshConfig(component AbsComponent) {
 	component.Start()
 }

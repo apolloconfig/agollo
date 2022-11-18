@@ -20,14 +20,15 @@ package extension
 import (
 	"testing"
 
-	"github.com/apolloconfig/agollo/v4/env/config"
 	. "github.com/tevid/gohamcrest"
+
+	"github.com/apolloconfig/agollo/v4/env/config"
 )
 
 type TestLoadBalance struct {
 }
 
-//Load 负载均衡
+// Load 负载均衡
 func (r *TestLoadBalance) Load(servers map[string]*config.ServerInfo) *config.ServerInfo {
 	return nil
 }

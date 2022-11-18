@@ -18,8 +18,9 @@
 package sign
 
 import (
-	. "github.com/tevid/gohamcrest"
 	"testing"
+
+	. "github.com/tevid/gohamcrest"
 )
 
 const (

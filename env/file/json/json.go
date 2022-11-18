@@ -21,28 +21,28 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/apolloconfig/agollo/v4/env/config"
 	"os"
 	"sync"
 
 	"github.com/apolloconfig/agollo/v4/component/log"
+	"github.com/apolloconfig/agollo/v4/env/config"
 	jsonConfig "github.com/apolloconfig/agollo/v4/env/config/json"
 )
 
-//Suffix 默认文件保存类型
+// Suffix 默认文件保存类型
 const Suffix = ".json"
 
 var (
-	//jsonFileConfig 处理文件的json格式存取
+	// jsonFileConfig 处理文件的json格式存取
 	jsonFileConfig = &jsonConfig.ConfigFile{}
-	//configFileMap 存取namespace文件地址
+	// configFileMap 存取namespace文件地址
 	configFileMap = make(map[string]string, 1)
-	//configFileMapLock configFileMap的读取锁
+	// configFileMapLock configFileMap的读取锁
 	configFileMapLock sync.Mutex
 
-	//configFileDirMap 存取 configFileDir 文件所在地址，用于判断是否已经存在目录
+	// configFileDirMap 存取 configFileDir 文件所在地址，用于判断是否已经存在目录
 	configFileDirMap = make(map[string]bool, 1)
-	//configFileDirMapLock configFileDirMap的读取锁
+	// configFileDirMapLock configFileDirMap的读取锁
 	configFileDirMapLock sync.Mutex
 )
 
@@ -95,7 +95,7 @@ func (fileHandler *FileHandler) GetConfigFile(configDir string, appID string, na
 	return configFileMap[namespace]
 }
 
-//LoadConfigFile load config from file
+// LoadConfigFile load config from file
 func (fileHandler *FileHandler) LoadConfigFile(configDir string, appID string, namespace string) (*config.ApolloConfig, error) {
 	configFilePath := fileHandler.GetConfigFile(configDir, appID, namespace)
 	log.Infof("load config file from: %s", configFilePath)

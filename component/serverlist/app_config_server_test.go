@@ -74,9 +74,9 @@ const servicesConfigResponseStr = `[{
 }
 ]`
 
-//var server *http.Server
+// var server *http.Server
 
-//run mock config server
+// run mock config server
 func runMockServicesConfigServer() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)

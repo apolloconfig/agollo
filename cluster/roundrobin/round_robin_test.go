@@ -25,8 +25,9 @@ import (
 	"github.com/apolloconfig/agollo/v4/env/server"
 	"github.com/apolloconfig/agollo/v4/protocol/http"
 
-	"github.com/apolloconfig/agollo/v4/env"
 	. "github.com/tevid/gohamcrest"
+
+	"github.com/apolloconfig/agollo/v4/env"
 )
 
 const servicesConfigResponseStr = `[{
@@ -85,7 +86,7 @@ func TestSelectHost(t *testing.T) {
 	balanace := &RoundRobin{}
 
 	appConfig := env.InitFileConfig()
-	//mock ip data
+	// mock ip data
 	trySyncServerIPList(*appConfig)
 
 	t.Log("appconfig host:" + appConfig.GetHost())
@@ -95,11 +96,11 @@ func TestSelectHost(t *testing.T) {
 	Assert(t, host, Equal(appConfig.GetHost()))
 	Assert(t, host, NotEqual(balanace.Load(server.GetServers(appConfig.GetHost())).HomepageURL))
 
-	//check select next time
+	// check select next time
 	server.SetNextTryConnTime(appConfig.GetHost(), 5)
 	Assert(t, host, NotEqual(balanace.Load(server.GetServers(appConfig.GetHost())).HomepageURL))
 
-	//check servers
+	// check servers
 	server.SetNextTryConnTime(appConfig.GetHost(), 5)
 	firstHost := balanace.Load(server.GetServers(appConfig.GetHost())).HomepageURL
 	Assert(t, host, NotEqual(firstHost))
@@ -121,8 +122,8 @@ func TestSelectHost(t *testing.T) {
 
 	Assert(t, balanace.Load(server.GetServers(appConfig.GetHost())), NilVal())
 
-	//no servers
-	//servers = make(map[string]*serverInfo, 0)
+	// no servers
+	// servers = make(map[string]*serverInfo, 0)
 	deleteServers(appConfig)
 	Assert(t, balanace.Load(server.GetServers(appConfig.GetHost())), NilVal())
 }

@@ -24,6 +24,8 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/tevid/gohamcrest"
+
 	"github.com/apolloconfig/agollo/v4/constant"
 	"github.com/apolloconfig/agollo/v4/env"
 	"github.com/apolloconfig/agollo/v4/env/config"
@@ -33,7 +35,6 @@ import (
 	"github.com/apolloconfig/agollo/v4/utils/parse/properties"
 	"github.com/apolloconfig/agollo/v4/utils/parse/yaml"
 	"github.com/apolloconfig/agollo/v4/utils/parse/yml"
-	. "github.com/tevid/gohamcrest"
 )
 
 var (
@@ -53,10 +54,10 @@ func init() {
 	extension.AddFormatParser(constant.YAML, &yaml.Parser{})
 }
 
-//Normal response
-//First request will hold 5s and response http.StatusNotModified
-//Second request will hold 5s and response http.StatusNotModified
-//Second request will response [{"namespaceName":"application","notificationId":3}]
+// Normal response
+// First request will hold 5s and response http.StatusNotModified
+// Second request will hold 5s and response http.StatusNotModified
+// Second request will response [{"namespaceName":"application","notificationId":3}]
 func runNormalConfigResponse() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		normalConfigCount++
@@ -80,8 +81,8 @@ func runNormalConfigResponse() *httptest.Server {
 	return ts
 }
 
-//Error response
-//will hold 5s and keep response 404
+// Error response
+// will hold 5s and keep response 404
 func runErrorConfigResponse() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(500 * time.Microsecond)
@@ -149,7 +150,7 @@ func checkNilBackupFile(t *testing.T) {
 }
 
 func TestAutoSyncConfigServicesError(t *testing.T) {
-	//reload app properties
+	// reload app properties
 	server := runErrorConfigResponse()
 	newAppConfig := initNotifications()
 	newAppConfig.IP = server.URL

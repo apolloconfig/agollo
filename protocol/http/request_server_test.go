@@ -50,10 +50,10 @@ var servicesResponseStr = `[{
 
 var normalBackupConfigCount = 0
 
-//Normal response
-//First request will hold 5s and response http.StatusNotModified
-//Second request will hold 5s and response http.StatusNotModified
-//Second request will response [{"namespaceName":"application","notificationId":3}]
+// Normal response
+// First request will hold 5s and response http.StatusNotModified
+// Second request will hold 5s and response http.StatusNotModified
+// Second request will response [{"namespaceName":"application","notificationId":3}]
 func runNormalBackupConfigResponse() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		normalBackupConfigCount++
@@ -84,7 +84,7 @@ func runNormalBackupConfigResponseWithHTTPS() *httptest.Server {
 	return ts
 }
 
-//wait long time then response
+// wait long time then response
 func runLongTimeResponse() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(10 * time.Second)

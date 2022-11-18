@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	//Empty 空字符串
+	// Empty 空字符串
 	Empty = ""
 )
 
@@ -34,7 +34,7 @@ var (
 	internalIP     = ""
 )
 
-//GetInternal 获取内部ip
+// GetInternal 获取内部ip
 func GetInternal() string {
 	internalIPOnce.Do(func() {
 		addrs, err := net.InterfaceAddrs()
@@ -53,12 +53,12 @@ func GetInternal() string {
 	return internalIP
 }
 
-//IsNotNil 判断是否nil
+// IsNotNil 判断是否nil
 func IsNotNil(object interface{}) bool {
 	return !IsNilObject(object)
 }
 
-//IsNilObject 判断是否空对象
+// IsNilObject 判断是否空对象
 func IsNilObject(object interface{}) bool {
 	if object == nil {
 		return true

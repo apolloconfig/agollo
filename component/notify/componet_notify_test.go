@@ -21,6 +21,8 @@ import (
 	"encoding/json"
 	"testing"
 
+	. "github.com/tevid/gohamcrest"
+
 	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
 	_ "github.com/apolloconfig/agollo/v4/cluster/roundrobin"
 	"github.com/apolloconfig/agollo/v4/env"
@@ -29,7 +31,6 @@ import (
 	_ "github.com/apolloconfig/agollo/v4/env/file/json"
 	jsonFile "github.com/apolloconfig/agollo/v4/env/file/json"
 	"github.com/apolloconfig/agollo/v4/extension"
-	. "github.com/tevid/gohamcrest"
 )
 
 func init() {
@@ -49,7 +50,7 @@ func initNotifications() *config.AppConfig {
 }
 
 func TestUpdateAllNotifications(t *testing.T) {
-	//clear
+	// clear
 	c := initNotifications()
 
 	notifyJson := `[
@@ -72,7 +73,7 @@ func TestUpdateAllNotifications(t *testing.T) {
 }
 
 func TestUpdateAllNotificationsError(t *testing.T) {
-	//clear
+	// clear
 	appConfig := initNotifications()
 
 	notifyJson := `ffffff`
