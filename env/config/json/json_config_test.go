@@ -22,9 +22,10 @@ import (
 	"os"
 	"testing"
 
+	. "github.com/tevid/gohamcrest"
+
 	"github.com/apolloconfig/agollo/v4/env/config"
 	"github.com/apolloconfig/agollo/v4/utils"
-	. "github.com/tevid/gohamcrest"
 )
 
 var (
@@ -82,22 +83,22 @@ func TestCreateAppConfigWithJson(t *testing.T) {
 	Assert(t, "localhost:8888", Equal(config.IP))
 }
 
-//func TestCreateAppConfigWithJsonWrongEnv(t *testing.T) {
-//	jsonStr:=`{
+// func TestCreateAppConfigWithJsonWrongEnv(t *testing.T) {
+// 	jsonStr:=`{
 //    "appId": "test",
 //    "cluster": "joe",
 //    "namespaceName": "application",
 //    "ip": "localhost:8888",
 //    "releaseKey": ""
-//	}`
-//	config,err:=createAppConfigWithJson(jsonStr)
-//	t.Log(config)
-//	t.Log(err)
+// 	}`
+// 	config,err:=createAppConfigWithJson(jsonStr)
+// 	t.Log(config)
+// 	t.Log(err)
 //
-//	Assert(t,err)
-//	Assert(t,config)
-//	test.StartWith(t,"Env is wrong ,current env:joe",err.Error())
-//}
+// 	Assert(t,err)
+// 	Assert(t,config)
+// 	test.StartWith(t,"Env is wrong ,current env:joe",err.Error())
+// }
 
 func TestCreateAppConfigWithJsonError(t *testing.T) {
 	jsonStr := `package agollo

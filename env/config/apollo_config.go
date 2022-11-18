@@ -36,7 +36,7 @@ func CreateCurrentApolloConfig() *CurrentApolloConfig {
 	}
 }
 
-//SetCurrentApolloConfig 设置apollo配置
+// SetCurrentApolloConfig 设置apollo配置
 func (c *CurrentApolloConfig) Set(namespace string, connConfig *ApolloConnConfig) {
 	c.l.Lock()
 	defer c.l.Unlock()
@@ -44,7 +44,7 @@ func (c *CurrentApolloConfig) Set(namespace string, connConfig *ApolloConnConfig
 	c.configs[namespace] = connConfig
 }
 
-//GetCurrentApolloConfig 获取Apollo链接配置
+// GetCurrentApolloConfig 获取Apollo链接配置
 func (c *CurrentApolloConfig) Get() map[string]*ApolloConnConfig {
 	c.l.RLock()
 	defer c.l.RUnlock()
@@ -52,7 +52,7 @@ func (c *CurrentApolloConfig) Get() map[string]*ApolloConnConfig {
 	return c.configs
 }
 
-//GetCurrentApolloConfigReleaseKey 获取release key
+// GetCurrentApolloConfigReleaseKey 获取release key
 func (c *CurrentApolloConfig) GetReleaseKey(namespace string) string {
 	c.l.RLock()
 	defer c.l.RUnlock()
@@ -79,7 +79,7 @@ type ApolloConfig struct {
 	Configurations map[string]interface{} `json:"configurations"`
 }
 
-//Init 初始化
+// Init 初始化
 func (a *ApolloConfig) Init(appID string, cluster string, namespace string) {
 	a.AppID = appID
 	a.Cluster = cluster

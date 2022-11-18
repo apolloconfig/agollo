@@ -29,29 +29,28 @@ import (
 	"sync"
 	"time"
 
-	"github.com/apolloconfig/agollo/v4/env/server"
-
 	"github.com/apolloconfig/agollo/v4/component/log"
 	"github.com/apolloconfig/agollo/v4/env"
 	"github.com/apolloconfig/agollo/v4/env/config"
+	"github.com/apolloconfig/agollo/v4/env/server"
 	"github.com/apolloconfig/agollo/v4/extension"
 	"github.com/apolloconfig/agollo/v4/utils"
 )
 
 var (
-	//for on error retry
-	onErrorRetryInterval = 2 * time.Second //2s
+	// for on error retry
+	onErrorRetryInterval = 2 * time.Second // 2s
 
-	connectTimeout = 1 * time.Second //1s
+	connectTimeout = 1 * time.Second // 1s
 
-	//max retries connect apollo
+	// max retries connect apollo
 	maxRetries = 5
 
-	//defaultMaxConnsPerHost defines the maximum number of concurrent connections
+	// defaultMaxConnsPerHost defines the maximum number of concurrent connections
 	defaultMaxConnsPerHost = 512
-	//defaultTimeoutBySecond defines the default timeout for http connections
+	// defaultTimeoutBySecond defines the default timeout for http connections
 	defaultTimeoutBySecond = 1 * time.Second
-	//defaultKeepAliveSecond defines the connection time
+	// defaultKeepAliveSecond defines the connection time
 	defaultKeepAliveSecond = 60 * time.Second
 	// once for single http.Transport
 	once sync.Once
@@ -79,7 +78,7 @@ func getDefaultTransport(insecureSkipVerify bool) *http.Transport {
 	return defaultTransport
 }
 
-//CallBack 请求回调函数
+// CallBack 请求回调函数
 type CallBack struct {
 	SuccessCallBack   func([]byte, CallBack) (interface{}, error)
 	NotModifyCallBack func() error
@@ -87,10 +86,10 @@ type CallBack struct {
 	Namespace         string
 }
 
-//Request 建立网络请求
+// Request 建立网络请求
 func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *CallBack) (interface{}, error) {
 	client := &http.Client{}
-	//如有设置自定义超时时间即使用
+	// 如有设置自定义超时时间即使用
 	if connectionConfig != nil && connectionConfig.Timeout != 0 {
 		client.Timeout = connectionConfig.Timeout
 	} else {
@@ -126,7 +125,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			return nil, errors.New("generate connect Apollo request fail")
 		}
 
-		//增加header选项
+		// 增加header选项
 		httpAuth := extension.GetHTTPAuth()
 		if httpAuth != nil {
 			headers := httpAuth.HTTPHeaders(requestURL, connectionConfig.AppID, connectionConfig.Secret)
@@ -151,7 +150,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			continue
 		}
 
-		//not modified break
+		// not modified break
 		switch res.StatusCode {
 		case http.StatusOK:
 			responseBody, err := ioutil.ReadAll(res.Body)
@@ -187,7 +186,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 	return nil, err
 }
 
-//RequestRecovery 可以恢复的请求
+// RequestRecovery 可以恢复的请求
 func RequestRecovery(appConfig config.AppConfig,
 	connectConfig *env.ConnectConfig,
 	callBack *CallBack) (interface{}, error) {

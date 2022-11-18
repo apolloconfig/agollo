@@ -24,10 +24,11 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/tevid/gohamcrest"
+
 	"github.com/apolloconfig/agollo/v4/env/config"
 	jsonConfig "github.com/apolloconfig/agollo/v4/env/config/json"
 	"github.com/apolloconfig/agollo/v4/utils"
-	. "github.com/tevid/gohamcrest"
 )
 
 const servicesConfigResponseStr = `[{
@@ -96,12 +97,12 @@ func TestInit(t *testing.T) {
 	Assert(t, "application,abc1", Equal(config.NamespaceName))
 	Assert(t, "http://localhost:8888", Equal(config.IP))
 
-	//TODO: 需要确认是否放在这里
-	//defaultApolloConfig := GetCurrentApolloConfig()[defaultNamespace]
-	//Assert(t, defaultApolloConfig, NotNilVal())
-	//Assert(t, "test", Equal(defaultApolloConfig.AppId))
-	//Assert(t, "dev", Equal(defaultApolloConfig.Cluster))
-	//Assert(t, "application", Equal(defaultApolloConfig.NamespaceName))
+	// TODO: 需要确认是否放在这里
+	// defaultApolloConfig := GetCurrentApolloConfig()[defaultNamespace]
+	// Assert(t, defaultApolloConfig, NotNilVal())
+	// Assert(t, "test", Equal(defaultApolloConfig.AppId))
+	// Assert(t, "dev", Equal(defaultApolloConfig.Cluster))
+	// Assert(t, "application", Equal(defaultApolloConfig.NamespaceName))
 }
 
 func TestGetServicesConfigUrl(t *testing.T) {

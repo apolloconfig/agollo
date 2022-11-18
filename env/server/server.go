@@ -29,7 +29,7 @@ import (
 var (
 	ipMap      map[string]*Info
 	serverLock sync.Mutex
-	//next try connect period - 60 second
+	// next try connect period - 60 second
 	nextTryConnectPeriod int64 = 30
 )
 
@@ -38,12 +38,12 @@ func init() {
 }
 
 type Info struct {
-	//real servers ip
+	// real servers ip
 	serverMap       map[string]*config.ServerInfo
 	nextTryConnTime int64
 }
 
-//GetServersLen 获取服务器数组
+// GetServersLen 获取服务器数组
 func GetServers(configIp string) map[string]*config.ServerInfo {
 	serverLock.Lock()
 	defer serverLock.Unlock()
@@ -53,7 +53,7 @@ func GetServers(configIp string) map[string]*config.ServerInfo {
 	return ipMap[configIp].serverMap
 }
 
-//GetServersLen 获取服务器数组长度
+// GetServersLen 获取服务器数组长度
 func GetServersLen(configIp string) int {
 	serverLock.Lock()
 	defer serverLock.Unlock()
@@ -72,7 +72,7 @@ func SetServers(configIp string, serverMap map[string]*config.ServerInfo) {
 	}
 }
 
-//SetDownNode 设置失效节点
+// SetDownNode 设置失效节点
 func SetDownNode(configIp string, host string) {
 	serverLock.Lock()
 	defer serverLock.Unlock()
@@ -93,9 +93,9 @@ func SetDownNode(configIp string, host string) {
 	}
 }
 
-//IsConnectDirectly is connect by ip directly
-//false : yes
-//true : no
+// IsConnectDirectly is connect by ip directly
+// false : yes
+// true : no
 func IsConnectDirectly(configIp string) bool {
 	serverLock.Lock()
 	defer serverLock.Unlock()
@@ -110,7 +110,7 @@ func IsConnectDirectly(configIp string) bool {
 	return false
 }
 
-//SetNextTryConnTime if this connect is fail will set this time
+// SetNextTryConnTime if this connect is fail will set this time
 func SetNextTryConnTime(configIp string, nextPeriod int64) {
 	serverLock.Lock()
 	defer serverLock.Unlock()

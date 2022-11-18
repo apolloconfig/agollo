@@ -40,7 +40,7 @@ var (
 	configFileExecutor    config.File
 )
 
-//InitFileConfig 使用文件初始化配置
+// InitFileConfig 使用文件初始化配置
 func InitFileConfig() *config.AppConfig {
 	// default use application.properties
 	if initConfig, err := InitConfig(nil); err == nil {
@@ -49,9 +49,9 @@ func InitFileConfig() *config.AppConfig {
 	return nil
 }
 
-//InitConfig 使用指定配置初始化配置
+// InitConfig 使用指定配置初始化配置
 func InitConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.AppConfig, error) {
-	//init config file
+	// init config file
 	return getLoadAppConfig(loadAppConfig)
 }
 
@@ -72,7 +72,7 @@ func getLoadAppConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.
 	return c.(*config.AppConfig), e
 }
 
-//GetConfigFileExecutor 获取文件执行器
+// GetConfigFileExecutor 获取文件执行器
 func GetConfigFileExecutor() config.File {
 	executeConfigFileOnce.Do(func() {
 		configFileExecutor = &jsonConfig.ConfigFile{}
@@ -80,7 +80,7 @@ func GetConfigFileExecutor() config.File {
 	return configFileExecutor
 }
 
-//Unmarshal 反序列化
+// Unmarshal 反序列化
 func Unmarshal(b []byte) (interface{}, error) {
 	appConfig := &config.AppConfig{
 		Cluster:        defaultCluster,
