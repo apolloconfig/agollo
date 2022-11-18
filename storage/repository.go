@@ -43,6 +43,8 @@ const (
 
 // Cache apollo 配置缓存
 type Cache struct {
+	// type: map[string]*Config
+	// business: map[namespace]*Config
 	apolloConfigCache sync.Map
 	changeListeners   *list.List
 	rw                sync.RWMutex

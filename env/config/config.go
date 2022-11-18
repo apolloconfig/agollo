@@ -144,8 +144,9 @@ func (a *AppConfig) GetCurrentApolloConfig() *CurrentApolloConfig {
 	return a.currentConnApolloConfig
 }
 
-// map[string]int64
 type notificationsMap struct {
+	// type: map[string]int64
+	// business: map[namespace]notificationID
 	notifications sync.Map
 }
 
