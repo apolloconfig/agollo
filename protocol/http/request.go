@@ -207,11 +207,7 @@ func RequestRecovery(appConfig config.AppConfig,
 			return response, nil
 		}
 
-		if host == appConfig.GetHost() {
-			return response, err
-		}
-
-		server.SetDownNode(host, appConfig.GetHost())
+		server.SetDownNode(appConfig.GetHost(), host)
 	}
 }
 

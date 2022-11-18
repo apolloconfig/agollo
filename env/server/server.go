@@ -82,7 +82,7 @@ func SetDownNode(configIp string, host string) {
 	}
 
 	if host == configIp {
-		s.nextTryConnTime = nextTryConnectPeriod
+		s.nextTryConnTime = time.Now().Unix() + nextTryConnectPeriod
 	}
 
 	for k, server := range s.serverMap {
