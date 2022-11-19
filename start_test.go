@@ -26,12 +26,12 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v4/agcache/memory"
-	"github.com/apolloconfig/agollo/v4/component/log"
-	"github.com/apolloconfig/agollo/v4/env"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	jsonFile "github.com/apolloconfig/agollo/v4/env/config/json"
-	"github.com/apolloconfig/agollo/v4/extension"
+	"github.com/qshuai/agollo/v4/agcache/memory"
+	"github.com/qshuai/agollo/v4/component/log"
+	"github.com/qshuai/agollo/v4/env"
+	"github.com/qshuai/agollo/v4/env/config"
+	jsonFile "github.com/qshuai/agollo/v4/env/config/json"
+	"github.com/qshuai/agollo/v4/extension"
 )
 
 var (
@@ -158,10 +158,10 @@ func TestStructInit(t *testing.T) {
 	Assert(t, c, NotNilVal())
 	Assert(t, "test1", Equal(c.AppID))
 	Assert(t, "dev1", Equal(c.Cluster))
-	Assert(t, "application1", Equal(c.NamespaceName))
+	Assert(t, "application1", Equal(c.GetNamespace()))
 	Assert(t, "localhost:8889", Equal(c.IP))
 
-	apolloConfig := c.GetCurrentApolloConfig().Get()[c.NamespaceName]
+	apolloConfig := c.GetCurrentApolloConfig().Get()[c.GetNamespace()]
 	Assert(t, "test1", Equal(apolloConfig.AppID))
 	Assert(t, "dev1", Equal(apolloConfig.Cluster))
 	Assert(t, "application1", Equal(apolloConfig.NamespaceName))

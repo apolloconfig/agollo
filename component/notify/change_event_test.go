@@ -26,15 +26,15 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v4/agcache/memory"
-	_ "github.com/apolloconfig/agollo/v4/agcache/memory"
-	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
-	"github.com/apolloconfig/agollo/v4/component/remote"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	_ "github.com/apolloconfig/agollo/v4/env/file/json"
-	jsonFile "github.com/apolloconfig/agollo/v4/env/file/json"
-	"github.com/apolloconfig/agollo/v4/extension"
-	"github.com/apolloconfig/agollo/v4/storage"
+	"github.com/qshuai/agollo/v4/agcache/memory"
+	_ "github.com/qshuai/agollo/v4/agcache/memory"
+	"github.com/qshuai/agollo/v4/cluster/roundrobin"
+	"github.com/qshuai/agollo/v4/component/remote"
+	"github.com/qshuai/agollo/v4/env/config"
+	_ "github.com/qshuai/agollo/v4/env/file/json"
+	jsonFile "github.com/qshuai/agollo/v4/env/file/json"
+	"github.com/qshuai/agollo/v4/extension"
+	"github.com/qshuai/agollo/v4/storage"
 )
 
 func init() {
@@ -95,8 +95,8 @@ func buildNotifyResult(t *testing.T) {
 	Assert(t, apolloConfigs, NotNilVal())
 	Assert(t, len(apolloConfigs), Equal(1))
 
-	newAppConfig.GetCurrentApolloConfig().Set(newAppConfig.NamespaceName, &apolloConfigs[0].ApolloConnConfig)
-	config := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]
+	newAppConfig.GetCurrentApolloConfig().Set(newAppConfig.GetNamespace(), &apolloConfigs[0].ApolloConnConfig)
+	config := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.GetNamespace()]
 
 	Assert(t, "100004458", Equal(config.AppID))
 	Assert(t, "default", Equal(config.Cluster))

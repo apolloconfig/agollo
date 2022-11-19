@@ -20,9 +20,9 @@ package notify
 import (
 	"time"
 
-	"github.com/apolloconfig/agollo/v4/component/remote"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/storage"
+	"github.com/qshuai/agollo/v4/component/remote"
+	"github.com/qshuai/agollo/v4/env/config"
+	"github.com/qshuai/agollo/v4/storage"
 )
 
 const (

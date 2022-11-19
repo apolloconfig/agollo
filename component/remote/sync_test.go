@@ -26,15 +26,15 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v4/constant"
-	"github.com/apolloconfig/agollo/v4/env"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/env/server"
-	"github.com/apolloconfig/agollo/v4/extension"
-	"github.com/apolloconfig/agollo/v4/utils/parse/normal"
-	"github.com/apolloconfig/agollo/v4/utils/parse/properties"
-	"github.com/apolloconfig/agollo/v4/utils/parse/yaml"
-	"github.com/apolloconfig/agollo/v4/utils/parse/yml"
+	"github.com/qshuai/agollo/v4/constant"
+	"github.com/qshuai/agollo/v4/env"
+	"github.com/qshuai/agollo/v4/env/config"
+	"github.com/qshuai/agollo/v4/env/server"
+	"github.com/qshuai/agollo/v4/extension"
+	"github.com/qshuai/agollo/v4/utils/parse/normal"
+	"github.com/qshuai/agollo/v4/utils/parse/properties"
+	"github.com/qshuai/agollo/v4/utils/parse/yaml"
+	"github.com/qshuai/agollo/v4/utils/parse/yml"
 )
 
 var (
@@ -107,8 +107,8 @@ func TestAutoSyncConfigServices(t *testing.T) {
 	Assert(t, len(apolloConfigs), Equal(1))
 
 	apolloConfig := apolloConfigs[0]
-	newAppConfig.GetCurrentApolloConfig().Set(newAppConfig.NamespaceName, &apolloConfig.ApolloConnConfig)
-	c := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]
+	newAppConfig.GetCurrentApolloConfig().Set(newAppConfig.GetNamespace(), &apolloConfig.ApolloConnConfig)
+	c := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.GetNamespace()]
 	Assert(t, "application", Equal(c.NamespaceName))
 	Assert(t, "value1", Equal(apolloConfig.Configurations["key1"]))
 	Assert(t, "value2", Equal(apolloConfig.Configurations["key2"]))
@@ -178,8 +178,8 @@ func TestClientLabelConfigService(t *testing.T) {
 	Assert(t, len(apolloConfigs), Equal(1))
 
 	apolloConfig := apolloConfigs[0]
-	newAppConfig.GetCurrentApolloConfig().Set(newAppConfig.NamespaceName, &apolloConfig.ApolloConnConfig)
-	c := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]
+	newAppConfig.GetCurrentApolloConfig().Set(newAppConfig.GetNamespace(), &apolloConfig.ApolloConnConfig)
+	c := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.GetNamespace()]
 	Assert(t, "application", Equal(c.NamespaceName))
 	Assert(t, "gray_value1", Equal(apolloConfig.Configurations["key1"]))
 	Assert(t, "gray_value2", Equal(apolloConfig.Configurations["key2"]))

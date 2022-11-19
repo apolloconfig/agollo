@@ -25,11 +25,11 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/apolloconfig/agollo/v4/agcache"
-	"github.com/apolloconfig/agollo/v4/component/log"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/extension"
-	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/qshuai/agollo/v4/agcache"
+	"github.com/qshuai/agollo/v4/component/log"
+	"github.com/qshuai/agollo/v4/env/config"
+	"github.com/qshuai/agollo/v4/extension"
+	"github.com/qshuai/agollo/v4/utils"
 )
 
 const (
@@ -57,7 +57,6 @@ func (c *Cache) GetConfig(namespace string) *Config {
 	}
 
 	config, ok := c.apolloConfigCache.Load(namespace)
-
 	if !ok {
 		return nil
 	}
@@ -65,7 +64,7 @@ func (c *Cache) GetConfig(namespace string) *Config {
 	return config.(*Config)
 }
 
-// CreateNamespaceConfig 根据namespace初始化agollo内润配置
+// CreateNamespaceConfig 根据namespace初始化agollo内部配置
 func CreateNamespaceConfig(namespace string) *Cache {
 	// config from apollo
 	var apolloConfigCache sync.Map
@@ -80,6 +79,17 @@ func CreateNamespaceConfig(namespace string) *Cache {
 		apolloConfigCache: apolloConfigCache,
 		changeListeners:   list.New(),
 	}
+}
+
+// AddNamespaceConfig Add new namespace at runtime
+func AddNamespaceConfig(cache *Cache, namespace string) {
+	config.SplitNamespaces(namespace, func(namespace string) {
+		if _, ok := cache.apolloConfigCache.Load(namespace); ok {
+			return
+		}
+		c := initConfig(namespace, extension.GetCacheFactory())
+		cache.apolloConfigCache.Store(namespace, c)
+	})
 }
 
 func initConfig(namespace string, factory agcache.CacheFactory) *Config {

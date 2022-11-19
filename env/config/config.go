@@ -21,10 +21,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"regexp"
 	"strings"
 	"sync"
+	"time"
 
-	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/qshuai/agollo/v4/utils"
 )
 
 var (
@@ -41,19 +43,24 @@ type File interface {
 
 // AppConfig 配置文件
 type AppConfig struct {
-	AppID             string `json:"appId"`
-	Cluster           string `json:"cluster"`
-	NamespaceName     string `json:"namespaceName"`
-	IP                string `json:"ip"`
-	IsBackupConfig    bool   `default:"true" json:"isBackupConfig"`
-	BackupConfigPath  string `json:"backupConfigPath"`
-	Secret            string `json:"secret"`
-	Label             string `json:"label"`
-	SyncServerTimeout int    `json:"syncServerTimeout"`
-	// MustStart 可用于控制第一次同步必须成功
-	MustStart               bool `default:"false"`
+	AppID                   string        `json:"appId"`
+	Cluster                 string        `json:"cluster"`
+	Dynamic                 bool          `json:"dynamic"`                 // 是否开启正则表达式形式的namespace配置
+	SyncNamespaceInterval   time.Duration `json:"sync_namespace_interval"` // 拉取最新namespace的时间间隔
+	IP                      string        `json:"ip"`
+	IsBackupConfig          bool          `default:"true" json:"isBackupConfig"`
+	BackupConfigPath        string        `json:"backupConfigPath"`
+	Secret                  string        `json:"secret"`
+	Label                   string        `json:"label"`
+	SyncServerTimeout       int           `json:"syncServerTimeout"` // 与apollo server端同步数据的超时时间设置，单位：秒
+	MustStart               bool          `default:"false"`          // MustStart 可用于控制第一次同步必须成功
 	notificationsMap        *notificationsMap
 	currentConnApolloConfig *CurrentApolloConfig
+
+	sync.RWMutex
+	NamespaceName    string              `json:"namespaceName"`
+	pattern          []*regexp.Regexp    // 如果Dynamic设置为true，那么该字段存储正则列表；否则为nil
+	namespaceMapping map[string]struct{} // 类型为map[string]struct{}；保存namespace的集合，key: 单个namespace value: struct{}{}; 便于快速过滤namespace
 }
 
 // ServerInfo 服务器信息
@@ -62,6 +69,35 @@ type ServerInfo struct {
 	InstanceID  string `json:"instanceId"`
 	HomepageURL string `json:"homepageUrl"`
 	IsDown      bool   `json:"-"`
+}
+
+// GetNamespace 获取最新的namespace
+func (a *AppConfig) GetNamespace() string {
+	a.RLock()
+	ns := a.NamespaceName
+	a.RUnlock()
+	return ns
+}
+
+// AddNamespace 添加新的namespace
+func (a *AppConfig) AddNamespace(namespace string) {
+	a.Lock()
+	defer a.Unlock()
+
+	SplitNamespaces(namespace, func(namespace string) {
+		if _, ok := a.namespaceMapping[namespace]; ok {
+			return
+		}
+
+		a.namespaceMapping[namespace] = struct{}{}
+
+		if a.NamespaceName == "" {
+			a.NamespaceName = namespace
+		} else {
+			a.NamespaceName += ("," + namespace)
+		}
+		a.notificationsMap.notifications.Store(namespace, defaultNotificationID)
+	})
 }
 
 // GetIsBackupConfig whether backup config after fetch config from apollo
@@ -90,6 +126,11 @@ func (a *AppConfig) GetHost() string {
 
 // Init 初始化notificationsMap
 func (a *AppConfig) Init() {
+	a.namespaceMapping = make(map[string]struct{})
+	SplitNamespaces(a.NamespaceName, func(namespace string) {
+		a.namespaceMapping[namespace] = struct{}{}
+	})
+
 	a.currentConnApolloConfig = CreateCurrentApolloConfig()
 	a.initAllNotifications(nil)
 }
@@ -102,7 +143,7 @@ type Notification struct {
 
 // InitAllNotifications 初始化notificationsMap
 func (a *AppConfig) initAllNotifications(callback func(namespace string)) {
-	ns := SplitNamespaces(a.NamespaceName, callback)
+	ns := SplitNamespaces(a.GetNamespace(), callback)
 	a.notificationsMap = &notificationsMap{
 		notifications: ns,
 	}
@@ -119,6 +160,15 @@ func SplitNamespaces(namespacesStr string, callback func(namespace string)) sync
 		namespaces.Store(namespace, defaultNotificationID)
 	}
 	return namespaces
+}
+
+// JoinNamespace 将多个namespace按照分割符进行连接
+func JoinNamespace(namespaces []string) string {
+	if len(namespaces) == 0 {
+		return ""
+	}
+
+	return strings.Join(namespaces, comma)
 }
 
 // GetNotificationsMap 获取notificationsMap

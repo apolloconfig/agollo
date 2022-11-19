@@ -26,9 +26,9 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v4/env/config"
-	jsonConfig "github.com/apolloconfig/agollo/v4/env/config/json"
-	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/qshuai/agollo/v4/env/config"
+	jsonConfig "github.com/qshuai/agollo/v4/env/config/json"
+	"github.com/qshuai/agollo/v4/utils"
 )
 
 const servicesConfigResponseStr = `[{
@@ -94,7 +94,7 @@ func TestInit(t *testing.T) {
 	Assert(t, config, NotNilVal())
 	Assert(t, "test", Equal(config.AppID))
 	Assert(t, "dev", Equal(config.Cluster))
-	Assert(t, "application,abc1", Equal(config.NamespaceName))
+	Assert(t, "application,abc1", Equal(config.GetNamespace()))
 	Assert(t, "http://localhost:8888", Equal(config.IP))
 
 	// TODO: 需要确认是否放在这里
@@ -102,7 +102,7 @@ func TestInit(t *testing.T) {
 	// Assert(t, defaultApolloConfig, NotNilVal())
 	// Assert(t, "test", Equal(defaultApolloConfig.AppId))
 	// Assert(t, "dev", Equal(defaultApolloConfig.Cluster))
-	// Assert(t, "application", Equal(defaultApolloConfig.NamespaceName))
+	// Assert(t, "application", Equal(defaultApolloConfig.GetNamespace()))
 }
 
 func TestGetServicesConfigUrl(t *testing.T) {
@@ -152,7 +152,7 @@ func TestLoadEnvConfig(t *testing.T) {
 	Assert(t, envConfig, NotNilVal())
 	Assert(t, envConfig.AppID, Equal(config.AppID))
 	Assert(t, envConfig.Cluster, Equal(config.Cluster))
-	Assert(t, envConfig.NamespaceName, Equal(config.NamespaceName))
+	Assert(t, envConfig.GetNamespace(), Equal(config.GetNamespace()))
 	Assert(t, envConfig.IP, Equal(config.IP))
 
 	os.Remove(envConfigFile)

@@ -22,7 +22,7 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v4/agcache"
+	"github.com/qshuai/agollo/v4/agcache"
 )
 
 var testDefaultCache agcache.CacheInterface

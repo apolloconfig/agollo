@@ -22,9 +22,9 @@ import (
 	"os"
 	"sync"
 
-	"github.com/apolloconfig/agollo/v4/env/config"
-	jsonConfig "github.com/apolloconfig/agollo/v4/env/config/json"
-	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/qshuai/agollo/v4/env/config"
+	jsonConfig "github.com/qshuai/agollo/v4/env/config/json"
+	"github.com/qshuai/agollo/v4/utils"
 )
 
 const (
@@ -52,7 +52,15 @@ func InitFileConfig() *config.AppConfig {
 // InitConfig 使用指定配置初始化配置
 func InitConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.AppConfig, error) {
 	// init config file
-	return getLoadAppConfig(loadAppConfig)
+	c, err := getLoadAppConfig(loadAppConfig)
+	if err != nil {
+		return nil, err
+	}
+	if c == nil {
+		return nil, nil
+	}
+
+	return c, nil
 }
 
 // set load app config's function

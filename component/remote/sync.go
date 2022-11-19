@@ -23,12 +23,12 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/apolloconfig/agollo/v4/component/log"
-	"github.com/apolloconfig/agollo/v4/constant"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/extension"
-	"github.com/apolloconfig/agollo/v4/protocol/http"
-	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/qshuai/agollo/v4/component/log"
+	"github.com/qshuai/agollo/v4/constant"
+	"github.com/qshuai/agollo/v4/env/config"
+	"github.com/qshuai/agollo/v4/extension"
+	"github.com/qshuai/agollo/v4/protocol/http"
+	"github.com/qshuai/agollo/v4/utils"
 )
 
 // CreateSyncApolloConfig 创建同步获取 Apollo 配置
@@ -97,13 +97,13 @@ func processJSONFiles(b []byte, callback http.CallBack) (o interface{}, err erro
 func (a *syncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*config.ApolloConfig {
 	appConfig := appConfigFunc()
 	configs := make([]*config.ApolloConfig, 0, 8)
-	config.SplitNamespaces(appConfig.NamespaceName, func(namespace string) {
+	config.SplitNamespaces(appConfig.GetNamespace(), func(namespace string) {
 		apolloConfig := a.SyncWithNamespace(namespace, appConfigFunc)
 		if apolloConfig != nil {
 			configs = append(configs, apolloConfig)
 			return
 		}
-		configs = append(configs, loadBackupConfig(appConfig.NamespaceName, appConfig)...)
+		configs = append(configs, loadBackupConfig(appConfig.GetNamespace(), appConfig)...)
 	})
 	return configs
 }

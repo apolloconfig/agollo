@@ -27,12 +27,12 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v4/agcache/memory"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	_ "github.com/apolloconfig/agollo/v4/env/file/json"
-	"github.com/apolloconfig/agollo/v4/env/server"
-	"github.com/apolloconfig/agollo/v4/extension"
-	"github.com/apolloconfig/agollo/v4/storage"
+	"github.com/qshuai/agollo/v4/agcache/memory"
+	"github.com/qshuai/agollo/v4/env/config"
+	_ "github.com/qshuai/agollo/v4/env/file/json"
+	"github.com/qshuai/agollo/v4/env/server"
+	"github.com/qshuai/agollo/v4/extension"
+	"github.com/qshuai/agollo/v4/storage"
 )
 
 const testDefaultNamespace = "application"
@@ -44,7 +44,7 @@ func init() {
 
 func createMockApolloConfig(expireTime int) *internalClient {
 	client := create()
-	client.cache = storage.CreateNamespaceConfig(client.appConfig.NamespaceName)
+	client.cache = storage.CreateNamespaceConfig(client.appConfig.GetNamespace())
 	configs := make(map[string]interface{}, 0)
 	// string
 	configs["string"] = "value"
@@ -211,7 +211,7 @@ func TestAutoSyncConfigServicesNormal2NotModified(t *testing.T) {
 		return *newAppConfig
 	})
 
-	config := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.NamespaceName]
+	config := newAppConfig.GetCurrentApolloConfig().Get()[newAppConfig.GetNamespace()]
 
 	fmt.Println("sleeping 10s")
 

@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"github.com/apolloconfig/agollo/v4/component/log"
+	"github.com/qshuai/agollo/v4/component/log"
 )
 
 const (

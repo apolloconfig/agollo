@@ -21,26 +21,26 @@ import (
 	"container/list"
 	"errors"
 
-	"github.com/apolloconfig/agollo/v4/agcache"
-	"github.com/apolloconfig/agollo/v4/agcache/memory"
-	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
-	"github.com/apolloconfig/agollo/v4/component"
-	"github.com/apolloconfig/agollo/v4/component/log"
-	"github.com/apolloconfig/agollo/v4/component/notify"
-	"github.com/apolloconfig/agollo/v4/component/remote"
-	"github.com/apolloconfig/agollo/v4/component/serverlist"
-	"github.com/apolloconfig/agollo/v4/constant"
-	"github.com/apolloconfig/agollo/v4/env"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	jsonFile "github.com/apolloconfig/agollo/v4/env/file/json"
-	"github.com/apolloconfig/agollo/v4/extension"
-	"github.com/apolloconfig/agollo/v4/protocol/auth/sign"
-	"github.com/apolloconfig/agollo/v4/storage"
-	"github.com/apolloconfig/agollo/v4/utils"
-	"github.com/apolloconfig/agollo/v4/utils/parse/normal"
-	"github.com/apolloconfig/agollo/v4/utils/parse/properties"
-	"github.com/apolloconfig/agollo/v4/utils/parse/yaml"
-	"github.com/apolloconfig/agollo/v4/utils/parse/yml"
+	"github.com/qshuai/agollo/v4/agcache"
+	"github.com/qshuai/agollo/v4/agcache/memory"
+	"github.com/qshuai/agollo/v4/cluster/roundrobin"
+	"github.com/qshuai/agollo/v4/component"
+	"github.com/qshuai/agollo/v4/component/log"
+	"github.com/qshuai/agollo/v4/component/notify"
+	"github.com/qshuai/agollo/v4/component/remote"
+	"github.com/qshuai/agollo/v4/component/serverlist"
+	"github.com/qshuai/agollo/v4/constant"
+	"github.com/qshuai/agollo/v4/env"
+	"github.com/qshuai/agollo/v4/env/config"
+	jsonFile "github.com/qshuai/agollo/v4/env/file/json"
+	"github.com/qshuai/agollo/v4/extension"
+	"github.com/qshuai/agollo/v4/protocol/auth/sign"
+	"github.com/qshuai/agollo/v4/storage"
+	"github.com/qshuai/agollo/v4/utils"
+	"github.com/qshuai/agollo/v4/utils/parse/normal"
+	"github.com/qshuai/agollo/v4/utils/parse/properties"
+	"github.com/qshuai/agollo/v4/utils/parse/yaml"
+	"github.com/qshuai/agollo/v4/utils/parse/yml"
 )
 
 func init() {
@@ -65,6 +65,7 @@ type Client interface {
 	GetConfigCache(namespace string) agcache.CacheInterface
 	GetDefaultConfigCache() agcache.CacheInterface
 	GetApolloConfigCache() agcache.CacheInterface
+	AddNamespace(namespace string) error
 	GetValue(key string) string
 	GetStringValue(key string, defaultValue string) string
 	GetIntValue(key string, defaultValue int) int
@@ -108,14 +109,16 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 	if err != nil {
 		return nil, err
 	}
-
-	c := create()
-	if appConfig != nil {
-		c.appConfig = appConfig
+	if appConfig == nil {
+		panic("init apollo config failed")
 	}
 
-	c.cache = storage.CreateNamespaceConfig(appConfig.NamespaceName)
 	appConfig.Init()
+
+	c := create()
+	c.appConfig = appConfig
+
+	c.cache = storage.CreateNamespaceConfig(appConfig.GetNamespace())
 
 	serverlist.InitSyncServerIPList(c.getAppConfig)
 
@@ -190,6 +193,34 @@ func (c *internalClient) GetDefaultConfigCache() agcache.CacheInterface {
 // GetApolloConfigCache 获取默认namespace的apollo配置
 func (c *internalClient) GetApolloConfigCache() agcache.CacheInterface {
 	return c.GetDefaultConfigCache()
+}
+
+// AddNamespace 新增namespace的apollo配置
+func (c *internalClient) AddNamespace(namespace string) error {
+	if namespace == "" {
+		return nil
+	}
+
+	var fresh []string
+	config.SplitNamespaces(namespace, func(namespace string) {
+		if c := c.cache.GetConfig(namespace); c == nil {
+			fresh = append(fresh, namespace)
+		}
+	})
+	if len(fresh) == 0 {
+		return nil
+	}
+
+	namespace = config.JoinNamespace(fresh)
+	storage.AddNamespaceConfig(c.cache, namespace)
+	c.appConfig.AddNamespace(namespace)
+
+	configs := syncApolloConfig.Sync(c.getAppConfig)
+	for _, apolloConfig := range configs {
+		c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
+	}
+
+	return nil
 }
 
 // GetValue 获取配置

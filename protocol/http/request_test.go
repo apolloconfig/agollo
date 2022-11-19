@@ -26,14 +26,14 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
-	"github.com/apolloconfig/agollo/v4/component/log"
-	"github.com/apolloconfig/agollo/v4/env"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/env/config/json"
-	"github.com/apolloconfig/agollo/v4/env/server"
-	"github.com/apolloconfig/agollo/v4/extension"
-	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/qshuai/agollo/v4/cluster/roundrobin"
+	"github.com/qshuai/agollo/v4/component/log"
+	"github.com/qshuai/agollo/v4/env"
+	"github.com/qshuai/agollo/v4/env/config"
+	"github.com/qshuai/agollo/v4/env/config/json"
+	"github.com/qshuai/agollo/v4/env/server"
+	"github.com/qshuai/agollo/v4/extension"
+	"github.com/qshuai/agollo/v4/utils"
 )
 
 func init() {
@@ -68,7 +68,7 @@ func TestHttpsRequestRecovery(t *testing.T) {
 	mockIPList(t, func() config.AppConfig {
 		return *appConfig
 	})
-	urlSuffix := getConfigURLSuffix(appConfig, appConfig.NamespaceName)
+	urlSuffix := getConfigURLSuffix(appConfig, appConfig.GetNamespace())
 
 	o, err := RequestRecovery(*appConfig, &env.ConnectConfig{
 		URI:     urlSuffix,
@@ -90,7 +90,7 @@ func TestRequestRecovery(t *testing.T) {
 	mockIPList(t, func() config.AppConfig {
 		return *appConfig
 	})
-	urlSuffix := getConfigURLSuffix(appConfig, appConfig.NamespaceName)
+	urlSuffix := getConfigURLSuffix(appConfig, appConfig.GetNamespace())
 
 	o, err := RequestRecovery(*appConfig, &env.ConnectConfig{
 		URI:     urlSuffix,
@@ -113,7 +113,7 @@ func TestCustomTimeout(t *testing.T) {
 	mockIPList(t, func() config.AppConfig {
 		return *appConfig
 	})
-	urlSuffix := getConfigURLSuffix(appConfig, appConfig.NamespaceName)
+	urlSuffix := getConfigURLSuffix(appConfig, appConfig.GetNamespace())
 
 	o, err := RequestRecovery(*appConfig, &env.ConnectConfig{
 		URI:     urlSuffix,

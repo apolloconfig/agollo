@@ -24,8 +24,8 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/qshuai/agollo/v4/env/config"
+	"github.com/qshuai/agollo/v4/utils"
 )
 
 var (
@@ -42,7 +42,7 @@ func TestLoadJsonConfig(t *testing.T) {
 	Assert(t, config, NotNilVal())
 	Assert(t, "test", Equal(config.AppID))
 	Assert(t, "dev", Equal(config.Cluster))
-	Assert(t, "application,abc1", Equal(config.NamespaceName))
+	Assert(t, "application,abc1", Equal(config.GetNamespace()))
 	Assert(t, "localhost:8888", Equal(config.IP))
 
 }
@@ -79,7 +79,7 @@ func TestCreateAppConfigWithJson(t *testing.T) {
 	Assert(t, config, NotNilVal())
 	Assert(t, "test", Equal(config.AppID))
 	Assert(t, "dev", Equal(config.Cluster))
-	Assert(t, "application", Equal(config.NamespaceName))
+	Assert(t, "application", Equal(config.GetNamespace()))
 	Assert(t, "localhost:8888", Equal(config.IP))
 }
 
@@ -130,7 +130,7 @@ func TestCreateAppConfigWithJsonDefault(t *testing.T) {
 	Assert(t, config, NotNilVal())
 	Assert(t, "testDefault", Equal(config.AppID))
 	Assert(t, "default", Equal(config.Cluster))
-	Assert(t, "application", Equal(config.NamespaceName))
+	Assert(t, "application", Equal(config.GetNamespace()))
 	Assert(t, "localhost:9999", Equal(config.IP))
 }
 

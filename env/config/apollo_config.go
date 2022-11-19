@@ -20,7 +20,7 @@ package config
 import (
 	"sync"
 
-	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/qshuai/agollo/v4/utils"
 )
 
 // CurrentApolloConfig 当前 apollo 返回的配置信息

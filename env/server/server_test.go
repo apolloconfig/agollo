@@ -23,7 +23,7 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v4/env/config"
+	"github.com/qshuai/agollo/v4/env/config"
 )
 
 var name = "abc"

@@ -27,13 +27,13 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
-	"github.com/apolloconfig/agollo/v4/env"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	jsonFile "github.com/apolloconfig/agollo/v4/env/file/json"
-	"github.com/apolloconfig/agollo/v4/env/server"
-	"github.com/apolloconfig/agollo/v4/extension"
-	http2 "github.com/apolloconfig/agollo/v4/protocol/http"
+	"github.com/qshuai/agollo/v4/cluster/roundrobin"
+	"github.com/qshuai/agollo/v4/env"
+	"github.com/qshuai/agollo/v4/env/config"
+	jsonFile "github.com/qshuai/agollo/v4/env/file/json"
+	"github.com/qshuai/agollo/v4/env/server"
+	"github.com/qshuai/agollo/v4/extension"
+	http2 "github.com/qshuai/agollo/v4/protocol/http"
 )
 
 var asyncApollo *asyncApolloConfig
