@@ -60,6 +60,7 @@ func InitConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.AppCon
 		return nil, nil
 	}
 
+	c.Init()
 	return c, nil
 }
 

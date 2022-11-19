@@ -25,8 +25,8 @@ import (
 	"github.com/qshuai/agollo/v4/env/config"
 )
 
-// ip -> server
 var (
+	// ip -> server
 	ipMap      map[string]*Info
 	serverLock sync.Mutex
 	// next try connect period - 60 second
@@ -43,7 +43,7 @@ type Info struct {
 	nextTryConnTime int64
 }
 
-// GetServersLen 获取服务器数组
+// GetServers 获取服务器数组
 func GetServers(configIp string) map[string]*config.ServerInfo {
 	serverLock.Lock()
 	defer serverLock.Unlock()

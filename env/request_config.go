@@ -33,4 +33,6 @@ type ConnectConfig struct {
 	AppID string
 	// 密钥
 	Secret string
+	// 自定义鉴权
+	Authorization string
 }

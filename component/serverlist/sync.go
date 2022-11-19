@@ -19,7 +19,6 @@ package serverlist
 
 import (
 	"encoding/json"
-	"strconv"
 	"time"
 
 	"github.com/qshuai/agollo/v4/component"
@@ -34,10 +33,6 @@ const (
 	// refresh ip list
 	refreshIPListInterval = 20 * time.Minute // 20m
 )
-
-func init() {
-
-}
 
 // InitSyncServerIPList 初始化同步服务器信息列表
 func InitSyncServerIPList(appConfig func() config.AppConfig) {
@@ -69,26 +64,22 @@ func (s *SyncServerIPListComponent) Start() {
 // then
 // 1.update agcache
 // 2.store in disk
-func SyncServerIPList(appConfigFunc func() config.AppConfig) (map[string]*config.ServerInfo, error) {
-	if appConfigFunc == nil {
+func SyncServerIPList(appConfigFn func() config.AppConfig) (map[string]*config.ServerInfo, error) {
+	if appConfigFn == nil {
 		panic("can not find apollo config!please confirm!")
 	}
 
-	appConfig := appConfigFunc()
+	appConfig := appConfigFn()
 	c := &env.ConnectConfig{
 		AppID:  appConfig.AppID,
 		Secret: appConfig.Secret,
 	}
-	if appConfigFunc().SyncServerTimeout > 0 {
-		duration, err := time.ParseDuration(strconv.Itoa(appConfigFunc().SyncServerTimeout) + "s")
-		if err != nil {
-			return nil, err
-		}
-		c.Timeout = duration
+	if appConfig.SyncServerTimeout > 0 {
+		c.Timeout = time.Duration(appConfig.SyncServerTimeout) * time.Second
 	}
 	serverMap, err := http.Request(appConfig.GetServicesConfigURL(), c, &http.CallBack{
 		SuccessCallBack: SyncServerIPListSuccessCallBack,
-		AppConfigFunc:   appConfigFunc,
+		AppConfigFunc:   appConfigFn,
 	})
 	if serverMap == nil {
 		return nil, err
@@ -104,9 +95,7 @@ func SyncServerIPListSuccessCallBack(responseBody []byte, callback http.CallBack
 	log.Debug("get all server info:", string(responseBody))
 
 	tmpServerInfo := make([]*config.ServerInfo, 0)
-
 	err = json.Unmarshal(responseBody, &tmpServerInfo)
-
 	if err != nil {
 		log.Error("Unmarshal json Fail,Error: %v", err)
 		return

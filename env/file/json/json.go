@@ -106,7 +106,7 @@ func (fileHandler *FileHandler) LoadConfigFile(configDir string, appID string, n
 	})
 
 	if c == nil || e != nil {
-		log.Errorf("loadConfigFile fail,error:", e)
+		log.Errorf("loadConfigFile fail, error:", e)
 		return nil, e
 	}
 

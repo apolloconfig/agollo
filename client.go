@@ -20,12 +20,15 @@ package agollo
 import (
 	"container/list"
 	"errors"
+	"strings"
 
 	"github.com/qshuai/agollo/v4/agcache"
 	"github.com/qshuai/agollo/v4/agcache/memory"
 	"github.com/qshuai/agollo/v4/cluster/roundrobin"
 	"github.com/qshuai/agollo/v4/component"
+	"github.com/qshuai/agollo/v4/component/admin"
 	"github.com/qshuai/agollo/v4/component/log"
+	"github.com/qshuai/agollo/v4/component/namespaces"
 	"github.com/qshuai/agollo/v4/component/notify"
 	"github.com/qshuai/agollo/v4/component/remote"
 	"github.com/qshuai/agollo/v4/component/serverlist"
@@ -65,7 +68,8 @@ type Client interface {
 	GetConfigCache(namespace string) agcache.CacheInterface
 	GetDefaultConfigCache() agcache.CacheInterface
 	GetApolloConfigCache() agcache.CacheInterface
-	AddNamespace(namespace string) error
+	// AddNamespace(namespace string) error
+	GetNamespace() string
 	GetValue(key string) string
 	GetStringValue(key string, defaultValue string) string
 	GetIntValue(key string, defaultValue int) int
@@ -113,8 +117,6 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 		panic("init apollo config failed")
 	}
 
-	appConfig.Init()
-
 	c := create()
 	c.appConfig = appConfig
 
@@ -139,6 +141,15 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 	configComponent.SetAppConfig(c.getAppConfig)
 	configComponent.SetCache(c.cache)
 	go component.StartRefreshConfig(configComponent)
+
+	// start sync namespace
+	if appConfig.Dynamic {
+		adminComponent := admin.New(c.getAppConfig)
+		go adminComponent.Start()
+
+		nsComponent := namespaces.New(c.getAppConfig, c.AddNamespace)
+		go nsComponent.Start()
+	}
 
 	log.Info("agollo start finished ! ")
 
@@ -200,18 +211,12 @@ func (c *internalClient) AddNamespace(namespace string) error {
 	if namespace == "" {
 		return nil
 	}
-
-	var fresh []string
-	config.SplitNamespaces(namespace, func(namespace string) {
-		if c := c.cache.GetConfig(namespace); c == nil {
-			fresh = append(fresh, namespace)
-		}
-	})
-	if len(fresh) == 0 {
+	if !c.appConfig.IsFresh(namespace) {
 		return nil
 	}
 
-	namespace = config.JoinNamespace(fresh)
+	log.Infof("find new namespace: %s", namespace)
+
 	storage.AddNamespaceConfig(c.cache, namespace)
 	c.appConfig.AddNamespace(namespace)
 
@@ -221,6 +226,20 @@ func (c *internalClient) AddNamespace(namespace string) error {
 	}
 
 	return nil
+}
+
+// GetNamespace 获取初始化完成的namespace
+func (c *internalClient) GetNamespace() string {
+	namespace := c.appConfig.GetNamespace()
+
+	var ret []string
+	config.SplitNamespaces(namespace, func(namespace string) {
+		if c.cache.GetConfig(namespace).GetIsInit() {
+			ret = append(ret, namespace)
+		}
+	})
+
+	return strings.Join(ret, ",")
 }
 
 // GetValue 获取配置
@@ -291,4 +310,9 @@ func (c *internalClient) GetChangeListeners() *list.List {
 // UseEventDispatch  添加为某些key分发event功能
 func (c *internalClient) UseEventDispatch() {
 	c.AddChangeListener(storage.UseEventDispatch())
+}
+
+func init() {
+	config.SetAdminServiceFetcher(&admin.Fetcher{})
+	config.SetNamespaceFetcher(&namespaces.Fetcher{})
 }

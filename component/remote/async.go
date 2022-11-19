@@ -101,7 +101,7 @@ func (*asyncApolloConfig) CallBack(namespace string) http.CallBack {
 
 func (a *asyncApolloConfig) notifyRemoteConfig(appConfigFunc func() config.AppConfig, namespace string) ([]*config.Notification, error) {
 	if appConfigFunc == nil {
-		panic("can not find apollo config!please confirm!")
+		panic("can not find apollo config! please confirm!")
 	}
 	appConfig := appConfigFunc()
 	notificationsMap := appConfig.GetNotificationsMap()
