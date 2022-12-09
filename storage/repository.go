@@ -573,7 +573,7 @@ func (c *Cache) AddChangeListener(listener ChangeListener) {
 	c.changeListeners.PushBack(listener)
 }
 
-// RemoveChangeListener 增加变更监控
+// RemoveChangeListener 删除变更监控
 func (c *Cache) RemoveChangeListener(listener ChangeListener) {
 	if listener == nil {
 		return
