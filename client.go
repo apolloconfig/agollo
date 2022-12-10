@@ -75,6 +75,7 @@ type Client interface {
 	RemoveChangeListener(listener storage.ChangeListener)
 	GetChangeListeners() *list.List
 	UseEventDispatch()
+	Close()
 }
 
 // internalClient apollo 客户端实例
@@ -82,6 +83,7 @@ type internalClient struct {
 	initAppConfigFunc func() (*config.AppConfig, error)
 	appConfig         *config.AppConfig
 	cache             *storage.Cache
+	configComponent   *notify.ConfigComponent
 }
 
 func (c *internalClient) getAppConfig() config.AppConfig {
@@ -135,6 +137,7 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 	configComponent.SetAppConfig(c.getAppConfig)
 	configComponent.SetCache(c.cache)
 	go component.StartRefreshConfig(configComponent)
+	c.configComponent = configComponent
 
 	log.Info("agollo start finished ! ")
 
@@ -259,4 +262,9 @@ func (c *internalClient) GetChangeListeners() *list.List {
 // UseEventDispatch  添加为某些key分发event功能
 func (c *internalClient) UseEventDispatch() {
 	c.AddChangeListener(storage.UseEventDispatch())
+}
+
+// Close 停止轮询
+func (c *internalClient) Close() {
+	c.configComponent.Stop()
 }
