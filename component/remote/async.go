@@ -175,7 +175,12 @@ func createApolloConfigWithJSON(b []byte, callback http.CallBack) (o interface{}
 	if parser == nil {
 		return apolloConfig, nil
 	}
-	m, err := parser.Parse(apolloConfig.Configurations[defaultContentKey])
+
+	content, ok := apolloConfig.Configurations[defaultContentKey]
+	if !ok {
+		content = string(b)
+	}
+	m, err := parser.Parse(content)
 	if err != nil {
 		log.Debugf("GetContent fail ! error: %v", err)
 	}
