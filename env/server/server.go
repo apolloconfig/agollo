@@ -73,21 +73,33 @@ func SetServers(configIp string, serverMap map[string]*config.ServerInfo) {
 }
 
 //SetDownNode 设置失效节点
-func SetDownNode(configIp string, host string) {
+func SetDownNode(configService string, serverHost string) {
 	serverLock.Lock()
 	defer serverLock.Unlock()
-	s := ipMap[configIp]
-	if host == "" || s == nil || len(s.serverMap) == 0 {
+	s := ipMap[configService]
+	if serverHost == "" {
 		return
 	}
 
-	if host == configIp {
+	if s == nil || len(s.serverMap) == 0 {
+		// init server map
+		ipMap[configService] = &Info{
+			serverMap: map[string]*config.ServerInfo{
+				serverHost: {
+					HomepageURL: serverHost,
+				},
+			},
+		}
+		s = ipMap[configService]
+	}
+
+	if serverHost == configService {
 		s.nextTryConnTime = time.Now().Unix() + nextTryConnectPeriod
 	}
 
 	for k, server := range s.serverMap {
 		// if some node has down then select next node
-		if strings.Index(k, host) > -1 {
+		if strings.Index(k, serverHost) > -1 {
 			server.IsDown = true
 		}
 	}
