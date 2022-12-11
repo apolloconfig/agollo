@@ -42,6 +42,8 @@ import (
 	"github.com/apolloconfig/agollo/v4/utils/parse/yml"
 )
 
+const separator = ","
+
 func init() {
 	extension.SetCacheFactory(&memory.DefaultCacheFactory{})
 	extension.SetLoadBalance(&roundrobin.RoundRobin{})
@@ -70,7 +72,9 @@ type Client interface {
 	GetFloatValue(key string, defaultValue float64) float64
 	GetBoolValue(key string, defaultValue bool) bool
 	GetStringSliceValue(key string, defaultValue []string) []string
+	GetStringSliceValueWithSeparator(key, separator string, defaultValue []string) []string
 	GetIntSliceValue(key string, defaultValue []int) []int
+	GetIntSliceValueWithSeparator(key, separator string, defaultValue []int) []int
 	AddChangeListener(listener storage.ChangeListener)
 	RemoveChangeListener(listener storage.ChangeListener)
 	GetChangeListeners() *list.List
@@ -221,12 +225,22 @@ func (c *internalClient) GetBoolValue(key string, defaultValue bool) bool {
 
 //GetStringSliceValue 获取[]string 配置值
 func (c *internalClient) GetStringSliceValue(key string, defaultValue []string) []string {
-	return c.GetConfig(storage.GetDefaultNamespace()).GetStringSliceValue(key, defaultValue)
+	return c.GetStringSliceValueWithSeparator(key, separator, defaultValue)
+}
+
+//GetStringSliceValueWithSeparator 获取[]string 配置值
+func (c *internalClient) GetStringSliceValueWithSeparator(key, separator string, defaultValue []string) []string {
+	return c.GetConfig(storage.GetDefaultNamespace()).GetStringSliceValue(key, separator, defaultValue)
 }
 
 //GetIntSliceValue 获取[]int 配置值
 func (c *internalClient) GetIntSliceValue(key string, defaultValue []int) []int {
-	return c.GetConfig(storage.GetDefaultNamespace()).GetIntSliceValue(key, defaultValue)
+	return c.GetIntSliceValueWithSeparator(key, separator, defaultValue)
+}
+
+//GetIntSliceValueWithSeparator 获取[]int 配置值
+func (c *internalClient) GetIntSliceValueWithSeparator(key, separator string, defaultValue []int) []int {
+	return c.GetConfig(storage.GetDefaultNamespace()).GetIntSliceValue(key, separator, defaultValue)
 }
 
 func (c *internalClient) getConfigValue(key string) interface{} {

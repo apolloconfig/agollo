@@ -104,7 +104,9 @@ func TestGetConfig(t *testing.T) {
 	configurations["bool"] = false
 	configurations["string_bool"] = "false"
 	configurations["sliceString"] = []string{"1", "2", "3"}
+	configurations["sliceStringWithSeparator"] = "1,2,3"
 	configurations["sliceInt"] = []int{1, 2, 3}
+	configurations["sliceIntWithSeparator"] = "1,2,3"
 	configurations["sliceInter"] = []interface{}{1, "2", 3}
 	c := creatTestApolloConfig(configurations, "test")
 	config := c.GetConfig("test")
@@ -148,10 +150,15 @@ func TestGetConfig(t *testing.T) {
 	b = config.GetBoolValue("b", false)
 	Assert(t, b, Equal(false))
 
-	slice := config.GetStringSliceValue("sliceString", []string{})
+	slice := config.GetStringSliceValue("sliceString", ",", []string{})
+	Assert(t, slice, Equal([]string{"1", "2", "3"}))
+	slice = config.GetStringSliceValue("sliceStringWithSeparator", ",", []string{})
 	Assert(t, slice, Equal([]string{"1", "2", "3"}))
 
-	sliceInt := config.GetIntSliceValue("sliceInt", []int{})
+	sliceInt := config.GetIntSliceValue("sliceInt", ",", []int{})
+	Assert(t, sliceInt, Equal([]int{1, 2, 3}))
+
+	sliceInt = config.GetIntSliceValue("sliceIntWithSeparator", ",", []int{})
 	Assert(t, sliceInt, Equal([]int{1, 2, 3}))
 
 	sliceInter := config.GetSliceValue("sliceInter", []interface{}{})
