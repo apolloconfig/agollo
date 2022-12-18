@@ -34,6 +34,7 @@ const (
 type ConfigComponent struct {
 	appConfigFunc func() config.AppConfig
 	cache         *storage.Cache
+	stopCh        chan interface{}
 }
 
 // SetAppConfig nolint
@@ -48,9 +49,14 @@ func (c *ConfigComponent) SetCache(cache *storage.Cache) {
 
 //Start 启动配置组件定时器
 func (c *ConfigComponent) Start() {
+	if c.stopCh == nil {
+		c.stopCh = make(chan interface{})
+	}
+
 	t2 := time.NewTimer(longPollInterval)
 	instance := remote.CreateAsyncApolloConfig()
 	//long poll for sync
+loop:
 	for {
 		select {
 		case <-t2.C:
@@ -59,6 +65,15 @@ func (c *ConfigComponent) Start() {
 				c.cache.UpdateApolloConfig(apolloConfig, c.appConfigFunc)
 			}
 			t2.Reset(longPollInterval)
+		case <-c.stopCh:
+			break loop
 		}
+	}
+}
+
+// Stop 停止配置组件定时器
+func (c *ConfigComponent) Stop() {
+	if c.stopCh != nil {
+		close(c.stopCh)
 	}
 }

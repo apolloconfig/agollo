@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 
@@ -314,7 +315,7 @@ func (c *Config) GetStringValue(key string, defaultValue string) string {
 }
 
 // GetStringSliceValue 获取配置值（[]string）
-func (c *Config) GetStringSliceValue(key string, defaultValue []string) []string {
+func (c *Config) GetStringSliceValue(key, separator string, defaultValue []string) []string {
 	value := c.getConfigValue(key, true)
 	if value == nil {
 		return defaultValue
@@ -322,14 +323,18 @@ func (c *Config) GetStringSliceValue(key string, defaultValue []string) []string
 
 	v, ok := value.([]string)
 	if !ok {
-		log.Debugf("convert to []string fail ! source type:%T", value)
-		return defaultValue
+		s, ok := value.(string)
+		if !ok {
+			log.Debugf("convert to []string fail ! source type:%T", value)
+			return defaultValue
+		}
+		return strings.Split(s, separator)
 	}
 	return v
 }
 
 // GetIntSliceValue 获取配置值（[]int)
-func (c *Config) GetIntSliceValue(key string, defaultValue []int) []int {
+func (c *Config) GetIntSliceValue(key, separator string, defaultValue []int) []int {
 	value := c.getConfigValue(key, true)
 	if value == nil {
 		return defaultValue
@@ -337,8 +342,19 @@ func (c *Config) GetIntSliceValue(key string, defaultValue []int) []int {
 
 	v, ok := value.([]int)
 	if !ok {
-		log.Debugf("convert to []int fail ! source type:%T", value)
-		return defaultValue
+		sl := c.GetStringSliceValue(key, separator, nil)
+		if sl == nil {
+			return defaultValue
+		}
+		v = make([]int, 0, len(sl))
+		for index := range sl {
+			i, err := strconv.Atoi(sl[index])
+			if err != nil {
+				log.Debugf("convert to []int fail! value:%s,  source type:%T", sl[index], sl[index])
+				return defaultValue
+			}
+			v = append(v, i)
+		}
 	}
 	return v
 }
@@ -573,7 +589,7 @@ func (c *Cache) AddChangeListener(listener ChangeListener) {
 	c.changeListeners.PushBack(listener)
 }
 
-// RemoveChangeListener 增加变更监控
+// RemoveChangeListener 删除变更监控
 func (c *Cache) RemoveChangeListener(listener ChangeListener) {
 	if listener == nil {
 		return
