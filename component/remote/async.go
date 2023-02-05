@@ -138,7 +138,7 @@ func toApolloConfig(resBody []byte) ([]*config.Notification, error) {
 	err := json.Unmarshal(resBody, &remoteConfig)
 
 	if err != nil {
-		log.Errorf("Unmarshal Msg Fail,Error: %v", err)
+		log.Errorf("Unmarshal Msg Fail, error: %v", err)
 		return nil, err
 	}
 	return remoteConfig, nil
@@ -182,7 +182,7 @@ func createApolloConfigWithJSON(b []byte, callback http.CallBack) (o interface{}
 	}
 	m, err := parser.Parse(content)
 	if err != nil {
-		log.Debugf("GetContent fail ! error: %v", err)
+		log.Debugf("GetContent fail! error: %v", err)
 	}
 
 	if len(m) > 0 {
