@@ -64,7 +64,7 @@ func (c *Cache) GetConfig(namespace string) *Config {
 	return config.(*Config)
 }
 
-// CreateNamespaceConfig 根据namespace初始化agollo内润配置
+// CreateNamespaceConfig 根据namespace初始化agollo内容配置
 func CreateNamespaceConfig(namespace string) *Cache {
 	// config from apollo
 	var apolloConfigCache sync.Map
