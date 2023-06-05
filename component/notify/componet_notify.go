@@ -27,10 +27,10 @@ import (
 )
 
 const (
-	longPollInterval = 2 * time.Second //2s
+	longPollInterval = 2 * time.Second // 2s
 )
 
-//ConfigComponent 配置组件
+// ConfigComponent 配置组件
 type ConfigComponent struct {
 	appConfigFunc func() config.AppConfig
 	cache         *storage.Cache
@@ -47,7 +47,7 @@ func (c *ConfigComponent) SetCache(cache *storage.Cache) {
 	c.cache = cache
 }
 
-//Start 启动配置组件定时器
+// Start 启动配置组件定时器
 func (c *ConfigComponent) Start() {
 	if c.stopCh == nil {
 		c.stopCh = make(chan interface{})
@@ -55,7 +55,7 @@ func (c *ConfigComponent) Start() {
 
 	t2 := time.NewTimer(longPollInterval)
 	instance := remote.CreateAsyncApolloConfig()
-	//long poll for sync
+	// long poll for sync
 loop:
 	for {
 		select {

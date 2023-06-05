@@ -32,14 +32,14 @@ var (
 	comma                 = ","
 )
 
-//File 读写配置文件
+// File 读写配置文件
 type File interface {
 	Load(fileName string, unmarshal func([]byte) (interface{}, error)) (interface{}, error)
 
 	Write(content interface{}, configPath string) error
 }
 
-//AppConfig 配置文件
+// AppConfig 配置文件
 type AppConfig struct {
 	AppID             string `json:"appId"`
 	Cluster           string `json:"cluster"`
@@ -56,7 +56,7 @@ type AppConfig struct {
 	currentConnApolloConfig *CurrentApolloConfig
 }
 
-//ServerInfo 服务器信息
+// ServerInfo 服务器信息
 type ServerInfo struct {
 	AppName     string `json:"appName"`
 	InstanceID  string `json:"instanceId"`
@@ -64,19 +64,19 @@ type ServerInfo struct {
 	IsDown      bool   `json:"-"`
 }
 
-//GetIsBackupConfig whether backup config after fetch config from apollo
-//false : no
-//true : yes (default)
+// GetIsBackupConfig whether backup config after fetch config from apollo
+// false : no
+// true : yes (default)
 func (a *AppConfig) GetIsBackupConfig() bool {
 	return a.IsBackupConfig
 }
 
-//GetBackupConfigPath GetBackupConfigPath
+// GetBackupConfigPath GetBackupConfigPath
 func (a *AppConfig) GetBackupConfigPath() string {
 	return a.BackupConfigPath
 }
 
-//GetHost GetHost
+// GetHost GetHost
 func (a *AppConfig) GetHost() string {
 	u, err := url.Parse(a.IP)
 	if err != nil {
@@ -108,7 +108,7 @@ func (a *AppConfig) initAllNotifications(callback func(namespace string)) {
 	}
 }
 
-//SplitNamespaces 根据namespace字符串分割后，并执行callback函数
+// SplitNamespaces 根据namespace字符串分割后，并执行callback函数
 func SplitNamespaces(namespacesStr string, callback func(namespace string)) sync.Map {
 	namespaces := sync.Map{}
 	split := strings.Split(namespacesStr, comma)
@@ -126,7 +126,7 @@ func (a *AppConfig) GetNotificationsMap() *notificationsMap {
 	return a.notificationsMap
 }
 
-//GetServicesConfigURL 获取服务器列表url
+// GetServicesConfigURL 获取服务器列表url
 func (a *AppConfig) GetServicesConfigURL() string {
 	return fmt.Sprintf("%sservices/config?appId=%s&ip=%s",
 		a.GetHost(),

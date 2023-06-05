@@ -34,8 +34,8 @@ import (
 )
 
 const (
-	//notify timeout
-	notifyConnectTimeout = 10 * time.Minute //10m
+	// notify timeout
+	notifyConnectTimeout = 10 * time.Minute // 10m
 
 	defaultContentKey = "content"
 )
@@ -80,7 +80,7 @@ func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*confi
 	if len(remoteConfigs) == 0 || len(apolloConfigs) > 0 {
 		return apolloConfigs
 	}
-	//只是拉去有变化的配置, 并更新拉取成功的namespace的notify ID
+	// 只是拉去有变化的配置, 并更新拉取成功的namespace的notify ID
 	for _, notifyConfig := range remoteConfigs {
 		apolloConfig := a.SyncWithNamespace(notifyConfig.NamespaceName, appConfigFunc)
 		if apolloConfig != nil {

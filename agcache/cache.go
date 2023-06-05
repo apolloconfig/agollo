@@ -17,7 +17,7 @@
 
 package agcache
 
-//CacheInterface 自定义缓存组件接口
+// CacheInterface 自定义缓存组件接口
 type CacheInterface interface {
 	Set(key string, value interface{}, expireSeconds int) (err error)
 
@@ -32,8 +32,8 @@ type CacheInterface interface {
 	Clear()
 }
 
-//CacheFactory 缓存组件工厂接口
+// CacheFactory 缓存组件工厂接口
 type CacheFactory interface {
-	//Create 创建缓存组件
+	// Create 创建缓存组件
 	Create() CacheInterface
 }

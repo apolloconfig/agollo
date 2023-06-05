@@ -29,7 +29,7 @@ func TestGetInternal(t *testing.T) {
 
 	t.Log("Internal ip:", ip)
 
-	//只能在有网络下开启者配置,否则跑出错误
+	// 只能在有网络下开启者配置,否则跑出错误
 	Assert(t, ip, NotEqual(Empty))
 	nums := strings.Split(ip, ".")
 

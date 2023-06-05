@@ -23,12 +23,12 @@ var (
 	globalCacheFactory agcache.CacheFactory
 )
 
-//GetCacheFactory 获取CacheFactory
+// GetCacheFactory 获取CacheFactory
 func GetCacheFactory() agcache.CacheFactory {
 	return globalCacheFactory
 }
 
-//SetCacheFactory 替换CacheFactory
+// SetCacheFactory 替换CacheFactory
 func SetCacheFactory(cacheFactory agcache.CacheFactory) {
 	globalCacheFactory = cacheFactory
 }

@@ -29,12 +29,12 @@ import (
 type TestFileHandler struct {
 }
 
-//WriteConfigFile 写入配置文件
+// WriteConfigFile 写入配置文件
 func (r *TestFileHandler) WriteConfigFile(config *config.ApolloConfig, configPath string) error {
 	return nil
 }
 
-//GetConfigFile 获得配置文件路径
+// GetConfigFile 获得配置文件路径
 func (r *TestFileHandler) GetConfigFile(configDir string, appID string, namespace string) string {
 	return ""
 }
