@@ -508,7 +508,7 @@ func (c *Cache) UpdateApolloConfigCache(configurations map[string]interface{}, e
 		c.waitInit.Done()
 	}(config)
 
-	if (configurations == nil || len(configurations) == 0) && config.cache.EntryCount() == 0 {
+	if (len(configurations) == 0) && config.cache.EntryCount() == 0 {
 		return nil
 	}
 
@@ -521,27 +521,25 @@ func (c *Cache) UpdateApolloConfigCache(configurations map[string]interface{}, e
 
 	changes := make(map[string]*ConfigChange)
 
-	if configurations != nil {
-		// update new
-		// keys
-		for key, value := range configurations {
-			// key state insert or update
-			// insert
-			if !mp[key] {
-				changes[key] = createAddConfigChange(value)
-			} else {
-				// update
-				oldValue, _ := config.cache.Get(key)
-				if !reflect.DeepEqual(oldValue, value) {
-					changes[key] = createModifyConfigChange(oldValue, value)
-				}
+	// update new
+	// keys
+	for key, value := range configurations {
+		// key state insert or update
+		// insert
+		if !mp[key] {
+			changes[key] = createAddConfigChange(value)
+		} else {
+			// update
+			oldValue, _ := config.cache.Get(key)
+			if !reflect.DeepEqual(oldValue, value) {
+				changes[key] = createModifyConfigChange(oldValue, value)
 			}
-
-			if err := config.cache.Set(key, value, expireTime); err != nil {
-				log.Errorf("set key %s to cache error %s", key, err)
-			}
-			delete(mp, key)
 		}
+
+		if err := config.cache.Set(key, value, expireTime); err != nil {
+			log.Errorf("set key %s to cache error %s", key, err)
+		}
+		delete(mp, key)
 	}
 
 	// remove del keys
