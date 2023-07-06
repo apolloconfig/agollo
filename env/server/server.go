@@ -28,7 +28,7 @@ import (
 // ip -> server
 var (
 	ipMap      map[string]*Info
-	serverLock sync.Mutex
+	serverLock sync.RWMutex
 	// next try connect period - 60 second
 	nextTryConnectPeriod int64 = 30
 )
@@ -45,8 +45,8 @@ type Info struct {
 
 // GetServers 获取服务器数组
 func GetServers(configIp string) map[string]*config.ServerInfo {
-	serverLock.Lock()
-	defer serverLock.Unlock()
+	serverLock.RLock()
+	defer serverLock.RUnlock()
 	if ipMap[configIp] == nil {
 		return nil
 	}
@@ -55,8 +55,8 @@ func GetServers(configIp string) map[string]*config.ServerInfo {
 
 // GetServersLen 获取服务器数组长度
 func GetServersLen(configIp string) int {
-	serverLock.Lock()
-	defer serverLock.Unlock()
+	serverLock.RLock()
+	defer serverLock.RUnlock()
 	s := ipMap[configIp]
 	if s == nil || len(s.serverMap) == 0 {
 		return 0
@@ -109,8 +109,8 @@ func SetDownNode(configService string, serverHost string) {
 // false : yes
 // true : no
 func IsConnectDirectly(configIp string) bool {
-	serverLock.Lock()
-	defer serverLock.Unlock()
+	serverLock.RLock()
+	defer serverLock.RUnlock()
 	s := ipMap[configIp]
 	if s == nil || len(s.serverMap) == 0 {
 		return false

@@ -42,14 +42,17 @@ var (
 )
 
 func initNotifications() *config.AppConfig {
-	appConfig := env.InitFileConfig()
+	appConfig, err := env.LoadAppConfigFromFile()
+	if err != nil {
+		panic(err)
+	}
 	appConfig.NamespaceName = "application,abc1"
 	appConfig.Init()
 	return appConfig
 }
 
 func TestUpdateAllNotifications(t *testing.T) {
-	//clear
+	// clear
 	c := initNotifications()
 
 	notifyJson := `[
@@ -72,7 +75,7 @@ func TestUpdateAllNotifications(t *testing.T) {
 }
 
 func TestUpdateAllNotificationsError(t *testing.T) {
-	//clear
+	// clear
 	appConfig := initNotifications()
 
 	notifyJson := `ffffff`

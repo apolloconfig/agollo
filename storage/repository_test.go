@@ -45,7 +45,10 @@ func init() {
 
 func creatTestApolloConfig(configurations map[string]interface{}, namespace string) *Cache {
 	c := CreateNamespaceConfig(namespace)
-	appConfig := env.InitFileConfig()
+	appConfig, err := env.LoadAppConfigFromFile()
+	if err != nil {
+		panic(err)
+	}
 	apolloConfig := &config.ApolloConfig{}
 	apolloConfig.NamespaceName = namespace
 	apolloConfig.AppID = "test"
@@ -60,7 +63,10 @@ func creatTestApolloConfig(configurations map[string]interface{}, namespace stri
 func TestUpdateApolloConfigNull(t *testing.T) {
 	time.Sleep(1 * time.Second)
 	c := CreateNamespaceConfig(defaultNamespace)
-	appConfig := env.InitFileConfig()
+	appConfig, err := env.LoadAppConfigFromFile()
+	if err != nil {
+		panic(err)
+	}
 
 	configurations := make(map[string]interface{})
 	configurations["string"] = "string"

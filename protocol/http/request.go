@@ -21,7 +21,8 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"github.com/apolloconfig/agollo/v4/perror"
+	"io"
 	"net"
 	"net/http"
 	url2 "net/url"
@@ -29,11 +30,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/apolloconfig/agollo/v4/env/server"
-
 	"github.com/apolloconfig/agollo/v4/component/log"
 	"github.com/apolloconfig/agollo/v4/env"
 	"github.com/apolloconfig/agollo/v4/env/config"
+	"github.com/apolloconfig/agollo/v4/env/server"
 	"github.com/apolloconfig/agollo/v4/extension"
 	"github.com/apolloconfig/agollo/v4/utils"
 )
@@ -121,7 +121,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		}
 		req, err := http.NewRequest("GET", requestURL, nil)
 		if req == nil || err != nil {
-			log.Errorf("Generate connect Apollo request Fail,url:%s,Error:%s", requestURL, err)
+			log.Errorf("Generate connect Apollo request Fail, url: %s, Error: %s", requestURL, err)
 			// if error then sleep
 			return nil, errors.New("generate connect Apollo request fail")
 		}
@@ -145,7 +145,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		}
 
 		if res == nil || err != nil {
-			log.Errorf("Connect Apollo Server Fail,url:%s,Error:%s", requestURL, err)
+			log.Errorf("Connect Apollo Server Fail, url: %s, Error: %s", requestURL, err)
 			// if error then sleep
 			time.Sleep(onErrorRetryInterval)
 			continue
@@ -154,9 +154,9 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		// not modified break
 		switch res.StatusCode {
 		case http.StatusOK:
-			responseBody, err := ioutil.ReadAll(res.Body)
+			responseBody, err := io.ReadAll(res.Body)
 			if err != nil {
-				log.Errorf("Connect Apollo Server Fail,url : %s ,Error: %s ", requestURL, err)
+				log.Errorf("Connect Apollo Server Fail, url: %s, Error: %s", requestURL, err)
 				// if error then sleep
 				time.Sleep(onErrorRetryInterval)
 				continue
@@ -172,17 +172,19 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 				return nil, callBack.NotModifyCallBack()
 			}
 			return nil, nil
+		case http.StatusUnauthorized:
+			return nil, perror.ErrUnauthorized
 		default:
-			log.Errorf("Connect Apollo Server Fail,url:%s,StatusCode:%d", requestURL, res.StatusCode)
+			log.Errorf("Connect Apollo Server Fail, url: %s, StatusCode: %d", requestURL, res.StatusCode)
 			// if error then sleep
 			time.Sleep(onErrorRetryInterval)
 			continue
 		}
 	}
 
-	log.Errorf("Over Max Retry Still Error,Error: %v", err)
+	log.Warnf("Over Max Retry Still Error. err: %v", err)
 	if retry > retries {
-		err = errors.New("over Max Retry Still Error")
+		err = perror.ErrOverMaxRetryStill
 	}
 	return nil, err
 }

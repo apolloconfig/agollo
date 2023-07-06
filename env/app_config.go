@@ -40,36 +40,28 @@ var (
 	configFileExecutor    config.File
 )
 
-// InitFileConfig 使用文件初始化配置
-func InitFileConfig() *config.AppConfig {
-	// default use application.properties
-	if initConfig, err := InitConfig(nil); err == nil {
-		return initConfig
-	}
-	return nil
-}
+type LoadAppConfigFunc func() (*config.AppConfig, error)
 
-// InitConfig 使用指定配置初始化配置
-func InitConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.AppConfig, error) {
-	// init config file
-	return getLoadAppConfig(loadAppConfig)
-}
-
-// set load app config's function
-func getLoadAppConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.AppConfig, error) {
-	if loadAppConfig != nil {
-		return loadAppConfig()
-	}
+// LoadAppConfigFromFile 从配置文件读配置
+func LoadAppConfigFromFile() (*config.AppConfig, error) {
+	// 如果没有外部设定配置，从环境变量读取配置
 	configPath := os.Getenv(appConfigFilePath)
 	if configPath == "" {
 		configPath = appConfigFile
 	}
-	c, e := GetConfigFileExecutor().Load(configPath, Unmarshal)
-	if c == nil {
+	conf, e := GetConfigFileExecutor().Load(configPath, Unmarshal)
+	if conf == nil {
 		return nil, e
 	}
+	return conf.(*config.AppConfig), e
+}
 
-	return c.(*config.AppConfig), e
+// LoadAppConfig 加载配置
+func LoadAppConfig(f LoadAppConfigFunc) (*config.AppConfig, error) {
+	if f != nil {
+		return f()
+	}
+	return LoadAppConfigFromFile()
 }
 
 // GetConfigFileExecutor 获取文件执行器

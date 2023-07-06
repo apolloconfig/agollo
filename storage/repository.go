@@ -44,7 +44,7 @@ const (
 
 // Cache apollo 配置缓存
 type Cache struct {
-	apolloConfigCache sync.Map
+	apolloConfigCache *sync.Map
 	changeListeners   *list.List
 	rw                sync.RWMutex
 }
@@ -76,7 +76,7 @@ func CreateNamespaceConfig(namespace string) *Cache {
 		apolloConfigCache.Store(namespace, c)
 	})
 	return &Cache{
-		apolloConfigCache: apolloConfigCache,
+		apolloConfigCache: &apolloConfigCache,
 		changeListeners:   list.New(),
 	}
 }
@@ -228,7 +228,8 @@ func (c *Config) GetIntValueImmediately(key string, defaultValue int) int {
 
 	v, err := strconv.Atoi(s)
 	if err != nil {
-		log.Debug("Atoi fail err:%s", err.Error())
+		// TODO: 此处输出日志等级待优化，下同
+		log.Debugf("Atoi failed. err:%s", err.Error())
 		return defaultValue
 	}
 
@@ -255,7 +256,7 @@ func (c *Config) GetFloatValueImmediately(key string, defaultValue float64) floa
 
 	v, err := strconv.ParseFloat(s, 64)
 	if err != nil {
-		log.Debug("ParseFloat fail err:%s", err.Error())
+		log.Debugf("ParseFloat failed. err:%s", err.Error())
 		return defaultValue
 	}
 
@@ -282,7 +283,7 @@ func (c *Config) GetBoolValueImmediately(key string, defaultValue bool) bool {
 
 	v, err := strconv.ParseBool(s)
 	if err != nil {
-		log.Debug("ParseBool fail err:%s", err.Error())
+		log.Debugf("ParseBool failed. err:%s", err.Error())
 		return defaultValue
 	}
 
@@ -394,7 +395,7 @@ func (c *Config) GetIntValue(key string, defaultValue int) int {
 
 	v, err := strconv.Atoi(s)
 	if err != nil {
-		log.Debug("Atoi fail  err:%s", err.Error())
+		log.Debugf("Atoi failed. err:%s", err.Error())
 		return defaultValue
 	}
 	return v
@@ -420,7 +421,7 @@ func (c *Config) GetFloatValue(key string, defaultValue float64) float64 {
 
 	v, err := strconv.ParseFloat(s, 64)
 	if err != nil {
-		log.Debug("ParseFloat fail err:%s", err.Error())
+		log.Debugf("ParseFloat failed. err:%s", err.Error())
 		return defaultValue
 	}
 	return v
@@ -446,7 +447,7 @@ func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
 
 	v, err := strconv.ParseBool(s)
 	if err != nil {
-		log.Debug("ParseBool fail err:%s", err.Error())
+		log.Debugf("ParseBool fail. err: %s", err.Error())
 		return defaultValue
 	}
 	return v

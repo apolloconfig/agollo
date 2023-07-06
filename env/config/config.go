@@ -35,7 +35,6 @@ var (
 // File 读写配置文件
 type File interface {
 	Load(fileName string, unmarshal func([]byte) (interface{}, error)) (interface{}, error)
-
 	Write(content interface{}, configPath string) error
 }
 
@@ -132,6 +131,14 @@ func (a *AppConfig) GetServicesConfigURL() string {
 		a.GetHost(),
 		url.QueryEscape(a.AppID),
 		utils.GetInternal())
+}
+
+func (a *AppConfig) GetCheckSecretURL() string {
+	return fmt.Sprintf("%sconfigfiles/json/%s/%s/%s",
+		a.GetHost(),
+		url.QueryEscape(a.AppID),
+		url.QueryEscape(a.Cluster),
+		url.QueryEscape(a.NamespaceName))
 }
 
 // SetCurrentApolloConfig nolint

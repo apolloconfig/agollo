@@ -147,7 +147,7 @@ func (d *Dispatcher) dispatchEvent(eventKey string, event *ConfigChange) {
 		}
 		if matched {
 			for _, listener := range listenerList {
-				log.Logger.Info("event generated for %s key %s", regKey, eventKey)
+				log.Logger.Infof("event generated for %s key %s", regKey, eventKey)
 				go listener.Event(convertToEvent(eventKey, event))
 			}
 		}

@@ -95,7 +95,10 @@ var (
 )
 
 func TestSelectOnlyOneHost(t *testing.T) {
-	appConfig := env.InitFileConfig()
+	appConfig, err := env.LoadAppConfigFromFile()
+	if err != nil {
+		t.Error(err)
+	}
 	trySyncServerIPList(func() config.AppConfig {
 		return *appConfig
 	})
@@ -121,7 +124,7 @@ func TestSelectOnlyOneHost(t *testing.T) {
 type testComponent struct {
 }
 
-//Start 启动同步服务器列表
+// Start 启动同步服务器列表
 func (s *testComponent) Start() {
 }
 
@@ -137,9 +140,9 @@ func trySyncServerIPList(appConfigFunc func() config.AppConfig) {
 	SyncServerIPListSuccessCallBack([]byte(servicesConfigResponseStr), http.CallBack{AppConfigFunc: appConfigFunc})
 }
 
-//SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
+// SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
 func SyncServerIPListSuccessCallBack(responseBody []byte, callback http.CallBack) (o interface{}, err error) {
-	log.Debug("get all server info:", string(responseBody))
+	log.Debugf("get all server info: %s", string(responseBody))
 
 	tmpServerInfo := make([]*config.ServerInfo, 0)
 

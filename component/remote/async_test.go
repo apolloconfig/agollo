@@ -112,44 +112,47 @@ func serverErrorTwoConfigResponse(rw http.ResponseWriter, req *http.Request) {
 	rw.WriteHeader(http.StatusInternalServerError)
 }
 
-func onlynormalresponse(rw http.ResponseWriter, req *http.Request) {
+func onlyNormalResponse(rw http.ResponseWriter, req *http.Request) {
 	result := fmt.Sprintf(responseStr, 3)
 	fmt.Fprintf(rw, "%s", result)
 }
 
-func onlynormaltworesponse(rw http.ResponseWriter, req *http.Request) {
+func onlyNormalTwoResponse(rw http.ResponseWriter, req *http.Request) {
 	result := fmt.Sprintf(tworesponseStr, 3, 3)
 	fmt.Fprintf(rw, "%s", result)
 }
 
 func initMockNotifyAndConfigServer() *httptest.Server {
-	//clear
+	// clear
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
 	handlerMap["abc1"] = onlyNormalTwoConfigResponse
-	return runMockConfigServer(handlerMap, onlynormalresponse)
+	return runMockConfigServer(handlerMap, onlyNormalResponse)
 }
 
 func initMockNotifyAndConfigServerWithTwo() *httptest.Server {
-	//clear
+	// clear
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
 	handlerMap["abc1"] = onlyNormalTwoConfigResponse
-	return runMockConfigServer(handlerMap, onlynormaltworesponse)
+	return runMockConfigServer(handlerMap, onlyNormalTwoResponse)
 }
 
 func initMockNotifyAndConfigServerWithTwoErrResponse() *httptest.Server {
-	//clear
+	// clear
 	handlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 1)
 	handlerMap["application"] = onlyNormalConfigResponse
 	handlerMap["abc1"] = serverErrorTwoConfigResponse
-	return runMockConfigServer(handlerMap, onlynormaltworesponse)
+	return runMockConfigServer(handlerMap, onlyNormalTwoResponse)
 }
 
-//run mock config server
+// run mock config server
 func runMockConfigServer(handlerMap map[string]func(http.ResponseWriter, *http.Request),
 	notifyHandler func(http.ResponseWriter, *http.Request)) *httptest.Server {
-	appConfig := env.InitFileConfig()
+	appConfig, err := env.LoadAppConfigFromFile()
+	if err != nil {
+		panic(err)
+	}
 	uriHandlerMap := make(map[string]func(http.ResponseWriter, *http.Request), 0)
 	for namespace, handler := range handlerMap {
 		uri := fmt.Sprintf("/configs/%s/%s/%s", appConfig.AppID, appConfig.Cluster, namespace)
@@ -171,14 +174,17 @@ func runMockConfigServer(handlerMap map[string]func(http.ResponseWriter, *http.R
 }
 
 func initNotifications() *config.AppConfig {
-	appConfig := env.InitFileConfig()
+	appConfig, err := env.LoadAppConfigFromFile()
+	if err != nil {
+		panic(err)
+	}
 	appConfig.NamespaceName = "application,abc1"
 	appConfig.Init()
 	return appConfig
 }
 
-//Error response
-//will hold 5s and keep response 404
+// Error response
+// will hold 5s and keep response 404
 func runErrorResponse() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
@@ -194,7 +200,7 @@ func TestApolloConfig_Sync(t *testing.T) {
 	apolloConfigs := asyncApollo.Sync(func() config.AppConfig {
 		return *appConfig
 	})
-	//err keep nil
+	// err keep nil
 	Assert(t, apolloConfigs, NotNilVal())
 	Assert(t, len(apolloConfigs), Equal(1))
 	Assert(t, appConfig.GetNotificationsMap().GetNotify("application"), Equal(int64(3)))
@@ -208,7 +214,7 @@ func TestApolloConfig_SyncTwoOk(t *testing.T) {
 	apolloConfigs := asyncApollo.Sync(func() config.AppConfig {
 		return *appConfig
 	})
-	//err keep nil
+	// err keep nil
 	Assert(t, apolloConfigs, NotNilVal())
 	Assert(t, len(apolloConfigs), Equal(2))
 	Assert(t, appConfig.GetNotificationsMap().GetNotify("application"), Equal(int64(3)))
@@ -223,7 +229,7 @@ func TestApolloConfig_GraySync(t *testing.T) {
 	apolloConfigs := asyncApollo.Sync(func() config.AppConfig {
 		return *appConfig
 	})
-	//err keep nil
+	// err keep nil
 	Assert(t, apolloConfigs, NotNilVal())
 	Assert(t, len(apolloConfigs), Equal(1))
 
@@ -239,7 +245,7 @@ func TestApolloConfig_SyncABC1Error(t *testing.T) {
 	apolloConfigs := asyncApollo.Sync(func() config.AppConfig {
 		return *appConfig
 	})
-	//err keep nil
+	// err keep nil
 	Assert(t, apolloConfigs, NotNilVal())
 	Assert(t, len(apolloConfigs), Equal(1))
 	Assert(t, appConfig.GetNotificationsMap().GetNotify("application"), Equal(int64(3)))
@@ -266,7 +272,7 @@ func TestGetRemoteConfig(t *testing.T) {
 		return *appConfig
 	}, EMPTY)
 
-	//err keep nil
+	// err keep nil
 	Assert(t, err, NilVal())
 
 	Assert(t, remoteConfigs, NotNilVal())
@@ -281,7 +287,7 @@ func TestGetRemoteConfig(t *testing.T) {
 }
 
 func TestErrorGetRemoteConfig(t *testing.T) {
-	//clear
+	// clear
 	initNotifications()
 	appConfig := initNotifications()
 	server1 := runErrorResponse()

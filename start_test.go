@@ -166,7 +166,7 @@ func TestStructInit(t *testing.T) {
 	Assert(t, "application1", Equal(apolloConfig.NamespaceName))
 
 	// revert file config
-	env.InitFileConfig()
+	env.LoadAppConfigFromFile()
 }
 
 func TestSetLogger(t *testing.T) {

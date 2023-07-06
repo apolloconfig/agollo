@@ -19,15 +19,16 @@ package serverlist
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"time"
-
-	"github.com/apolloconfig/agollo/v4/env/server"
 
 	"github.com/apolloconfig/agollo/v4/component"
 	"github.com/apolloconfig/agollo/v4/component/log"
 	"github.com/apolloconfig/agollo/v4/env"
 	"github.com/apolloconfig/agollo/v4/env/config"
+	"github.com/apolloconfig/agollo/v4/env/server"
+	"github.com/apolloconfig/agollo/v4/perror"
 	"github.com/apolloconfig/agollo/v4/protocol/http"
 )
 
@@ -36,43 +37,61 @@ const (
 	refreshIPListInterval = 20 * time.Minute // 20m
 )
 
-func init() {
-
-}
-
 // InitSyncServerIPList 初始化同步服务器信息列表
-func InitSyncServerIPList(appConfig func() config.AppConfig) {
-	go component.StartRefreshConfig(&SyncServerIPListComponent{appConfig})
+func InitSyncServerIPList(appConfig func() config.AppConfig) error {
+	// 先同步执行一次，后续定时异步执行
+	if _, err := SyncServerIPList(appConfig); err != nil {
+		return err
+	}
+	if err := CheckSecretOK(appConfig); err != nil {
+		return err
+	}
+	go component.StartRefreshConfig(&SyncServerIPListComponent{
+		appConfig: appConfig,
+		stopCh:    make(chan struct{}),
+	})
+	return nil
 }
 
 // SyncServerIPListComponent set timer for update ip list
 // interval : 20m
 type SyncServerIPListComponent struct {
 	appConfig func() config.AppConfig
+	stopCh    chan struct{}
 }
 
-// Start 启动同步服务器列表
+// Start 启动向apollo服务列表同步
 func (s *SyncServerIPListComponent) Start() {
-	SyncServerIPList(s.appConfig)
-	log.Debug("syncServerIpList started")
+	if s.stopCh == nil {
+		s.stopCh = make(chan struct{})
+	}
 
 	t2 := time.NewTimer(refreshIPListInterval)
+loop:
 	for {
 		select {
 		case <-t2.C:
-			SyncServerIPList(s.appConfig)
+			if _, err := SyncServerIPList(s.appConfig); err != nil {
+				log.Errorf("同步Apollo服务信息失败. err: %+v", err)
+			}
 			t2.Reset(refreshIPListInterval)
+		case <-s.stopCh:
+			break loop
 		}
 	}
 }
 
-// SyncServerIPList sync ip list from server
-// then
-// 1.update agcache
-// 2.store in disk
+// Stop 停止向apollo服务长轮询
+func (s *SyncServerIPListComponent) Stop() {
+	if s.stopCh != nil {
+		close(s.stopCh)
+	}
+}
+
+// SyncServerIPList 同步apollo服务信息
 func SyncServerIPList(appConfigFunc func() config.AppConfig) (map[string]*config.ServerInfo, error) {
 	if appConfigFunc == nil {
-		panic("can not find apollo config!please confirm!")
+		return nil, fmt.Errorf("can not find apollo config! please confirm")
 	}
 
 	appConfig := appConfigFunc()
@@ -91,7 +110,10 @@ func SyncServerIPList(appConfigFunc func() config.AppConfig) (map[string]*config
 		SuccessCallBack: SyncServerIPListSuccessCallBack,
 		AppConfigFunc:   appConfigFunc,
 	})
-	if serverMap == nil {
+	if err != nil {
+		if err == perror.ErrOverMaxRetryStill {
+			return nil, fmt.Errorf("获取Apollo服务列表失败")
+		}
 		return nil, err
 	}
 
@@ -101,30 +123,26 @@ func SyncServerIPList(appConfigFunc func() config.AppConfig) (map[string]*config
 }
 
 // SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
-func SyncServerIPListSuccessCallBack(responseBody []byte, callback http.CallBack) (o interface{}, err error) {
-	log.Debug("get all server info:", string(responseBody))
+func SyncServerIPListSuccessCallBack(responseBody []byte, callback http.CallBack) (serversInfoMap interface{}, err error) {
+	log.Debugf("get all server info: %s", string(responseBody))
 
 	tmpServerInfo := make([]*config.ServerInfo, 0)
-
-	err = json.Unmarshal(responseBody, &tmpServerInfo)
-
-	if err != nil {
-		log.Error("Unmarshal json Fail,Error: %v", err)
+	if err = json.Unmarshal(responseBody, &tmpServerInfo); err != nil {
+		log.Errorf("unmarshal json failed. err: %v", err)
 		return
 	}
-
 	if len(tmpServerInfo) == 0 {
 		log.Info("get no real server!")
 		return
 	}
 
-	m := make(map[string]*config.ServerInfo)
-	for _, server := range tmpServerInfo {
-		if server == nil {
+	m := make(map[string]*config.ServerInfo, len(tmpServerInfo))
+	for _, svr := range tmpServerInfo {
+		if svr == nil {
 			continue
 		}
-		m[server.HomepageURL] = server
+		m[svr.HomepageURL] = svr
 	}
-	o = m
+	serversInfoMap = m
 	return
 }

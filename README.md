@@ -13,6 +13,13 @@ Agollo - Go Client for Apollo
 
 方便Golang接入配置中心框架 [Apollo](https://github.com/ctripcorp/apollo) 所开发的Golang版本客户端。
 
+# Changes
+
+基于原版代码，作出以下修改项： 
+
+* 首次连接Apollo服务时检查IP地址、App秘钥合法性，并同步返回连接失败原因
+* 修改Log接口定义，使之与其他开源库Log库更加贴合
+
 # Features
 
 * 支持多 IP、AppID、namespace

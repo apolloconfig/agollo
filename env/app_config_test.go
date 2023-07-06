@@ -87,21 +87,24 @@ var (
 )
 
 func TestInit(t *testing.T) {
-	config := InitFileConfig()
+	fileConfig, err := LoadAppConfigFromFile()
+	if err != nil {
+		t.Fatal(err)
+	}
 	time.Sleep(1 * time.Second)
 
-	Assert(t, config, NotNilVal())
-	Assert(t, "test", Equal(config.AppID))
-	Assert(t, "dev", Equal(config.Cluster))
-	Assert(t, "application,abc1", Equal(config.NamespaceName))
-	Assert(t, "http://localhost:8888", Equal(config.IP))
+	Assert(t, fileConfig, NotNilVal())
+	Assert(t, "test", Equal(fileConfig.AppID))
+	Assert(t, "dev", Equal(fileConfig.Cluster))
+	Assert(t, "application,abc1", Equal(fileConfig.NamespaceName))
+	Assert(t, "http://localhost:8888", Equal(fileConfig.IP))
 
-	//TODO: 需要确认是否放在这里
-	//defaultApolloConfig := GetCurrentApolloConfig()[defaultNamespace]
-	//Assert(t, defaultApolloConfig, NotNilVal())
-	//Assert(t, "test", Equal(defaultApolloConfig.AppId))
-	//Assert(t, "dev", Equal(defaultApolloConfig.Cluster))
-	//Assert(t, "application", Equal(defaultApolloConfig.NamespaceName))
+	// TODO: 需要确认是否放在这里
+	// defaultApolloConfig := GetCurrentApolloConfig()[defaultNamespace]
+	// Assert(t, defaultApolloConfig, NotNilVal())
+	// Assert(t, "test", Equal(defaultApolloConfig.AppId))
+	// Assert(t, "dev", Equal(defaultApolloConfig.Cluster))
+	// Assert(t, "application", Equal(defaultApolloConfig.NamespaceName))
 }
 
 func TestGetServicesConfigUrl(t *testing.T) {
@@ -144,7 +147,7 @@ func TestLoadEnvConfig(t *testing.T) {
 	}
 
 	err = os.Setenv(appConfigFilePath, envConfigFile)
-	envConfig, envConfigErr := getLoadAppConfig(nil)
+	envConfig, envConfigErr := LoadAppConfig(nil)
 	t.Log(config)
 
 	Assert(t, envConfigErr, NilVal())

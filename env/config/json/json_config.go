@@ -20,20 +20,19 @@ package json
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
 	"os"
 
 	"github.com/apolloconfig/agollo/v4/component/log"
 	"github.com/apolloconfig/agollo/v4/utils"
 )
 
-//ConfigFile json文件读写
+// ConfigFile json文件读写
 type ConfigFile struct {
 }
 
-//Load json文件读
+// Load json文件读
 func (t *ConfigFile) Load(fileName string, unmarshal func([]byte) (interface{}, error)) (interface{}, error) {
-	fs, err := ioutil.ReadFile(fileName)
+	fs, err := os.ReadFile(fileName)
 	if err != nil {
 		return nil, errors.New("Fail to read config file:" + err.Error())
 	}
@@ -47,7 +46,7 @@ func (t *ConfigFile) Load(fileName string, unmarshal func([]byte) (interface{}, 
 	return config, nil
 }
 
-//Write json文件写
+// Write json文件写
 func (t *ConfigFile) Write(content interface{}, configPath string) error {
 	if content == nil {
 		log.Error("content is null can not write backup file")

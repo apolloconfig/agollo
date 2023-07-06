@@ -53,10 +53,10 @@ func init() {
 	extension.AddFormatParser(constant.YAML, &yaml.Parser{})
 }
 
-//Normal response
-//First request will hold 5s and response http.StatusNotModified
-//Second request will hold 5s and response http.StatusNotModified
-//Second request will response [{"namespaceName":"application","notificationId":3}]
+// Normal response
+// First request will hold 5s and response http.StatusNotModified
+// Second request will hold 5s and response http.StatusNotModified
+// Second request will response [{"namespaceName":"application","notificationId":3}]
 func runNormalConfigResponse() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		normalConfigCount++
@@ -80,8 +80,8 @@ func runNormalConfigResponse() *httptest.Server {
 	return ts
 }
 
-//Error response
-//will hold 5s and keep response 404
+// Error response
+// will hold 5s and keep response 404
 func runErrorConfigResponse() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		time.Sleep(500 * time.Microsecond)
@@ -142,14 +142,17 @@ func TestAutoSyncConfigServicesNoBackupFile(t *testing.T) {
 }
 
 func checkNilBackupFile(t *testing.T) {
-	appConfig := env.InitFileConfig()
+	appConfig, err := env.LoadAppConfigFromFile()
+	if err != nil {
+		t.Fatal(err)
+	}
 	newConfig, e := extension.GetFileHandler().LoadConfigFile(appConfig.GetBackupConfigPath(), appConfig.AppID, "application")
 	Assert(t, e, NotNilVal())
 	Assert(t, newConfig, NilVal())
 }
 
 func TestAutoSyncConfigServicesError(t *testing.T) {
-	//reload app properties
+	// reload app properties
 	server := runErrorConfigResponse()
 	newAppConfig := initNotifications()
 	newAppConfig.IP = server.URL
