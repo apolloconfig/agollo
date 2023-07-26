@@ -99,7 +99,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 	var err error
 	url, err := url2.Parse(requestURL)
 	if err != nil {
-		log.Errorf("request Apollo Server url: %s, is invalid: %v", requestURL, err)
+		log.Errorf("request Apollo Server url: %q is invalid: %v", requestURL, err)
 		return nil, err
 	}
 	var insecureSkipVerify bool
@@ -119,9 +119,10 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		if retry > retries {
 			break
 		}
-		req, err := http.NewRequest("GET", requestURL, nil)
+		var req *http.Request
+		req, err = http.NewRequest("GET", requestURL, nil)
 		if req == nil || err != nil {
-			log.Errorf("Generate connect Apollo request Fail,url:%s,Error:%s", requestURL, err)
+			log.Errorf("Generate connect Apollo request Fail, url:%s, error:%v", requestURL, err)
 			// if error then sleep
 			return nil, errors.New("generate connect Apollo request fail")
 		}
@@ -139,13 +140,14 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			}
 		}
 
-		res, err := client.Do(req)
+		var res *http.Response
+		res, err = client.Do(req)
 		if res != nil {
 			defer res.Body.Close()
 		}
 
 		if res == nil || err != nil {
-			log.Errorf("Connect Apollo Server Fail,url:%s,Error:%s", requestURL, err)
+			log.Errorf("Connect Apollo Server Fail, url:%s, error:%v", requestURL, err)
 			// if error then sleep
 			time.Sleep(onErrorRetryInterval)
 			continue
@@ -154,9 +156,10 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		//not modified break
 		switch res.StatusCode {
 		case http.StatusOK:
-			responseBody, err := ioutil.ReadAll(res.Body)
+			var responseBody []byte
+			responseBody, err = ioutil.ReadAll(res.Body)
 			if err != nil {
-				log.Errorf("Connect Apollo Server Fail,url : %s ,Error: %s ", requestURL, err)
+				log.Errorf("Connect Apollo Server Fail, url: %s , error: %v", requestURL, err)
 				// if error then sleep
 				time.Sleep(onErrorRetryInterval)
 				continue
@@ -167,20 +170,20 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			}
 			return nil, nil
 		case http.StatusNotModified:
-			log.Debugf("Config Not Modified: %v", err)
+			log.Debugf("Config Not Modified, error: %v", err)
 			if callBack != nil && callBack.NotModifyCallBack != nil {
 				return nil, callBack.NotModifyCallBack()
 			}
 			return nil, nil
 		default:
-			log.Errorf("Connect Apollo Server Fail,url:%s,StatusCode:%d", requestURL, res.StatusCode)
+			log.Errorf("Connect Apollo Server Fail, url:%s, StatusCode:%d", requestURL, res.StatusCode)
 			// if error then sleep
 			time.Sleep(onErrorRetryInterval)
 			continue
 		}
 	}
 
-	log.Errorf("Over Max Retry Still Error,Error: %v", err)
+	log.Errorf("Over Max Retry Still Error, error: %v", err)
 	if retry > retries {
 		err = errors.New("over Max Retry Still Error")
 	}

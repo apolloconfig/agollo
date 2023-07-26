@@ -61,7 +61,7 @@ func (fileHandler *FileHandler) createDir(configPath string) error {
 	if !configFileDirMap[configPath] {
 		err := os.MkdirAll(configPath, os.ModePerm)
 		if err != nil && !os.IsExist(err) {
-			log.Errorf("Create backup dir:%s fail,error:&s", configPath, err)
+			log.Errorf("Create backup dir:%s fail, error:%v", configPath, err)
 			return err
 		}
 		configFileDirMap[configPath] = true
@@ -106,7 +106,7 @@ func (fileHandler *FileHandler) LoadConfigFile(configDir string, appID string, n
 	})
 
 	if c == nil || e != nil {
-		log.Errorf("loadConfigFile fail,error:", e)
+		log.Errorf("loadConfigFile fail, error:%v", e)
 		return nil, e
 	}
 

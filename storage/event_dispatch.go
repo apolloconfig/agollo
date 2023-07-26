@@ -139,12 +139,12 @@ func (d *Dispatcher) dispatchEvent(eventKey string, event *ConfigChange) {
 	for regKey, listenerList := range d.listeners {
 		matched, err := regexp.MatchString(regKey, eventKey)
 		if err != nil {
-			log.Logger.Errorf("regular expression for key %s error %s", eventKey, err)
+			log.Logger.Errorf("regular expression for key %s, error: %v", eventKey, err)
 			continue
 		}
 		if matched {
 			for _, listener := range listenerList {
-				log.Logger.Info("event generated for %s key %s", regKey, eventKey)
+				log.Logger.Infof("event generated for %s key %s", regKey, eventKey)
 				go listener.Event(convertToEvent(eventKey, event))
 			}
 		}

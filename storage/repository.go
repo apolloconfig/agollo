@@ -125,13 +125,13 @@ func (c *Config) getConfigValue(key string, waitInit bool) interface{} {
 		c.waitInit.Wait()
 	}
 	if c.cache == nil {
-		log.Errorf("get config value fail!namespace:%s is not exist!", c.namespace)
+		log.Errorf("get config value fail! namespace:%s not exist!", c.namespace)
 		return nil
 	}
 
 	value, err := c.cache.Get(key)
 	if err != nil {
-		log.Errorf("get config value fail!key:%s,err:%s", key, err)
+		log.Errorf("get config value fail! key:%s, error:%v", key, err)
 		return nil
 	}
 
@@ -228,7 +228,7 @@ func (c *Config) GetIntValueImmediately(key string, defaultValue int) int {
 
 	v, err := strconv.Atoi(s)
 	if err != nil {
-		log.Debug("Atoi fail err:%s", err.Error())
+		log.Debugf("Atoi fail, error:%v", err)
 		return defaultValue
 	}
 
@@ -255,7 +255,7 @@ func (c *Config) GetFloatValueImmediately(key string, defaultValue float64) floa
 
 	v, err := strconv.ParseFloat(s, 64)
 	if err != nil {
-		log.Debug("ParseFloat fail err:%s", err.Error())
+		log.Debugf("ParseFloat fail, error:%v", err)
 		return defaultValue
 	}
 
@@ -282,7 +282,7 @@ func (c *Config) GetBoolValueImmediately(key string, defaultValue bool) bool {
 
 	v, err := strconv.ParseBool(s)
 	if err != nil {
-		log.Debug("ParseBool fail err:%s", err.Error())
+		log.Debugf("ParseBool fail, error:%v", err)
 		return defaultValue
 	}
 
@@ -394,7 +394,7 @@ func (c *Config) GetIntValue(key string, defaultValue int) int {
 
 	v, err := strconv.Atoi(s)
 	if err != nil {
-		log.Debug("Atoi fail  err:%s", err.Error())
+		log.Debugf("Atoi fail, error:%v", err)
 		return defaultValue
 	}
 	return v
@@ -420,7 +420,7 @@ func (c *Config) GetFloatValue(key string, defaultValue float64) float64 {
 
 	v, err := strconv.ParseFloat(s, 64)
 	if err != nil {
-		log.Debug("ParseFloat fail err:%s", err.Error())
+		log.Debugf("ParseFloat fail, error:%v", err)
 		return defaultValue
 	}
 	return v
@@ -446,7 +446,7 @@ func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
 
 	v, err := strconv.ParseBool(s)
 	if err != nil {
-		log.Debug("ParseBool fail err:%s", err.Error())
+		log.Debugf("ParseBool fail, error:%v", err)
 		return defaultValue
 	}
 	return v
@@ -456,7 +456,7 @@ func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
 // 并判断是否需要写备份文件
 func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfigFunc func() config.AppConfig) {
 	if apolloConfig == nil {
-		log.Error("apolloConfig is null,can't update!")
+		log.Error("apolloConfig is null, can't update!")
 		return
 	}
 
@@ -537,8 +537,9 @@ func (c *Cache) UpdateApolloConfigCache(configurations map[string]interface{}, e
 		}
 
 		if err := config.cache.Set(key, value, expireTime); err != nil {
-			log.Errorf("set key %s to cache error %s", key, err)
+				log.Errorf("set key %s to cache, error: %v", key, err)
 		}
+		
 		delete(mp, key)
 	}
 
