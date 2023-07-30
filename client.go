@@ -20,6 +20,7 @@ package agollo
 import (
 	"container/list"
 	"errors"
+
 	"github.com/apolloconfig/agollo/v4/agcache"
 	"github.com/apolloconfig/agollo/v4/agcache/memory"
 	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
@@ -239,7 +240,7 @@ func (c *internalClient) getConfigValue(key string) interface{} {
 
 	value, err := cache.Get(key)
 	if err != nil {
-		log.Errorf("get config value fail!key:%s,err:%s", key, err)
+		log.Errorf("get config value fail! key:%s, error:%v", key, err)
 		return utils.Empty
 	}
 

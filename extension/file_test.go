@@ -22,19 +22,18 @@ import (
 
 	"github.com/apolloconfig/agollo/v4/env/config"
 
-	"github.com/apolloconfig/agollo/v4/env/file"
 	. "github.com/tevid/gohamcrest"
 )
 
 type TestFileHandler struct {
 }
 
-//WriteConfigFile 写入配置文件
+// WriteConfigFile 写入配置文件
 func (r *TestFileHandler) WriteConfigFile(config *config.ApolloConfig, configPath string) error {
 	return nil
 }
 
-//GetConfigFile 获得配置文件路径
+// GetConfigFile 获得配置文件路径
 func (r *TestFileHandler) GetConfigFile(configDir string, appID string, namespace string) string {
 	return ""
 }
@@ -48,6 +47,5 @@ func TestSetFileHandler(t *testing.T) {
 
 	fileHandler := GetFileHandler()
 
-	b := fileHandler.(file.FileHandler)
-	Assert(t, b, NotNilVal())
+	Assert(t, fileHandler, NotNilVal())
 }

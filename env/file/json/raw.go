@@ -68,7 +68,7 @@ func (fileHandler *rawFileHandler) WriteConfigFile(config *config.ApolloConfig, 
 
 	err = writeWithRaw(config, configPath)
 	if err != nil {
-		log.Errorf("writeWithRaw fail! ", err)
+		log.Errorf("writeWithRaw fail! error:%v", err)
 	}
 	return jsonFileConfig.Write(config, fileHandler.GetConfigFile(configPath, config.AppID, config.NamespaceName))
 }

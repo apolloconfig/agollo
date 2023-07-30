@@ -53,7 +53,7 @@ var (
 func writeFile(content []byte, configPath string) {
 	file, e := os.Create(configPath)
 	if e != nil {
-		log.Errorf("writeConfigFile fail,error:", e)
+		log.Errorf("writeConfigFile fail, error:%v", e)
 	}
 	defer file.Close()
 	file.Write(content)
