@@ -537,9 +537,9 @@ func (c *Cache) UpdateApolloConfigCache(configurations map[string]interface{}, e
 		}
 
 		if err := config.cache.Set(key, value, expireTime); err != nil {
-				log.Errorf("set key %s to cache, error: %v", key, err)
+			log.Errorf("set key %s to cache, error: %v", key, err)
 		}
-		
+
 		delete(mp, key)
 	}
 
