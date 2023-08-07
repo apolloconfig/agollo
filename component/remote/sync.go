@@ -67,7 +67,7 @@ func processJSONFiles(b []byte, callback http.CallBack) (o interface{}, err erro
 	apolloConfig := &config.ApolloConfig{}
 	apolloConfig.NamespaceName = callback.Namespace
 
-	configurations := make(map[string]interface{}, 0)
+	configurations := make(map[string]interface{})
 	apolloConfig.Configurations = configurations
 	err = json.Unmarshal(b, &apolloConfig.Configurations)
 
