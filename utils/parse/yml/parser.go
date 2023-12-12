@@ -19,6 +19,7 @@ package yml
 
 import (
 	"bytes"
+
 	"github.com/apolloconfig/agollo/v4/utils"
 	"github.com/spf13/viper"
 )
@@ -30,8 +31,7 @@ func init() {
 }
 
 // Parser properties转换器
-type Parser struct {
-}
+type Parser struct{}
 
 // Parse 内存内容=>yml文件转换器
 func (d *Parser) Parse(configContent interface{}) (map[string]interface{}, error) {
@@ -50,7 +50,10 @@ func (d *Parser) Parse(configContent interface{}) (map[string]interface{}, error
 		return nil, err
 	}
 
-	return convertToMap(vp), nil
+	m := convertToMap(vp)
+	m["content"] = content
+
+	return m, nil
 }
 
 func convertToMap(vp *viper.Viper) map[string]interface{} {
