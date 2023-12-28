@@ -19,6 +19,7 @@ package http
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"testing"
 	"time"
@@ -133,6 +134,43 @@ func TestCustomTimeout(t *testing.T) {
 	Assert(t, o, NilVal())
 }
 
+func TestFailFastStatusCode(t *testing.T) {
+	time.Sleep(1 * time.Second)
+
+	tests := []struct {
+		name   string
+		status int
+	}{
+		{name: "400", status: http.StatusBadRequest},
+		{name: "401", status: http.StatusUnauthorized},
+		{name: "404", status: http.StatusNotFound},
+		{name: "405", status: http.StatusMethodNotAllowed},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testFailFastStatusCode(t, tt.status)
+		})
+	}
+}
+
+func testFailFastStatusCode(t *testing.T, status int) {
+	server := runStatusCodeResponse(status)
+	appConfig := getTestAppConfig()
+	appConfig.IP = server.URL
+
+	startTime := time.Now().Unix()
+	_, err := RequestRecovery(*appConfig, &env.ConnectConfig{
+		URI:     getConfigURLSuffix(appConfig, appConfig.NamespaceName),
+		IsRetry: true,
+	}, &CallBack{
+		SuccessCallBack: nil,
+	})
+	duration := time.Now().Unix() - startTime
+
+	Assert(t, err, NotNilVal())
+	Assert(t, int64(0), Equal(duration))
+}
+
 func mockIPList(t *testing.T, appConfigFunc func() config.AppConfig) {
 	time.Sleep(1 * time.Second)
 
@@ -159,7 +197,7 @@ func getConfigURLSuffix(config *config.AppConfig, namespaceName string) string {
 		utils.GetInternal())
 }
 
-//SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
+// SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
 func SyncServerIPListSuccessCallBack(responseBody []byte, callback CallBack) (o interface{}, err error) {
 	log.Debugf("get all server info: %s", string(responseBody))
 
