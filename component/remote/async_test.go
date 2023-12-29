@@ -177,8 +177,7 @@ func initNotifications() *config.AppConfig {
 	return appConfig
 }
 
-// Error response
-// will hold 5s and keep response 404
+// Error response with status and body
 func runErrorResponse(status int, body []byte) *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(status)
