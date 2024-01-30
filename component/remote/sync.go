@@ -90,7 +90,7 @@ func processJSONFiles(b []byte, callback http.CallBack) (o interface{}, err erro
 	}
 	m, err := parser.Parse(content)
 	if err != nil {
-		log.Errorf("[processJSONFiles] parse failed. namespace: %s. content: %s. error: %s. ", callback.Namespace, content, err.Error())
+		log.Errorf("[processJSONFiles] parse failed. namespace: %s. error: %s. ", callback.Namespace, err.Error())
 	}
 
 	if len(m) > 0 {

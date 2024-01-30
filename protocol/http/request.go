@@ -79,7 +79,7 @@ func getDefaultTransport(insecureSkipVerify bool) *http.Transport {
 	return defaultTransport
 }
 
-//CallBack 请求回调函数
+// CallBack 请求回调函数
 type CallBack struct {
 	SuccessCallBack   func([]byte, CallBack) (interface{}, error)
 	NotModifyCallBack func() error
@@ -87,7 +87,7 @@ type CallBack struct {
 	Namespace         string
 }
 
-//Request 建立网络请求
+// Request 建立网络请求
 func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *CallBack) (interface{}, error) {
 	client := &http.Client{}
 	//如有设置自定义超时时间即使用
@@ -170,7 +170,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			}
 			return nil, nil
 		case http.StatusNotModified:
-			log.Debugf("Config Not Modified, error: %v", err)
+			//log.Debugf("Config Not Modified, error: %v", err)
 			if callBack != nil && callBack.NotModifyCallBack != nil {
 				return nil, callBack.NotModifyCallBack()
 			}
@@ -190,7 +190,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 	return nil, err
 }
 
-//RequestRecovery 可以恢复的请求
+// RequestRecovery 可以恢复的请求
 func RequestRecovery(appConfig config.AppConfig,
 	connectConfig *env.ConnectConfig,
 	callBack *CallBack) (interface{}, error) {
