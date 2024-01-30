@@ -182,7 +182,7 @@ func createApolloConfigWithJSON(b []byte, callback http.CallBack) (o interface{}
 	}
 	m, err := parser.Parse(content)
 	if err != nil {
-		log.Debugf("GetContent fail! error: %v", err)
+		log.Errorf("[createApolloConfigWithJSON] parse failed. namespace: %s. content: %s. error: %s. ", callback.Namespace, content, err.Error())
 	}
 
 	if len(m) > 0 {
