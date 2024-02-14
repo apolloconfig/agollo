@@ -19,7 +19,6 @@ package serverlist
 
 import (
 	"encoding/json"
-	"strconv"
 	"time"
 
 	"github.com/apolloconfig/agollo/v4/env/server"
@@ -66,10 +65,10 @@ func (s *SyncServerIPListComponent) Start() {
 	}
 }
 
-//SyncServerIPList sync ip list from server
-//then
-//1.update agcache
-//2.store in disk
+// SyncServerIPList sync ip list from server
+// then
+// 1.update agcache
+// 2.store in disk
 func SyncServerIPList(appConfigFunc func() config.AppConfig) (map[string]*config.ServerInfo, error) {
 	if appConfigFunc == nil {
 		panic("can not find apollo config!please confirm!")
@@ -80,12 +79,8 @@ func SyncServerIPList(appConfigFunc func() config.AppConfig) (map[string]*config
 		AppID:  appConfig.AppID,
 		Secret: appConfig.Secret,
 	}
-	if appConfigFunc().SyncServerTimeout > 0 {
-		duration, err := time.ParseDuration(strconv.Itoa(appConfigFunc().SyncServerTimeout) + "s")
-		if err != nil {
-			return nil, err
-		}
-		c.Timeout = duration
+	if appConfig.SyncServerTimeout > 0 {
+		c.Timeout = time.Duration(appConfig.SyncServerTimeout) * time.Second
 	}
 	serverMap, err := http.Request(appConfig.GetServicesConfigURL(), c, &http.CallBack{
 		SuccessCallBack: SyncServerIPListSuccessCallBack,
