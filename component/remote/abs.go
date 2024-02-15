@@ -18,7 +18,6 @@
 package remote
 
 import (
-	"strconv"
 	"time"
 
 	"github.com/apolloconfig/agollo/v4/component/log"
@@ -47,12 +46,7 @@ func (a *AbsApolloConfig) SyncWithNamespace(namespace string, appConfigFunc func
 		IsRetry: true,
 	}
 	if appConfig.SyncServerTimeout > 0 {
-		duration, err := time.ParseDuration(strconv.Itoa(appConfig.SyncServerTimeout) + "s")
-		if err != nil {
-			log.Errorf("parse sync server timeout %s fail, error:%v", appConfig.SyncServerTimeout, err)
-			return nil
-		}
-		c.Timeout = duration
+		c.Timeout = time.Duration(appConfig.SyncServerTimeout) * time.Second
 	}
 
 	callback := a.remoteApollo.CallBack(namespace)
