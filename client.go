@@ -60,7 +60,7 @@ func init() {
 
 var syncApolloConfig = remote.CreateSyncApolloConfig()
 
-//Client apollo 客户端接口
+// Client apollo 客户端接口
 type Client interface {
 	GetConfig(namespace string) *storage.Config
 	GetConfigAndInit(namespace string) *storage.Config
@@ -147,12 +147,12 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 	return c, nil
 }
 
-//GetConfig 根据namespace获取apollo配置
+// GetConfig 根据namespace获取apollo配置
 func (c *internalClient) GetConfig(namespace string) *storage.Config {
 	return c.GetConfigAndInit(namespace)
 }
 
-//GetConfigAndInit 根据namespace获取apollo配置
+// GetConfigAndInit 根据namespace获取apollo配置
 func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 	if namespace == "" {
 		return nil
@@ -165,7 +165,10 @@ func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 		storage.CreateNamespaceConfig(namespace)
 
 		//sync config
-		syncApolloConfig.SyncWithNamespace(namespace, c.getAppConfig)
+		apolloConfig := syncApolloConfig.SyncWithNamespace(namespace, c.getAppConfig)
+		if apolloConfig != nil {
+			c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
+		}
 	}
 
 	config = c.cache.GetConfig(namespace)
@@ -173,7 +176,7 @@ func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 	return config
 }
 
-//GetConfigCache 根据namespace获取apollo配置的缓存
+// GetConfigCache 根据namespace获取apollo配置的缓存
 func (c *internalClient) GetConfigCache(namespace string) agcache.CacheInterface {
 	config := c.GetConfigAndInit(namespace)
 	if config == nil {
@@ -183,7 +186,7 @@ func (c *internalClient) GetConfigCache(namespace string) agcache.CacheInterface
 	return config.GetCache()
 }
 
-//GetDefaultConfigCache 获取默认缓存
+// GetDefaultConfigCache 获取默认缓存
 func (c *internalClient) GetDefaultConfigCache() agcache.CacheInterface {
 	config := c.GetConfigAndInit(storage.GetDefaultNamespace())
 	if config != nil {
@@ -192,42 +195,42 @@ func (c *internalClient) GetDefaultConfigCache() agcache.CacheInterface {
 	return nil
 }
 
-//GetApolloConfigCache 获取默认namespace的apollo配置
+// GetApolloConfigCache 获取默认namespace的apollo配置
 func (c *internalClient) GetApolloConfigCache() agcache.CacheInterface {
 	return c.GetDefaultConfigCache()
 }
 
-//GetValue 获取配置
+// GetValue 获取配置
 func (c *internalClient) GetValue(key string) string {
 	return c.GetConfig(storage.GetDefaultNamespace()).GetValue(key)
 }
 
-//GetStringValue 获取string配置值
+// GetStringValue 获取string配置值
 func (c *internalClient) GetStringValue(key string, defaultValue string) string {
 	return c.GetConfig(storage.GetDefaultNamespace()).GetStringValue(key, defaultValue)
 }
 
-//GetIntValue 获取int配置值
+// GetIntValue 获取int配置值
 func (c *internalClient) GetIntValue(key string, defaultValue int) int {
 	return c.GetConfig(storage.GetDefaultNamespace()).GetIntValue(key, defaultValue)
 }
 
-//GetFloatValue 获取float配置值
+// GetFloatValue 获取float配置值
 func (c *internalClient) GetFloatValue(key string, defaultValue float64) float64 {
 	return c.GetConfig(storage.GetDefaultNamespace()).GetFloatValue(key, defaultValue)
 }
 
-//GetBoolValue 获取bool 配置值
+// GetBoolValue 获取bool 配置值
 func (c *internalClient) GetBoolValue(key string, defaultValue bool) bool {
 	return c.GetConfig(storage.GetDefaultNamespace()).GetBoolValue(key, defaultValue)
 }
 
-//GetStringSliceValue 获取[]string 配置值
+// GetStringSliceValue 获取[]string 配置值
 func (c *internalClient) GetStringSliceValue(key string, defaultValue []string) []string {
 	return c.GetConfig(storage.GetDefaultNamespace()).GetStringSliceValue(key, separator, defaultValue)
 }
 
-//GetIntSliceValue 获取[]int 配置值
+// GetIntSliceValue 获取[]int 配置值
 func (c *internalClient) GetIntSliceValue(key string, defaultValue []int) []int {
 	return c.GetConfig(storage.GetDefaultNamespace()).GetIntSliceValue(key, separator, defaultValue)
 }
