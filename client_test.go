@@ -375,6 +375,7 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 	Assert(t, cf, NotNilVal())
 	// cache should be updated
 	Assert(t, client.cache.GetConfig("testNotFound"), NotNilVal())
+	Assert(t, client.cache.GetConfig("testNotFound").GetValue("testKey"), Equal("testValue"))
 }
 
 func TestGetConfigAndInitValNil(t *testing.T) {
@@ -387,4 +388,5 @@ func TestGetConfigAndInitValNil(t *testing.T) {
 	client := createMockApolloConfig(120)
 	cf := client.GetConfig("testNotFound")
 	Assert(t, cf, NilVal())
+	Assert(t, client.cache.GetConfig("testNotFound"), NilVal())
 }
