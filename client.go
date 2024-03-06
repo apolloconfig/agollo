@@ -161,9 +161,6 @@ func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 	config := c.cache.GetConfig(namespace)
 
 	if config == nil {
-		//init cache
-		storage.CreateNamespaceConfig(namespace)
-
 		//sync config
 		apolloConfig := syncApolloConfig.SyncWithNamespace(namespace, c.getAppConfig)
 		if apolloConfig != nil {
