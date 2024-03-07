@@ -22,10 +22,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"reflect"
 	"testing"
 	"time"
 
+	"github.com/agiledragon/gomonkey/v2"
+
 	"github.com/apolloconfig/agollo/v4/agcache/memory"
+	"github.com/apolloconfig/agollo/v4/component/remote"
 	"github.com/apolloconfig/agollo/v4/env/config"
 	"github.com/apolloconfig/agollo/v4/env/server"
 
@@ -37,7 +41,7 @@ import (
 
 const testDefaultNamespace = "application"
 
-//init param
+// init param
 func init() {
 	extension.SetCacheFactory(&memory.DefaultCacheFactory{})
 }
@@ -351,4 +355,38 @@ func TestUseEventDispatch(t *testing.T) {
 	cache.AddChangeListener(dispatch)
 	l := cache.GetChangeListeners()
 	Assert(t, l.Len(), Equal(1))
+}
+
+func TestGetConfigAndInitValNotNil(t *testing.T) {
+	var apc *remote.AbsApolloConfig
+	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
+		return &config.ApolloConfig{
+			ApolloConnConfig: config.ApolloConnConfig{
+				AppID:         "testID",
+				NamespaceName: "testNotFound",
+			},
+			Configurations: map[string]interface{}{"testKey": "testValue"},
+		}
+	})
+	defer patch.Reset()
+
+	client := createMockApolloConfig(120)
+	cf := client.GetConfig("testNotFound")
+	Assert(t, cf, NotNilVal())
+	// cache should be updated
+	Assert(t, client.cache.GetConfig("testNotFound"), NotNilVal())
+	Assert(t, client.cache.GetConfig("testNotFound").GetValue("testKey"), Equal("testValue"))
+}
+
+func TestGetConfigAndInitValNil(t *testing.T) {
+	var apc *remote.AbsApolloConfig
+	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
+		return nil
+	})
+	defer patch.Reset()
+
+	client := createMockApolloConfig(120)
+	cf := client.GetConfig("testNotFound")
+	Assert(t, cf, NilVal())
+	Assert(t, client.cache.GetConfig("testNotFound"), NilVal())
 }
