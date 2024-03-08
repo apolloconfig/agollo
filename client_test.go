@@ -20,7 +20,6 @@ package agollo
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/apolloconfig/agollo/v4/component/notify"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -30,6 +29,7 @@ import (
 	"github.com/agiledragon/gomonkey/v2"
 
 	"github.com/apolloconfig/agollo/v4/agcache/memory"
+	"github.com/apolloconfig/agollo/v4/component/notify"
 	"github.com/apolloconfig/agollo/v4/component/remote"
 	"github.com/apolloconfig/agollo/v4/env/config"
 	"github.com/apolloconfig/agollo/v4/env/server"
