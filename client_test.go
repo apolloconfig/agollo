@@ -20,6 +20,7 @@ package agollo
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/apolloconfig/agollo/v4/component/notify"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -65,6 +66,7 @@ func createMockApolloConfig(expireTime int) *internalClient {
 	configs["intSlice"] = []int{1, 2}
 
 	client.cache.UpdateApolloConfigCache(configs, expireTime, storage.GetDefaultNamespace())
+	client.configComponent = &notify.ConfigComponent{}
 
 	return client
 }
