@@ -108,7 +108,7 @@ func (a *syncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*config
 			configs = append(configs, apolloConfig)
 			return
 		}
-		configs = append(configs, loadBackupConfig(appConfig.NamespaceName, appConfig)...)
+		configs = append(configs, loadBackupConfig(namespace, appConfig)...)
 	})
 	return configs
 }
