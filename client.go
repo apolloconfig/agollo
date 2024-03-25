@@ -168,8 +168,6 @@ func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 			c.appConfig.GetNotificationsMap().UpdateNotify(namespace, 0)
 			// update cache
 			c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
-			// update configComponent
-			c.configComponent.SetAppConfig(c.getAppConfig)
 		}
 	}
 

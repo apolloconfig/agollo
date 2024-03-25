@@ -29,7 +29,6 @@ import (
 	"github.com/agiledragon/gomonkey/v2"
 
 	"github.com/apolloconfig/agollo/v4/agcache/memory"
-	"github.com/apolloconfig/agollo/v4/component/notify"
 	"github.com/apolloconfig/agollo/v4/component/remote"
 	"github.com/apolloconfig/agollo/v4/env/config"
 	"github.com/apolloconfig/agollo/v4/env/server"
@@ -66,7 +65,6 @@ func createMockApolloConfig(expireTime int) *internalClient {
 	configs["intSlice"] = []int{1, 2}
 
 	client.cache.UpdateApolloConfigCache(configs, expireTime, storage.GetDefaultNamespace())
-	client.configComponent = &notify.ConfigComponent{}
 
 	return client
 }
@@ -375,6 +373,10 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 	client := createMockApolloConfig(120)
 	cf := client.GetConfig("testNotFound")
 	Assert(t, cf, NotNilVal())
+
+	// appConfig notificationsMap appConfig should be updated
+	Assert(t, client.appConfig.GetNotificationsMap().GetNotify("testNotFound"), Equal(int64(0)))
+
 	// cache should be updated
 	Assert(t, client.cache.GetConfig("testNotFound"), NotNilVal())
 	Assert(t, client.cache.GetConfig("testNotFound").GetValue("testKey"), Equal("testValue"))

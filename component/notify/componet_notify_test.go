@@ -102,3 +102,22 @@ func getTestAppConfig() *config.AppConfig {
 	appConfig.Init()
 	return appConfig
 }
+
+func TestSetAppConfig(t *testing.T) {
+	var a *config.AppConfig = getTestAppConfig()
+	mockAppConfig := func() config.AppConfig {
+		return *a
+	}
+
+	c := &ConfigComponent{}
+	c.SetAppConfig(mockAppConfig)
+
+	// appConfig should be equal
+	Assert(t, c.appConfigFunc(), Equal(*a))
+
+	// appConfig value is be replaced
+	a.AppID = "test1"
+	a.NamespaceName = a.NamespaceName + config.Comma + "abc"
+	Assert(t, c.appConfigFunc().AppID, Equal("test1"))
+	Assert(t, c.appConfigFunc().NamespaceName, Equal("application,abc"))
+}
