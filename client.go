@@ -165,20 +165,26 @@ func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 		//sync config
 		apolloConfig := syncApolloConfig.SyncWithNamespace(namespace, c.getAppConfig)
 		if apolloConfig != nil {
-			// update appConfig
-			if !strings.Contains(c.appConfig.NamespaceName, namespace) {
-				c.appConfig.NamespaceName = c.appConfig.NamespaceName + config.Comma + namespace
-			}
-			// update notification
-			c.appConfig.GetNotificationsMap().UpdateNotify(namespace, 0)
-			// update cache
-			c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
+			c.SyncAndUpdate(namespace, apolloConfig)
 		}
 	}
 
 	cfg = c.cache.GetConfig(namespace)
 
 	return cfg
+}
+
+func (c *internalClient) SyncAndUpdate(namespace string, apolloConfig *config.ApolloConfig) {
+	// update appConfig only if namespace does not exist yet
+	if !strings.Contains(c.appConfig.NamespaceName, namespace) {
+		c.appConfig.NamespaceName += "," + namespace
+	}
+
+	// update notification
+	c.appConfig.GetNotificationsMap().UpdateNotify(namespace, 0)
+
+	// update cache
+	c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
 }
 
 // GetConfigCache 根据namespace获取apollo配置的缓存
