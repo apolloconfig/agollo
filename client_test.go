@@ -365,7 +365,7 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 				AppID:         "testID",
 				NamespaceName: "testNotFound",
 			},
-			Configurations: map[string]interface{}{"testKey": "testValue"},
+			Configurations: map[string]interface{}{"testKey": "testUpdatedValue"},
 		}
 	})
 	defer patch.Reset()
@@ -377,9 +377,9 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 	// appConfig notificationsMap appConfig should be updated
 	Assert(t, client.appConfig.GetNotificationsMap().GetNotify("testNotFound"), Equal(int64(0)))
 
-	// cache should be updated
+	// cache should be updated with new configuration
 	Assert(t, client.cache.GetConfig("testNotFound"), NotNilVal())
-	Assert(t, client.cache.GetConfig("testNotFound").GetValue("testKey"), Equal("testValue"))
+	Assert(t, client.cache.GetConfig("testNotFound").GetValue("testKey"), Equal("testUpdatedValue"))
 }
 
 func TestGetConfigAndInitValNil(t *testing.T) {

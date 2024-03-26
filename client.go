@@ -20,6 +20,8 @@ package agollo
 import (
 	"container/list"
 	"errors"
+	"strings"
+
 	"github.com/apolloconfig/agollo/v4/agcache"
 	"github.com/apolloconfig/agollo/v4/agcache/memory"
 	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
@@ -164,7 +166,10 @@ func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 		apolloConfig := syncApolloConfig.SyncWithNamespace(namespace, c.getAppConfig)
 		if apolloConfig != nil {
 			// update appConfig
-			c.appConfig.NamespaceName = c.appConfig.NamespaceName + config.Comma + namespace
+			if !strings.Contains(c.appConfig.NamespaceName, namespace) {
+				c.appConfig.NamespaceName = c.appConfig.NamespaceName + config.Comma + namespace
+			}
+			// update notification
 			c.appConfig.GetNotificationsMap().UpdateNotify(namespace, 0)
 			// update cache
 			c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)

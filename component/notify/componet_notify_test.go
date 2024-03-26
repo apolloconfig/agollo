@@ -106,6 +106,7 @@ func getTestAppConfig() *config.AppConfig {
 func TestConfigComponent_SetAppConfig_UpdatesAppConfigCorrectly(t *testing.T) {
 	expectedAppConfig := getTestAppConfig()
 	c := &ConfigComponent{}
+	// set appConfigFunc
 	c.SetAppConfig(func() config.AppConfig {
 		return *expectedAppConfig
 	})
