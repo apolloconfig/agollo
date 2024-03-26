@@ -368,7 +368,6 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 			Configurations: map[string]interface{}{"testKey": "testUpdatedValue"},
 		}
 	})
-	defer patch.Reset()
 
 	client := createMockApolloConfig(120)
 	cf := client.GetConfig("testNotFound")
@@ -380,6 +379,26 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 	// cache should be updated with new configuration
 	Assert(t, client.cache.GetConfig("testNotFound"), NotNilVal())
 	Assert(t, client.cache.GetConfig("testNotFound").GetValue("testKey"), Equal("testUpdatedValue"))
+	Assert(t, client.appConfig.NamespaceName, Equal("application,testNotFound"))
+	patch.Reset()
+
+	// second replace
+	patch1 := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
+		return &config.ApolloConfig{
+			ApolloConnConfig: config.ApolloConnConfig{
+				AppID:         "testID",
+				NamespaceName: "testNotFound1",
+			},
+			Configurations: map[string]interface{}{"testKey": "testUpdatedValue"},
+		}
+	})
+	defer patch1.Reset()
+	client.appConfig.NamespaceName = "testNotFound1"
+	cf1 := client.GetConfig("testNotFound1")
+	Assert(t, cf1, NotNilVal())
+	Assert(t, client.cache.GetConfig("testNotFound1"), NotNilVal())
+	// appConfig namespace existed, should not be appended
+	Assert(t, client.appConfig.NamespaceName, Equal("testNotFound1"))
 }
 
 func TestGetConfigAndInitValNil(t *testing.T) {

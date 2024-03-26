@@ -176,7 +176,15 @@ func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 
 func (c *internalClient) SyncAndUpdate(namespace string, apolloConfig *config.ApolloConfig) {
 	// update appConfig only if namespace does not exist yet
-	if !strings.Contains(c.appConfig.NamespaceName, namespace) {
+	namespaces := strings.Split(c.appConfig.NamespaceName, ",")
+	exists := false
+	for _, n := range namespaces {
+		if n == namespace {
+			exists = true
+			break
+		}
+	}
+	if !exists {
 		c.appConfig.NamespaceName += "," + namespace
 	}
 
