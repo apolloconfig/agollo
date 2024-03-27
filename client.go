@@ -20,6 +20,7 @@ package agollo
 import (
 	"container/list"
 	"errors"
+	"strings"
 
 	"github.com/apolloconfig/agollo/v4/agcache"
 	"github.com/apolloconfig/agollo/v4/agcache/memory"
@@ -158,19 +159,40 @@ func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 		return nil
 	}
 
-	config := c.cache.GetConfig(namespace)
+	cfg := c.cache.GetConfig(namespace)
 
-	if config == nil {
+	if cfg == nil {
 		//sync config
 		apolloConfig := syncApolloConfig.SyncWithNamespace(namespace, c.getAppConfig)
 		if apolloConfig != nil {
-			c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
+			c.SyncAndUpdate(namespace, apolloConfig)
 		}
 	}
 
-	config = c.cache.GetConfig(namespace)
+	cfg = c.cache.GetConfig(namespace)
 
-	return config
+	return cfg
+}
+
+func (c *internalClient) SyncAndUpdate(namespace string, apolloConfig *config.ApolloConfig) {
+	// update appConfig only if namespace does not exist yet
+	namespaces := strings.Split(c.appConfig.NamespaceName, ",")
+	exists := false
+	for _, n := range namespaces {
+		if n == namespace {
+			exists = true
+			break
+		}
+	}
+	if !exists {
+		c.appConfig.NamespaceName += "," + namespace
+	}
+
+	// update notification
+	c.appConfig.GetNotificationsMap().UpdateNotify(namespace, 0)
+
+	// update cache
+	c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
 }
 
 // GetConfigCache 根据namespace获取apollo配置的缓存
