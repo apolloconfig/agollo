@@ -22,11 +22,10 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 	"time"
 
-	"github.com/agiledragon/gomonkey/v2"
+	"github.com/xhd2015/xgo/runtime/mock"
 
 	"github.com/apolloconfig/agollo/v4/agcache/memory"
 	"github.com/apolloconfig/agollo/v4/component/remote"
@@ -358,8 +357,7 @@ func TestUseEventDispatch(t *testing.T) {
 }
 
 func TestGetConfigAndInitValNotNil(t *testing.T) {
-	var apc *remote.AbsApolloConfig
-	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
+	mock.Patch((*remote.AbsApolloConfig).SyncWithNamespace, func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
 		return &config.ApolloConfig{
 			ApolloConnConfig: config.ApolloConnConfig{
 				AppID:         "testID",
@@ -368,7 +366,6 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 			Configurations: map[string]interface{}{"testKey": "testValue"},
 		}
 	})
-	defer patch.Reset()
 
 	client := createMockApolloConfig(120)
 	cf := client.GetConfig("testNotFound")
@@ -379,11 +376,9 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 }
 
 func TestGetConfigAndInitValNil(t *testing.T) {
-	var apc *remote.AbsApolloConfig
-	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
+	mock.Patch((*remote.AbsApolloConfig).SyncWithNamespace, func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
 		return nil
 	})
-	defer patch.Reset()
 
 	client := createMockApolloConfig(120)
 	cf := client.GetConfig("testNotFound")
