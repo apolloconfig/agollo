@@ -583,7 +583,6 @@ func propertiesToMap(properties string) (map[string]interface{}, error) {
 		if len(parts) != 2 {
 			return nil, fmt.Errorf("invalid property format: %s", line)
 		}
-		// 处理嵌套
 		value := parseValue(parts[1])
 		keys := strings.Split(parts[0], ".")
 		lastMap := result
@@ -623,8 +622,6 @@ func parseValue(str string) interface{} {
 		}
 		return elements
 	}
-
-	// 返回原始字符串
 	return str
 
 }
