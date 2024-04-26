@@ -566,7 +566,7 @@ func (c *Config) GetYaml() (out []byte, err error) {
 	configYAML := c.GetContent()
 	propMap, err := propertiesToMap(configYAML)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	return yaml.Marshal(propMap)
 
@@ -581,7 +581,7 @@ func propertiesToMap(properties string) (map[string]interface{}, error) {
 		}
 		parts := strings.SplitN(line, "=", 2)
 		if len(parts) != 2 {
-			return nil, fmt.Errorf("invalid property format: %s", line)
+			return nil, fmt.Errorf("invalid property format in line '%s', expected format 'key=value'", line)
 		}
 		value := parseValue(parts[1])
 		keys := strings.Split(parts[0], ".")
@@ -609,6 +609,9 @@ func parseValue(str string) interface{} {
 	}
 	if i, err := strconv.Atoi(str); err == nil {
 		return i
+	}
+	if f, err := strconv.ParseFloat(str, 64); err == nil {
+		return f
 	}
 
 	if strings.HasPrefix(str, "[") && strings.HasSuffix(str, "]") {
