@@ -20,6 +20,7 @@ package storage
 import (
 	"container/list"
 	"fmt"
+	"gopkg.in/yaml.v3"
 	"reflect"
 	"strconv"
 	"strings"
@@ -559,6 +560,73 @@ func (c *Cache) UpdateApolloConfigCache(configurations map[string]interface{}, e
 // GetContent 获取配置文件内容
 func (c *Config) GetContent() string {
 	return convertToProperties(c.cache)
+}
+
+func (c *Config) GetYaml() (out []byte, err error) {
+	configYAML := c.GetContent()
+	propMap, err := propertiesToMap(configYAML)
+	if err != nil {
+		panic(err)
+	}
+	return yaml.Marshal(propMap)
+
+}
+
+func propertiesToMap(properties string) (map[string]interface{}, error) {
+	result := make(map[string]interface{})
+	lines := strings.Split(properties, "\n")
+	for _, line := range lines {
+		if line == "" || strings.HasSuffix(line, "#") {
+			continue
+		}
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) != 2 {
+			return nil, fmt.Errorf("invalid property format: %s", line)
+		}
+		// 处理嵌套
+		value := parseValue(parts[1])
+		keys := strings.Split(parts[0], ".")
+		lastMap := result
+		for i, key := range keys {
+			if i == len(keys)-1 {
+				lastMap[key] = value
+			} else {
+				if _, ok := lastMap[key]; !ok {
+					lastMap[key] = make(map[string]interface{})
+				}
+				lastMap = lastMap[key].(map[string]interface{})
+			}
+		}
+	}
+	return result, nil
+
+}
+
+func parseValue(str string) interface{} {
+	if str == "true" || str == "True" {
+		return true
+	} else if str == "false" || str == "False" {
+		return false
+	}
+	if i, err := strconv.Atoi(str); err == nil {
+		return i
+	}
+
+	if strings.HasPrefix(str, "[") && strings.HasSuffix(str, "]") {
+		str = str[1 : len(str)-1]
+		if str == "" {
+			return []string{}
+		}
+		elements := strings.Split(str, ",")
+		for i, el := range elements {
+			elements[i] = strings.TrimSpace(el)
+		}
+		return elements
+	}
+
+	// 返回原始字符串
+	return str
+
 }
 
 func convertToProperties(cache agcache.CacheInterface) string {
