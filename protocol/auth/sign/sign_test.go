@@ -18,8 +18,10 @@
 package sign
 
 import (
-	. "github.com/tevid/gohamcrest"
+	"crypto/sha256"
 	"testing"
+
+	. "github.com/tevid/gohamcrest"
 )
 
 const (
@@ -31,6 +33,13 @@ const (
 func TestSignString(t *testing.T) {
 	s := signString(rawURL, secret)
 	Assert(t, s, Equal("mcS95GXa7CpCjIfrbxgjKr0lRu8="))
+}
+
+func TestSetHash(t *testing.T) {
+	o := SetHash(sha256.New)
+	defer func() { SetHash(o) }()
+	s := signString(rawURL, secret)
+	Assert(t, s, Equal("XeIN8X6lAoujl6i88icVreaMYlBXeDco348545DkQDY="))
 }
 
 func TestUrl2PathWithQuery(t *testing.T) {

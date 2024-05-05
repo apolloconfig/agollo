@@ -102,3 +102,21 @@ func getTestAppConfig() *config.AppConfig {
 	appConfig.Init()
 	return appConfig
 }
+
+func TestConfigComponent_SetAppConfig_UpdatesAppConfigCorrectly(t *testing.T) {
+	expectedAppConfig := getTestAppConfig()
+	c := &ConfigComponent{}
+	// set appConfigFunc
+	c.SetAppConfig(func() config.AppConfig {
+		return *expectedAppConfig
+	})
+
+	// appConfig should be equal
+	Assert(t, c.appConfigFunc(), Equal(*expectedAppConfig))
+
+	// appConfig value is be replaced
+	expectedAppConfig.AppID = "test1"
+	expectedAppConfig.NamespaceName = expectedAppConfig.NamespaceName + config.Comma + "abc"
+	Assert(t, c.appConfigFunc().AppID, Equal("test1"))
+	Assert(t, c.appConfigFunc().NamespaceName, Equal("application,abc"))
+}

@@ -22,6 +22,7 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
+	"hash"
 	"net/url"
 	"strconv"
 	"time"
@@ -36,6 +37,17 @@ const (
 	delimiter = "\n"
 	question  = "?"
 )
+
+var (
+	h = sha1.New
+)
+
+// SetHash set hash function
+func SetHash(f func() hash.Hash) func() hash.Hash {
+	o := h
+	h = f
+	return o
+}
 
 // AuthSignature apollo 授权
 type AuthSignature struct {
@@ -63,7 +75,7 @@ func (t *AuthSignature) HTTPHeaders(url string, appID string, secret string) map
 
 func signString(stringToSign string, accessKeySecret string) string {
 	key := []byte(accessKeySecret)
-	mac := hmac.New(sha1.New, key)
+	mac := hmac.New(h, key)
 	mac.Write([]byte(stringToSign))
 	return base64.StdEncoding.EncodeToString(mac.Sum(nil))
 }

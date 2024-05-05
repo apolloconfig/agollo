@@ -146,7 +146,7 @@ func initMockNotifyAndConfigServerWithTwoErrResponse() *httptest.Server {
 	return runMockConfigServer(handlerMap, onlynormaltworesponse)
 }
 
-//run mock config server
+// run mock config server
 func runMockConfigServer(handlerMap map[string]func(http.ResponseWriter, *http.Request),
 	notifyHandler func(http.ResponseWriter, *http.Request)) *httptest.Server {
 	appConfig := env.InitFileConfig()
@@ -177,11 +177,11 @@ func initNotifications() *config.AppConfig {
 	return appConfig
 }
 
-//Error response
-//will hold 5s and keep response 404
-func runErrorResponse() *httptest.Server {
+// Error response with status and body
+func runErrorResponse(status int, body []byte) *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(status)
+		_, _ = w.Write(body)
 	}))
 
 	return ts
@@ -281,10 +281,26 @@ func TestGetRemoteConfig(t *testing.T) {
 }
 
 func TestErrorGetRemoteConfig(t *testing.T) {
+	tests := []struct {
+		name         string
+		status       int
+		errContained string
+	}{
+		{name: "500", status: http.StatusInternalServerError, errContained: "over Max Retry Still Error"},
+		{name: "404", status: http.StatusNotFound, errContained: "Connect Apollo Server Fail"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testErrorGetRemoteConfig(t, tt.status, tt.errContained)
+		})
+	}
+}
+
+func testErrorGetRemoteConfig(t *testing.T, status int, errContained string) {
 	//clear
 	initNotifications()
 	appConfig := initNotifications()
-	server1 := runErrorResponse()
+	server1 := runErrorResponse(status, nil)
 	appConfig.IP = server1.URL
 	server.SetNextTryConnTime(appConfig.GetHost(), 0)
 
@@ -303,7 +319,7 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 	t.Log("remoteConfigs:", remoteConfigs)
 	t.Log("remoteConfigs size:", len(remoteConfigs))
 
-	Assert(t, "over Max Retry Still Error", Equal(err.Error()))
+	Assert(t, err.Error(), StartWith(errContained))
 }
 
 func TestCreateApolloConfigWithJson(t *testing.T) {
