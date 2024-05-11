@@ -83,7 +83,9 @@ func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*confi
 	//只是拉去有变化的配置, 并更新拉取成功的namespace的notify ID
 	for _, notifyConfig := range remoteConfigs {
 		apolloConfig := a.SyncWithNamespace(notifyConfig.NamespaceName, appConfigFunc)
-		if apolloConfig != nil {
+		// update valid apolloConfig
+		// if apolloConfig.Configurations are empty, async should ignore it
+		if apolloConfig != nil && len(apolloConfig.Configurations) > 0 {
 			appConfig.GetNotificationsMap().UpdateNotify(notifyConfig.NamespaceName, notifyConfig.NotificationID)
 			apolloConfigs = append(apolloConfigs, apolloConfig)
 		}
