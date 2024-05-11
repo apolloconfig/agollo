@@ -108,6 +108,9 @@ func Start() (Client, error) {
 
 // StartWithConfig 根据配置启动
 func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, error) {
+	// 初始化指标
+	extension.InitMetrics()
+
 	// 有了配置之后才能进行初始化
 	appConfig, err := env.InitConfig(loadAppConfig)
 	if err != nil {

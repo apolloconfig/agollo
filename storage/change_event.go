@@ -17,13 +17,15 @@
 
 package storage
 
+import "github.com/apolloconfig/agollo/v4/env/config"
+
 const (
 	ADDED ConfigChangeType = iota
 	MODIFIED
 	DELETED
 )
 
-//ChangeListener 监听器
+// ChangeListener 监听器
 type ChangeListener interface {
 	//OnChange 增加变更监控
 	OnChange(event *ChangeEvent)
@@ -32,16 +34,18 @@ type ChangeListener interface {
 	OnNewestChange(event *FullChangeEvent)
 }
 
-//config change type
+// config change type
 type ConfigChangeType int
 
-//config change event
+// config change event
 type baseChangeEvent struct {
+	AppId          string
+	Cluster        string
 	Namespace      string
 	NotificationID int64
 }
 
-//config change event
+// config change event
 type ChangeEvent struct {
 	baseChangeEvent
 	Changes map[string]*ConfigChange
@@ -59,7 +63,7 @@ type FullChangeEvent struct {
 	Changes map[string]interface{}
 }
 
-//create modify config change
+// create modify config change
 func createModifyConfigChange(oldValue interface{}, newValue interface{}) *ConfigChange {
 	return &ConfigChange{
 		OldValue:   oldValue,
@@ -68,7 +72,7 @@ func createModifyConfigChange(oldValue interface{}, newValue interface{}) *Confi
 	}
 }
 
-//create add config change
+// create add config change
 func createAddConfigChange(newValue interface{}) *ConfigChange {
 	return &ConfigChange{
 		NewValue:   newValue,
@@ -76,7 +80,7 @@ func createAddConfigChange(newValue interface{}) *ConfigChange {
 	}
 }
 
-//create delete config change
+// create delete config change
 func createDeletedConfigChange(oldValue interface{}) *ConfigChange {
 	return &ConfigChange{
 		OldValue:   oldValue,
@@ -84,12 +88,14 @@ func createDeletedConfigChange(oldValue interface{}) *ConfigChange {
 	}
 }
 
-//base on changeList create Change event
-func createConfigChangeEvent(changes map[string]*ConfigChange, nameSpace string, notificationID int64) *ChangeEvent {
+// base on changeList create Change event
+func createConfigChangeEvent(changes map[string]*ConfigChange, appConfig *config.ApolloConfig, notificationID int64) *ChangeEvent {
 	c := &ChangeEvent{
 		Changes: changes,
 	}
-	c.Namespace = nameSpace
+	c.AppId = appConfig.AppID
+	c.Cluster = appConfig.Cluster
+	c.Namespace = appConfig.NamespaceName
 	c.NotificationID = notificationID
 	return c
 }

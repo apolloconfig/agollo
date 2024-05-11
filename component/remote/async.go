@@ -25,6 +25,7 @@ import (
 	"time"
 
 	"github.com/apolloconfig/agollo/v4/component/log"
+	"github.com/apolloconfig/agollo/v4/component/metrics"
 	"github.com/apolloconfig/agollo/v4/constant"
 	"github.com/apolloconfig/agollo/v4/env"
 	"github.com/apolloconfig/agollo/v4/env/config"
@@ -84,6 +85,14 @@ func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*confi
 	for _, notifyConfig := range remoteConfigs {
 		apolloConfig := a.SyncWithNamespace(notifyConfig.NamespaceName, appConfigFunc)
 		if apolloConfig != nil {
+			// metrics 记录当前版本
+			if oldVersion := metrics.GetVersionByNamespace(apolloConfig.AppID, apolloConfig.Cluster, apolloConfig.NamespaceName); oldVersion != "" {
+				metrics.NamespaceVersionGauge.WithLabelValues(apolloConfig.AppID, appConfig.Cluster, apolloConfig.Cluster, notifyConfig.NamespaceName, utils.GetInternal(), oldVersion).Set(0)
+			}
+			version := apolloConfig.ReleaseKey
+			metrics.NamespaceVersionGauge.WithLabelValues(apolloConfig.AppID, appConfig.Cluster, apolloConfig.Cluster, notifyConfig.NamespaceName, utils.GetInternal(), version).Set(1)
+			metrics.SetVersionByNamespace(apolloConfig.AppID, apolloConfig.Cluster, apolloConfig.NamespaceName, version)
+
 			appConfig.GetNotificationsMap().UpdateNotify(notifyConfig.NamespaceName, notifyConfig.NotificationID)
 			apolloConfigs = append(apolloConfigs, apolloConfig)
 		}

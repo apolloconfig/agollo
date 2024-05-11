@@ -28,6 +28,7 @@ import (
 
 	"github.com/apolloconfig/agollo/v4/agcache"
 	"github.com/apolloconfig/agollo/v4/component/log"
+	"github.com/apolloconfig/agollo/v4/component/metrics"
 	"github.com/apolloconfig/agollo/v4/env/config"
 	"github.com/apolloconfig/agollo/v4/extension"
 	"github.com/apolloconfig/agollo/v4/utils"
@@ -474,7 +475,7 @@ func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfigF
 
 	if len(changeList) > 0 {
 		// create config change event base on change list
-		event := createConfigChangeEvent(changeList, apolloConfig.NamespaceName, notify)
+		event := createConfigChangeEvent(changeList, apolloConfig, notify)
 
 		// push change event to channel
 		c.pushChangeEvent(event)
@@ -618,6 +619,7 @@ func (c *Cache) GetChangeListeners() *list.List {
 // push config change event
 func (c *Cache) pushChangeEvent(event *ChangeEvent) {
 	c.pushChange(func(listener ChangeListener) {
+		metrics.OnchangeGauge.WithLabelValues(event.AppId, event.Cluster, event.Namespace, utils.GetInternal()).Set(float64(event.NotificationID))
 		go listener.OnChange(event)
 	})
 }

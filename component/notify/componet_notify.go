@@ -20,8 +20,10 @@ package notify
 import (
 	"time"
 
+	"github.com/apolloconfig/agollo/v4/component/metrics"
 	"github.com/apolloconfig/agollo/v4/component/remote"
 	"github.com/apolloconfig/agollo/v4/storage"
+	"github.com/apolloconfig/agollo/v4/utils"
 
 	"github.com/apolloconfig/agollo/v4/env/config"
 )
@@ -30,7 +32,7 @@ const (
 	longPollInterval = 2 * time.Second //2s
 )
 
-//ConfigComponent 配置组件
+// ConfigComponent 配置组件
 type ConfigComponent struct {
 	appConfigFunc func() config.AppConfig
 	cache         *storage.Cache
@@ -47,7 +49,7 @@ func (c *ConfigComponent) SetCache(cache *storage.Cache) {
 	c.cache = cache
 }
 
-//Start 启动配置组件定时器
+// Start 启动配置组件定时器
 func (c *ConfigComponent) Start() {
 	if c.stopCh == nil {
 		c.stopCh = make(chan interface{})
@@ -60,6 +62,10 @@ loop:
 	for {
 		select {
 		case <-t2.C:
+			// metrics 记录最新检查时间
+			conf := c.appConfigFunc()
+			metrics.LatestCheckGauge.WithLabelValues(conf.AppID, conf.Cluster, utils.GetInternal(), conf.NamespaceName, conf.GetHost()).Set(float64(time.Now().Unix()))
+
 			configs := instance.Sync(c.appConfigFunc)
 			for _, apolloConfig := range configs {
 				c.cache.UpdateApolloConfig(apolloConfig, c.appConfigFunc)
