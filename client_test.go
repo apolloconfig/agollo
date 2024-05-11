@@ -374,7 +374,7 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 	Assert(t, cf, NotNilVal())
 
 	// appConfig notificationsMap appConfig should be updated
-	Assert(t, client.appConfig.GetNotificationsMap().GetNotify("testNotFound"), Equal(int64(0)))
+	Assert(t, client.appConfig.GetNotificationsMap().GetNotify("testNotFound"), Equal(int64(-1)))
 
 	// cache should be updated with new configuration
 	Assert(t, client.cache.GetConfig("testNotFound"), NotNilVal())
@@ -412,4 +412,5 @@ func TestGetConfigAndInitValNil(t *testing.T) {
 	cf := client.GetConfig("testNotFound")
 	Assert(t, cf, NilVal())
 	Assert(t, client.cache.GetConfig("testNotFound"), NilVal())
+	Assert(t, client.appConfig.GetNotificationsMap().GetNotify("testNotFound"), Equal(int64(-1)))
 }

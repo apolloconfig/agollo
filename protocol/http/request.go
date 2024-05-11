@@ -213,7 +213,12 @@ func RequestRecovery(appConfig config.AppConfig,
 			return response, nil
 		}
 
-		server.SetDownNode(appConfig.GetHost(), host)
+		// can use node length > 1, should be down node
+		if server.GetServersLen(appConfig.GetHost()) > 1 {
+			server.SetDownNode(appConfig.GetHost(), host)
+		} else {
+			return nil, err
+		}
 	}
 }
 
