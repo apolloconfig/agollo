@@ -18,8 +18,10 @@
 package notify
 
 import (
+	"context"
 	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
 	_ "github.com/apolloconfig/agollo/v4/cluster/roundrobin"
@@ -105,7 +107,7 @@ func getTestAppConfig() *config.AppConfig {
 
 func TestConfigComponent_SetAppConfig_UpdatesAppConfigCorrectly(t *testing.T) {
 	expectedAppConfig := getTestAppConfig()
-	c := &ConfigComponent{}
+	c := NewConfigComponent(nil, nil)
 	// set appConfigFunc
 	c.SetAppConfig(func() config.AppConfig {
 		return *expectedAppConfig
@@ -119,4 +121,30 @@ func TestConfigComponent_SetAppConfig_UpdatesAppConfigCorrectly(t *testing.T) {
 	expectedAppConfig.NamespaceName = expectedAppConfig.NamespaceName + config.Comma + "abc"
 	Assert(t, c.appConfigFunc().AppID, Equal("test1"))
 	Assert(t, c.appConfigFunc().NamespaceName, Equal("application,abc"))
+}
+
+func TestConfigComponent_Stop(t *testing.T) {
+	// 测试 stop 快于 start 情况
+	c := NewConfigComponent(nil, nil)
+	c.Stop()
+
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second)
+	defer cancel()
+
+	// 启动开始
+	done := make(chan struct{})
+	go func() {
+		c.Start()
+		done <- struct{}{}
+	}()
+
+	var isDone bool
+	select {
+	case <-ctx.Done():
+		// 失败
+	case <-done:
+		isDone = true
+	}
+
+	Assert(t, isDone, Equal(true))
 }

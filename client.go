@@ -137,9 +137,7 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 	log.Debug("init notifySyncConfigServices finished")
 
 	//start long poll sync config
-	configComponent := &notify.ConfigComponent{}
-	configComponent.SetAppConfig(c.getAppConfig)
-	configComponent.SetCache(c.cache)
+	configComponent := notify.NewConfigComponent(c.getAppConfig, c.cache)
 	go component.StartRefreshConfig(configComponent)
 	c.configComponent = configComponent
 
