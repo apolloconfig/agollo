@@ -164,9 +164,10 @@ func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 	if cfg == nil {
 		//sync config
 		apolloConfig := syncApolloConfig.SyncWithNamespace(namespace, c.getAppConfig)
-		if apolloConfig != nil {
-			c.SyncAndUpdate(namespace, apolloConfig)
+		if apolloConfig == nil {
+			log.Warnf("apolloConfig is nil: %s, but it's be added notification", namespace)
 		}
+		c.SyncAndUpdate(namespace, apolloConfig)
 	}
 
 	cfg = c.cache.GetConfig(namespace)
@@ -189,10 +190,12 @@ func (c *internalClient) SyncAndUpdate(namespace string, apolloConfig *config.Ap
 	}
 
 	// update notification
-	c.appConfig.GetNotificationsMap().UpdateNotify(namespace, 0)
+	c.appConfig.GetNotificationsMap().UpdateNotify(namespace, -1)
 
 	// update cache
-	c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
+	if apolloConfig != nil {
+		c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
+	}
 }
 
 // GetConfigCache 根据namespace获取apollo配置的缓存

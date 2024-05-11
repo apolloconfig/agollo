@@ -412,4 +412,5 @@ func TestGetConfigAndInitValNil(t *testing.T) {
 	cf := client.GetConfig("testNotFound")
 	Assert(t, cf, NilVal())
 	Assert(t, client.cache.GetConfig("testNotFound"), NilVal())
+	Assert(t, client.appConfig.GetNotificationsMap().GetNotify("testNotFound"), Equal(int64(-1)))
 }
