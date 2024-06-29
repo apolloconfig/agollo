@@ -331,3 +331,55 @@ func TestGetConfigImmediately(t *testing.T) {
 	sliceInter := config.GetSliceValueImmediately("sliceInter", []interface{}{})
 	Assert(t, sliceInter, Equal([]interface{}{1, "2", 3}))
 }
+
+func TestPropertiesToMap(t *testing.T) {
+	properties := "xiaozou.name=John Doe\nage=30"
+	expected := map[string]interface{}{
+		"xiaozou": map[string]interface{}{"name": "John Doe"},
+		"age":     30,
+	}
+	result, err := propertiesToMap(properties)
+	Assert(t, err, NilVal())
+	Assert(t, result, Equal(expected))
+
+}
+
+func TestParseValue(t *testing.T) {
+	s := "true"
+	target := parseValue(s)
+	Assert(t, target, Equal(true))
+
+	s = "false"
+	target = parseValue(s)
+	Assert(t, target, Equal(false))
+
+	s = "1"
+	target = parseValue(s)
+	Assert(t, target, Equal(1))
+
+	s = "[aa,bb]"
+	target = parseValue(s)
+	Assert(t, target, Equal([]string{"aa", "bb"}))
+
+}
+
+func TestGetYaml(t *testing.T) {
+	configurations := make(map[string]interface{})
+	configurations["string"] = "string2"
+	configurations["int"] = 2
+	configurations["string_int"] = "2"
+	configurations["float"] = 1.9
+	configurations["string_float"] = "1.9"
+	configurations["bool"] = false
+	configurations["string_bool"] = "false"
+	configurations["sliceString"] = []string{"1", "2", "3"}
+	configurations["sliceInt"] = []int{1, 2, 3}
+	configurations["sliceInter"] = []interface{}{1, "2", 3}
+	c := creatTestApolloConfig(configurations, "test")
+	getConfig := c.GetConfig("test")
+	out, err := getConfig.GetYaml()
+
+	str := string(out)
+	Assert(t, err, NilVal())
+	Assert(t, str, Equal("bool: false\nfloat: 1.9\nint: 2\nsliceInt:\n    - 1 2 3\nsliceInter:\n    - 1 2 3\nsliceString:\n    - 1 2 3\nstring: string2\nstring_bool: false\nstring_float: 1.9\nstring_int: 2\n"))
+}
