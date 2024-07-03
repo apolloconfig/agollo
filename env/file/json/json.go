@@ -21,15 +21,16 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/apolloconfig/agollo/v4/env/config"
 	"os"
 	"sync"
+
+	"github.com/apolloconfig/agollo/v4/env/config"
 
 	"github.com/apolloconfig/agollo/v4/component/log"
 	jsonConfig "github.com/apolloconfig/agollo/v4/env/config/json"
 )
 
-//Suffix 默认文件保存类型
+// Suffix 默认文件保存类型
 const Suffix = ".json"
 
 var (
@@ -75,7 +76,7 @@ func (fileHandler *FileHandler) WriteConfigFile(config *config.ApolloConfig, con
 	if err != nil {
 		return err
 	}
-	return jsonFileConfig.Write(config, fileHandler.GetConfigFile(configPath, config.AppID, config.NamespaceName))
+	return jsonFileConfig.WriteWithBackup(config, fileHandler.GetConfigFile(configPath, config.AppID, config.NamespaceName))
 }
 
 // GetConfigFile get real config file
@@ -95,7 +96,7 @@ func (fileHandler *FileHandler) GetConfigFile(configDir string, appID string, na
 	return configFileMap[namespace]
 }
 
-//LoadConfigFile load config from file
+// LoadConfigFile load config from file
 func (fileHandler *FileHandler) LoadConfigFile(configDir string, appID string, namespace string) (*config.ApolloConfig, error) {
 	configFilePath := fileHandler.GetConfigFile(configDir, appID, namespace)
 	log.Infof("load config file from: %s", configFilePath)

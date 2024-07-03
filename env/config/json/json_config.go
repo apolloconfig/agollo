@@ -27,11 +27,11 @@ import (
 	"github.com/apolloconfig/agollo/v4/utils"
 )
 
-//ConfigFile json文件读写
+// ConfigFile json文件读写
 type ConfigFile struct {
 }
 
-//Load json文件读
+// Load json文件读
 func (t *ConfigFile) Load(fileName string, unmarshal func([]byte) (interface{}, error)) (interface{}, error) {
 	fs, err := ioutil.ReadFile(fileName)
 	if err != nil {
@@ -47,7 +47,7 @@ func (t *ConfigFile) Load(fileName string, unmarshal func([]byte) (interface{}, 
 	return config, nil
 }
 
-//Write json文件写
+// Write json文件写
 func (t *ConfigFile) Write(content interface{}, configPath string) error {
 	if content == nil {
 		log.Error("content is null can not write backup file")
@@ -61,4 +61,14 @@ func (t *ConfigFile) Write(content interface{}, configPath string) error {
 	defer file.Close()
 
 	return json.NewEncoder(file).Encode(content)
+}
+
+// WriteWithBackup writes the given content to a new file, then renames the new file to the original file name.
+func (t *ConfigFile) WriteWithBackup(content interface{}, configPath string) error {
+	newConfigPath := configPath + ".new"
+	err := t.Write(content, newConfigPath)
+	if err != nil {
+		return err
+	}
+	return os.Rename(newConfigPath, configPath)
 }
