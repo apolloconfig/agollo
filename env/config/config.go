@@ -41,15 +41,17 @@ type File interface {
 
 // AppConfig 配置文件
 type AppConfig struct {
-	AppID             string `json:"appId"`
-	Cluster           string `json:"cluster"`
-	NamespaceName     string `json:"namespaceName"`
-	IP                string `json:"ip"`
-	IsBackupConfig    bool   `default:"true" json:"isBackupConfig"`
-	BackupConfigPath  string `json:"backupConfigPath"`
-	Secret            string `json:"secret"`
-	Label             string `json:"label"`
-	SyncServerTimeout int    `json:"syncServerTimeout"`
+	AppID                     string `json:"appId"`
+	Cluster                   string `json:"cluster"`
+	NamespaceName             string `json:"namespaceName"`
+	IP                        string `json:"ip"`
+	IsBackupConfigToConfigMap bool   `default:"false" json:"isBackupConfigToConfigmap"`
+	ConfigMapNamespace        string `json:"configMapNamespace"`
+	IsBackupConfig            bool   `default:"true" json:"isBackupConfig"`
+	BackupConfigPath          string `json:"backupConfigPath"`
+	Secret                    string `json:"secret"`
+	Label                     string `json:"label"`
+	SyncServerTimeout         int    `json:"syncServerTimeout"`
 	// MustStart 可用于控制第一次同步必须成功
 	MustStart               bool `default:"false"`
 	notificationsMap        *notificationsMap
@@ -74,6 +76,17 @@ func (a *AppConfig) GetIsBackupConfig() bool {
 // GetBackupConfigPath GetBackupConfigPath
 func (a *AppConfig) GetBackupConfigPath() string {
 	return a.BackupConfigPath
+}
+
+// GetIsBackupConfigToConfigMap whether backup config to configmap after fetch config from apollo
+// false : no (default)
+// true : yes
+func (a *AppConfig) GetIsBackupConfigToConfigMap() bool {
+	return a.IsBackupConfigToConfigMap
+}
+
+func (a *AppConfig) GetConfigMapNamespace() string {
+	return a.ConfigMapNamespace
 }
 
 // GetHost GetHost

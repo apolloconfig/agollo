@@ -24,37 +24,45 @@ import (
 	"github.com/apolloconfig/agollo/v4/env/file"
 	"github.com/apolloconfig/agollo/v4/extension"
 	"github.com/apolloconfig/agollo/v4/protocol/auth"
+	"github.com/apolloconfig/agollo/v4/store"
 )
 
-//SetSignature 设置自定义 http 授权控件
+// SetSignature 设置自定义 http 授权控件
 func SetSignature(auth auth.HTTPAuth) {
 	if auth != nil {
 		extension.SetHTTPAuth(auth)
 	}
 }
 
-//SetBackupFileHandler 设置自定义备份文件处理组件
+// SetBackupFileHandler 设置自定义备份文件处理组件
 func SetBackupFileHandler(file file.FileHandler) {
 	if file != nil {
 		extension.SetFileHandler(file)
 	}
 }
 
-//SetLoadBalance 设置自定义负载均衡组件
+// SetConfigMapHandler 设置自定义configMap持久化组件
+func SetConfigMapHandler(configMapHandler store.ConfigMapHandler) {
+	if configMapHandler != nil {
+		extension.SetConfigMapHandler(configMapHandler)
+	}
+}
+
+// SetLoadBalance 设置自定义负载均衡组件
 func SetLoadBalance(loadBalance cluster.LoadBalance) {
 	if loadBalance != nil {
 		extension.SetLoadBalance(loadBalance)
 	}
 }
 
-//SetLogger 设置自定义logger组件
+// SetLogger 设置自定义logger组件
 func SetLogger(loggerInterface log.LoggerInterface) {
 	if loggerInterface != nil {
 		log.InitLogger(loggerInterface)
 	}
 }
 
-//SetCache 设置自定义cache组件
+// SetCache 设置自定义cache组件
 func SetCache(cacheFactory agcache.CacheFactory) {
 	if cacheFactory != nil {
 		extension.SetCacheFactory(cacheFactory)

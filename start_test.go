@@ -225,6 +225,25 @@ func TestSetBackupFileHandler(t *testing.T) {
 	Assert(t, t2, Equal(extension.GetFileHandler()))
 }
 
+// testConfigMapHandler configmap备份读写
+type testConfigMapHandler struct{}
+
+func (c *testConfigMapHandler) LoadConfigMap(configMapNamespace string) (*config.ApolloConfig, error) {
+	return nil, nil
+}
+func (c *testConfigMapHandler) WriteConfigMap(config *config.ApolloConfig, configMapNamespace string) error {
+	return nil
+}
+
+func TestSetConfigMapHandler(t *testing.T) {
+	configMapHandler := extension.GetConfigMapHandler()
+	Assert(t, configMapHandler, NotNilVal())
+
+	t2 := &testConfigMapHandler{}
+	SetConfigMapHandler(t2)
+	Assert(t, t2, Equal(extension.GetConfigMapHandler()))
+}
+
 type TestAuth struct{}
 
 func (a *TestAuth) HTTPHeaders(url string, appID string, secret string) map[string][]string {

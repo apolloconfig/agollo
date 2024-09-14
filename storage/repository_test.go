@@ -58,6 +58,7 @@ func creatTestApolloConfig(configurations map[string]interface{}, namespace stri
 }
 
 func TestUpdateApolloConfigNull(t *testing.T) {
+	// TODO 增加config的增量测试
 	time.Sleep(1 * time.Second)
 	c := CreateNamespaceConfig(defaultNamespace)
 	appConfig := env.InitFileConfig()
