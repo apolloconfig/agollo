@@ -23,5 +23,5 @@ import "github.com/apolloconfig/agollo/v4/env/config"
 type ConfigMapHandler interface {
 	WriteConfigMap(config *config.ApolloConfig, configMapNamespace string) error
 	// LoadConfigMap 直接读出json，封装为*config.ApolloConfig
-	LoadConfigMap(configMapNamespace string) (*config.ApolloConfig, error)
+	LoadConfigMap(appConfig config.AppConfig, configMapNamespace string) (*config.ApolloConfig, error)
 }

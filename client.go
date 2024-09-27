@@ -50,7 +50,7 @@ const separator = ","
 func init() {
 	extension.SetCacheFactory(&memory.DefaultCacheFactory{})
 	extension.SetLoadBalance(&roundrobin.RoundRobin{})
-	extension.SetConfigMapHandler(&configMap.Store{configMap.GetK8sManager()})
+	extension.SetConfigMapHandler(&configMap.Store{K8sManager: configMap.GetK8sManager()})
 	extension.SetFileHandler(&jsonFile.FileHandler{})
 	extension.SetHTTPAuth(&sign.AuthSignature{})
 

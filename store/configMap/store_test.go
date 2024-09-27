@@ -80,13 +80,10 @@ func TestStore_LoadConfigMap(t *testing.T) {
 		},
 	}
 
-	var appConfig = &config.ApolloConfig{
-		ApolloConnConfig: config.ApolloConnConfig{
-			AppID:         appId,
-			NamespaceName: namespace,
-			Cluster:       cluster,
-		},
-		Configurations: map[string]interface{}{cluster + "+" + namespace: string(jsonData)},
+	var appConfig = config.AppConfig{
+		AppID:         appId,
+		NamespaceName: namespace,
+		Cluster:       cluster,
 	}
 
 	// 执行

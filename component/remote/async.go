@@ -154,7 +154,7 @@ func loadBackupConfig(namespace string, appConfig config.AppConfig) []*config.Ap
 		if appConfig.GetIsBackupConfig() {
 			c, err = extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, appConfig.AppID, namespace)
 		} else if appConfig.GetIsBackupConfigToConfigMap() {
-			c, err = extension.GetConfigMapHandler().LoadConfigMap(appConfig.ConfigMapNamespace)
+			c, err = extension.GetConfigMapHandler().LoadConfigMap(appConfig, appConfig.ConfigMapNamespace)
 		}
 
 		if err != nil {

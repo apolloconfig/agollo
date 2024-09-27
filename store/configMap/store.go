@@ -27,11 +27,16 @@ type Store struct {
 }
 
 // LoadConfigMap load ApolloConfig from configmap
-func (c *Store) LoadConfigMap(config *config.ApolloConfig, configMapNamespace string) (*config.ApolloConfig, error) {
-	configMapName := config.AppID
-	key := config.Cluster + "+" + config.NamespaceName
+func (c *Store) LoadConfigMap(appConfig config.AppConfig, configMapNamespace string) (*config.ApolloConfig, error) {
+	var config = &config.ApolloConfig{}
+	configMapName := appConfig.AppID
+	key := appConfig.Cluster + "+" + appConfig.NamespaceName
 	// TODO 在这里把json转为ApolloConfig, 但ReleaseKey字段会丢失
 	config.Configurations, _ = c.K8sManager.GetConfigMap(configMapName, configMapNamespace, key)
+
+	config.AppID = appConfig.AppID
+	config.Cluster = appConfig.Cluster
+	config.NamespaceName = appConfig.NamespaceName
 	return config, nil
 }
 
