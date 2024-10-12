@@ -23,12 +23,12 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/apolloconfig/agollo/v4/component/log"
-	"github.com/apolloconfig/agollo/v4/constant"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/extension"
-	"github.com/apolloconfig/agollo/v4/protocol/http"
-	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/xuxiaofan1101/agollo/v4/component/log"
+	"github.com/xuxiaofan1101/agollo/v4/constant"
+	"github.com/xuxiaofan1101/agollo/v4/env/config"
+	"github.com/xuxiaofan1101/agollo/v4/extension"
+	"github.com/xuxiaofan1101/agollo/v4/protocol/http"
+	"github.com/xuxiaofan1101/agollo/v4/utils"
 )
 
 // CreateSyncApolloConfig 创建同步获取 Apollo 配置

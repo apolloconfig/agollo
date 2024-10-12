@@ -17,18 +17,18 @@
 
 package extension
 
-import "github.com/apolloconfig/agollo/v4/agcache"
+import "github.com/xuxiaofan1101/agollo/v4/agcache"
 
 var (
 	globalCacheFactory agcache.CacheFactory
 )
 
-//GetCacheFactory 获取CacheFactory
+// GetCacheFactory 获取CacheFactory
 func GetCacheFactory() agcache.CacheFactory {
 	return globalCacheFactory
 }
 
-//SetCacheFactory 替换CacheFactory
+// SetCacheFactory 替换CacheFactory
 func SetCacheFactory(cacheFactory agcache.CacheFactory) {
 	globalCacheFactory = cacheFactory
 }

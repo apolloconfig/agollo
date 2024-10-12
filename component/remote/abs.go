@@ -20,10 +20,10 @@ package remote
 import (
 	"time"
 
-	"github.com/apolloconfig/agollo/v4/component/log"
-	"github.com/apolloconfig/agollo/v4/env"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/protocol/http"
+	"github.com/xuxiaofan1101/agollo/v4/component/log"
+	"github.com/xuxiaofan1101/agollo/v4/env"
+	"github.com/xuxiaofan1101/agollo/v4/env/config"
+	"github.com/xuxiaofan1101/agollo/v4/protocol/http"
 )
 
 // AbsApolloConfig 抽象 apollo 配置

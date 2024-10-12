@@ -18,10 +18,10 @@
 package cluster
 
 import (
-	"github.com/apolloconfig/agollo/v4/env/config"
+	"github.com/xuxiaofan1101/agollo/v4/env/config"
 )
 
-//LoadBalance 负载均衡器
+// LoadBalance 负载均衡器
 type LoadBalance interface {
 	//Load 负载均衡，获取对应服务信息
 	Load(servers map[string]*config.ServerInfo) *config.ServerInfo

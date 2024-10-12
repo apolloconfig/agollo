@@ -18,22 +18,15 @@
 package yaml
 
 import (
-	"bytes"
-	"github.com/apolloconfig/agollo/v4/utils"
-	"github.com/spf13/viper"
+	"github.com/xuxiaofan1101/agollo/v4/utils"
+	"gopkg.in/yaml.v2"
 )
-
-var vp = viper.New()
-
-func init() {
-	vp.SetConfigType("yaml")
-}
 
 // Parser properties转换器
 type Parser struct {
 }
 
-// Parse 内存内容=>yml文件转换器
+// Parse 内存内容 => yml文件转换器
 func (d *Parser) Parse(configContent interface{}) (map[string]interface{}, error) {
 	content, ok := configContent.(string)
 	if !ok {
@@ -43,24 +36,13 @@ func (d *Parser) Parse(configContent interface{}) (map[string]interface{}, error
 		return nil, nil
 	}
 
-	buffer := bytes.NewBufferString(content)
-	// 使用viper解析
-	err := vp.ReadConfig(buffer)
+	var result map[string]interface{}
+
+	// 使用 yaml.v2 进行解析
+	err := yaml.Unmarshal([]byte(content), &result)
 	if err != nil {
 		return nil, err
 	}
 
-	return convertToMap(vp), nil
-}
-
-func convertToMap(vp *viper.Viper) map[string]interface{} {
-	if vp == nil {
-		return nil
-	}
-
-	m := make(map[string]interface{})
-	for _, key := range vp.AllKeys() {
-		m[key] = vp.Get(key)
-	}
-	return m
+	return result, nil
 }

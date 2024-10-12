@@ -26,11 +26,11 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/apolloconfig/agollo/v4/agcache"
-	"github.com/apolloconfig/agollo/v4/component/log"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/extension"
-	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/xuxiaofan1101/agollo/v4/agcache"
+	"github.com/xuxiaofan1101/agollo/v4/component/log"
+	"github.com/xuxiaofan1101/agollo/v4/env/config"
+	"github.com/xuxiaofan1101/agollo/v4/extension"
+	"github.com/xuxiaofan1101/agollo/v4/utils"
 )
 
 const (

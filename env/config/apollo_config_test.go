@@ -20,8 +20,8 @@ package config
 import (
 	"testing"
 
-	"github.com/apolloconfig/agollo/v4/utils"
 	. "github.com/tevid/gohamcrest"
+	"github.com/xuxiaofan1101/agollo/v4/utils"
 )
 
 func TestCurrentApolloConfig(t *testing.T) {

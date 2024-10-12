@@ -20,12 +20,12 @@ package serverlist
 import (
 	"testing"
 
-	"github.com/apolloconfig/agollo/v4/env/server"
-	"github.com/apolloconfig/agollo/v4/protocol/http"
+	"github.com/xuxiaofan1101/agollo/v4/env/server"
+	"github.com/xuxiaofan1101/agollo/v4/protocol/http"
 
-	"github.com/apolloconfig/agollo/v4/env"
-	"github.com/apolloconfig/agollo/v4/env/config"
 	. "github.com/tevid/gohamcrest"
+	"github.com/xuxiaofan1101/agollo/v4/env"
+	"github.com/xuxiaofan1101/agollo/v4/env/config"
 )
 
 func TestSyncServerIPList(t *testing.T) {

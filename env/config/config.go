@@ -24,7 +24,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/xuxiaofan1101/agollo/v4/utils"
 )
 
 var (

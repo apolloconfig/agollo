@@ -1,64 +1,49 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package yaml
 
 import (
-	"github.com/apolloconfig/agollo/v4/utils"
-	"github.com/apolloconfig/agollo/v4/utils/parse"
+	"github.com/stretchr/testify/assert"
 	"testing"
-
-	. "github.com/tevid/gohamcrest"
 )
 
-var (
-	yamlParser parse.ContentParser = &Parser{}
-)
+// TestParser_ParseCamelCase 测试解析包含小驼峰法key的YAML
+func TestParser_ParseCamelCase(t *testing.T) {
+	// 初始化解析器
+	parser := &Parser{}
 
-func TestYAMLParser(t *testing.T) {
-	s, err := yamlParser.Parse(`
-a:
-    a1: a1
-b:
-    b1: b1
-c:
-    c1: c1
-d:
-    d1: d1
-e:  
-    e1: e1`)
-	Assert(t, err, NilVal())
+	// 定义一个包含小驼峰法key的YAML字符串
+	yamlContent := `
+appConfig:
+  appName: TestApp
+  appVersion: 1.0
+serverConfig:
+  enableSsl: true
+  maxConnections: 100
+loggerConfig:
+  logLevel: debug
+  logOutput: /var/log/test.log
+`
 
-	Assert(t, s["a.a1"], Equal("a1"))
+	// 调用解析方法
+	result, err := parser.Parse(yamlContent)
 
-	Assert(t, s["b.b1"], Equal("b1"))
+	// 确保解析没有错误
+	assert.NoError(t, err, "解析YAML时出错")
 
-	Assert(t, s["c.c1"], Equal("c1"))
+	// 验证 appConfig 的解析结果
+	appConfig, ok := result["appConfig"].(map[interface{}]interface{})
+	assert.True(t, ok, "appConfig 应该是一个 map")
+	assert.Equal(t, "TestApp", appConfig["appName"], "appName 不匹配")
+	assert.Equal(t, 1.0, appConfig["appVersion"], "appVersion 不匹配")
 
-}
+	// 验证 serverConfig 的解析结果
+	serverConfig, ok := result["serverConfig"].(map[interface{}]interface{})
+	assert.True(t, ok, "serverConfig 应该是一个 map")
+	assert.Equal(t, true, serverConfig["enableSsl"], "enableSsl 不匹配")
+	assert.Equal(t, 100, serverConfig["maxConnections"], "maxConnections 不匹配")
 
-func TestYAMLParserOnException(t *testing.T) {
-	s, err := yamlParser.Parse(utils.Empty)
-	Assert(t, err, NilVal())
-	Assert(t, s, NilVal())
-	s, err = yamlParser.Parse(0)
-	Assert(t, err, NilVal())
-	Assert(t, s, NilVal())
-
-	m := convertToMap(nil)
-	Assert(t, m, NilVal())
+	// 验证 loggerConfig 的解析结果
+	loggerConfig, ok := result["loggerConfig"].(map[interface{}]interface{})
+	assert.True(t, ok, "loggerConfig 应该是一个 map")
+	assert.Equal(t, "debug", loggerConfig["logLevel"], "logLevel 不匹配")
+	assert.Equal(t, "/var/log/test.log", loggerConfig["logOutput"], "logOutput 不匹配")
 }

@@ -20,8 +20,8 @@ package memory
 import (
 	"testing"
 
-	"github.com/apolloconfig/agollo/v4/agcache"
 	. "github.com/tevid/gohamcrest"
+	"github.com/xuxiaofan1101/agollo/v4/agcache"
 )
 
 var testDefaultCache agcache.CacheInterface
