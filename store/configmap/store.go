@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 
-package configMap
+package configmap
 
-import "github.com/apolloconfig/agollo/v4/env/config"
-
-// TODO 并发加锁
+import (
+	"github.com/apolloconfig/agollo/v4/env/config"
+)
 
 type Store struct {
-	// 模块化依赖注入，便于测试
 	K8sManager *K8sManager
 }
 
@@ -31,7 +30,7 @@ func (c *Store) LoadConfigMap(appConfig config.AppConfig, configMapNamespace str
 	var config = &config.ApolloConfig{}
 	configMapName := appConfig.AppID
 	key := appConfig.Cluster + "+" + appConfig.NamespaceName
-	// TODO 在这里把json转为ApolloConfig, 但ReleaseKey字段会丢失
+	// TODO 在这里把json转为ApolloConfig, 但ReleaseKey字段会丢失, 影响大不大
 	config.Configurations, _ = c.K8sManager.GetConfigMap(configMapName, configMapNamespace, key)
 
 	config.AppID = appConfig.AppID

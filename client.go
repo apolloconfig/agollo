@@ -20,7 +20,7 @@ package agollo
 import (
 	"container/list"
 	"errors"
-	"github.com/apolloconfig/agollo/v4/store/configMap"
+	"github.com/apolloconfig/agollo/v4/store/configmap"
 	"strings"
 
 	"github.com/apolloconfig/agollo/v4/agcache"
@@ -50,7 +50,6 @@ const separator = ","
 func init() {
 	extension.SetCacheFactory(&memory.DefaultCacheFactory{})
 	extension.SetLoadBalance(&roundrobin.RoundRobin{})
-	extension.SetConfigMapHandler(&configMap.Store{K8sManager: configMap.GetK8sManager()})
 	extension.SetFileHandler(&jsonFile.FileHandler{})
 	extension.SetHTTPAuth(&sign.AuthSignature{})
 
@@ -114,6 +113,10 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 	appConfig, err := env.InitConfig(loadAppConfig)
 	if err != nil {
 		return nil, err
+	}
+
+	if appConfig.IsBackupConfigToConfigMap {
+		extension.SetConfigMapHandler(&configmap.Store{K8sManager: configmap.GetK8sManager()})
 	}
 
 	c := create()

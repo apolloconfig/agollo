@@ -86,6 +86,9 @@ func (a *AppConfig) GetIsBackupConfigToConfigMap() bool {
 }
 
 func (a *AppConfig) GetConfigMapNamespace() string {
+	if a.ConfigMapNamespace == "" {
+		a.ConfigMapNamespace = "default"
+	}
 	return a.ConfigMapNamespace
 }
 
