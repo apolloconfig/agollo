@@ -44,22 +44,31 @@ var (
 	once     sync.Once
 )
 
-func GetK8sManager() *K8sManager {
+func GetK8sManager() (*K8sManager, error) {
 	once.Do(func() {
 		config, err := rest.InClusterConfig()
 		if err != nil {
-			panic(err.Error())
+			instance = nil
+			once = sync.Once{}
+			log.Errorf("Error creating in-cluster config: %v", err)
+			return
 		}
 		clientSet, err := kubernetes.NewForConfig(config)
 		if err != nil {
-			panic(err.Error())
+			instance = nil
+			once = sync.Once{}
+			log.Errorf("Error creating Kubernetes client set: %v", err)
+			return
 		}
 		instance = &K8sManager{
 			clientSet: clientSet,
 			mutex:     sync.RWMutex{},
 		}
 	})
-	return instance
+	if instance == nil {
+		return nil, fmt.Errorf("failed to create K8sManager instance")
+	}
+	return instance, nil
 }
 
 // SetConfigMap 将map[string]interface{}转换为JSON字符串，并创建或更新ConfigMap
@@ -89,6 +98,7 @@ func (m *K8sManager) SetConfigMap(configMapName string, configMapNamespace strin
 			Data: map[string]string{
 				key: jsonString,
 			},
+			BinaryData: map[string][]byte{},
 		}
 
 		// 新建不成功，测试能否解决

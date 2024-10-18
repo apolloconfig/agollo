@@ -116,7 +116,11 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 	}
 
 	if appConfig.IsBackupConfigToConfigMap {
-		extension.SetConfigMapHandler(&configmap.Store{K8sManager: configmap.GetK8sManager()})
+		manager, err := configmap.GetK8sManager()
+		if err != nil {
+			return nil, err
+		}
+		extension.SetConfigMapHandler(&configmap.Store{K8sManager: manager})
 	}
 
 	c := create()
