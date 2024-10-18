@@ -115,6 +115,7 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 		return nil, err
 	}
 
+	// set k8sManager before first sync
 	if appConfig.IsBackupConfigToConfigMap {
 		manager, err := configmap.GetK8sManager()
 		if err != nil {

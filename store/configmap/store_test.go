@@ -65,7 +65,7 @@ func TestStore_LoadConfigMap(t *testing.T) {
 			Namespace: configMapNamespace,
 		},
 		Data: map[string]string{
-			cluster + "+" + namespace: string(jsonData),
+			cluster + "-" + namespace: string(jsonData),
 		},
 	}
 

@@ -18,6 +18,7 @@
 package configmap
 
 import (
+	"github.com/apolloconfig/agollo/v4/component/log"
 	"github.com/apolloconfig/agollo/v4/env/config"
 )
 
@@ -29,7 +30,7 @@ type Store struct {
 func (c *Store) LoadConfigMap(appConfig config.AppConfig, configMapNamespace string) (*config.ApolloConfig, error) {
 	var config = &config.ApolloConfig{}
 	configMapName := appConfig.AppID
-	key := appConfig.Cluster + "+" + appConfig.NamespaceName
+	key := appConfig.Cluster + "-" + appConfig.NamespaceName
 	// TODO 在这里把json转为ApolloConfig, 但ReleaseKey字段会丢失, 影响大不大
 	config.Configurations, _ = c.K8sManager.GetConfigMap(configMapName, configMapNamespace, key)
 
@@ -41,8 +42,13 @@ func (c *Store) LoadConfigMap(appConfig config.AppConfig, configMapNamespace str
 
 // WriteConfigMap write apollo config to configmap
 func (c *Store) WriteConfigMap(config *config.ApolloConfig, configMapNamespace string) error {
-	// AppId作为configMap的name,cluster+namespace作为key, value为config
+	// AppId作为configMap的name,cluster-namespace作为key, value为config
 	configMapName := config.AppID
-	key := config.Cluster + "+" + config.NamespaceName
-	return c.K8sManager.SetConfigMap(configMapName, configMapNamespace, key, config)
+	key := config.Cluster + "-" + config.NamespaceName
+	err := c.K8sManager.SetConfigMap(configMapName, configMapNamespace, key, config)
+	if err != nil {
+		log.Errorf("Failed to write ConfigMap %s in namespace %s: %v", configMapName, configMapNamespace, err)
+		return err
+	}
+	return nil
 }

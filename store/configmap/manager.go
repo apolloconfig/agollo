@@ -30,7 +30,6 @@ import (
 	"k8s.io/client-go/rest"
 	"sync"
 	"time"
-	"unicode/utf8"
 )
 
 // TODO 改为CAS更好，用版本号解决api server的并发 https://blog.csdn.net/boling_cavalry/article/details/128745382
@@ -98,14 +97,6 @@ func (m *K8sManager) SetConfigMap(configMapName string, configMapNamespace strin
 			Data: map[string]string{
 				key: jsonString,
 			},
-			BinaryData: map[string][]byte{},
-		}
-
-		// 新建不成功，测试能否解决
-		if utf8.Valid(jsonData) {
-			cm.Data[key] = jsonString
-		} else {
-			cm.BinaryData[key] = jsonData
 		}
 
 		//log.Infof("准备创建, cm：%s", cm)
@@ -115,7 +106,7 @@ func (m *K8sManager) SetConfigMap(configMapName string, configMapNamespace strin
 		}
 		log.Infof("ConfigMap %s created in namespace %s", configMapName, configMapNamespace)
 	} else if err != nil {
-		return err
+		return fmt.Errorf("error getting ConfigMap: %v", err)
 	} else {
 		// ConfigMap 存在，更新数据
 		cm.Data[key] = jsonString
