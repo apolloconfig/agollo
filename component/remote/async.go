@@ -147,15 +147,7 @@ func toApolloConfig(resBody []byte) ([]*config.Notification, error) {
 func loadBackupConfig(namespace string, appConfig config.AppConfig) []*config.ApolloConfig {
 	apolloConfigs := make([]*config.ApolloConfig, 0)
 	config.SplitNamespaces(namespace, func(namespace string) {
-		var c *config.ApolloConfig
-		var err error
-
-		// 增加configMap读取，但优先本地文件（configMap不支持灰度）
-		if appConfig.GetIsBackupConfig() {
-			c, err = extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, appConfig.AppID, namespace)
-		} else if appConfig.GetIsBackupConfigToConfigMap() {
-			c, err = extension.GetConfigMapHandler().LoadConfigMap(appConfig, appConfig.ConfigMapNamespace)
-		}
+		c, err := loadBackupConfiguration(appConfig, namespace)
 
 		if err != nil {
 			log.Errorf("LoadConfigFile error, error: %v", err)
@@ -167,6 +159,21 @@ func loadBackupConfig(namespace string, appConfig config.AppConfig) []*config.Ap
 		apolloConfigs = append(apolloConfigs, c)
 	})
 	return apolloConfigs
+}
+
+func loadBackupConfiguration(appConfig config.AppConfig, namespace string) (*config.ApolloConfig, error) {
+	if appConfig.GetIsBackupConfig() {
+		c, err := extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, appConfig.AppID, namespace)
+		if err == nil {
+			return c, nil
+		}
+	}
+
+	if appConfig.GetIsBackupConfigToConfigMap() {
+		return extension.GetConfigMapHandler().LoadConfigMap(appConfig, appConfig.ConfigMapNamespace)
+	}
+
+	return nil, nil
 }
 
 func createApolloConfigWithJSON(b []byte, callback http.CallBack) (o interface{}, err error) {

@@ -99,7 +99,6 @@ func (m *K8sManager) SetConfigMap(configMapName string, configMapNamespace strin
 			},
 		}
 
-		//log.Infof("准备创建, cm：%s", cm)
 		_, err = m.clientSet.CoreV1().ConfigMaps(configMapNamespace).Create(ctx, cm, metaV1.CreateOptions{})
 		if err != nil {
 			return fmt.Errorf("error creating ConfigMap: %v", err)

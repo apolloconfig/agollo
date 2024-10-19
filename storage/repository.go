@@ -487,7 +487,7 @@ func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfigF
 	}
 
 	if appConfig.GetIsBackupConfigToConfigMap() {
-		//log.Info("11111111开始写configmap缓存")
+		// write configmap async
 		go extension.GetConfigMapHandler().WriteConfigMap(apolloConfig, appConfig.GetConfigMapNamespace())
 	}
 

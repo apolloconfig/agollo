@@ -26,7 +26,7 @@ import (
 type TestConfigMapHandler struct {
 }
 
-func (t *TestConfigMapHandler) LoadConfigMap(configMapNamespace string) (*config.ApolloConfig, error) {
+func (t *TestConfigMapHandler) LoadConfigMap(appConfig config.AppConfig, configMapNamespace string) (*config.ApolloConfig, error) {
 	return nil, nil
 }
 
