@@ -28,7 +28,7 @@ import (
 )
 
 func TestK8sManager_SetConfigMap(t *testing.T) {
-	// 创建fake clientset
+	// 创建fake clientSet
 	clientSet := fake.NewSimpleClientset()
 
 	// 创建K8sManager实例
@@ -55,7 +55,7 @@ func TestK8sManager_SetConfigMap(t *testing.T) {
 }
 
 func TestK8sManager_GetConfigMap(t *testing.T) {
-	// 创建fake clientset，并预先创建一个ConfigMap
+	// 创建fake clientSet，并预先创建一个ConfigMap
 	clientSet := fake.NewSimpleClientset(&coreV1.ConfigMap{
 		ObjectMeta: metaV1.ObjectMeta{
 			Name:      "test-configmap",

@@ -52,7 +52,7 @@ var testData = map[string]interface{}{
 func TestStore_LoadConfigMap(t *testing.T) {
 	// 初始化fake clientset
 	clientset := fake.NewSimpleClientset()
-	jsonData, err := json.MarshalIndent(testData, "", "")
+	jsonData, err := json.Marshal(testData)
 	if err != nil {
 		fmt.Println("Error marshalling map to JSON:", err)
 		return
@@ -90,15 +90,19 @@ func TestStore_LoadConfigMap(t *testing.T) {
 	loadedConfig, err := store.LoadConfigMap(appConfig, configMapNamespace)
 
 	// 测试LoadConfigMap方法
+	loadedJson, _ := json.Marshal(loadedConfig.Configurations)
 	assert.NoError(t, err)
 	assert.NotNil(t, loadedConfig)
-	assert.Equal(t, testData, loadedConfig.Configurations)
+	assert.Equal(t, jsonData, loadedJson)
 }
 
 func TestStore_WriteConfigMap(t *testing.T) {
 	// 初始化fake clientset
 	clientset := fake.NewSimpleClientset()
-	jsonData, err := json.MarshalIndent(testData, "", "")
+
+	var err error
+	var key = cluster + "-" + namespace
+	jsonData, err := json.Marshal(testData)
 	if err != nil {
 		fmt.Println("Error marshalling map to JSON:", err)
 		return
@@ -113,8 +117,7 @@ func TestStore_WriteConfigMap(t *testing.T) {
 
 	// 反序列化到ApolloConfig
 	apolloConfig := &config.ApolloConfig{}
-	err = json.Unmarshal(jsonData, apolloConfig)
-	assert.NoError(t, err)
+	apolloConfig.Configurations = testData
 	apolloConfig.AppID = appId
 	apolloConfig.Cluster = cluster
 	apolloConfig.NamespaceName = namespace
@@ -125,8 +128,13 @@ func TestStore_WriteConfigMap(t *testing.T) {
 
 	// 验证ConfigMap是否被正确创建或更新
 	configMap, err := clientset.CoreV1().ConfigMaps(configMapNamespace).Get(context.TODO(), appId, metav1.GetOptions{})
+	loadedJson, _ := configMap.Data[key]
+
+	var configurations map[string]interface{}
+	err = json.Unmarshal([]byte(loadedJson), &configurations)
+
 	assert.NoError(t, err)
 	assert.NotNil(t, configMap)
-	assert.Equal(t, testData, configMap.Data)
+	assert.Equal(t, jsonData, []byte(loadedJson))
 
 }

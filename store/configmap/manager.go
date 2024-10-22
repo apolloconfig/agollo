@@ -45,14 +45,14 @@ var (
 
 func GetK8sManager() (*K8sManager, error) {
 	once.Do(func() {
-		config, err := rest.InClusterConfig()
+		inClusterConfig, err := rest.InClusterConfig()
 		if err != nil {
 			instance = nil
 			once = sync.Once{}
-			log.Errorf("Error creating in-cluster config: %v", err)
+			log.Errorf("Error creating in-cluster inClusterConfig: %v", err)
 			return
 		}
-		clientSet, err := kubernetes.NewForConfig(config)
+		clientSet, err := kubernetes.NewForConfig(inClusterConfig)
 		if err != nil {
 			instance = nil
 			once = sync.Once{}

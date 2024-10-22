@@ -28,21 +28,22 @@ type Store struct {
 
 // LoadConfigMap load ApolloConfig from configmap
 func (c *Store) LoadConfigMap(appConfig config.AppConfig, configMapNamespace string) (*config.ApolloConfig, error) {
-	var config = &config.ApolloConfig{}
+	var apolloConfig = &config.ApolloConfig{}
+	var err error
 	configMapName := appConfig.AppID
 	key := appConfig.Cluster + "-" + appConfig.NamespaceName
 	// TODO 在这里把json转为ApolloConfig, 但ReleaseKey字段会丢失, 影响大不大
-	config.Configurations, _ = c.K8sManager.GetConfigMap(configMapName, configMapNamespace, key)
+	apolloConfig.Configurations, err = c.K8sManager.GetConfigMap(configMapName, configMapNamespace, key)
 
-	config.AppID = appConfig.AppID
-	config.Cluster = appConfig.Cluster
-	config.NamespaceName = appConfig.NamespaceName
-	return config, nil
+	apolloConfig.AppID = appConfig.AppID
+	apolloConfig.Cluster = appConfig.Cluster
+	apolloConfig.NamespaceName = appConfig.NamespaceName
+	return apolloConfig, err
 }
 
 // WriteConfigMap write apollo config to configmap
 func (c *Store) WriteConfigMap(config *config.ApolloConfig, configMapNamespace string) error {
-	// AppId作为configMap的name,cluster-namespace作为key, value为config
+	// AppId作为configMap的name,cluster-namespace作为key, 配置信息的JSON作为value
 	configMapName := config.AppID
 	key := config.Cluster + "-" + config.NamespaceName
 	err := c.K8sManager.SetConfigMap(configMapName, configMapNamespace, key, config)
