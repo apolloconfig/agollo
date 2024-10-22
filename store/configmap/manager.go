@@ -72,20 +72,19 @@ func GetK8sManager() (*K8sManager, error) {
 
 // SetConfigMap 将map[string]interface{}转换为JSON字符串，并创建或更新ConfigMap
 func (m *K8sManager) SetConfigMap(configMapName string, configMapNamespace string, key string, config *config.ApolloConfig) error {
+	jsonData, err := json.Marshal(config.Configurations)
+	jsonString := string(jsonData)
+	if err != nil {
+		return fmt.Errorf("error marshaling data to JSON: %v", err)
+	}
+	log.Infof("Preparing Configmap content，JSON: %s", jsonString)
+
 	m.mutex.Lock() // 加锁
 	defer m.mutex.Unlock()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// 将ApolloConfig的配置信息数据转换为JSON字符串
-	jsonData, err := json.Marshal(config.Configurations)
-	if err != nil {
-		return fmt.Errorf("error marshaling data to JSON: %v", err)
-	}
-
-	jsonString := string(jsonData)
-	log.Infof("准备configmap内容，json：%s", jsonString)
 	// 尝试获取 ConfigMap，如果不存在则创建
 	cm, err := m.clientSet.CoreV1().ConfigMaps(configMapNamespace).Get(ctx, configMapName, metaV1.GetOptions{})
 	if errors.IsNotFound(err) {
@@ -131,15 +130,12 @@ func (m *K8sManager) GetConfigMap(configMapName string, configMapNamespace strin
 		return nil, fmt.Errorf("error getting ConfigMap: %v", err)
 	}
 
-	//log.Info("读取成功。，configmap的内容：", configMap.Data[key])
 	// 从ConfigMap中读取JSON数据
 	jsonData, ok := configMap.Data[key]
 	if !ok {
 		return nil, fmt.Errorf("key: %v not found in ConfigMap", key)
 	}
 
-	// 反序列化JSON配置信息到ApolloConfig的Configurations字段
-	// 可以考虑使用 configTemp := &config.ApolloConfig{} 接收
 	var configurations map[string]interface{}
 	err = json.Unmarshal([]byte(jsonData), &configurations)
 	if err != nil {
