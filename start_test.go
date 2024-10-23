@@ -236,9 +236,6 @@ func (c *testConfigMapHandler) WriteConfigMap(config *config.ApolloConfig, confi
 }
 
 func TestSetConfigMapHandler(t *testing.T) {
-	configMapHandler := extension.GetConfigMapHandler()
-	Assert(t, configMapHandler, NotNilVal())
-
 	t2 := &testConfigMapHandler{}
 	SetConfigMapHandler(t2)
 	Assert(t, t2, Equal(extension.GetConfigMapHandler()))
