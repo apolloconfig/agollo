@@ -47,7 +47,11 @@ var testData = map[string]interface{}{
 	},
 }
 
-// TODO 更多边界的测试
+var appConfig = config.AppConfig{
+	AppID:         appId,
+	NamespaceName: namespace,
+	Cluster:       cluster,
+}
 
 func TestStore_LoadConfigMap(t *testing.T) {
 	// 初始化fake clientset
@@ -78,12 +82,6 @@ func TestStore_LoadConfigMap(t *testing.T) {
 		K8sManager: &K8sManager{
 			clientSet: clientset,
 		},
-	}
-
-	var appConfig = config.AppConfig{
-		AppID:         appId,
-		NamespaceName: namespace,
-		Cluster:       cluster,
 	}
 
 	// 执行
@@ -136,5 +134,44 @@ func TestStore_WriteConfigMap(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, configMap)
 	assert.Equal(t, jsonData, []byte(loadedJson))
+}
 
+func TestStore_LoadConfigMap_EmptyConfigMap(t *testing.T) {
+	// 初始化fake clientset
+	clientset := fake.NewSimpleClientset()
+	store := Store{
+		K8sManager: &K8sManager{
+			clientSet: clientset,
+		},
+	}
+
+	// 执行
+	loadedConfig, err := store.LoadConfigMap(appConfig, k8sNamespace)
+	assert.Nil(t, loadedConfig.Configurations)
+	assert.Error(t, err)
+}
+
+func TestStore_LoadConfigMap_InvalidJSON(t *testing.T) {
+	// 初始化fake clientset
+	clientset := fake.NewSimpleClientset()
+	store := Store{
+		K8sManager: &K8sManager{
+			clientSet: clientset,
+		},
+	}
+	// 创建一个ConfigMap对象
+	configMap := &corev1.ConfigMap{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "apollo-configcache-" + appId,
+			Namespace: k8sNamespace,
+		},
+		Data: map[string]string{
+			cluster + "-" + namespace: "invalid json",
+		},
+	}
+	_, err := clientset.CoreV1().ConfigMaps(k8sNamespace).Create(context.TODO(), configMap, metav1.CreateOptions{})
+	assert.NoError(t, err)
+	loadedConfig, err := store.LoadConfigMap(appConfig, k8sNamespace)
+	assert.Nil(t, loadedConfig.Configurations)
+	assert.Error(t, err)
 }

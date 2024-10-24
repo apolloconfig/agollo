@@ -21,10 +21,13 @@ import (
 	"context"
 	"github.com/apolloconfig/agollo/v4/env/config"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	coreV1 "k8s.io/api/core/v1"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/fake"
+	"sync"
 	"testing"
+	"time"
 )
 
 func TestK8sManager_SetConfigMap(t *testing.T) {
@@ -79,4 +82,70 @@ func TestK8sManager_GetConfigMap(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, configurations)
 	assert.Equal(t, configurations["key"], "value")
+}
+
+func TestSetConfigMapWithRetryConcurrent(t *testing.T) {
+	// 创建一个假的Kubernetes客户端
+	clientSet := fake.NewSimpleClientset()
+
+	// 创建K8sManager实例
+	manager := &K8sManager{
+		clientSet: clientSet,
+	}
+
+	// 定义测试数据
+	configMapName := "apollo-configcache-test-configmap"
+	k8sNamespace := "default"
+	key := "test-key"
+	configData1 := &config.ApolloConfig{
+		Configurations: map[string]interface{}{
+			"key1": "value1",
+		},
+	}
+	configData2 := &config.ApolloConfig{
+		Configurations: map[string]interface{}{
+			"key2": "value2",
+		},
+	}
+
+	// 首先创建一个ConfigMap
+	_, err := clientSet.CoreV1().ConfigMaps(k8sNamespace).Create(context.Background(), &coreV1.ConfigMap{
+		ObjectMeta: metaV1.ObjectMeta{
+			Name:      configMapName,
+			Namespace: k8sNamespace,
+		},
+		Data: map[string]string{},
+	}, metaV1.CreateOptions{})
+	require.NoError(t, err)
+
+	// 使用WaitGroup等待两个并发操作完成
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	// 并发执行SetConfigMapWithRetry
+	go func() {
+		defer wg.Done()
+		err := manager.SetConfigMapWithRetry(configMapName, k8sNamespace, key, configData1)
+		require.NoError(t, err)
+	}()
+
+	go func() {
+		defer wg.Done()
+		// 为了模拟并发冲突，这里故意延迟一段时间后再执行
+		time.Sleep(1 * time.Millisecond)
+		err := manager.SetConfigMapWithRetry(configMapName, k8sNamespace, key, configData2)
+		require.NoError(t, err)
+	}()
+
+	// 等待两个并发操作完成
+	wg.Wait()
+
+	// 验证ConfigMap是否更新成功
+	cm, err := clientSet.CoreV1().ConfigMaps(k8sNamespace).Get(context.Background(), configMapName, metaV1.GetOptions{})
+	require.NoError(t, err)
+	require.NotNil(t, cm)
+
+	// 这里只能验证其中一个更新操作成功的结果，因为两个操作是并发的，最终结果取决于哪个操作最后执行
+	// 例如，这里假设configData2的更新是最后执行的
+	require.Contains(t, cm.Data[key], `"key2":"value2"`)
 }

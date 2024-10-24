@@ -26,16 +26,16 @@ import (
 	coreV1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metaV1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/util/retry"
 	"sync"
 	"time"
 )
 
-// TODO 改为CAS更好，用版本号解决api server的并发 https://blog.csdn.net/boling_cavalry/article/details/128745382
 type K8sManager struct {
 	clientSet kubernetes.Interface
-	mutex     sync.RWMutex // 添加读写锁
 }
 
 var (
@@ -61,13 +61,28 @@ func GetK8sManager() (*K8sManager, error) {
 		}
 		instance = &K8sManager{
 			clientSet: clientSet,
-			mutex:     sync.RWMutex{},
 		}
 	})
 	if instance == nil {
 		return nil, fmt.Errorf("failed to create K8sManager instance")
 	}
 	return instance, nil
+}
+
+// SetConfigMapWithRetry 使用k8s版本号机制解决并发问题
+func (m *K8sManager) SetConfigMapWithRetry(configMapName string, k8sNamespace string, key string, config *config.ApolloConfig) error {
+	var retryParam = wait.Backoff{
+		Steps:    5,
+		Duration: 10 * time.Millisecond,
+		Factor:   1.0,
+		Jitter:   0.1,
+	}
+
+	err := retry.RetryOnConflict(retryParam, func() error {
+		return m.SetConfigMap(configMapName, k8sNamespace, key, config)
+	})
+
+	return err
 }
 
 // SetConfigMap 将map[string]interface{}转换为JSON字符串，并创建或更新ConfigMap
@@ -78,9 +93,6 @@ func (m *K8sManager) SetConfigMap(configMapName string, k8sNamespace string, key
 		return fmt.Errorf("error marshaling data to JSON: %v", err)
 	}
 	log.Infof("Preparing Configmap content，JSON: %s", jsonString)
-
-	m.mutex.Lock() // 加锁
-	defer m.mutex.Unlock()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -119,9 +131,6 @@ func (m *K8sManager) SetConfigMap(configMapName string, k8sNamespace string, key
 
 // GetConfigMap 从ConfigMap中获取JSON字符串，并反序列化为map[string]interface{}
 func (m *K8sManager) GetConfigMap(configMapName string, k8sNamespace string, key string) (map[string]interface{}, error) {
-	m.mutex.RLock() // 加读锁
-	defer m.mutex.RUnlock()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
