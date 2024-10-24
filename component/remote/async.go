@@ -170,7 +170,7 @@ func loadBackupConfiguration(appConfig config.AppConfig, namespace string) (*con
 	}
 
 	if appConfig.GetIsBackupConfigToConfigMap() {
-		return extension.GetConfigMapHandler().LoadConfigMap(appConfig, appConfig.ConfigMapNamespace)
+		return extension.GetConfigMapHandler().LoadConfigMap(appConfig, appConfig.K8sNamespace)
 	}
 
 	return nil, nil

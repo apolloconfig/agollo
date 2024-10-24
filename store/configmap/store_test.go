@@ -30,10 +30,10 @@ import (
 )
 
 const (
-	appId              = "testAppId"
-	configMapNamespace = "testConfigMapNamespace"
-	cluster            = "testCluster"
-	namespace          = "testNamespace"
+	appId        = "testAppId"
+	k8sNamespace = "testConfigMapNamespace"
+	cluster      = "testCluster"
+	namespace    = "testNamespace"
 )
 
 var testData = map[string]interface{}{
@@ -61,8 +61,8 @@ func TestStore_LoadConfigMap(t *testing.T) {
 	// 创建一个ConfigMap对象
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      appId,
-			Namespace: configMapNamespace,
+			Name:      "apollo-configcache-" + appId,
+			Namespace: k8sNamespace,
 		},
 		Data: map[string]string{
 			cluster + "-" + namespace: string(jsonData),
@@ -70,7 +70,7 @@ func TestStore_LoadConfigMap(t *testing.T) {
 	}
 
 	// 使用fake clientset创建ConfigMap
-	_, err = clientset.CoreV1().ConfigMaps(configMapNamespace).Create(context.TODO(), configMap, metav1.CreateOptions{})
+	_, err = clientset.CoreV1().ConfigMaps(k8sNamespace).Create(context.TODO(), configMap, metav1.CreateOptions{})
 	assert.NoError(t, err)
 
 	// 初始化Store，注入fake clientset
@@ -87,11 +87,11 @@ func TestStore_LoadConfigMap(t *testing.T) {
 	}
 
 	// 执行
-	loadedConfig, err := store.LoadConfigMap(appConfig, configMapNamespace)
+	loadedConfig, err := store.LoadConfigMap(appConfig, k8sNamespace)
+	assert.NoError(t, err)
 
 	// 测试LoadConfigMap方法
 	loadedJson, _ := json.Marshal(loadedConfig.Configurations)
-	assert.NoError(t, err)
 	assert.NotNil(t, loadedConfig)
 	assert.Equal(t, jsonData, loadedJson)
 }
@@ -123,11 +123,11 @@ func TestStore_WriteConfigMap(t *testing.T) {
 	apolloConfig.NamespaceName = namespace
 
 	// 测试WriteConfigMap方法
-	err = store.WriteConfigMap(apolloConfig, configMapNamespace)
+	err = store.WriteConfigMap(apolloConfig, k8sNamespace)
 	assert.NoError(t, err)
 
 	// 验证ConfigMap是否被正确创建或更新
-	configMap, err := clientset.CoreV1().ConfigMaps(configMapNamespace).Get(context.TODO(), appId, metav1.GetOptions{})
+	configMap, err := clientset.CoreV1().ConfigMaps(k8sNamespace).Get(context.TODO(), "apollo-configcache-"+appId, metav1.GetOptions{})
 	loadedJson, _ := configMap.Data[key]
 
 	var configurations map[string]interface{}

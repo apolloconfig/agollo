@@ -26,11 +26,11 @@ import (
 type TestConfigMapHandler struct {
 }
 
-func (t *TestConfigMapHandler) LoadConfigMap(appConfig config.AppConfig, configMapNamespace string) (*config.ApolloConfig, error) {
+func (t *TestConfigMapHandler) LoadConfigMap(appConfig config.AppConfig, k8sNamespace string) (*config.ApolloConfig, error) {
 	return nil, nil
 }
 
-func (t *TestConfigMapHandler) WriteConfigMap(config *config.ApolloConfig, configMapNamespace string) error {
+func (t *TestConfigMapHandler) WriteConfigMap(config *config.ApolloConfig, k8sNamespace string) error {
 	return nil
 }
 

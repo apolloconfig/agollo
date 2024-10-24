@@ -21,7 +21,6 @@ import "github.com/apolloconfig/agollo/v4/env/config"
 
 // ConfigMapHandler is the interface that wraps the basic WriteConfigMap and LoadConfigMap methods.
 type ConfigMapHandler interface {
-	WriteConfigMap(config *config.ApolloConfig, configMapNamespace string) error
-	// LoadConfigMap 直接读出json，封装为*config.ApolloConfig
-	LoadConfigMap(appConfig config.AppConfig, configMapNamespace string) (*config.ApolloConfig, error)
+	WriteConfigMap(config *config.ApolloConfig, k8sNamespace string) error
+	LoadConfigMap(appConfig config.AppConfig, k8sNamespace string) (*config.ApolloConfig, error)
 }

@@ -22,18 +22,20 @@ import (
 	"github.com/apolloconfig/agollo/v4/env/config"
 )
 
+var ApolloConfigCache = "apollo-configcache-"
+
 type Store struct {
 	K8sManager *K8sManager
 }
 
 // LoadConfigMap load ApolloConfig from configmap
-func (c *Store) LoadConfigMap(appConfig config.AppConfig, configMapNamespace string) (*config.ApolloConfig, error) {
+func (c *Store) LoadConfigMap(appConfig config.AppConfig, k8sNamespace string) (*config.ApolloConfig, error) {
 	var apolloConfig = &config.ApolloConfig{}
 	var err error
-	configMapName := appConfig.AppID
+	configMapName := ApolloConfigCache + appConfig.AppID
 	key := appConfig.Cluster + "-" + appConfig.NamespaceName
 	// TODO 在这里把json转为ApolloConfig, 但ReleaseKey字段会丢失, 影响大不大
-	apolloConfig.Configurations, err = c.K8sManager.GetConfigMap(configMapName, configMapNamespace, key)
+	apolloConfig.Configurations, err = c.K8sManager.GetConfigMap(configMapName, k8sNamespace, key)
 
 	apolloConfig.AppID = appConfig.AppID
 	apolloConfig.Cluster = appConfig.Cluster
@@ -42,13 +44,12 @@ func (c *Store) LoadConfigMap(appConfig config.AppConfig, configMapNamespace str
 }
 
 // WriteConfigMap write apollo config to configmap
-func (c *Store) WriteConfigMap(config *config.ApolloConfig, configMapNamespace string) error {
-	// AppId作为configMap的name,cluster-namespace作为key, 配置信息的JSON作为value
-	configMapName := config.AppID
+func (c *Store) WriteConfigMap(config *config.ApolloConfig, k8sNamespace string) error {
+	configMapName := ApolloConfigCache + config.AppID
 	key := config.Cluster + "-" + config.NamespaceName
-	err := c.K8sManager.SetConfigMap(configMapName, configMapNamespace, key, config)
+	err := c.K8sManager.SetConfigMap(configMapName, k8sNamespace, key, config)
 	if err != nil {
-		log.Errorf("Failed to write ConfigMap %s in namespace %s: %v", configMapName, configMapNamespace, err)
+		log.Errorf("Failed to write ConfigMap %s in namespace %s: %v", configMapName, k8sNamespace, err)
 		return err
 	}
 	return nil

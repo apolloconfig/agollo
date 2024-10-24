@@ -71,7 +71,7 @@ func GetK8sManager() (*K8sManager, error) {
 }
 
 // SetConfigMap 将map[string]interface{}转换为JSON字符串，并创建或更新ConfigMap
-func (m *K8sManager) SetConfigMap(configMapName string, configMapNamespace string, key string, config *config.ApolloConfig) error {
+func (m *K8sManager) SetConfigMap(configMapName string, k8sNamespace string, key string, config *config.ApolloConfig) error {
 	jsonData, err := json.Marshal(config.Configurations)
 	jsonString := string(jsonData)
 	if err != nil {
@@ -86,46 +86,46 @@ func (m *K8sManager) SetConfigMap(configMapName string, configMapNamespace strin
 	defer cancel()
 
 	// 尝试获取 ConfigMap，如果不存在则创建
-	cm, err := m.clientSet.CoreV1().ConfigMaps(configMapNamespace).Get(ctx, configMapName, metaV1.GetOptions{})
+	cm, err := m.clientSet.CoreV1().ConfigMaps(k8sNamespace).Get(ctx, configMapName, metaV1.GetOptions{})
 	if errors.IsNotFound(err) {
 		cm = &coreV1.ConfigMap{
 			ObjectMeta: metaV1.ObjectMeta{
 				Name:      configMapName,
-				Namespace: configMapNamespace,
+				Namespace: k8sNamespace,
 			},
 			Data: map[string]string{
 				key: jsonString,
 			},
 		}
 
-		_, err = m.clientSet.CoreV1().ConfigMaps(configMapNamespace).Create(ctx, cm, metaV1.CreateOptions{})
+		_, err = m.clientSet.CoreV1().ConfigMaps(k8sNamespace).Create(ctx, cm, metaV1.CreateOptions{})
 		if err != nil {
 			return fmt.Errorf("error creating ConfigMap: %v", err)
 		}
-		log.Infof("ConfigMap %s created in namespace %s", configMapName, configMapNamespace)
+		log.Infof("ConfigMap %s created in namespace %s", configMapName, k8sNamespace)
 	} else if err != nil {
 		return fmt.Errorf("error getting ConfigMap: %v", err)
 	} else {
 		// ConfigMap 存在，更新数据
 		cm.Data[key] = jsonString
-		_, err = m.clientSet.CoreV1().ConfigMaps(configMapNamespace).Update(ctx, cm, metaV1.UpdateOptions{})
+		_, err = m.clientSet.CoreV1().ConfigMaps(k8sNamespace).Update(ctx, cm, metaV1.UpdateOptions{})
 		if err != nil {
 			return fmt.Errorf("error updating ConfigMap: %v", err)
 		}
-		log.Infof("ConfigMap %s updated in namespace %s", configMapName, configMapNamespace)
+		log.Infof("ConfigMap %s updated in namespace %s", configMapName, k8sNamespace)
 	}
 	return err
 }
 
 // GetConfigMap 从ConfigMap中获取JSON字符串，并反序列化为map[string]interface{}
-func (m *K8sManager) GetConfigMap(configMapName string, configMapNamespace string, key string) (map[string]interface{}, error) {
+func (m *K8sManager) GetConfigMap(configMapName string, k8sNamespace string, key string) (map[string]interface{}, error) {
 	m.mutex.RLock() // 加读锁
 	defer m.mutex.RUnlock()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	configMap, err := m.clientSet.CoreV1().ConfigMaps(configMapNamespace).Get(ctx, configMapName, metaV1.GetOptions{})
+	configMap, err := m.clientSet.CoreV1().ConfigMaps(k8sNamespace).Get(ctx, configMapName, metaV1.GetOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("error getting ConfigMap: %v", err)
 	}

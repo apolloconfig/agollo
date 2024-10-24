@@ -46,7 +46,7 @@ type AppConfig struct {
 	NamespaceName             string `json:"namespaceName"`
 	IP                        string `json:"ip"`
 	IsBackupConfigToConfigMap bool   `default:"false" json:"isBackupConfigToConfigmap"`
-	ConfigMapNamespace        string `json:"configMapNamespace"`
+	K8sNamespace              string `json:"k8sNamespace"`
 	IsBackupConfig            bool   `default:"true" json:"isBackupConfig"`
 	BackupConfigPath          string `json:"backupConfigPath"`
 	Secret                    string `json:"secret"`
@@ -85,11 +85,11 @@ func (a *AppConfig) GetIsBackupConfigToConfigMap() bool {
 	return a.IsBackupConfigToConfigMap
 }
 
-func (a *AppConfig) GetConfigMapNamespace() string {
-	if a.ConfigMapNamespace == "" {
-		a.ConfigMapNamespace = "default"
+func (a *AppConfig) GetK8sNamespace() string {
+	if a.K8sNamespace == "" {
+		a.K8sNamespace = "default"
 	}
-	return a.ConfigMapNamespace
+	return a.K8sNamespace
 }
 
 // GetHost GetHost

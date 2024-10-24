@@ -35,19 +35,19 @@ func TestK8sManager_SetConfigMap(t *testing.T) {
 	manager := K8sManager{clientSet: clientSet}
 
 	// 测试数据
-	configMapName := "test-configmap"
-	configMapNamespace := "default"
+	configMapName := "apollo-configcache-test-configmap"
+	k8sNamespace := "default"
 	key := "configKey"
 	apolloConfig := &config.ApolloConfig{
 		Configurations: map[string]interface{}{"key": "value"},
 	}
 
 	// 调用SetConfigMap方法
-	err := manager.SetConfigMap(configMapName, configMapNamespace, key, apolloConfig)
+	err := manager.SetConfigMap(configMapName, k8sNamespace, key, apolloConfig)
 	assert.NoError(t, err)
 
 	// 验证ConfigMap是否被创建
-	configMap, err := clientSet.CoreV1().ConfigMaps(configMapNamespace).Get(context.Background(), configMapName, metaV1.GetOptions{})
+	configMap, err := clientSet.CoreV1().ConfigMaps(k8sNamespace).Get(context.Background(), configMapName, metaV1.GetOptions{})
 	assert.NoError(t, err)
 	assert.NotNil(t, configMap)
 	assert.Equal(t, string(configMap.Data[key]),
@@ -58,7 +58,7 @@ func TestK8sManager_GetConfigMap(t *testing.T) {
 	// 创建fake clientSet，并预先创建一个ConfigMap
 	clientSet := fake.NewSimpleClientset(&coreV1.ConfigMap{
 		ObjectMeta: metaV1.ObjectMeta{
-			Name:      "test-configmap",
+			Name:      "apollo-configcache-test-configmap",
 			Namespace: "default",
 		},
 		Data: map[string]string{
@@ -70,12 +70,12 @@ func TestK8sManager_GetConfigMap(t *testing.T) {
 	manager := K8sManager{clientSet: clientSet}
 
 	// 测试数据
-	configMapName := "test-configmap"
-	configMapNamespace := "default"
+	configMapName := "apollo-configcache-test-configmap"
+	k8sNamespace := "default"
 	key := "configKey"
 
 	// 调用GetConfigMap方法
-	configurations, err := manager.GetConfigMap(configMapName, configMapNamespace, key)
+	configurations, err := manager.GetConfigMap(configMapName, k8sNamespace, key)
 	assert.NoError(t, err)
 	assert.NotNil(t, configurations)
 	assert.Equal(t, configurations["key"], "value")

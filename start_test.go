@@ -228,10 +228,10 @@ func TestSetBackupFileHandler(t *testing.T) {
 // testConfigMapHandler configmap备份读写
 type testConfigMapHandler struct{}
 
-func (c *testConfigMapHandler) LoadConfigMap(appConfig config.AppConfig, configMapNamespace string) (*config.ApolloConfig, error) {
+func (c *testConfigMapHandler) LoadConfigMap(appConfig config.AppConfig, k8sNamespace string) (*config.ApolloConfig, error) {
 	return nil, nil
 }
-func (c *testConfigMapHandler) WriteConfigMap(config *config.ApolloConfig, configMapNamespace string) error {
+func (c *testConfigMapHandler) WriteConfigMap(config *config.ApolloConfig, k8sNamespace string) error {
 	return nil
 }
 
