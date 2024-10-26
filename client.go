@@ -37,7 +37,6 @@ import (
 	"github.com/apolloconfig/agollo/v4/extension"
 	"github.com/apolloconfig/agollo/v4/protocol/auth/sign"
 	"github.com/apolloconfig/agollo/v4/storage"
-	"github.com/apolloconfig/agollo/v4/store/configmap"
 	"github.com/apolloconfig/agollo/v4/utils"
 	"github.com/apolloconfig/agollo/v4/utils/parse/normal"
 	"github.com/apolloconfig/agollo/v4/utils/parse/properties"
@@ -113,15 +112,6 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 	appConfig, err := env.InitConfig(loadAppConfig)
 	if err != nil {
 		return nil, err
-	}
-
-	// set k8sManager before first sync
-	if appConfig.IsBackupConfigToConfigMap {
-		manager, err := configmap.GetK8sManager()
-		if err != nil {
-			return nil, err
-		}
-		extension.SetConfigMapHandler(&configmap.Store{K8sManager: manager})
 	}
 
 	c := create()

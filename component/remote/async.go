@@ -162,15 +162,21 @@ func loadBackupConfig(namespace string, appConfig config.AppConfig) []*config.Ap
 }
 
 func loadBackupConfiguration(appConfig config.AppConfig, namespace string) (*config.ApolloConfig, error) {
+	log.Debugf("Loading backup config")
 	if appConfig.GetIsBackupConfig() {
 		c, err := extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, appConfig.AppID, namespace)
 		if err == nil {
+			log.Info("The backup file was successfully loaded. config: %s", c)
 			return c, nil
 		}
 	}
 
 	if appConfig.GetIsBackupConfigToConfigMap() {
-		return extension.GetConfigMapHandler().LoadConfigMap(appConfig, appConfig.K8sNamespace)
+		c, err := extension.GetConfigMapHandler().LoadConfigMap(appConfig, appConfig.K8sNamespace)
+		if err == nil {
+			log.Info("The backup configmap was successfully loaded. config: %+v", c)
+			return c, nil
+		}
 	}
 
 	return nil, nil

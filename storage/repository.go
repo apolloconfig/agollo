@@ -488,6 +488,9 @@ func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfigF
 
 	if appConfig.GetIsBackupConfigToConfigMap() {
 		// write configmap async
+		apolloConfig.AppID = appConfig.AppID
+		apolloConfig.Cluster = appConfig.Cluster
+		apolloConfig.NamespaceName = appConfig.NamespaceName
 		go extension.GetConfigMapHandler().WriteConfigMap(apolloConfig, appConfig.GetK8sNamespace())
 	}
 
