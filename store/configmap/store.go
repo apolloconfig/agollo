@@ -35,7 +35,7 @@ func (c *Store) LoadConfigMap(appConfig config.AppConfig, k8sNamespace string) (
 	configMapName := ApolloConfigCache + appConfig.AppID
 	key := appConfig.Cluster + "-" + appConfig.NamespaceName
 	// TODO 在这里把json转为ApolloConfig, 但ReleaseKey字段会丢失, 影响大不大
-	apolloConfig.Configurations, err = c.K8sManager.GetConfigMap(configMapName, key)
+	apolloConfig.Configurations, err = c.K8sManager.GetConfigMap(configMapName, k8sNamespace, key)
 
 	apolloConfig.AppID = appConfig.AppID
 	apolloConfig.Cluster = appConfig.Cluster
@@ -47,7 +47,7 @@ func (c *Store) LoadConfigMap(appConfig config.AppConfig, k8sNamespace string) (
 func (c *Store) WriteConfigMap(config *config.ApolloConfig, k8sNamespace string) error {
 	configMapName := ApolloConfigCache + config.AppID
 	key := config.Cluster + "-" + config.NamespaceName
-	err := c.K8sManager.SetConfigMapWithRetry(configMapName, key, config)
+	err := c.K8sManager.SetConfigMapWithRetry(configMapName, k8sNamespace, key, config)
 	if err != nil {
 		log.Errorf("Failed to write ConfigMap %s in namespace %s: %v", configMapName, k8sNamespace, err)
 		return err
