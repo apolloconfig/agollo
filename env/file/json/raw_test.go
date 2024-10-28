@@ -26,7 +26,7 @@ import (
 )
 
 func TestRawHandler_WriteConfigDirFile(t *testing.T) {
-	extension.SetFileHandler(&rawFileHandler{})
+	extension.AddFileHandler(&rawFileHandler{}, 0)
 	configPath := "raw-conf"
 	jsonStr := `{
   "appId": "100004458",
@@ -44,13 +44,13 @@ func TestRawHandler_WriteConfigDirFile(t *testing.T) {
 	os.RemoveAll(configPath)
 
 	Assert(t, err, NilVal())
-	e := extension.GetFileHandler().WriteConfigFile(config, configPath)
+	e := extension.GetFileHandlers()[0].WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
 	os.RemoveAll(configPath)
 }
 
 func TestRawHandler_WriteConfigFile(t *testing.T) {
-	extension.SetFileHandler(&rawFileHandler{})
+	extension.AddFileHandler(&rawFileHandler{}, 0)
 	configPath := ""
 	jsonStr := `{
   "appId": "100004458",
@@ -65,15 +65,15 @@ func TestRawHandler_WriteConfigFile(t *testing.T) {
 }`
 
 	config, err := createApolloConfigWithJSON([]byte(jsonStr))
-	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.AppID, config.NamespaceName))
+	os.Remove(extension.GetFileHandlers()[0].GetConfigFile(configPath, config.AppID, config.NamespaceName))
 
 	Assert(t, err, NilVal())
-	e := extension.GetFileHandler().WriteConfigFile(config, configPath)
+	e := extension.GetFileHandlers()[0].WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
 }
 
 func TestRawHandler_WriteConfigFileWithContent(t *testing.T) {
-	extension.SetFileHandler(&rawFileHandler{})
+	extension.AddFileHandler(&rawFileHandler{})
 	configPath := ""
 	jsonStr := `{
   "appId": "100004458",
@@ -87,10 +87,10 @@ func TestRawHandler_WriteConfigFileWithContent(t *testing.T) {
 
 	config, err := createApolloConfigWithJSON([]byte(jsonStr))
 	Assert(t, err, NilVal())
-	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.AppID, config.NamespaceName))
+	os.Remove(extension.GetFileHandlers()[0].GetConfigFile(configPath, config.AppID, config.NamespaceName))
 
 	Assert(t, err, NilVal())
-	e := extension.GetFileHandler().WriteConfigFile(config, configPath)
+	e := extension.GetFileHandlers()[0].WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
 }
 
