@@ -24,7 +24,6 @@ import (
 	"github.com/apolloconfig/agollo/v4/env/file"
 	"github.com/apolloconfig/agollo/v4/extension"
 	"github.com/apolloconfig/agollo/v4/protocol/auth"
-	"github.com/apolloconfig/agollo/v4/store"
 )
 
 // SetSignature 设置自定义 http 授权控件
@@ -35,16 +34,16 @@ func SetSignature(auth auth.HTTPAuth) {
 }
 
 // SetBackupFileHandler 设置自定义备份文件处理组件
-func SetBackupFileHandler(file file.FileHandler) {
+func SetBackupFileHandler(file file.FileHandler, priority int) {
 	if file != nil {
-		extension.SetFileHandler(file)
+		extension.AddFileHandler(file, priority)
 	}
 }
 
 // SetConfigMapHandler 设置自定义configMap持久化组件
-func SetConfigMapHandler(configMapHandler store.ConfigMapHandler) {
-	if configMapHandler != nil {
-		extension.SetConfigMapHandler(configMapHandler)
+func SetConfigMapHandler(configMap file.FileHandler, priority int) {
+	if configMap != nil {
+		extension.AddFileHandler(configMap, priority)
 	}
 }
 

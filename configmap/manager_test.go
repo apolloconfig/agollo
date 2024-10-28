@@ -34,9 +34,6 @@ func TestK8sManager_SetConfigMap(t *testing.T) {
 	// 创建fake clientSet
 	clientSet := fake.NewSimpleClientset()
 
-	// 创建K8sManager实例
-	manager := K8sManager{clientSet: clientSet}
-
 	// 测试数据
 	configMapName := "apollo-configcache-test-configmap"
 	k8sNamespace := "default"
@@ -45,8 +42,14 @@ func TestK8sManager_SetConfigMap(t *testing.T) {
 		Configurations: map[string]interface{}{"key": "value"},
 	}
 
+	// 创建K8sManager实例
+	manager := K8sManager{
+		clientSet:    clientSet,
+		k8sNamespace: k8sNamespace,
+	}
+
 	// 调用SetConfigMap方法
-	err := manager.SetConfigMap(configMapName, k8sNamespace, key, apolloConfig)
+	err := manager.SetConfigMapWithRetry(configMapName, key, apolloConfig)
 	assert.NoError(t, err)
 
 	// 验证ConfigMap是否被创建
@@ -70,15 +73,17 @@ func TestK8sManager_GetConfigMap(t *testing.T) {
 	})
 
 	// 创建K8sManager实例
-	manager := K8sManager{clientSet: clientSet}
+	manager := K8sManager{
+		clientSet:    clientSet,
+		k8sNamespace: "default",
+	}
 
 	// 测试数据
 	configMapName := "apollo-configcache-test-configmap"
-	k8sNamespace := "default"
 	key := "configKey"
 
 	// 调用GetConfigMap方法
-	configurations, err := manager.GetConfigMap(configMapName, k8sNamespace, key)
+	configurations, err := manager.GetConfigMap(configMapName, key)
 	assert.NoError(t, err)
 	assert.NotNil(t, configurations)
 	assert.Equal(t, configurations["key"], "value")
@@ -90,7 +95,8 @@ func TestSetConfigMapWithRetryConcurrent(t *testing.T) {
 
 	// 创建K8sManager实例
 	manager := &K8sManager{
-		clientSet: clientSet,
+		clientSet:    clientSet,
+		k8sNamespace: "default",
 	}
 
 	// 定义测试数据
@@ -125,7 +131,7 @@ func TestSetConfigMapWithRetryConcurrent(t *testing.T) {
 	// 并发执行SetConfigMapWithRetry
 	go func() {
 		defer wg.Done()
-		err := manager.SetConfigMapWithRetry(configMapName, k8sNamespace, key, configData1)
+		err := manager.SetConfigMapWithRetry(configMapName, key, configData1)
 		require.NoError(t, err)
 	}()
 
@@ -133,7 +139,7 @@ func TestSetConfigMapWithRetryConcurrent(t *testing.T) {
 		defer wg.Done()
 		// 为了模拟并发冲突，这里故意延迟一段时间后再执行
 		time.Sleep(1 * time.Millisecond)
-		err := manager.SetConfigMapWithRetry(configMapName, k8sNamespace, key, configData2)
+		err := manager.SetConfigMapWithRetry(configMapName, key, configData2)
 		require.NoError(t, err)
 	}()
 

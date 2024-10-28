@@ -15,6 +15,8 @@
  * limitations under the License.
  */
 
+// TODO: 处理接口和set方法修改后的影响
+
 package json
 
 import (
@@ -45,7 +47,7 @@ func TestCreateDir(t *testing.T) {
 }
 
 func TestJSONFileHandler_WriteConfigDirFile(t *testing.T) {
-	extension.SetFileHandler(&FileHandler{})
+	extension.AddFileHandler(&FileHandler{}, 0)
 	configPath := "json-conf"
 	jsonStr := `{
   "appId": "100004458",
@@ -61,17 +63,17 @@ func TestJSONFileHandler_WriteConfigDirFile(t *testing.T) {
 
 	config, err := createApolloConfigWithJSON([]byte(jsonStr))
 	os.RemoveAll(configPath)
-	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.AppID, config.NamespaceName))
+	os.Remove(extension.GetFileHandlers()[0].GetConfigFile(configPath, config.AppID, config.NamespaceName))
 
 	Assert(t, err, NilVal())
-	e := extension.GetFileHandler().WriteConfigFile(config, configPath)
+	e := extension.GetFileHandlers()[0].WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
 	os.RemoveAll(configPath)
-	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.AppID, config.NamespaceName))
+	os.Remove(extension.GetFileHandlers()[0].GetConfigFile(configPath, config.AppID, config.NamespaceName))
 }
 
 func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
-	extension.SetFileHandler(&FileHandler{})
+	extension.AddFileHandler(&FileHandler{}, 0)
 	configPath := ""
 	jsonStr := `{
   "appId": "100004458",
@@ -86,15 +88,15 @@ func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
 }`
 
 	config, err := createApolloConfigWithJSON([]byte(jsonStr))
-	os.Remove(extension.GetFileHandler().GetConfigFile(configPath, config.AppID, config.NamespaceName))
+	os.Remove(extension.GetFileHandlers()[0].GetConfigFile(configPath, config.AppID, config.NamespaceName))
 
 	Assert(t, err, NilVal())
-	e := extension.GetFileHandler().WriteConfigFile(config, configPath)
+	e := extension.GetFileHandlers()[0].WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
 }
 
 func TestJSONFileHandler_LoadConfigFile(t *testing.T) {
-	extension.SetFileHandler(&FileHandler{})
+	extension.AddFileHandler(&FileHandler{})
 	jsonStr := `{
   "appId": "100004458",
   "cluster": "default",
@@ -110,7 +112,7 @@ func TestJSONFileHandler_LoadConfigFile(t *testing.T) {
 	config, err := createApolloConfigWithJSON([]byte(jsonStr))
 
 	Assert(t, err, NilVal())
-	newConfig, e := extension.GetFileHandler().LoadConfigFile("", config.AppID, config.NamespaceName)
+	newConfig, e := extension.GetFileHandlers()[0].LoadConfigFile("", config.AppID, config.NamespaceName, config.Cluster)
 
 	t.Log(newConfig)
 	Assert(t, e, NilVal())

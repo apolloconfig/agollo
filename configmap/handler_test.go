@@ -78,14 +78,15 @@ func TestStore_LoadConfigMap(t *testing.T) {
 	assert.NoError(t, err)
 
 	// 初始化Store，注入fake clientset
-	store := Store{
+	handler := ConfigMapHandler{
 		K8sManager: &K8sManager{
-			clientSet: clientset,
+			clientSet:    clientset,
+			k8sNamespace: k8sNamespace,
 		},
 	}
 
 	// 执行
-	loadedConfig, err := store.LoadConfigMap(appConfig, k8sNamespace)
+	loadedConfig, err := handler.LoadConfigFile("", appConfig.AppID, namespace, cluster)
 	assert.NoError(t, err)
 
 	// 测试LoadConfigMap方法
@@ -106,10 +107,11 @@ func TestStore_WriteConfigMap(t *testing.T) {
 		return
 	}
 
-	// 初始化Store，注入fake clientset
-	store := Store{
+	// 初始化handler，注入fake clientset
+	handler := ConfigMapHandler{
 		K8sManager: &K8sManager{
-			clientSet: clientset,
+			clientSet:    clientset,
+			k8sNamespace: k8sNamespace,
 		},
 	}
 
@@ -121,7 +123,7 @@ func TestStore_WriteConfigMap(t *testing.T) {
 	apolloConfig.NamespaceName = namespace
 
 	// 测试WriteConfigMap方法
-	err = store.WriteConfigMap(apolloConfig, k8sNamespace)
+	err = handler.WriteConfigFile(apolloConfig, "")
 	assert.NoError(t, err)
 
 	// 验证ConfigMap是否被正确创建或更新
@@ -139,14 +141,15 @@ func TestStore_WriteConfigMap(t *testing.T) {
 func TestStore_LoadConfigMap_EmptyConfigMap(t *testing.T) {
 	// 初始化fake clientset
 	clientset := fake.NewSimpleClientset()
-	store := Store{
+	handler := ConfigMapHandler{
 		K8sManager: &K8sManager{
-			clientSet: clientset,
+			clientSet:    clientset,
+			k8sNamespace: k8sNamespace,
 		},
 	}
 
 	// 执行
-	loadedConfig, err := store.LoadConfigMap(appConfig, k8sNamespace)
+	loadedConfig, err := handler.LoadConfigFile("", appId, namespace, cluster)
 	assert.Nil(t, loadedConfig.Configurations)
 	assert.Error(t, err)
 }
@@ -154,9 +157,10 @@ func TestStore_LoadConfigMap_EmptyConfigMap(t *testing.T) {
 func TestStore_LoadConfigMap_InvalidJSON(t *testing.T) {
 	// 初始化fake clientset
 	clientset := fake.NewSimpleClientset()
-	store := Store{
+	handler := ConfigMapHandler{
 		K8sManager: &K8sManager{
-			clientSet: clientset,
+			clientSet:    clientset,
+			k8sNamespace: k8sNamespace,
 		},
 	}
 	// 创建一个ConfigMap对象
@@ -171,7 +175,7 @@ func TestStore_LoadConfigMap_InvalidJSON(t *testing.T) {
 	}
 	_, err := clientset.CoreV1().ConfigMaps(k8sNamespace).Create(context.TODO(), configMap, metav1.CreateOptions{})
 	assert.NoError(t, err)
-	loadedConfig, err := store.LoadConfigMap(appConfig, k8sNamespace)
+	loadedConfig, err := handler.LoadConfigFile("", appId, namespace, cluster)
 	assert.Nil(t, loadedConfig.Configurations)
 	assert.Error(t, err)
 }

@@ -18,6 +18,7 @@
 package extension
 
 import (
+	"github.com/stretchr/testify/assert"
 	"testing"
 
 	"github.com/apolloconfig/agollo/v4/env/config"
@@ -38,14 +39,35 @@ func (r *TestFileHandler) GetConfigFile(configDir string, appID string, namespac
 	return ""
 }
 
-func (r *TestFileHandler) LoadConfigFile(configDir string, appID string, namespace string) (*config.ApolloConfig, error) {
+func (r *TestFileHandler) LoadConfigFile(configDir string, appID string, namespace string, cluster string) (*config.ApolloConfig, error) {
 	return nil, nil
 }
 
 func TestSetFileHandler(t *testing.T) {
-	SetFileHandler(&TestFileHandler{})
+	AddFileHandler(&TestFileHandler{})
 
-	fileHandler := GetFileHandler()
+	fileHandler := GetFileHandlers()[0].(*TestFileHandler)
 
 	Assert(t, fileHandler, NotNilVal())
+}
+
+func TestAddAndGetFileHandlers(t *testing.T) {
+	// 清理handlers切片，确保测试环境干净
+	handlers = []handlerWithPriority{}
+
+	handler1 := &TestFileHandler{}
+	handler2 := &TestFileHandler{}
+	handler3 := &TestFileHandler{}
+
+	// 添加三个处理器，具有不同的优先级
+	AddFileHandler(handler1, 1)
+	AddFileHandler(handler2, 3)
+	AddFileHandler(handler3, 2)
+
+	// 获取并验证处理器的顺序
+	sortedHandlers := GetFileHandlers()
+	assert.Equal(t, 3, len(sortedHandlers), "应该有三个处理器")
+	assert.IsType(t, handler2, sortedHandlers[0], "优先级最高的处理器应该在第一位")
+	assert.IsType(t, handler3, sortedHandlers[1], "第二高优先级的处理器应该在第二位")
+	assert.IsType(t, handler1, sortedHandlers[2], "优先级最低的处理器应该在最后一位")
 }

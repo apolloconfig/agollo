@@ -73,7 +73,7 @@ func TestStart(t *testing.T) {
 
 	value := client.GetValue("key1")
 	Assert(t, "value1", Equal(value))
-	handler := extension.GetFileHandler()
+	handler := extension.GetFileHandlers()
 	Assert(t, handler, NotNilVal())
 }
 
@@ -212,33 +212,43 @@ func (fileHandler *testFileHandler) GetConfigFile(configDir string, appID string
 }
 
 // LoadConfigFile load config from file
-func (fileHandler *testFileHandler) LoadConfigFile(configDir string, appID string, namespace string) (*config.ApolloConfig, error) {
+func (fileHandler *testFileHandler) LoadConfigFile(configDir string, appID string, namespace string, cluster string) (*config.ApolloConfig, error) {
 	return nil, nil
 }
 
 func TestSetBackupFileHandler(t *testing.T) {
-	fileHandler := extension.GetFileHandler()
+	fileHandler := extension.GetFileHandlers()
 	Assert(t, fileHandler, NotNilVal())
 
 	t2 := &testFileHandler{}
-	SetBackupFileHandler(t2)
-	Assert(t, t2, Equal(extension.GetFileHandler()))
+	SetBackupFileHandler(t2, 1)
+	Assert(t, t2, Equal(extension.GetFileHandlers()[1]))
 }
 
 // testConfigMapHandler configmap备份读写
 type testConfigMapHandler struct{}
 
-func (c *testConfigMapHandler) LoadConfigMap(appConfig config.AppConfig, k8sNamespace string) (*config.ApolloConfig, error) {
-	return nil, nil
-}
-func (c *testConfigMapHandler) WriteConfigMap(config *config.ApolloConfig, k8sNamespace string) error {
+func (configMapHandler *testConfigMapHandler) WriteConfigFile(config *config.ApolloConfig, configPath string) error {
 	return nil
 }
 
+// GetConfigFile get real config file
+func (configMapHandler *testConfigMapHandler) GetConfigFile(configDir string, appID string, namespace string) string {
+	return ""
+}
+
+// LoadConfigFile load config from file
+func (configMapHandler *testConfigMapHandler) LoadConfigFile(configDir string, appID string, namespace string, cluster string) (*config.ApolloConfig, error) {
+	return nil, nil
+}
+
 func TestSetConfigMapHandler(t *testing.T) {
+	handler := extension.GetFileHandlers()
+	Assert(t, handler, NotNilVal())
+
 	t2 := &testConfigMapHandler{}
-	SetConfigMapHandler(t2)
-	Assert(t, t2, Equal(extension.GetConfigMapHandler()))
+	SetConfigMapHandler(t2, 1)
+	Assert(t, t2, Equal(extension.GetFileHandlers()[1]))
 }
 
 type TestAuth struct{}
@@ -285,6 +295,6 @@ func TestStartWithConfigMustReadFromRemote(t *testing.T) {
 
 	value := client.GetValue("key1")
 	Assert(t, "value1", Equal(value))
-	handler := extension.GetFileHandler()
+	handler := extension.GetFileHandlers()
 	Assert(t, handler, NotNilVal())
 }

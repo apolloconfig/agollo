@@ -481,17 +481,20 @@ func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfigF
 	}
 
 	if appConfig.GetIsBackupConfig() {
-		// write config file async
-		apolloConfig.AppID = appConfig.AppID
-		go extension.GetFileHandler().WriteConfigFile(apolloConfig, appConfig.GetBackupConfigPath())
-	}
-
-	if appConfig.GetIsBackupConfigToConfigMap() {
-		// write configmap async
+		// 写备份文件和configmap
 		apolloConfig.AppID = appConfig.AppID
 		apolloConfig.Cluster = appConfig.Cluster
 		apolloConfig.NamespaceName = appConfig.NamespaceName
-		go extension.GetConfigMapHandler().WriteConfigMap(apolloConfig, appConfig.GetK8sNamespace())
+
+		for _, handler := range extension.GetFileHandlers() {
+			handler := handler
+			go func() {
+				err := handler.WriteConfigFile(apolloConfig, appConfig.GetBackupConfigPath())
+				if err != nil {
+					log.Error(err)
+				}
+			}()
+		}
 	}
 
 }

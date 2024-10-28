@@ -35,7 +35,8 @@ import (
 )
 
 type K8sManager struct {
-	clientSet kubernetes.Interface
+	clientSet    kubernetes.Interface
+	k8sNamespace string
 }
 
 var (
@@ -43,7 +44,7 @@ var (
 	once     sync.Once
 )
 
-func GetK8sManager() (*K8sManager, error) {
+func GetK8sManager(k8sNamespace string) (*K8sManager, error) {
 	once.Do(func() {
 		inClusterConfig, err := rest.InClusterConfig()
 		if err != nil {
@@ -60,7 +61,8 @@ func GetK8sManager() (*K8sManager, error) {
 			return
 		}
 		instance = &K8sManager{
-			clientSet: clientSet,
+			clientSet:    clientSet,
+			k8sNamespace: k8sNamespace,
 		}
 	})
 	if instance == nil {
@@ -70,7 +72,7 @@ func GetK8sManager() (*K8sManager, error) {
 }
 
 // SetConfigMapWithRetry 使用k8s版本号机制解决并发问题
-func (m *K8sManager) SetConfigMapWithRetry(configMapName string, k8sNamespace string, key string, config *config.ApolloConfig) error {
+func (m *K8sManager) SetConfigMapWithRetry(configMapName string, key string, config *config.ApolloConfig) error {
 	var retryParam = wait.Backoff{
 		Steps:    5,
 		Duration: 10 * time.Millisecond,
@@ -79,14 +81,16 @@ func (m *K8sManager) SetConfigMapWithRetry(configMapName string, k8sNamespace st
 	}
 
 	err := retry.RetryOnConflict(retryParam, func() error {
-		return m.SetConfigMap(configMapName, k8sNamespace, key, config)
+		return m.SetConfigMap(configMapName, key, config)
 	})
 
 	return err
 }
 
 // SetConfigMap 将map[string]interface{}转换为JSON字符串，并创建或更新ConfigMap
-func (m *K8sManager) SetConfigMap(configMapName string, k8sNamespace string, key string, config *config.ApolloConfig) error {
+func (m *K8sManager) SetConfigMap(configMapName string, key string, config *config.ApolloConfig) error {
+	k8sNamespace := m.k8sNamespace
+
 	jsonData, err := json.Marshal(config.Configurations)
 	jsonString := string(jsonData)
 	if err != nil {
@@ -130,7 +134,9 @@ func (m *K8sManager) SetConfigMap(configMapName string, k8sNamespace string, key
 }
 
 // GetConfigMap 从ConfigMap中获取JSON字符串，并反序列化为map[string]interface{}
-func (m *K8sManager) GetConfigMap(configMapName string, k8sNamespace string, key string) (map[string]interface{}, error) {
+func (m *K8sManager) GetConfigMap(configMapName string, key string) (map[string]interface{}, error) {
+	k8sNamespace := m.k8sNamespace
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

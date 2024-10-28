@@ -147,7 +147,7 @@ func toApolloConfig(resBody []byte) ([]*config.Notification, error) {
 func loadBackupConfig(namespace string, appConfig config.AppConfig) []*config.ApolloConfig {
 	apolloConfigs := make([]*config.ApolloConfig, 0)
 	config.SplitNamespaces(namespace, func(namespace string) {
-		c, err := loadBackupConfiguration(appConfig, namespace)
+		c, err := loadBackupConfiguration(appConfig, namespace, appConfig.Cluster)
 
 		if err != nil {
 			log.Errorf("LoadConfigFile error, error: %v", err)
@@ -161,25 +161,24 @@ func loadBackupConfig(namespace string, appConfig config.AppConfig) []*config.Ap
 	return apolloConfigs
 }
 
-func loadBackupConfiguration(appConfig config.AppConfig, namespace string) (*config.ApolloConfig, error) {
+// 从按优先级排好序的所有备份文件来源中尝试加载配置
+func loadBackupConfiguration(appConfig config.AppConfig, namespace string, cluster string) (*config.ApolloConfig, error) {
 	log.Debugf("Loading backup config")
-	if appConfig.GetIsBackupConfig() {
-		c, err := extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, appConfig.AppID, namespace)
+	var c *config.ApolloConfig
+	var err error
+
+	for _, handler := range extension.GetFileHandlers() {
+		if c != nil {
+			break
+		}
+		c, err = handler.LoadConfigFile(appConfig.BackupConfigPath, appConfig.AppID, namespace, cluster)
 		if err == nil {
 			log.Info("The backup file was successfully loaded. config: %s", c)
 			return c, nil
 		}
 	}
 
-	if appConfig.GetIsBackupConfigToConfigMap() {
-		c, err := extension.GetConfigMapHandler().LoadConfigMap(appConfig, appConfig.K8sNamespace)
-		if err == nil {
-			log.Info("The backup configmap was successfully loaded. config: %+v", c)
-			return c, nil
-		}
-	}
-
-	return nil, nil
+	return nil, fmt.Errorf("failed to load backup configuration for namespace %s", namespace)
 }
 
 func createApolloConfigWithJSON(b []byte, callback http.CallBack) (o interface{}, err error) {

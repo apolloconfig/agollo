@@ -17,16 +17,37 @@
 
 package extension
 
-import "github.com/apolloconfig/agollo/v4/env/file"
+import (
+	"github.com/apolloconfig/agollo/v4/env/file"
+	"sort"
+)
 
-var fileHandler file.FileHandler
-
-//SetFileHandler 设置备份文件处理
-func SetFileHandler(inFile file.FileHandler) {
-	fileHandler = inFile
+type handlerWithPriority struct {
+	handler  file.FileHandler
+	priority int
 }
 
-//GetFileHandler 获取备份文件处理
-func GetFileHandler() file.FileHandler {
-	return fileHandler
+var handlers []handlerWithPriority
+
+// AddFileHandler 添加一个 FileHandler 实现，并设定其优先级
+func AddFileHandler(handler file.FileHandler, priority ...int) {
+	pri := 0
+	if len(priority) > 0 {
+		pri = priority[0]
+	}
+	handlers = append(handlers, handlerWithPriority{handler, pri})
+}
+
+// GetFileHandlers 按优先级排序并返回所有的 FileHandler(priority 值越大，优先级越高)
+func GetFileHandlers() []file.FileHandler {
+	sort.Slice(handlers, func(i, j int) bool {
+		return handlers[i].priority > handlers[j].priority
+	})
+
+	sortedHandlers := make([]file.FileHandler, len(handlers))
+	for i, h := range handlers {
+		sortedHandlers[i] = h.handler
+	}
+
+	return sortedHandlers
 }
