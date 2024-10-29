@@ -77,13 +77,11 @@ func TestStore_LoadConfigMap(t *testing.T) {
 	_, err = clientset.CoreV1().ConfigMaps(k8sNamespace).Create(context.TODO(), configMap, metav1.CreateOptions{})
 	assert.NoError(t, err)
 
-	// 初始化Store，注入fake clientset
-	handler := ConfigMapHandler{
-		K8sManager: &K8sManager{
-			clientSet:    clientset,
-			k8sNamespace: k8sNamespace,
-		},
-	}
+	// 初始化handler，注入fake clientset
+	handler := NewConfigMapHandler(&K8sManager{
+		clientSet:    clientset,
+		k8sNamespace: k8sNamespace,
+	})
 
 	// 执行
 	loadedConfig, err := handler.LoadConfigFile("", appConfig.AppID, namespace, cluster)
@@ -108,12 +106,10 @@ func TestStore_WriteConfigMap(t *testing.T) {
 	}
 
 	// 初始化handler，注入fake clientset
-	handler := ConfigMapHandler{
-		K8sManager: &K8sManager{
-			clientSet:    clientset,
-			k8sNamespace: k8sNamespace,
-		},
-	}
+	handler := NewConfigMapHandler(&K8sManager{
+		clientSet:    clientset,
+		k8sNamespace: k8sNamespace,
+	})
 
 	// 反序列化到ApolloConfig
 	apolloConfig := &config.ApolloConfig{}
@@ -141,12 +137,12 @@ func TestStore_WriteConfigMap(t *testing.T) {
 func TestStore_LoadConfigMap_EmptyConfigMap(t *testing.T) {
 	// 初始化fake clientset
 	clientset := fake.NewSimpleClientset()
-	handler := ConfigMapHandler{
-		K8sManager: &K8sManager{
-			clientSet:    clientset,
-			k8sNamespace: k8sNamespace,
-		},
-	}
+
+	// 初始化handler，注入fake clientset
+	handler := NewConfigMapHandler(&K8sManager{
+		clientSet:    clientset,
+		k8sNamespace: k8sNamespace,
+	})
 
 	// 执行
 	loadedConfig, err := handler.LoadConfigFile("", appId, namespace, cluster)
@@ -157,12 +153,12 @@ func TestStore_LoadConfigMap_EmptyConfigMap(t *testing.T) {
 func TestStore_LoadConfigMap_InvalidJSON(t *testing.T) {
 	// 初始化fake clientset
 	clientset := fake.NewSimpleClientset()
-	handler := ConfigMapHandler{
-		K8sManager: &K8sManager{
-			clientSet:    clientset,
-			k8sNamespace: k8sNamespace,
-		},
-	}
+
+	// 初始化handler，注入fake clientset
+	handler := NewConfigMapHandler(&K8sManager{
+		clientSet:    clientset,
+		k8sNamespace: k8sNamespace,
+	})
 	// 创建一个ConfigMap对象
 	configMap := &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{

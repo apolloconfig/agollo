@@ -25,14 +25,21 @@ import (
 var ApolloConfigCache = "apollo-configcache-"
 
 type ConfigMapHandler struct {
-	K8sManager *K8sManager
+	k8sManager *K8sManager
+}
+
+// NewConfigMapHandler 是 ConfigMapHandler 的构造函数
+func NewConfigMapHandler(k8sManager *K8sManager) *ConfigMapHandler {
+	return &ConfigMapHandler{
+		k8sManager: k8sManager,
+	}
 }
 
 // WriteConfigFile write apollo config to configmap
 func (c *ConfigMapHandler) WriteConfigFile(config *config.ApolloConfig, configPath string) error {
 	configMapName := ApolloConfigCache + config.AppID
 	key := config.Cluster + "-" + config.NamespaceName
-	err := c.K8sManager.SetConfigMapWithRetry(configMapName, key, config)
+	err := c.k8sManager.SetConfigMapWithRetry(configMapName, key, config)
 	if err != nil {
 		log.Errorf("Failed to write ConfigMap %s : %v", configMapName, err)
 		return err
@@ -55,8 +62,8 @@ func (c *ConfigMapHandler) LoadConfigFile(configPath string, appID string, names
 	}
 	configMapName := ApolloConfigCache + appID
 	key := cluster + "-" + namespace
-	// TODO 在这里把json转为ApolloConfig, ReleaseKey字段会丢失, 影响大不大
-	apolloConfig.Configurations, err = c.K8sManager.GetConfigMap(configMapName, key)
+	// 这里把json转回ApolloConfig, ReleaseKey字段会丢失
+	apolloConfig.Configurations, err = c.k8sManager.GetConfigMap(configMapName, key)
 
 	apolloConfig.AppID = appID
 	apolloConfig.Cluster = cluster

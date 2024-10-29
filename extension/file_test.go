@@ -18,6 +18,8 @@
 package extension
 
 import (
+	"container/list"
+	"github.com/apolloconfig/agollo/v4/env/file"
 	"github.com/stretchr/testify/assert"
 	"testing"
 
@@ -53,16 +55,16 @@ func TestSetFileHandler(t *testing.T) {
 
 func TestAddAndGetFileHandlers(t *testing.T) {
 	// 清理handlers切片，确保测试环境干净
-	handlers = []handlerWithPriority{}
+	handlers = list.New()
 
 	handler1 := &TestFileHandler{}
 	handler2 := &TestFileHandler{}
 	handler3 := &TestFileHandler{}
 
-	// 添加三个处理器，具有不同的优先级
-	AddFileHandler(handler1, 1)
-	AddFileHandler(handler2, 3)
-	AddFileHandler(handler3, 2)
+	// 添加优先级不同的处理器
+	AddFileHandler(handler1, 5)
+	AddFileHandler(handler2, 10)
+	AddFileHandler(handler3, 1)
 
 	// 获取并验证处理器的顺序
 	sortedHandlers := GetFileHandlers()
@@ -70,4 +72,41 @@ func TestAddAndGetFileHandlers(t *testing.T) {
 	assert.IsType(t, handler2, sortedHandlers[0], "优先级最高的处理器应该在第一位")
 	assert.IsType(t, handler3, sortedHandlers[1], "第二高优先级的处理器应该在第二位")
 	assert.IsType(t, handler1, sortedHandlers[2], "优先级最低的处理器应该在最后一位")
+
+	expectedOrder := []file.FileHandler{handler2, handler1, handler3}
+	actualOrder := GetFileHandlers()
+	assert.Equal(t, expectedOrder, actualOrder, "处理器顺序应该按照优先级排序")
+}
+
+func TestAddFileHandler_SamePriority(t *testing.T) {
+	// 清空 handlers 列表
+	handlers = list.New()
+
+	handler1 := &TestFileHandler{}
+	handler2 := &TestFileHandler{}
+	handler3 := &TestFileHandler{}
+
+	// 添加相同优先级的处理器
+	AddFileHandler(handler1, 5)
+	AddFileHandler(handler2, 5)
+	AddFileHandler(handler3, 5)
+
+	expectedOrder := []file.FileHandler{handler1, handler2, handler3}
+	actualOrder := GetFileHandlers()
+	assert.Equal(t, expectedOrder, actualOrder, "冲突时，处理器顺序应该按照添加顺序排序")
+}
+
+func TestAddFileHandler_EmptyList(t *testing.T) {
+	// 清空 handlers 列表
+	handlers = list.New()
+
+	handler1 := &TestFileHandler{}
+
+	// 添加处理器到空列表
+	AddFileHandler(handler1, 5)
+
+	expectedOrder := []file.FileHandler{handler1}
+	actualOrder := GetFileHandlers()
+
+	assert.Equal(t, expectedOrder, actualOrder, "Handler should be added to the empty list")
 }

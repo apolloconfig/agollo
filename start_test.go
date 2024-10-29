@@ -242,12 +242,12 @@ func (configMapHandler *testConfigMapHandler) LoadConfigFile(configDir string, a
 	return nil, nil
 }
 
-func TestSetConfigMapHandler(t *testing.T) {
+func TestSetBackupFileHandler_ConfigMap(t *testing.T) {
 	handler := extension.GetFileHandlers()
 	Assert(t, handler, NotNilVal())
 
 	t2 := &testConfigMapHandler{}
-	SetConfigMapHandler(t2, 1)
+	SetBackupFileHandler(t2, 1)
 	Assert(t, t2, Equal(extension.GetFileHandlers()[1]))
 }
 

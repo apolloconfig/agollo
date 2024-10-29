@@ -45,6 +45,10 @@ var (
 )
 
 func GetK8sManager(k8sNamespace string) (*K8sManager, error) {
+	if instance != nil {
+		return instance, nil
+	}
+
 	once.Do(func() {
 		inClusterConfig, err := rest.InClusterConfig()
 		if err != nil {

@@ -164,17 +164,18 @@ func loadBackupConfig(namespace string, appConfig config.AppConfig) []*config.Ap
 // 从按优先级排好序的所有备份文件来源中尝试加载配置
 func loadBackupConfiguration(appConfig config.AppConfig, namespace string, cluster string) (*config.ApolloConfig, error) {
 	log.Debugf("Loading backup config")
-	var c *config.ApolloConfig
-	var err error
 
 	for _, handler := range extension.GetFileHandlers() {
-		if c != nil {
-			break
-		}
-		c, err = handler.LoadConfigFile(appConfig.BackupConfigPath, appConfig.AppID, namespace, cluster)
-		if err == nil {
-			log.Info("The backup file was successfully loaded. config: %s", c)
+		c, err := handler.LoadConfigFile(appConfig.BackupConfigPath, appConfig.AppID, namespace, cluster)
+		if err == nil && c != nil {
+			log.Infof("The backup file was successfully loaded. config: %s", c)
 			return c, nil
+		}
+		// 改进日志便于排查
+		if err != nil {
+			log.Warnf("Failed to load config with handler %T: %v", handler, err)
+		} else {
+			log.Warnf("Handler %T returned nil config", handler)
 		}
 	}
 

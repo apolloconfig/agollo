@@ -18,8 +18,8 @@
 package extension
 
 import (
+	"container/list"
 	"github.com/apolloconfig/agollo/v4/env/file"
-	"sort"
 )
 
 type handlerWithPriority struct {
@@ -27,7 +27,7 @@ type handlerWithPriority struct {
 	priority int
 }
 
-var handlers []handlerWithPriority
+var handlers = list.New()
 
 // AddFileHandler 添加一个 FileHandler 实现，并设定其优先级
 func AddFileHandler(handler file.FileHandler, priority ...int) {
@@ -35,19 +35,26 @@ func AddFileHandler(handler file.FileHandler, priority ...int) {
 	if len(priority) > 0 {
 		pri = priority[0]
 	}
-	handlers = append(handlers, handlerWithPriority{handler, pri})
+	newHandler := handlerWithPriority{handler, pri}
+
+	// 在链表中找到合适的位置插入
+	for e := handlers.Front(); e != nil; e = e.Next() {
+		if e.Value.(handlerWithPriority).priority < pri {
+			handlers.InsertBefore(newHandler, e)
+			return
+		}
+	}
+	// 如果没有找到合适的位置，追加到链表末尾
+	handlers.PushBack(newHandler)
 }
 
-// GetFileHandlers 按优先级排序并返回所有的 FileHandler(priority 值越大，优先级越高)
+// GetFileHandlers 返回按优先级排好序的所有的 FileHandler（priority 值越大，优先级越高）
 func GetFileHandlers() []file.FileHandler {
-	sort.Slice(handlers, func(i, j int) bool {
-		return handlers[i].priority > handlers[j].priority
-	})
-
-	sortedHandlers := make([]file.FileHandler, len(handlers))
-	for i, h := range handlers {
-		sortedHandlers[i] = h.handler
+	sortedHandlers := make([]file.FileHandler, handlers.Len())
+	i := 0
+	for e := handlers.Front(); e != nil; e = e.Next() {
+		sortedHandlers[i] = e.Value.(handlerWithPriority).handler
+		i++
 	}
-
 	return sortedHandlers
 }
