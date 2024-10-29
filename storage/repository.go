@@ -20,6 +20,7 @@ package storage
 import (
 	"container/list"
 	"fmt"
+	"github.com/apolloconfig/agollo/v4/env/file"
 	"reflect"
 	"strconv"
 	"strings"
@@ -486,14 +487,15 @@ func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfigF
 		apolloConfig.Cluster = appConfig.Cluster
 		apolloConfig.NamespaceName = appConfig.NamespaceName
 
-		for _, handler := range extension.GetFileHandlers() {
-			handler := handler
-			go func() {
-				err := handler.WriteConfigFile(apolloConfig, appConfig.GetBackupConfigPath())
+		handlers := extension.GetFileHandlers()
+		for e := handlers.Front(); e != nil; e = e.Next() {
+			h := e.Value.(extension.HandlerWithPriority).Handler
+			go func(h file.FileHandler) {
+				err := h.WriteConfigFile(apolloConfig, appConfig.GetBackupConfigPath())
 				if err != nil {
 					log.Error(err)
 				}
-			}()
+			}(h)
 		}
 	}
 

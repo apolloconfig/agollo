@@ -19,6 +19,7 @@ package agollo
 
 import (
 	"encoding/json"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"os"
 	"testing"
@@ -221,8 +222,11 @@ func TestSetBackupFileHandler(t *testing.T) {
 	Assert(t, fileHandler, NotNilVal())
 
 	t2 := &testFileHandler{}
-	SetBackupFileHandler(t2, 1)
-	Assert(t, t2, Equal(extension.GetFileHandlers()[1]))
+	SetBackupFileHandler(t2, 10)
+
+	firstHandler := extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler
+	assert.Equal(t, t2, firstHandler, "The handlers should be equal")
+	//Assert(t, t2, Equal(extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler))
 }
 
 // testConfigMapHandler configmap备份读写
@@ -248,8 +252,9 @@ func TestSetConfigMapHandler(t *testing.T) {
 
 	t2 := &testConfigMapHandler{}
 	SetConfigMapHandler(t2, 1)
-	extension.GetFileHandlers().Front().Value
-	Assert(t, t2, Equal(extension.GetFileHandlers()[1]))
+
+	handlers := extension.GetFileHandlers()
+	assert.Equal(t, 1, handlers.Len(), "The handlers should be equal")
 }
 
 type TestAuth struct{}

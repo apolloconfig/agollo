@@ -44,7 +44,7 @@ func TestRawHandler_WriteConfigDirFile(t *testing.T) {
 	os.RemoveAll(configPath)
 
 	Assert(t, err, NilVal())
-	e := extension.GetFileHandlers()[0].WriteConfigFile(config, configPath)
+	e := extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler.WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
 	os.RemoveAll(configPath)
 }
@@ -65,10 +65,10 @@ func TestRawHandler_WriteConfigFile(t *testing.T) {
 }`
 
 	config, err := createApolloConfigWithJSON([]byte(jsonStr))
-	os.Remove(extension.GetFileHandlers()[0].GetConfigFile(configPath, config.AppID, config.NamespaceName))
+	os.Remove(extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler.GetConfigFile(configPath, config.AppID, config.NamespaceName))
 
 	Assert(t, err, NilVal())
-	e := extension.GetFileHandlers()[0].WriteConfigFile(config, configPath)
+	e := extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler.WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
 }
 
@@ -87,10 +87,10 @@ func TestRawHandler_WriteConfigFileWithContent(t *testing.T) {
 
 	config, err := createApolloConfigWithJSON([]byte(jsonStr))
 	Assert(t, err, NilVal())
-	os.Remove(extension.GetFileHandlers()[0].GetConfigFile(configPath, config.AppID, config.NamespaceName))
+	os.Remove(extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler.GetConfigFile(configPath, config.AppID, config.NamespaceName))
 
 	Assert(t, err, NilVal())
-	e := extension.GetFileHandlers()[0].WriteConfigFile(config, configPath)
+	e := extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler.WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
 }
 

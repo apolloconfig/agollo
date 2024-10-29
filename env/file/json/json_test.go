@@ -60,13 +60,13 @@ func TestJSONFileHandler_WriteConfigDirFile(t *testing.T) {
 
 	config, err := createApolloConfigWithJSON([]byte(jsonStr))
 	os.RemoveAll(configPath)
-	os.Remove(extension.GetFileHandlers()[0].GetConfigFile(configPath, config.AppID, config.NamespaceName))
+	os.Remove(extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler.GetConfigFile(configPath, config.AppID, config.NamespaceName))
 
 	Assert(t, err, NilVal())
-	e := extension.GetFileHandlers()[0].WriteConfigFile(config, configPath)
+	e := extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler.WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
 	os.RemoveAll(configPath)
-	os.Remove(extension.GetFileHandlers()[0].GetConfigFile(configPath, config.AppID, config.NamespaceName))
+	os.Remove(extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler.GetConfigFile(configPath, config.AppID, config.NamespaceName))
 }
 
 func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
@@ -85,10 +85,10 @@ func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
 }`
 
 	config, err := createApolloConfigWithJSON([]byte(jsonStr))
-	os.Remove(extension.GetFileHandlers()[0].GetConfigFile(configPath, config.AppID, config.NamespaceName))
+	os.Remove(extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler.GetConfigFile(configPath, config.AppID, config.NamespaceName))
 
 	Assert(t, err, NilVal())
-	e := extension.GetFileHandlers()[0].WriteConfigFile(config, configPath)
+	e := extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler.WriteConfigFile(config, configPath)
 	Assert(t, e, NilVal())
 }
 
@@ -109,7 +109,7 @@ func TestJSONFileHandler_LoadConfigFile(t *testing.T) {
 	config, err := createApolloConfigWithJSON([]byte(jsonStr))
 
 	Assert(t, err, NilVal())
-	newConfig, e := extension.GetFileHandlers()[0].LoadConfigFile("", config.AppID, config.NamespaceName, config.Cluster)
+	newConfig, e := extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler.LoadConfigFile("", config.AppID, config.NamespaceName, config.Cluster)
 
 	t.Log(newConfig)
 	Assert(t, e, NilVal())

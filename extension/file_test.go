@@ -48,7 +48,7 @@ func (r *TestFileHandler) LoadConfigFile(configDir string, appID string, namespa
 func TestSetFileHandler(t *testing.T) {
 	AddFileHandler(&TestFileHandler{}, 0)
 
-	fileHandler := GetFileHandlers()[0].(*TestFileHandler)
+	fileHandler := GetFileHandlers().Front().Value.(HandlerWithPriority).Handler.(*TestFileHandler)
 
 	Assert(t, fileHandler, NotNilVal())
 }
@@ -68,13 +68,15 @@ func TestAddAndGetFileHandlers(t *testing.T) {
 
 	// 获取并验证处理器的顺序
 	sortedHandlers := GetFileHandlers()
-	assert.Equal(t, 3, len(sortedHandlers), "应该有三个处理器")
-	assert.IsType(t, handler2, sortedHandlers[0], "优先级最高的处理器应该在第一位")
-	assert.IsType(t, handler3, sortedHandlers[1], "第二高优先级的处理器应该在第二位")
-	assert.IsType(t, handler1, sortedHandlers[2], "优先级最低的处理器应该在最后一位")
+	assert.Equal(t, 3, sortedHandlers.Len(), "应该有三个处理器")
 
 	expectedOrder := []file.FileHandler{handler2, handler1, handler3}
-	actualOrder := GetFileHandlers()
+	actualOrder := make([]file.FileHandler, 0, sortedHandlers.Len())
+
+	for e := sortedHandlers.Front(); e != nil; e = e.Next() {
+		actualOrder = append(actualOrder, e.Value.(HandlerWithPriority).Handler)
+	}
+
 	assert.Equal(t, expectedOrder, actualOrder, "处理器顺序应该按照优先级排序")
 }
 
@@ -92,7 +94,13 @@ func TestAddFileHandler_SamePriority(t *testing.T) {
 	AddFileHandler(handler3, 5)
 
 	expectedOrder := []file.FileHandler{handler1, handler2, handler3}
-	actualOrder := GetFileHandlers()
+	actualOrder := make([]file.FileHandler, 0, 3)
+
+	sortedHandlers := GetFileHandlers()
+	for e := sortedHandlers.Front(); e != nil; e = e.Next() {
+		actualOrder = append(actualOrder, e.Value.(HandlerWithPriority).Handler)
+	}
+
 	assert.Equal(t, expectedOrder, actualOrder, "冲突时，处理器顺序应该按照添加顺序排序")
 }
 
@@ -106,7 +114,12 @@ func TestAddFileHandler_EmptyList(t *testing.T) {
 	AddFileHandler(handler1, 5)
 
 	expectedOrder := []file.FileHandler{handler1}
-	actualOrder := GetFileHandlers()
+	actualOrder := make([]file.FileHandler, 0, 1)
+
+	sortedHandlers := GetFileHandlers()
+	for e := sortedHandlers.Front(); e != nil; e = e.Next() {
+		actualOrder = append(actualOrder, e.Value.(HandlerWithPriority).Handler)
+	}
 
 	assert.Equal(t, expectedOrder, actualOrder, "Handler should be added to the empty list")
 }

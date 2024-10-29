@@ -165,8 +165,10 @@ func loadBackupConfig(namespace string, appConfig config.AppConfig) []*config.Ap
 func loadBackupConfiguration(appConfig config.AppConfig, namespace string, cluster string) (*config.ApolloConfig, error) {
 	log.Debugf("Loading backup config")
 
-	for _, handler := range extension.GetFileHandlers() {
-		c, err := handler.LoadConfigFile(appConfig.BackupConfigPath, appConfig.AppID, namespace, cluster)
+	handlers := extension.GetFileHandlers()
+	for e := handlers.Front(); e != nil; e = e.Next() {
+		h := e.Value.(extension.HandlerWithPriority).Handler
+		c, err := h.LoadConfigFile(appConfig.BackupConfigPath, appConfig.AppID, namespace, cluster)
 		if err == nil && c != nil {
 			log.Infof("The backup file was successfully loaded. config: %s", c)
 			return c, nil
