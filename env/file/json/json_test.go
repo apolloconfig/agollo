@@ -14,9 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-// TODO: 处理接口和set方法修改后的影响
-
 package json
 
 import (
