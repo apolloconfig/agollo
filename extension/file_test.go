@@ -46,7 +46,7 @@ func (r *TestFileHandler) LoadConfigFile(configDir string, appID string, namespa
 }
 
 func TestSetFileHandler(t *testing.T) {
-	AddFileHandler(&TestFileHandler{})
+	AddFileHandler(&TestFileHandler{}, 0)
 
 	fileHandler := GetFileHandlers()[0].(*TestFileHandler)
 

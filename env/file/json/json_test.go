@@ -93,7 +93,7 @@ func TestJSONFileHandler_WriteConfigFile(t *testing.T) {
 }
 
 func TestJSONFileHandler_LoadConfigFile(t *testing.T) {
-	extension.AddFileHandler(&FileHandler{})
+	extension.AddFileHandler(&FileHandler{}, 0)
 	jsonStr := `{
   "appId": "100004458",
   "cluster": "default",

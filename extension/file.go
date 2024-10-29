@@ -30,12 +30,8 @@ type handlerWithPriority struct {
 var handlers = list.New()
 
 // AddFileHandler 添加一个 FileHandler 实现，并设定其优先级
-func AddFileHandler(handler file.FileHandler, priority ...int) {
-	pri := 0
-	if len(priority) > 0 {
-		pri = priority[0]
-	}
-	newHandler := handlerWithPriority{handler, pri}
+func AddFileHandler(handler file.FileHandler, priority int) {
+	newHandler := HandlerWithPriority{handler, priority}
 
 	// 在链表中找到合适的位置插入
 	for e := handlers.Front(); e != nil; e = e.Next() {

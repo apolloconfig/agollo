@@ -172,11 +172,7 @@ func loadBackupConfiguration(appConfig config.AppConfig, namespace string, clust
 			return c, nil
 		}
 		// 改进日志便于排查
-		if err != nil {
-			log.Warnf("Failed to load config with handler %T: %v", handler, err)
-		} else {
-			log.Warnf("Handler %T returned nil config", handler)
-		}
+		log.Warnf("Failed to load config with handler %T: %v", h, err)
 	}
 
 	return nil, fmt.Errorf("failed to load backup configuration for namespace %s", namespace)

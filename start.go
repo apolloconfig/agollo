@@ -58,6 +58,13 @@ func SetBackupFileHandler(file file.FileHandler, priority int) {
 	}
 }
 
+// SetConfigMapHandler 设置自定义configMap持久化组件
+func SetConfigMapHandler(configMap file.FileHandler, priority int) {
+	if configMap != nil {
+		extension.AddFileHandler(configMap, priority)
+	}
+}
+
 // SetLoadBalance 设置自定义负载均衡组件
 func SetLoadBalance(loadBalance cluster.LoadBalance) {
 	if loadBalance != nil {

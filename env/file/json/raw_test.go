@@ -73,7 +73,7 @@ func TestRawHandler_WriteConfigFile(t *testing.T) {
 }
 
 func TestRawHandler_WriteConfigFileWithContent(t *testing.T) {
-	extension.AddFileHandler(&rawFileHandler{})
+	extension.AddFileHandler(&rawFileHandler{}, 0)
 	configPath := ""
 	jsonStr := `{
   "appId": "100004458",
