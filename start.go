@@ -46,8 +46,8 @@ func SetBackupFileHandler(file file.FileHandler) {
  * 此函数允许用户添加多个自定义的备份文件处理器，并指定其优先级。
  * 优先级越高的处理器，将会优先被读取。
  *
- * 默认的文件缓存实现的优先级为 10，具有较好的可靠性，推荐优先使用。
- * 用户可以根据自己的需求设置不同的优先级来决定读取顺序。
+ * 默认的文件缓存实现具有较好的可靠性，推荐优先使用。
+ * 文件缓存实现的默认优先级为0。用户可以根据自己的需求设置不同的优先级来决定读取顺序。
  * 推荐将 ConfigMap 实现的优先级设置低于文件缓存。
  *
  * 参数：
@@ -55,8 +55,8 @@ func SetBackupFileHandler(file file.FileHandler) {
  * - priority: 文件处理器的优先级，数值越大优先级越高。若优先级相同，根据添加顺序决定读取顺序
  *
  * 示例：
- *  extension.AddBackupFileHandler(myFileHandler, 11)
- *  extension.AddConfigMapHandler(configMapHandler, 9)
+ *  extension.AddBackupFileHandler(anotherFileHandler, 1)
+ *  extension.AddConfigMapHandler(configMapHandler, -1)
  */
 func AddBackupFileHandler(file file.FileHandler, priority int) {
 	if file != nil {

@@ -29,7 +29,7 @@ type HandlerWithPriority struct {
 
 var handlers = list.New()
 
-const DefaultWeight = 10
+const DefaultWeight = 0
 
 // AddFileHandler 添加一个 FileHandler 实现，并设定其优先级
 func AddFileHandler(handler file.FileHandler, priority int) {
