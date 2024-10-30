@@ -44,6 +44,19 @@ func AddFileHandler(handler file.FileHandler, priority int) {
 	handlers.PushBack(newHandler)
 }
 
+// SetFileHandler 清空当前的 handlers 列表，并设置一个新的 FileHandler
+func SetFileHandler(handler file.FileHandler) {
+	// 清空当前的 handlers 列表
+	handlers = list.New()
+	// 添加新的 handler
+	newHandler := HandlerWithPriority{
+		Handler:  handler,
+		priority: 10, // 默认优先级
+	}
+	// 将新的处理器直接添加到 handlers 列表中
+	handlers.PushBack(newHandler)
+}
+
 // GetFileHandlers 返回按优先级排好序的所有的 FileHandler（priority 值越大，优先级越高）
 func GetFileHandlers() *list.List {
 	return handlers

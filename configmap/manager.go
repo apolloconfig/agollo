@@ -68,9 +68,9 @@ func GetK8sManager(k8sNamespace string) (*K8sManager, error) {
 func (m *K8sManager) SetConfigMapWithRetry(configMapName string, key string, config *config.ApolloConfig) error {
 	var retryParam = wait.Backoff{
 		Steps:    5,
-		Duration: 10 * time.Millisecond,
-		Factor:   1.0,
-		Jitter:   0.1,
+		Duration: 50 * time.Millisecond,
+		Factor:   2,
+		Jitter:   0.2,
 	}
 
 	err := retry.RetryOnConflict(retryParam, func() error {

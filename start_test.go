@@ -19,6 +19,7 @@ package agollo
 
 import (
 	"encoding/json"
+	"github.com/apolloconfig/agollo/v4/env/file"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"os"
@@ -217,16 +218,60 @@ func (fileHandler *testFileHandler) LoadConfigFile(configDir string, appID strin
 	return nil, nil
 }
 
-func TestSetBackupFileHandler(t *testing.T) {
+func TestAddBackupFileHandler(t *testing.T) {
 	fileHandler := extension.GetFileHandlers()
 	Assert(t, fileHandler, NotNilVal())
 
 	t2 := &testFileHandler{}
-	SetBackupFileHandler(t2, 10)
+	AddBackupFileHandler(t2, 10)
 
 	firstHandler := extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler
 	assert.Equal(t, t2, firstHandler, "The handlers should be equal")
 	//Assert(t, t2, Equal(extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler))
+}
+
+func TestSetBackupFileHandler(t *testing.T) {
+	handler1 := &testFileHandler{}
+	handler2 := &testFileHandler{}
+
+	// 设置第一个处理器
+	SetBackupFileHandler(handler1)
+
+	expectedOrder1 := []file.FileHandler{handler1}
+	actualOrder1 := make([]file.FileHandler, 0, 1)
+
+	sortedHandlers1 := extension.GetFileHandlers()
+	for e := sortedHandlers1.Front(); e != nil; e = e.Next() {
+		actualOrder1 = append(actualOrder1, e.Value.(extension.HandlerWithPriority).Handler)
+	}
+
+	assert.Equal(t, expectedOrder1, actualOrder1, "The handlers should be set to handler1")
+
+	// 设置第二个处理器
+	SetBackupFileHandler(handler2)
+
+	expectedOrder2 := []file.FileHandler{handler2}
+	actualOrder2 := make([]file.FileHandler, 0, 1)
+
+	sortedHandlers2 := extension.GetFileHandlers()
+	for e := sortedHandlers2.Front(); e != nil; e = e.Next() {
+		actualOrder2 = append(actualOrder2, e.Value.(extension.HandlerWithPriority).Handler)
+	}
+
+	assert.Equal(t, expectedOrder2, actualOrder2, "The handlers should be set to handler2")
+
+	// 设置 nil 处理器，不应改变现有处理器
+	SetBackupFileHandler(nil)
+
+	expectedOrder3 := []file.FileHandler{handler2}
+	actualOrder3 := make([]file.FileHandler, 0, 1)
+
+	sortedHandlers3 := extension.GetFileHandlers()
+	for e := sortedHandlers3.Front(); e != nil; e = e.Next() {
+		actualOrder3 = append(actualOrder3, e.Value.(extension.HandlerWithPriority).Handler)
+	}
+
+	assert.Equal(t, expectedOrder3, actualOrder3, "The handlers should remain as handler2")
 }
 
 // testConfigMapHandler configmap备份读写
@@ -251,7 +296,7 @@ func TestSetConfigMapHandler(t *testing.T) {
 	Assert(t, handler, NotNilVal())
 
 	t2 := &testConfigMapHandler{}
-	SetConfigMapHandler(t2, 1)
+	AddConfigMapHandler(t2, 1)
 
 	handlers := extension.GetFileHandlers()
 	assert.Equal(t, 1, handlers.Len(), "The handlers should be equal")

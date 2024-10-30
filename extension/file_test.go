@@ -45,7 +45,7 @@ func (r *TestFileHandler) LoadConfigFile(configDir string, appID string, namespa
 	return nil, nil
 }
 
-func TestSetFileHandler(t *testing.T) {
+func TestAddFileHandler(t *testing.T) {
 	AddFileHandler(&TestFileHandler{}, 0)
 
 	fileHandler := GetFileHandlers().Front().Value.(HandlerWithPriority).Handler.(*TestFileHandler)
@@ -122,4 +122,32 @@ func TestAddFileHandler_EmptyList(t *testing.T) {
 	}
 
 	assert.Equal(t, expectedOrder, actualOrder, "Handler should be added to the empty list")
+}
+
+func TestSetFileHandler(t *testing.T) {
+	// 清空 handlers 列表
+	handlers = list.New()
+
+	handler1 := &TestFileHandler{}
+	handler2 := &TestFileHandler{}
+	handler3 := &TestFileHandler{}
+
+	// 添加多个处理器
+	AddFileHandler(handler1, 5)
+	AddFileHandler(handler2, 10)
+	AddFileHandler(handler3, 1)
+
+	// 设置新的处理器
+	handler4 := &TestFileHandler{}
+	SetFileHandler(handler4)
+
+	expectedOrder := []file.FileHandler{handler4}
+	actualOrder := make([]file.FileHandler, 0, 1)
+
+	sortedHandlers := GetFileHandlers()
+	for e := sortedHandlers.Front(); e != nil; e = e.Next() {
+		actualOrder = append(actualOrder, e.Value.(HandlerWithPriority).Handler)
+	}
+
+	assert.Equal(t, expectedOrder, actualOrder, "The handlers should be reset to the new handler")
 }

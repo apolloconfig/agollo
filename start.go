@@ -33,8 +33,15 @@ func SetSignature(auth auth.HTTPAuth) {
 	}
 }
 
+// SetBackupFileHandler 设置自定义备份文件处理组件, 仅保留一个
+func SetBackupFileHandler(file file.FileHandler) {
+	if file != nil {
+		extension.SetFileHandler(file)
+	}
+}
+
 /**
- * SetBackupFileHandler 设置自定义备份文件处理组件。
+ * AddBackupFileHandler 设置自定义备份文件处理组件。
  *
  * 此函数允许用户设置自定义的备份文件处理器，并指定其优先级。
  * 优先级越高的处理器，将会优先被读取。
@@ -48,17 +55,17 @@ func SetSignature(auth auth.HTTPAuth) {
  * - priority: 文件处理器的优先级，数值越大优先级越高。若优先级相同，根据添加顺序决定读取顺序
  *
  * 示例：
- *  extension.SetBackupFileHandler(myFileHandler, 11)
- *  extension.SetConfigMapHandler(configMapHandler, 9)
+ *  extension.AddBackupFileHandler(myFileHandler, 11)
+ *  extension.AddConfigMapHandler(configMapHandler, 9)
  */
-func SetBackupFileHandler(file file.FileHandler, priority int) {
+func AddBackupFileHandler(file file.FileHandler, priority int) {
 	if file != nil {
 		extension.AddFileHandler(file, priority)
 	}
 }
 
 /**
- * SetConfigMapHandler 设置自定义configMap持久化组件
+ * AddConfigMapHandler 设置自定义configMap持久化组件
  *
  * 此函数允许用户设置自定义的备份文件处理器，并指定其优先级。
  * 优先级越高的处理器，将会优先被读取。
@@ -72,10 +79,10 @@ func SetBackupFileHandler(file file.FileHandler, priority int) {
  * - priority: 文件处理器的优先级，数值越大优先级越高。若优先级相同，根据添加顺序决定读取顺序
  *
  * 示例：
- *  extension.SetBackupFileHandler(myFileHandler, 11)
- *  extension.SetConfigMapHandler(configMapHandler, 9)
+ *  extension.AddBackupFileHandler(myFileHandler, 11)
+ *  extension.AddConfigMapHandler(configMapHandler, 9)
  */
-func SetConfigMapHandler(configMap file.FileHandler, priority int) {
+func AddConfigMapHandler(configMap file.FileHandler, priority int) {
 	if configMap != nil {
 		extension.AddFileHandler(configMap, priority)
 	}
