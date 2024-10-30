@@ -45,6 +45,7 @@ type AppConfig struct {
 	Cluster           string `json:"cluster"`
 	NamespaceName     string `json:"namespaceName"`
 	IP                string `json:"ip"`
+	K8sNamespace      string `json:"k8sNamespace"`
 	IsBackupConfig    bool   `default:"true" json:"isBackupConfig"`
 	BackupConfigPath  string `json:"backupConfigPath"`
 	Secret            string `json:"secret"`
@@ -74,6 +75,20 @@ func (a *AppConfig) GetIsBackupConfig() bool {
 // GetBackupConfigPath GetBackupConfigPath
 func (a *AppConfig) GetBackupConfigPath() string {
 	return a.BackupConfigPath
+}
+
+// GetIsBackupConfigToConfigMap whether backup config to configmap after fetch config from apollo
+// false : no (The value of k8sNamespace is not set)
+// true : yes
+func (a *AppConfig) GetIsBackupConfigToConfigMap() bool {
+	return a.K8sNamespace != ""
+}
+
+func (a *AppConfig) GetK8sNamespace() string {
+	if a.K8sNamespace == "" {
+		a.K8sNamespace = "default"
+	}
+	return a.K8sNamespace
 }
 
 // GetHost GetHost

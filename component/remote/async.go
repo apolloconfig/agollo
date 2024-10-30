@@ -147,7 +147,8 @@ func toApolloConfig(resBody []byte) ([]*config.Notification, error) {
 func loadBackupConfig(namespace string, appConfig config.AppConfig) []*config.ApolloConfig {
 	apolloConfigs := make([]*config.ApolloConfig, 0)
 	config.SplitNamespaces(namespace, func(namespace string) {
-		c, err := extension.GetFileHandler().LoadConfigFile(appConfig.BackupConfigPath, appConfig.AppID, namespace)
+		c, err := loadBackupConfiguration(appConfig, namespace, appConfig.Cluster)
+
 		if err != nil {
 			log.Errorf("LoadConfigFile error, error: %v", err)
 			return
@@ -158,6 +159,25 @@ func loadBackupConfig(namespace string, appConfig config.AppConfig) []*config.Ap
 		apolloConfigs = append(apolloConfigs, c)
 	})
 	return apolloConfigs
+}
+
+// 从按优先级排好序的所有备份文件来源中尝试加载配置
+func loadBackupConfiguration(appConfig config.AppConfig, namespace string, cluster string) (*config.ApolloConfig, error) {
+	log.Debugf("Loading backup config")
+
+	handlers := extension.GetFileHandlers()
+	for e := handlers.Front(); e != nil; e = e.Next() {
+		h := e.Value.(extension.HandlerWithPriority).Handler
+		c, err := h.LoadConfigFile(appConfig.BackupConfigPath, appConfig.AppID, namespace, cluster)
+		if err == nil && c != nil {
+			log.Infof("The backup file was successfully loaded. config: %s", c)
+			return c, nil
+		}
+		// 改进日志便于排查
+		log.Warnf("Failed to load config with handler %T: %v", h, err)
+	}
+
+	return nil, fmt.Errorf("failed to load backup configuration for namespace %s", namespace)
 }
 
 func createApolloConfigWithJSON(b []byte, callback http.CallBack) (o interface{}, err error) {

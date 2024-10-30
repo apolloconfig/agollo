@@ -20,6 +20,7 @@ package storage
 import (
 	"container/list"
 	"fmt"
+	"github.com/apolloconfig/agollo/v4/env/file"
 	"reflect"
 	"strconv"
 	"strings"
@@ -453,7 +454,7 @@ func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
 }
 
 // UpdateApolloConfig 根据config server返回的内容更新内存
-// 并判断是否需要写备份文件
+// 并判断是否需要写备份文件和configmap
 func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfigFunc func() config.AppConfig) {
 	if apolloConfig == nil {
 		log.Error("apolloConfig is null, can't update!")
@@ -481,10 +482,23 @@ func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfigF
 	}
 
 	if appConfig.GetIsBackupConfig() {
-		// write config file async
+		// 写备份文件和configmap
 		apolloConfig.AppID = appConfig.AppID
-		go extension.GetFileHandler().WriteConfigFile(apolloConfig, appConfig.GetBackupConfigPath())
+		apolloConfig.Cluster = appConfig.Cluster
+		apolloConfig.NamespaceName = appConfig.NamespaceName
+
+		handlers := extension.GetFileHandlers()
+		for e := handlers.Front(); e != nil; e = e.Next() {
+			h := e.Value.(extension.HandlerWithPriority).Handler
+			go func(h file.FileHandler) {
+				err := h.WriteConfigFile(apolloConfig, appConfig.GetBackupConfigPath())
+				if err != nil {
+					log.Error(err)
+				}
+			}(h)
+		}
 	}
+
 }
 
 // UpdateApolloConfigCache 根据conf[ig server返回的内容更新内存

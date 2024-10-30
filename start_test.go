@@ -19,6 +19,8 @@ package agollo
 
 import (
 	"encoding/json"
+	"github.com/apolloconfig/agollo/v4/env/file"
+	"github.com/stretchr/testify/assert"
 	"net/http"
 	"os"
 	"testing"
@@ -73,7 +75,7 @@ func TestStart(t *testing.T) {
 
 	value := client.GetValue("key1")
 	Assert(t, "value1", Equal(value))
-	handler := extension.GetFileHandler()
+	handler := extension.GetFileHandlers()
 	Assert(t, handler, NotNilVal())
 }
 
@@ -212,17 +214,64 @@ func (fileHandler *testFileHandler) GetConfigFile(configDir string, appID string
 }
 
 // LoadConfigFile load config from file
-func (fileHandler *testFileHandler) LoadConfigFile(configDir string, appID string, namespace string) (*config.ApolloConfig, error) {
+func (fileHandler *testFileHandler) LoadConfigFile(configDir string, appID string, namespace string, cluster string) (*config.ApolloConfig, error) {
 	return nil, nil
 }
 
-func TestSetBackupFileHandler(t *testing.T) {
-	fileHandler := extension.GetFileHandler()
+func TestAddBackupFileHandler(t *testing.T) {
+	fileHandler := extension.GetFileHandlers()
 	Assert(t, fileHandler, NotNilVal())
 
 	t2 := &testFileHandler{}
-	SetBackupFileHandler(t2)
-	Assert(t, t2, Equal(extension.GetFileHandler()))
+	AddBackupFileHandler(t2, 10)
+
+	firstHandler := extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler
+	assert.Equal(t, t2, firstHandler, "The handlers should be equal")
+	//Assert(t, t2, Equal(extension.GetFileHandlers().Front().Value.(extension.HandlerWithPriority).Handler))
+}
+
+func TestSetBackupFileHandler(t *testing.T) {
+	handler1 := &testFileHandler{}
+	handler2 := &testFileHandler{}
+
+	// 设置第一个处理器
+	SetBackupFileHandler(handler1)
+
+	expectedOrder1 := []file.FileHandler{handler1}
+	actualOrder1 := make([]file.FileHandler, 0, 1)
+
+	sortedHandlers1 := extension.GetFileHandlers()
+	for e := sortedHandlers1.Front(); e != nil; e = e.Next() {
+		actualOrder1 = append(actualOrder1, e.Value.(extension.HandlerWithPriority).Handler)
+	}
+
+	assert.Equal(t, expectedOrder1, actualOrder1, "The handlers should be set to handler1")
+
+	// 设置第二个处理器
+	SetBackupFileHandler(handler2)
+
+	expectedOrder2 := []file.FileHandler{handler2}
+	actualOrder2 := make([]file.FileHandler, 0, 1)
+
+	sortedHandlers2 := extension.GetFileHandlers()
+	for e := sortedHandlers2.Front(); e != nil; e = e.Next() {
+		actualOrder2 = append(actualOrder2, e.Value.(extension.HandlerWithPriority).Handler)
+	}
+
+	assert.Equal(t, expectedOrder2, actualOrder2, "The handlers should be set to handler2")
+
+	// 设置 nil 处理器，不应改变现有处理器
+	SetBackupFileHandler(nil)
+
+	expectedOrder3 := []file.FileHandler{handler2}
+	actualOrder3 := make([]file.FileHandler, 0, 1)
+
+	sortedHandlers3 := extension.GetFileHandlers()
+	for e := sortedHandlers3.Front(); e != nil; e = e.Next() {
+		actualOrder3 = append(actualOrder3, e.Value.(extension.HandlerWithPriority).Handler)
+	}
+
+	assert.Equal(t, expectedOrder3, actualOrder3, "The handlers should remain as handler2")
 }
 
 type TestAuth struct{}
@@ -269,6 +318,6 @@ func TestStartWithConfigMustReadFromRemote(t *testing.T) {
 
 	value := client.GetValue("key1")
 	Assert(t, "value1", Equal(value))
-	handler := extension.GetFileHandler()
+	handler := extension.GetFileHandlers()
 	Assert(t, handler, NotNilVal())
 }

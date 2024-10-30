@@ -17,16 +17,47 @@
 
 package extension
 
-import "github.com/apolloconfig/agollo/v4/env/file"
+import (
+	"container/list"
+	"github.com/apolloconfig/agollo/v4/env/file"
+)
 
-var fileHandler file.FileHandler
-
-//SetFileHandler 设置备份文件处理
-func SetFileHandler(inFile file.FileHandler) {
-	fileHandler = inFile
+type HandlerWithPriority struct {
+	Handler  file.FileHandler
+	priority int
 }
 
-//GetFileHandler 获取备份文件处理
-func GetFileHandler() file.FileHandler {
-	return fileHandler
+var handlers = list.New()
+
+const DefaultWeight = 0
+
+// AddFileHandler 添加一个 FileHandler 实现，并设定其优先级
+func AddFileHandler(handler file.FileHandler, priority int) {
+	newHandler := HandlerWithPriority{handler, priority}
+
+	// 在链表中找到合适的位置插入
+	for e := handlers.Front(); e != nil; e = e.Next() {
+		if e.Value.(HandlerWithPriority).priority < priority {
+			handlers.InsertBefore(newHandler, e)
+			return
+		}
+	}
+	// 如果没有找到合适的位置，追加到链表末尾
+	handlers.PushBack(newHandler)
+}
+
+// SetFileHandler 清空当前的 handlers 列表，并设置一个新的 FileHandler
+func SetFileHandler(handler file.FileHandler) {
+	handlers = list.New()
+	// 添加新的 handler
+	newHandler := HandlerWithPriority{
+		Handler:  handler,
+		priority: DefaultWeight,
+	}
+	handlers.PushBack(newHandler)
+}
+
+// GetFileHandlers 返回按优先级排好序的所有的 FileHandler（priority 值越大，优先级越高）
+func GetFileHandlers() *list.List {
+	return handlers
 }

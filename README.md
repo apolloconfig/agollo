@@ -19,7 +19,7 @@ Agollo - Go Client for Apollo
 * 实时同步配置
 * 灰度配置
 * 延迟加载（运行时）namespace
-* 客户端，配置文件容灾
+* 客户端，多种配置文件容灾（本地文件，k8s中configmap）
 * 自定义日志，缓存组件
 * 支持配置访问秘钥
 

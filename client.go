@@ -49,7 +49,7 @@ const separator = ","
 func init() {
 	extension.SetCacheFactory(&memory.DefaultCacheFactory{})
 	extension.SetLoadBalance(&roundrobin.RoundRobin{})
-	extension.SetFileHandler(&jsonFile.FileHandler{})
+	extension.AddFileHandler(&jsonFile.FileHandler{}, extension.DefaultWeight)
 	extension.SetHTTPAuth(&sign.AuthSignature{})
 
 	// file parser
