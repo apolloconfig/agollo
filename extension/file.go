@@ -29,6 +29,8 @@ type HandlerWithPriority struct {
 
 var handlers = list.New()
 
+const DefaultWeight = 10
+
 // AddFileHandler 添加一个 FileHandler 实现，并设定其优先级
 func AddFileHandler(handler file.FileHandler, priority int) {
 	newHandler := HandlerWithPriority{handler, priority}
@@ -46,14 +48,12 @@ func AddFileHandler(handler file.FileHandler, priority int) {
 
 // SetFileHandler 清空当前的 handlers 列表，并设置一个新的 FileHandler
 func SetFileHandler(handler file.FileHandler) {
-	// 清空当前的 handlers 列表
 	handlers = list.New()
 	// 添加新的 handler
 	newHandler := HandlerWithPriority{
 		Handler:  handler,
-		priority: 10, // 默认优先级
+		priority: DefaultWeight,
 	}
-	// 将新的处理器直接添加到 handlers 列表中
 	handlers.PushBack(newHandler)
 }
 

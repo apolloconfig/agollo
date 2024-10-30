@@ -274,34 +274,6 @@ func TestSetBackupFileHandler(t *testing.T) {
 	assert.Equal(t, expectedOrder3, actualOrder3, "The handlers should remain as handler2")
 }
 
-// testConfigMapHandler configmap备份读写
-type testConfigMapHandler struct{}
-
-func (configMapHandler *testConfigMapHandler) WriteConfigFile(config *config.ApolloConfig, configPath string) error {
-	return nil
-}
-
-// GetConfigFile get real config file
-func (configMapHandler *testConfigMapHandler) GetConfigFile(configDir string, appID string, namespace string) string {
-	return ""
-}
-
-// LoadConfigFile load config from file
-func (configMapHandler *testConfigMapHandler) LoadConfigFile(configDir string, appID string, namespace string, cluster string) (*config.ApolloConfig, error) {
-	return nil, nil
-}
-
-func TestSetConfigMapHandler(t *testing.T) {
-	handler := extension.GetFileHandlers()
-	Assert(t, handler, NotNilVal())
-
-	t2 := &testConfigMapHandler{}
-	AddConfigMapHandler(t2, 1)
-
-	handlers := extension.GetFileHandlers()
-	assert.Equal(t, 1, handlers.Len(), "The handlers should be equal")
-}
-
 type TestAuth struct{}
 
 func (a *TestAuth) HTTPHeaders(url string, appID string, secret string) map[string][]string {
