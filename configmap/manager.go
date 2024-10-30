@@ -30,6 +30,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/util/retry"
+	"sync"
 	"time"
 )
 
@@ -40,26 +41,33 @@ type K8sManager struct {
 
 var (
 	instance *K8sManager
+	once     sync.Once
 )
 
 func GetK8sManager(k8sNamespace string) (*K8sManager, error) {
-	if instance != nil {
-		return instance, nil
-	}
+	var err error
 
-	inClusterConfig, err := rest.InClusterConfig()
+	once.Do(func() {
+		var config *rest.Config
+		config, err = rest.InClusterConfig()
+		if err != nil {
+			log.Errorf("Error creating in-cluster config: %v", err)
+			return
+		}
+		var clientSet kubernetes.Interface
+		clientSet, err = kubernetes.NewForConfig(config)
+		if err != nil {
+			log.Errorf("Error creating Kubernetes client set: %v", err)
+			return
+		}
+		instance = &K8sManager{
+			clientSet:    clientSet,
+			k8sNamespace: k8sNamespace,
+		}
+	})
+
 	if err != nil {
-		log.Errorf("Error creating in-cluster inClusterConfig: %v", err)
-		return nil, fmt.Errorf("failed to create in-cluster config: %v", err)
-	}
-	clientSet, err := kubernetes.NewForConfig(inClusterConfig)
-	if err != nil {
-		log.Errorf("Error creating Kubernetes client set: %v", err)
-		return nil, fmt.Errorf("failed to create Kubernetes client set: %v", err)
-	}
-	instance = &K8sManager{
-		clientSet:    clientSet,
-		k8sNamespace: k8sNamespace,
+		return nil, fmt.Errorf("failed to initialize K8sManager: %v", err)
 	}
 	return instance, nil
 }
