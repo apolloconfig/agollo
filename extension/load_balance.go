@@ -21,12 +21,12 @@ import "github.com/apolloconfig/agollo/v4/cluster"
 
 var defaultLoadBalance cluster.LoadBalance
 
-//SetLoadBalance 设置负载均衡器
+// SetLoadBalance 设置负载均衡器
 func SetLoadBalance(loadBalance cluster.LoadBalance) {
 	defaultLoadBalance = loadBalance
 }
 
-//GetLoadBalance 获取负载均衡器
+// GetLoadBalance 获取负载均衡器
 func GetLoadBalance() cluster.LoadBalance {
 	return defaultLoadBalance
 }

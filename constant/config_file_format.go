@@ -17,7 +17,7 @@
 
 package constant
 
-//ConfigFileFormat 配置文件类型
+// ConfigFileFormat 配置文件类型
 type ConfigFileFormat string
 
 const (

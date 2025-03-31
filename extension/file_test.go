@@ -20,9 +20,9 @@ package extension
 import (
 	"testing"
 
-	"github.com/apolloconfig/agollo/v4/env/config"
-
 	. "github.com/tevid/gohamcrest"
+
+	"github.com/apolloconfig/agollo/v4/env/config"
 )
 
 type TestFileHandler struct {

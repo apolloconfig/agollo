@@ -20,9 +20,9 @@ package extension
 import (
 	"testing"
 
-	"github.com/apolloconfig/agollo/v4/constant"
-
 	. "github.com/tevid/gohamcrest"
+
+	"github.com/apolloconfig/agollo/v4/constant"
 )
 
 // TestParser 默认内容转换器

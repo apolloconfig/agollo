@@ -19,11 +19,11 @@ package json
 
 import (
 	"fmt"
-	"github.com/apolloconfig/agollo/v4/component/log"
-	"github.com/apolloconfig/agollo/v4/env/config"
 	"os"
 	"sync"
 
+	"github.com/apolloconfig/agollo/v4/component/log"
+	"github.com/apolloconfig/agollo/v4/env/config"
 	"github.com/apolloconfig/agollo/v4/env/file"
 )
 
@@ -32,7 +32,7 @@ var (
 	rawOnce sync.Once
 )
 
-//rawFileHandler 写入备份文件时，同时写入原始内容和namespace类型
+// rawFileHandler 写入备份文件时，同时写入原始内容和namespace类型
 type rawFileHandler struct {
 	*FileHandler
 }
@@ -59,7 +59,7 @@ func writeWithRaw(config *config.ApolloConfig, configDir string) error {
 	return nil
 }
 
-//WriteConfigFile write config to file
+// WriteConfigFile write config to file
 func (fileHandler *rawFileHandler) WriteConfigFile(config *config.ApolloConfig, configPath string) error {
 	err := fileHandler.createDir(configPath)
 	if err != nil {

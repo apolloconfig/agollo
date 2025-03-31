@@ -21,11 +21,11 @@ import (
 	"github.com/apolloconfig/agollo/v4/env/config"
 )
 
-//RoundRobin 轮询调度
+// RoundRobin 轮询调度
 type RoundRobin struct {
 }
 
-//Load 负载均衡
+// Load 负载均衡
 func (r *RoundRobin) Load(servers map[string]*config.ServerInfo) *config.ServerInfo {
 	var returnServer *config.ServerInfo
 	for _, server := range servers {
