@@ -35,6 +35,7 @@ const configResponseStr = `{
 }`
 
 var IP1 = "localhost:7080"
+
 var IP2 = "localhost:7081"
 
 var servicesResponseStr = `[{

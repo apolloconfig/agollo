@@ -38,7 +38,7 @@ const (
   }`
 )
 
-//run mock config Files server
+// run mock config Files server
 func runMockConfigFilesServer(handlerMap map[string]func(http.ResponseWriter, *http.Request),
 	notifyHandler func(http.ResponseWriter, *http.Request),
 	appConfig *config.AppConfig) *httptest.Server {
@@ -61,8 +61,8 @@ func runMockConfigFilesServer(handlerMap map[string]func(http.ResponseWriter, *h
 	return ts
 }
 
-//Error response
-//will hold 5s and keep response 404
+// Error response
+// will hold 5s and keep response 404
 func runErrorResponse() *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)

@@ -25,6 +25,8 @@ import (
 	"testing"
 	"time"
 
+	. "github.com/tevid/gohamcrest"
+
 	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
 	"github.com/apolloconfig/agollo/v4/env"
 	"github.com/apolloconfig/agollo/v4/env/config"
@@ -32,7 +34,6 @@ import (
 	"github.com/apolloconfig/agollo/v4/env/server"
 	"github.com/apolloconfig/agollo/v4/extension"
 	http2 "github.com/apolloconfig/agollo/v4/protocol/http"
-	. "github.com/tevid/gohamcrest"
 )
 
 var asyncApollo *asyncApolloConfig
@@ -89,6 +90,7 @@ const configAbc1ResponseStr = `{
 }`
 
 const responseStr = `[{"namespaceName":"application","notificationId":%d}]`
+
 const tworesponseStr = `[{"namespaceName":"application","notificationId":%d},{"namespaceName":"abc1","notificationId":%d}]`
 
 func onlyNormalConfigResponse(rw http.ResponseWriter, req *http.Request) {

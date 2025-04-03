@@ -19,8 +19,10 @@ package yaml
 
 import (
 	"bytes"
-	"github.com/apolloconfig/agollo/v4/utils"
+
 	"github.com/spf13/viper"
+
+	"github.com/apolloconfig/agollo/v4/utils"
 )
 
 var vp = viper.New()
