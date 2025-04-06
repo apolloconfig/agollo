@@ -22,16 +22,27 @@ import (
 )
 
 const (
-	//Empty 空字符串
+	// Empty represents an empty string constant
+	// Used throughout the application for string comparisons and defaults
 	Empty = ""
 )
 
 var (
+	// internalIPOnce ensures the internal IP is retrieved only once
 	internalIPOnce sync.Once
-	internalIP     = ""
+	// internalIP stores the cached internal IP address of the machine
+	internalIP = ""
 )
 
-// GetInternal 获取内部ip
+// GetInternal retrieves the internal IPv4 address of the machine
+// Returns:
+//   - string: The first non-loopback IPv4 address found
+//
+// This function:
+// 1. Uses sync.Once to ensure single execution
+// 2. Retrieves all network interface addresses
+// 3. Finds the first non-loopback IPv4 address
+// 4. Caches the result for subsequent calls
 func GetInternal() string {
 	internalIPOnce.Do(func() {
 		addrs, err := net.InterfaceAddrs()
@@ -50,12 +61,29 @@ func GetInternal() string {
 	return internalIP
 }
 
-// IsNotNil 判断是否nil
+// IsNotNil checks if an object is not nil
+// Parameters:
+//   - object: The interface{} to check
+//
+// Returns:
+//   - bool: true if the object is not nil, false otherwise
+//
+// This is a convenience wrapper around IsNilObject with inverted logic
 func IsNotNil(object interface{}) bool {
 	return !IsNilObject(object)
 }
 
-// IsNilObject 判断是否空对象
+// IsNilObject determines if an object is nil or effectively nil
+// Parameters:
+//   - object: The interface{} to check
+//
+// Returns:
+//   - bool: true if the object is nil or a nil interface value
+//
+// This function performs a thorough nil check that handles:
+// 1. Direct nil values
+// 2. nil interface values (chan, func, interface, map, pointer, slice)
+// 3. Zero-value interfaces of reference types
 func IsNilObject(object interface{}) bool {
 	if object == nil {
 		return true

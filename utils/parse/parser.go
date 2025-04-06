@@ -14,7 +14,17 @@
 
 package parse
 
-// ContentParser 内容转换
+// ContentParser defines the interface for configuration content parsing
+// This interface is used by Apollo to support different configuration formats
+// (e.g., Properties, YAML, JSON) through format-specific implementations
 type ContentParser interface {
+	// Parse converts configuration content from its original format to a key-value map
+	// Parameters:
+	//   - configContent: The configuration content to parse, type depends on the format
+	// Returns:
+	//   - map[string]interface{}: Parsed configuration as key-value pairs
+	//   - error: Any error that occurred during parsing
+	// Implementations should handle format-specific parsing logic and
+	// return a consistent map structure regardless of the input format
 	Parse(configContent interface{}) (map[string]interface{}, error)
 }

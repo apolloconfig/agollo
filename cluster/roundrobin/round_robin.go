@@ -18,11 +18,23 @@ import (
 	"github.com/apolloconfig/agollo/v4/env/config"
 )
 
-// RoundRobin 轮询调度
+// RoundRobin implements a simple round-robin load balancing strategy.
+// This implementation currently provides a basic server selection mechanism
+// that returns the first available server from the server list.
 type RoundRobin struct {
 }
 
-// Load 负载均衡
+// Load performs load balancing across the provided servers
+// Parameters:
+//   - servers: A map of server addresses to their corresponding ServerInfo objects
+//
+// Returns:
+//   - *config.ServerInfo: The selected server for the current request
+//     Returns nil if no available server is found
+//
+// Note: The current implementation selects the first available server
+// that is not marked as down. A more sophisticated round-robin algorithm
+// could be implemented to ensure better load distribution.
 func (r *RoundRobin) Load(servers map[string]*config.ServerInfo) *config.ServerInfo {
 	var returnServer *config.ServerInfo
 	for _, server := range servers {

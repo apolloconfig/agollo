@@ -25,55 +25,74 @@ import (
 )
 
 var (
+	// defaultNotificationID represents the default notification ID for new configurations
 	defaultNotificationID = int64(-1)
-	Comma                 = ","
+	// Comma is the delimiter used for splitting namespace strings
+	Comma = ","
 )
 
-// File 读写配置文件
+// File defines the interface for reading and writing configuration files
 type File interface {
+	// Load reads and unmarshals a configuration file
+	// Parameters:
+	//   - fileName: Path to the configuration file
+	//   - unmarshal: Function to unmarshal the file content
+	// Returns:
+	//   - interface{}: Unmarshaled configuration
+	//   - error: Any error that occurred during loading
 	Load(fileName string, unmarshal func([]byte) (interface{}, error)) (interface{}, error)
 
+	// Write saves configuration content to a file
+	// Parameters:
+	//   - content: Configuration content to write
+	//   - configPath: Target file path
+	// Returns:
+	//   - error: Any error that occurred during writing
 	Write(content interface{}, configPath string) error
 }
 
-// AppConfig 配置文件
+// AppConfig represents the application configuration for Apollo client
 type AppConfig struct {
-	AppID             string `json:"appId"`
-	Cluster           string `json:"cluster"`
-	NamespaceName     string `json:"namespaceName"`
-	IP                string `json:"ip"`
-	IsBackupConfig    bool   `default:"true" json:"isBackupConfig"`
-	BackupConfigPath  string `json:"backupConfigPath"`
-	Secret            string `json:"secret"`
-	Label             string `json:"label"`
-	SyncServerTimeout int    `json:"syncServerTimeout"`
-	// MustStart 可用于控制第一次同步必须成功
-	MustStart               bool `default:"false"`
-	notificationsMap        *notificationsMap
-	currentConnApolloConfig *CurrentApolloConfig
+	AppID             string `json:"appId"`                         // Unique identifier for the application
+	Cluster           string `json:"cluster"`                       // Cluster name (e.g., dev, prod)
+	NamespaceName     string `json:"namespaceName"`                 // Namespace for configuration isolation
+	IP                string `json:"ip"`                            // Apollo server IP/host
+	IsBackupConfig    bool   `default:"true" json:"isBackupConfig"` // Whether to backup configurations
+	BackupConfigPath  string `json:"backupConfigPath"`              // Path for backup configuration files
+	Secret            string `json:"secret"`                        // Authentication secret
+	Label             string `json:"label"`                         // Configuration label
+	SyncServerTimeout int    `json:"syncServerTimeout"`             // Timeout for server synchronization
+	// MustStart controls whether the first sync must succeed
+	MustStart               bool                 `default:"false"`
+	notificationsMap        *notificationsMap    // Manages configuration change notifications
+	currentConnApolloConfig *CurrentApolloConfig // Current Apollo connection configuration
 }
 
-// ServerInfo 服务器信息
+// ServerInfo contains information about an Apollo server instance
 type ServerInfo struct {
-	AppName     string `json:"appName"`
-	InstanceID  string `json:"instanceId"`
-	HomepageURL string `json:"homepageUrl"`
-	IsDown      bool   `json:"-"`
+	AppName     string `json:"appName"`     // Name of the Apollo application
+	InstanceID  string `json:"instanceId"`  // Unique identifier for the server instance
+	HomepageURL string `json:"homepageUrl"` // Base URL of the server
+	IsDown      bool   `json:"-"`           // Indicates if the server is unavailable
 }
 
-// GetIsBackupConfig whether backup config after fetch config from apollo
-// false : no
-// true : yes (default)
+// GetIsBackupConfig returns whether to backup configuration after fetching from Apollo
+// Returns:
+//   - bool: true if backup is enabled (default), false otherwise
 func (a *AppConfig) GetIsBackupConfig() bool {
 	return a.IsBackupConfig
 }
 
-// GetBackupConfigPath GetBackupConfigPath
+// GetBackupConfigPath returns the path where configuration backups are stored
+// Returns:
+//   - string: The configured backup path
 func (a *AppConfig) GetBackupConfigPath() string {
 	return a.BackupConfigPath
 }
 
-// GetHost GetHost
+// GetHost returns the Apollo server host URL with proper formatting
+// Returns:
+//   - string: The formatted host URL, ensuring it ends with a forward slash
 func (a *AppConfig) GetHost() string {
 	u, err := url.Parse(a.IP)
 	if err != nil {
@@ -85,19 +104,23 @@ func (a *AppConfig) GetHost() string {
 	return u.String()
 }
 
-// Init 初始化notificationsMap
+// Init initializes the AppConfig instance
+// This method sets up the current Apollo configuration and notifications map
 func (a *AppConfig) Init() {
 	a.currentConnApolloConfig = CreateCurrentApolloConfig()
 	a.initAllNotifications(nil)
 }
 
-// Notification 用于保存 apollo Notification 信息
+// Notification represents a configuration change notification from Apollo
 type Notification struct {
 	NamespaceName  string `json:"namespaceName"`
 	NotificationID int64  `json:"notificationId"`
 }
 
-// InitAllNotifications 初始化notificationsMap
+// initAllNotifications initializes the notifications map for all configured namespaces
+// Parameters:
+//   - callback: Optional function to be executed for each namespace during initialization
+//     The callback can be used for custom processing of each namespace
 func (a *AppConfig) initAllNotifications(callback func(namespace string)) {
 	ns := SplitNamespaces(a.NamespaceName, callback)
 	a.notificationsMap = &notificationsMap{
@@ -105,7 +128,18 @@ func (a *AppConfig) initAllNotifications(callback func(namespace string)) {
 	}
 }
 
-// SplitNamespaces 根据namespace字符串分割后，并执行callback函数
+// SplitNamespaces splits a comma-separated namespace string and initializes notifications
+// Parameters:
+//   - namespacesStr: Comma-separated string of namespace names
+//   - callback: Optional function to be executed for each namespace after splitting
+//
+// Returns:
+//   - sync.Map: Thread-safe map containing namespace names as keys and defaultNotificationID as values
+//
+// This function:
+// 1. Splits the input string by comma
+// 2. Processes each namespace individually
+// 3. Initializes each namespace with default notification ID
 func SplitNamespaces(namespacesStr string, callback func(namespace string)) sync.Map {
 	namespaces := sync.Map{}
 	split := strings.Split(namespacesStr, Comma)
@@ -118,12 +152,23 @@ func SplitNamespaces(namespacesStr string, callback func(namespace string)) sync
 	return namespaces
 }
 
-// GetNotificationsMap 获取notificationsMap
+// GetNotificationsMap returns the notifications map for the application
+// Returns:
+//   - *notificationsMap: Thread-safe map containing all namespace notifications
+//
+// This map is used to track configuration changes across different namespaces
 func (a *AppConfig) GetNotificationsMap() *notificationsMap {
 	return a.notificationsMap
 }
 
-// GetServicesConfigURL 获取服务器列表url
+// GetServicesConfigURL constructs the URL for fetching service configurations
+// Returns:
+//   - string: Complete URL with proper encoding for accessing Apollo configuration services
+//
+// The URL includes:
+// 1. Base host URL
+// 2. Application ID
+// 3. Client IP address
 func (a *AppConfig) GetServicesConfigURL() string {
 	return fmt.Sprintf("%sservices/config?appId=%s&ip=%s",
 		a.GetHost(),
@@ -143,9 +188,12 @@ func (a *AppConfig) GetCurrentApolloConfig() *CurrentApolloConfig {
 
 // map[string]int64
 type notificationsMap struct {
-	notifications sync.Map
+	notifications sync.Map // Thread-safe map storing notification IDs by namespace
 }
 
+// UpdateAllNotifications updates notification IDs for multiple configurations
+// Parameters:
+//   - remoteConfigs: Array of notifications from the remote server
 func (n *notificationsMap) UpdateAllNotifications(remoteConfigs []*Notification) {
 	for _, remoteConfig := range remoteConfigs {
 		if remoteConfig.NamespaceName == "" {
@@ -192,6 +240,13 @@ func (n *notificationsMap) GetNotifications() sync.Map {
 	return n.notifications
 }
 
+// GetNotifies returns a JSON string of notifications for the specified namespace
+// If namespace is empty, returns notifications for all namespaces
+// Parameters:
+//   - namespace: Target namespace, or empty string for all namespaces
+//
+// Returns:
+//   - string: JSON representation of notifications
 func (n *notificationsMap) GetNotifies(namespace string) string {
 	notificationArr := make([]*Notification, 0)
 	if namespace == "" {

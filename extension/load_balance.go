@@ -16,14 +16,26 @@ package extension
 
 import "github.com/apolloconfig/agollo/v4/cluster"
 
+// defaultLoadBalance is the global load balancer instance
+// It provides functionality for distributing requests across multiple Apollo server nodes
 var defaultLoadBalance cluster.LoadBalance
 
-// SetLoadBalance 设置负载均衡器
+// SetLoadBalance sets the global load balancer implementation
+// Parameters:
+//   - loadBalance: New load balancer implementation to be used
+//
+// This function allows for custom load balancing strategies to be injected
+// into the Apollo client for different server selection algorithms
 func SetLoadBalance(loadBalance cluster.LoadBalance) {
 	defaultLoadBalance = loadBalance
 }
 
-// GetLoadBalance 获取负载均衡器
+// GetLoadBalance returns the current global load balancer instance
+// Returns:
+//   - cluster.LoadBalance: The current load balancer implementation
+//
+// This function is used to obtain the load balancer for server selection
+// during Apollo client operations
 func GetLoadBalance() cluster.LoadBalance {
 	return defaultLoadBalance
 }

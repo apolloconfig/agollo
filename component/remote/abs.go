@@ -23,11 +23,26 @@ import (
 	"github.com/apolloconfig/agollo/v4/protocol/http"
 )
 
-// AbsApolloConfig 抽象 apollo 配置
+// AbsApolloConfig represents an abstract Apollo configuration handler
+// It provides base functionality for interacting with Apollo configuration server
 type AbsApolloConfig struct {
+	// remoteApollo is the interface for remote Apollo operations
 	remoteApollo ApolloConfig
 }
 
+// SyncWithNamespace synchronizes configuration for a specific namespace from Apollo server
+// Parameters:
+//   - namespace: The configuration namespace to sync
+//   - appConfigFunc: Function that provides the application configuration
+//
+// Returns:
+//   - *config.ApolloConfig: The synchronized configuration, or nil if sync fails
+//
+// This method:
+// 1. Validates the input parameters
+// 2. Constructs the connection configuration
+// 3. Makes HTTP request to Apollo server
+// 4. Handles any errors during synchronization
 func (a *AbsApolloConfig) SyncWithNamespace(namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
 	if appConfigFunc == nil {
 		panic("can not find apollo config!please confirm!")
@@ -35,6 +50,7 @@ func (a *AbsApolloConfig) SyncWithNamespace(namespace string, appConfigFunc func
 	appConfig := appConfigFunc()
 	urlSuffix := a.remoteApollo.GetSyncURI(appConfig, namespace)
 
+	// Configure connection parameters for Apollo server
 	c := &env.ConnectConfig{
 		URI:     urlSuffix,
 		AppID:   appConfig.AppID,
@@ -42,10 +58,12 @@ func (a *AbsApolloConfig) SyncWithNamespace(namespace string, appConfigFunc func
 		Timeout: notifyConnectTimeout,
 		IsRetry: true,
 	}
+	// Override timeout if specified in application config
 	if appConfig.SyncServerTimeout > 0 {
 		c.Timeout = time.Duration(appConfig.SyncServerTimeout) * time.Second
 	}
 
+	// Execute synchronization request with error recovery
 	callback := a.remoteApollo.CallBack(namespace)
 	apolloConfig, err := http.RequestRecovery(appConfig, c, &callback)
 	if err != nil {

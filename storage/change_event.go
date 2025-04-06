@@ -15,48 +15,71 @@
 package storage
 
 const (
+	// ADDED represents a new configuration item being added
 	ADDED ConfigChangeType = iota
+	// MODIFIED represents an existing configuration item being modified
 	MODIFIED
+	// DELETED represents an existing configuration item being removed
 	DELETED
 )
 
-// ChangeListener 监听器
+// ChangeListener defines the interface for configuration change event handlers
+// Implementations can react to both incremental and full configuration changes
 type ChangeListener interface {
-	//OnChange 增加变更监控
+	// OnChange handles incremental configuration changes
+	// Parameters:
+	//   - event: Contains details about specific property changes
 	OnChange(event *ChangeEvent)
 
-	//OnNewestChange 监控最新变更
+	// OnNewestChange handles full configuration changes
+	// Parameters:
+	//   - event: Contains the complete new configuration state
 	OnNewestChange(event *FullChangeEvent)
 }
 
-// config change type
+// ConfigChangeType represents the type of configuration change
 type ConfigChangeType int
 
-// config change event
+// baseChangeEvent contains common fields for all change events
 type baseChangeEvent struct {
-	Namespace      string
+	// Namespace identifies the configuration namespace
+	Namespace string
+	// NotificationID is the unique identifier for this change notification
 	NotificationID int64
 }
 
-// config change event
+// ChangeEvent represents an incremental configuration change
+// It contains information about specific property changes
 type ChangeEvent struct {
 	baseChangeEvent
+	// Changes maps property keys to their change details
 	Changes map[string]*ConfigChange
 }
 
+// ConfigChange contains details about a single property's change
 type ConfigChange struct {
-	OldValue   interface{}
-	NewValue   interface{}
+	// OldValue contains the previous value of the property
+	OldValue interface{}
+	// NewValue contains the updated value of the property
+	NewValue interface{}
+	// ChangeType indicates how the property changed (ADDED/MODIFIED/DELETED)
 	ChangeType ConfigChangeType
 }
 
-// all config change event
+// FullChangeEvent represents a complete configuration state change
 type FullChangeEvent struct {
 	baseChangeEvent
+	// Changes maps property keys to their new values
 	Changes map[string]interface{}
 }
 
-// create modify config change
+// createModifyConfigChange creates a ConfigChange for modified properties
+// Parameters:
+//   - oldValue: The previous value of the property
+//   - newValue: The updated value of the property
+//
+// Returns:
+//   - *ConfigChange: A change record with MODIFIED type
 func createModifyConfigChange(oldValue interface{}, newValue interface{}) *ConfigChange {
 	return &ConfigChange{
 		OldValue:   oldValue,
@@ -65,7 +88,12 @@ func createModifyConfigChange(oldValue interface{}, newValue interface{}) *Confi
 	}
 }
 
-// create add config change
+// createAddConfigChange creates a ConfigChange for new properties
+// Parameters:
+//   - newValue: The value of the new property
+//
+// Returns:
+//   - *ConfigChange: A change record with ADDED type
 func createAddConfigChange(newValue interface{}) *ConfigChange {
 	return &ConfigChange{
 		NewValue:   newValue,
@@ -73,7 +101,12 @@ func createAddConfigChange(newValue interface{}) *ConfigChange {
 	}
 }
 
-// create delete config change
+// createDeletedConfigChange creates a ConfigChange for removed properties
+// Parameters:
+//   - oldValue: The last value of the property before deletion
+//
+// Returns:
+//   - *ConfigChange: A change record with DELETED type
 func createDeletedConfigChange(oldValue interface{}) *ConfigChange {
 	return &ConfigChange{
 		OldValue:   oldValue,
@@ -81,7 +114,14 @@ func createDeletedConfigChange(oldValue interface{}) *ConfigChange {
 	}
 }
 
-// base on changeList create Change event
+// createConfigChangeEvent creates a new ChangeEvent from a set of changes
+// Parameters:
+//   - changes: Map of property keys to their change details
+//   - nameSpace: The configuration namespace
+//   - notificationID: Unique identifier for this change notification
+//
+// Returns:
+//   - *ChangeEvent: A new change event containing all changes
 func createConfigChangeEvent(changes map[string]*ConfigChange, nameSpace string, notificationID int64) *ChangeEvent {
 	c := &ChangeEvent{
 		Changes: changes,

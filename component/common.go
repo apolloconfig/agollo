@@ -14,12 +14,21 @@
 
 package component
 
-// AbsComponent 定时组件
+// AbsComponent defines the interface for components that require periodic execution
+// This interface is used by various Apollo components that need to run continuously
+// or on a scheduled basis, such as configuration synchronization and server list updates
 type AbsComponent interface {
+	// Start initiates the component's main execution loop
+	// Implementations should handle their own scheduling and error recovery
 	Start()
 }
 
-// StartRefreshConfig 开始定时服务
+// StartRefreshConfig begins the execution of a periodic component
+// Parameters:
+//   - component: An implementation of AbsComponent that needs to be started
+//
+// This function is responsible for initiating the component's execution cycle
+// and is typically called during system initialization
 func StartRefreshConfig(component AbsComponent) {
 	component.Start()
 }

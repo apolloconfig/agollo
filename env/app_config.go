@@ -25,19 +25,29 @@ import (
 )
 
 const (
-	appConfigFile     = "app.properties"
+	// appConfigFile defines the default configuration file name
+	appConfigFile = "app.properties"
+	// appConfigFilePath defines the environment variable name for custom config path
 	appConfigFilePath = "AGOLLO_CONF"
 
-	defaultCluster   = "default"
+	// defaultCluster defines the default cluster name
+	defaultCluster = "default"
+	// defaultNamespace defines the default namespace name
 	defaultNamespace = "application"
 )
 
 var (
+	// executeConfigFileOnce ensures thread-safe initialization of config file executor
 	executeConfigFileOnce sync.Once
-	configFileExecutor    config.File
+	// configFileExecutor handles configuration file operations
+	configFileExecutor config.File
 )
 
-// InitFileConfig 使用文件初始化配置
+// InitFileConfig initializes configuration from the default properties file
+// Returns:
+//   - *config.AppConfig: Initialized configuration object, nil if initialization fails
+//
+// This function attempts to load configuration using default settings
 func InitFileConfig() *config.AppConfig {
 	// default use application.properties
 	if initConfig, err := InitConfig(nil); err == nil {
@@ -46,13 +56,30 @@ func InitFileConfig() *config.AppConfig {
 	return nil
 }
 
-// InitConfig 使用指定配置初始化配置
+// InitConfig initializes configuration using a custom loader function
+// Parameters:
+//   - loadAppConfig: Custom function for loading application configuration
+//
+// Returns:
+//   - *config.AppConfig: Initialized configuration object
+//   - error: Any error that occurred during initialization
 func InitConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.AppConfig, error) {
 	//init config file
 	return getLoadAppConfig(loadAppConfig)
 }
 
-// set load app config's function
+// getLoadAppConfig handles the actual configuration loading process
+// Parameters:
+//   - loadAppConfig: Optional custom function for loading application configuration
+//
+// Returns:
+//   - *config.AppConfig: Loaded configuration object
+//   - error: Any error that occurred during loading
+//
+// This function:
+// 1. Uses custom loader if provided
+// 2. Falls back to environment variable for config path
+// 3. Uses default config file if no custom path is specified
 func getLoadAppConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.AppConfig, error) {
 	if loadAppConfig != nil {
 		return loadAppConfig()
@@ -69,7 +96,11 @@ func getLoadAppConfig(loadAppConfig func() (*config.AppConfig, error)) (*config.
 	return c.(*config.AppConfig), e
 }
 
-// GetConfigFileExecutor 获取文件执行器
+// GetConfigFileExecutor returns a singleton instance of the configuration file executor
+// Returns:
+//   - config.File: Thread-safe instance of configuration file executor
+//
+// This function ensures the executor is initialized only once using sync.Once
 func GetConfigFileExecutor() config.File {
 	executeConfigFileOnce.Do(func() {
 		configFileExecutor = &jsonConfig.ConfigFile{}
@@ -77,7 +108,19 @@ func GetConfigFileExecutor() config.File {
 	return configFileExecutor
 }
 
-// Unmarshal 反序列化
+// Unmarshal deserializes configuration data from bytes into AppConfig structure
+// Parameters:
+//   - b: Byte array containing configuration data
+//
+// Returns:
+//   - interface{}: Unmarshaled configuration object
+//   - error: Any error that occurred during unmarshaling
+//
+// This function:
+// 1. Creates AppConfig with default values
+// 2. Unmarshals JSON data into the config
+// 3. Initializes the configuration
+// 4. Returns the initialized config object
 func Unmarshal(b []byte) (interface{}, error) {
 	appConfig := &config.AppConfig{
 		Cluster:        defaultCluster,

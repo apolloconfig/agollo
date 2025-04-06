@@ -19,14 +19,29 @@ import (
 	"github.com/apolloconfig/agollo/v4/utils/parse"
 )
 
+// formatParser is a global map that stores content parsers for different configuration file formats
+// Key: ConfigFileFormat - represents the format of the configuration file (e.g., JSON, YAML, Properties)
+// Value: ContentParser - the corresponding parser implementation for that format
 var formatParser = make(map[constant.ConfigFileFormat]parse.ContentParser, 0)
 
-// AddFormatParser 设置 formatParser
+// AddFormatParser registers a new content parser for a specific configuration format
+// Parameters:
+//   - key: The format of the configuration file (e.g., JSON, YAML, Properties)
+//   - contentParser: The parser implementation for the specified format
+//
+// This function enables support for parsing different configuration file formats
+// by registering appropriate parser implementations
 func AddFormatParser(key constant.ConfigFileFormat, contentParser parse.ContentParser) {
 	formatParser[key] = contentParser
 }
 
-// GetFormatParser 获取 formatParser
+// GetFormatParser retrieves the content parser for a specific configuration format
+// Parameters:
+//   - key: The format of the configuration file to get the parser for
+//
+// Returns:
+//   - parse.ContentParser: The parser implementation for the specified format
+//     Returns nil if no parser is registered for the given format
 func GetFormatParser(key constant.ConfigFileFormat) parse.ContentParser {
 	return formatParser[key]
 }

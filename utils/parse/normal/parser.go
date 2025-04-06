@@ -14,11 +14,22 @@
 
 package normal
 
-// Parser 默认内容转换器
+// Parser represents the default content parser implementation
+// It provides basic parsing functionality for Apollo configuration content
+// This parser is used when no specific format parser is registered
 type Parser struct {
 }
 
-// Parse 内存内容默认转换器
+// Parse converts configuration content to a key-value map
+// Parameters:
+//   - configContent: The configuration content to parse, can be of any type
+//
+// Returns:
+//   - map[string]interface{}: Parsed configuration as key-value pairs
+//   - error: Any error that occurred during parsing
+//
+// Note: This is a default implementation that returns nil values,
+// intended to be used as a fallback when no specific parser is available
 func (d *Parser) Parse(configContent interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }

@@ -18,8 +18,21 @@ import (
 	"github.com/apolloconfig/agollo/v4/env/config"
 )
 
-// LoadBalance 负载均衡器
+// LoadBalance defines the interface for load balancing strategies.
+// Implementations of this interface can provide different algorithms
+// for distributing load across multiple Apollo configuration servers.
 type LoadBalance interface {
-	//Load 负载均衡，获取对应服务信息
+	// Load performs server selection based on the implemented load balancing strategy
+	// Parameters:
+	//   - servers: A map of server addresses to their corresponding ServerInfo objects
+	//
+	// Returns:
+	//   - *config.ServerInfo: The selected server based on the load balancing algorithm
+	//     Returns nil if no available server is found
+	//
+	// This method should handle server selection logic including:
+	// - Checking server availability
+	// - Implementing specific load balancing algorithms (e.g., round-robin, weighted random)
+	// - Handling failure scenarios
 	Load(servers map[string]*config.ServerInfo) *config.ServerInfo
 }

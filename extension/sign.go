@@ -18,14 +18,27 @@ import (
 	"github.com/apolloconfig/agollo/v4/protocol/auth"
 )
 
+// authSign is the global HTTP authentication handler instance
+// It provides functionality for signing and authenticating requests
+// to the Apollo configuration service
 var authSign auth.HTTPAuth
 
-// SetHTTPAuth 设置HttpAuth
+// SetHTTPAuth sets the global HTTP authentication implementation
+// Parameters:
+//   - httpAuth: New HTTP authentication implementation to be used
+//
+// This function allows for custom authentication strategies to be injected
+// into the Apollo client for different security requirements
 func SetHTTPAuth(httpAuth auth.HTTPAuth) {
 	authSign = httpAuth
 }
 
-// GetHTTPAuth 获取HttpAuth
+// GetHTTPAuth returns the current global HTTP authentication instance
+// Returns:
+//   - auth.HTTPAuth: The current HTTP authentication implementation
+//
+// This function is used to obtain the authentication handler for
+// securing requests to the Apollo configuration service
 func GetHTTPAuth() auth.HTTPAuth {
 	return authSign
 }

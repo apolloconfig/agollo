@@ -41,56 +41,79 @@ import (
 	"github.com/apolloconfig/agollo/v4/utils/parse/yml"
 )
 
+// separator is used to split string values in configuration
 const separator = ","
 
+// init initializes the default components and extensions for the Apollo client
 func init() {
 	extension.SetCacheFactory(&memory.DefaultCacheFactory{})
 	extension.SetLoadBalance(&roundrobin.RoundRobin{})
 	extension.SetFileHandler(&jsonFile.FileHandler{})
 	extension.SetHTTPAuth(&sign.AuthSignature{})
 
-	// file parser
+	// Register file parsers for different configuration formats
 	extension.AddFormatParser(constant.DEFAULT, &normal.Parser{})
 	extension.AddFormatParser(constant.Properties, &properties.Parser{})
 	extension.AddFormatParser(constant.YML, &yml.Parser{})
 	extension.AddFormatParser(constant.YAML, &yaml.Parser{})
 }
 
+// syncApolloConfig is used to synchronize Apollo configurations
 var syncApolloConfig = remote.CreateSyncApolloConfig()
 
-// Client apollo 客户端接口
+// Client defines the interface for Apollo configuration client
+// It provides methods to access and manage Apollo configurations
 type Client interface {
+	// GetConfig retrieves the configuration for a specific namespace
 	GetConfig(namespace string) *storage.Config
+	// GetConfigAndInit retrieves and initializes the configuration for a specific namespace
 	GetConfigAndInit(namespace string) *storage.Config
+	// GetConfigCache returns the cache interface for a specific namespace
 	GetConfigCache(namespace string) agcache.CacheInterface
+	// GetDefaultConfigCache returns the cache interface for the default namespace
 	GetDefaultConfigCache() agcache.CacheInterface
+	// GetApolloConfigCache returns the cache interface for Apollo configurations
 	GetApolloConfigCache() agcache.CacheInterface
+	// GetValue retrieves a configuration value by key
 	GetValue(key string) string
+	// GetStringValue retrieves a string configuration value with default fallback
 	GetStringValue(key string, defaultValue string) string
+	// GetIntValue retrieves an integer configuration value with default fallback
 	GetIntValue(key string, defaultValue int) int
+	// GetFloatValue retrieves a float configuration value with default fallback
 	GetFloatValue(key string, defaultValue float64) float64
+	// GetBoolValue retrieves a boolean configuration value with default fallback
 	GetBoolValue(key string, defaultValue bool) bool
+	// GetStringSliceValue retrieves a string slice configuration value with default fallback
 	GetStringSliceValue(key string, defaultValue []string) []string
+	// GetIntSliceValue retrieves an integer slice configuration value with default fallback
 	GetIntSliceValue(key string, defaultValue []int) []int
+	// AddChangeListener adds a listener for configuration changes
 	AddChangeListener(listener storage.ChangeListener)
+	// RemoveChangeListener removes a configuration change listener
 	RemoveChangeListener(listener storage.ChangeListener)
+	// GetChangeListeners returns the list of configuration change listeners
 	GetChangeListeners() *list.List
+	// UseEventDispatch enables event dispatch for configuration changes
 	UseEventDispatch()
+	// Close stops the configuration polling
 	Close()
 }
 
-// internalClient apollo 客户端实例
+// internalClient represents the internal implementation of the Apollo client
 type internalClient struct {
-	initAppConfigFunc func() (*config.AppConfig, error)
+	initAppConfigFunc func() (*config.AppConfig, error) // nolint: unused
 	appConfig         *config.AppConfig
 	cache             *storage.Cache
 	configComponent   *notify.ConfigComponent
 }
 
+// getAppConfig returns the current application configuration
 func (c *internalClient) getAppConfig() config.AppConfig {
 	return *c.appConfig
 }
 
+// create initializes a new internal client instance
 func create() *internalClient {
 	appConfig := env.InitFileConfig()
 	return &internalClient{
@@ -98,14 +121,17 @@ func create() *internalClient {
 	}
 }
 
-// Start 根据默认文件启动
+// Start initializes the Apollo client with default configuration
+// Returns a Client interface and any error that occurred during initialization
 func Start() (Client, error) {
 	return StartWithConfig(nil)
 }
 
-// StartWithConfig 根据配置启动
+// StartWithConfig initializes the Apollo client with custom configuration
+// loadAppConfig is a function that provides custom application configuration
+// Returns a Client interface and any error that occurred during initialization
 func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, error) {
-	// 有了配置之后才能进行初始化
+	// Initialize configuration
 	appConfig, err := env.InitConfig(loadAppConfig)
 	if err != nil {
 		return nil, err
@@ -119,21 +145,23 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 	c.cache = storage.CreateNamespaceConfig(appConfig.NamespaceName)
 	appConfig.Init()
 
+	// Initialize server list synchronization
 	serverlist.InitSyncServerIPList(c.getAppConfig)
 
-	//first sync
+	// First synchronization of configurations
 	configs := syncApolloConfig.Sync(c.getAppConfig)
 	if len(configs) == 0 && appConfig != nil && appConfig.MustStart {
 		return nil, errors.New("start failed cause no config was read")
 	}
 
+	// Update cache with synchronized configurations
 	for _, apolloConfig := range configs {
 		c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
 	}
 
 	log.Debug("init notifySyncConfigServices finished")
 
-	//start long poll sync config
+	// Start long polling for configuration updates
 	configComponent := &notify.ConfigComponent{}
 	configComponent.SetAppConfig(c.getAppConfig)
 	configComponent.SetCache(c.cache)
@@ -145,12 +173,15 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 	return c, nil
 }
 
-// GetConfig 根据namespace获取apollo配置
+// GetConfig retrieves the configuration for a specific namespace
+// If the namespace is empty, returns nil
 func (c *internalClient) GetConfig(namespace string) *storage.Config {
 	return c.GetConfigAndInit(namespace)
 }
 
-// GetConfigAndInit 根据namespace获取apollo配置
+// GetConfigAndInit retrieves and initializes the configuration for a specific namespace
+// If the configuration doesn't exist, it will synchronize with the Apollo server
+// Returns nil if the namespace is empty
 func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 	if namespace == "" {
 		return nil
@@ -159,7 +190,7 @@ func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 	cfg := c.cache.GetConfig(namespace)
 
 	if cfg == nil {
-		//sync config
+		// Synchronize configuration from Apollo server
 		apolloConfig := syncApolloConfig.SyncWithNamespace(namespace, c.getAppConfig)
 		if apolloConfig != nil {
 			c.SyncAndUpdate(namespace, apolloConfig)
@@ -171,8 +202,10 @@ func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 	return cfg
 }
 
+// SyncAndUpdate synchronizes and updates the configuration for a specific namespace
+// It updates the appConfig, notification map, and cache with the new configuration
 func (c *internalClient) SyncAndUpdate(namespace string, apolloConfig *config.ApolloConfig) {
-	// update appConfig only if namespace does not exist yet
+	// Update appConfig only if namespace does not exist yet
 	namespaces := strings.Split(c.appConfig.NamespaceName, ",")
 	exists := false
 	for _, n := range namespaces {
@@ -185,14 +218,15 @@ func (c *internalClient) SyncAndUpdate(namespace string, apolloConfig *config.Ap
 		c.appConfig.NamespaceName += "," + namespace
 	}
 
-	// update notification
+	// Update notification map
 	c.appConfig.GetNotificationsMap().UpdateNotify(namespace, 0)
 
-	// update cache
+	// Update cache with new configuration
 	c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
 }
 
-// GetConfigCache 根据namespace获取apollo配置的缓存
+// GetConfigCache returns the cache interface for a specific namespace
+// Returns nil if the configuration doesn't exist
 func (c *internalClient) GetConfigCache(namespace string) agcache.CacheInterface {
 	config := c.GetConfigAndInit(namespace)
 	if config == nil {
@@ -202,7 +236,8 @@ func (c *internalClient) GetConfigCache(namespace string) agcache.CacheInterface
 	return config.GetCache()
 }
 
-// GetDefaultConfigCache 获取默认缓存
+// GetDefaultConfigCache returns the cache interface for the default namespace
+// Returns nil if the default configuration doesn't exist
 func (c *internalClient) GetDefaultConfigCache() agcache.CacheInterface {
 	config := c.GetConfigAndInit(storage.GetDefaultNamespace())
 	if config != nil {
@@ -211,46 +246,58 @@ func (c *internalClient) GetDefaultConfigCache() agcache.CacheInterface {
 	return nil
 }
 
-// GetApolloConfigCache 获取默认namespace的apollo配置
+// GetApolloConfigCache returns the cache interface for Apollo configurations
+// This is an alias for GetDefaultConfigCache
 func (c *internalClient) GetApolloConfigCache() agcache.CacheInterface {
 	return c.GetDefaultConfigCache()
 }
 
-// GetValue 获取配置
+// GetValue retrieves a configuration value by key from the default namespace
+// Returns the value as a string
 func (c *internalClient) GetValue(key string) string {
 	return c.GetConfig(storage.GetDefaultNamespace()).GetValue(key)
 }
 
-// GetStringValue 获取string配置值
+// GetStringValue retrieves a string configuration value with default fallback
+// Returns the default value if the key doesn't exist
 func (c *internalClient) GetStringValue(key string, defaultValue string) string {
 	return c.GetConfig(storage.GetDefaultNamespace()).GetStringValue(key, defaultValue)
 }
 
-// GetIntValue 获取int配置值
+// GetIntValue retrieves an integer configuration value with default fallback
+// Returns the default value if the key doesn't exist or cannot be converted to int
 func (c *internalClient) GetIntValue(key string, defaultValue int) int {
 	return c.GetConfig(storage.GetDefaultNamespace()).GetIntValue(key, defaultValue)
 }
 
-// GetFloatValue 获取float配置值
+// GetFloatValue retrieves a float configuration value with default fallback
+// Returns the default value if the key doesn't exist or cannot be converted to float
 func (c *internalClient) GetFloatValue(key string, defaultValue float64) float64 {
 	return c.GetConfig(storage.GetDefaultNamespace()).GetFloatValue(key, defaultValue)
 }
 
-// GetBoolValue 获取bool 配置值
+// GetBoolValue retrieves a boolean configuration value with default fallback
+// Returns the default value if the key doesn't exist or cannot be converted to bool
 func (c *internalClient) GetBoolValue(key string, defaultValue bool) bool {
 	return c.GetConfig(storage.GetDefaultNamespace()).GetBoolValue(key, defaultValue)
 }
 
-// GetStringSliceValue 获取[]string 配置值
+// GetStringSliceValue retrieves a string slice configuration value with default fallback
+// The values are split by the separator constant
+// Returns the default value if the key doesn't exist
 func (c *internalClient) GetStringSliceValue(key string, defaultValue []string) []string {
 	return c.GetConfig(storage.GetDefaultNamespace()).GetStringSliceValue(key, separator, defaultValue)
 }
 
-// GetIntSliceValue 获取[]int 配置值
+// GetIntSliceValue retrieves an integer slice configuration value with default fallback
+// The values are split by the separator constant
+// Returns the default value if the key doesn't exist or values cannot be converted to integers
 func (c *internalClient) GetIntSliceValue(key string, defaultValue []int) []int {
 	return c.GetConfig(storage.GetDefaultNamespace()).GetIntSliceValue(key, separator, defaultValue)
 }
 
+// getConfigValue retrieves a raw configuration value from the default namespace cache
+// Returns utils.Empty if the key doesn't exist or there's an error
 func (c *internalClient) getConfigValue(key string) interface{} {
 	cache := c.GetDefaultConfigCache()
 	if cache == nil {
@@ -266,27 +313,32 @@ func (c *internalClient) getConfigValue(key string) interface{} {
 	return value
 }
 
-// AddChangeListener 增加变更监控
+// AddChangeListener adds a listener for configuration changes
+// The listener will be notified when configuration changes occur
 func (c *internalClient) AddChangeListener(listener storage.ChangeListener) {
 	c.cache.AddChangeListener(listener)
 }
 
-// RemoveChangeListener 增加变更监控
+// RemoveChangeListener removes a configuration change listener
+// The listener will no longer receive configuration change notifications
 func (c *internalClient) RemoveChangeListener(listener storage.ChangeListener) {
 	c.cache.RemoveChangeListener(listener)
 }
 
-// GetChangeListeners 获取配置修改监听器列表
+// GetChangeListeners returns the list of configuration change listeners
+// Returns a list.List containing all registered listeners
 func (c *internalClient) GetChangeListeners() *list.List {
 	return c.cache.GetChangeListeners()
 }
 
-// UseEventDispatch  添加为某些key分发event功能
+// UseEventDispatch enables event dispatch for configuration changes
+// This will add a default event dispatcher as a change listener
 func (c *internalClient) UseEventDispatch() {
 	c.AddChangeListener(storage.UseEventDispatch())
 }
 
-// Close 停止轮询
+// Close stops the configuration polling and cleanup resources
+// This should be called when the client is no longer needed
 func (c *internalClient) Close() {
 	c.configComponent.Stop()
 }

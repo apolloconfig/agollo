@@ -22,26 +22,41 @@ import (
 	"github.com/apolloconfig/agollo/v4/agcache"
 )
 
-// DefaultCache 默认缓存
+// DefaultCache implements a thread-safe in-memory cache using sync.Map
 type DefaultCache struct {
-	defaultCache sync.Map
-	count        int64
+	defaultCache sync.Map // The underlying thread-safe map for storing cache entries
+	count        int64    // Counter for tracking the number of cache entries
 }
 
-// Set 获取缓存
+// Set stores a key-value pair in the cache
+// Parameters:
+//   - key: The unique identifier for the cache entry
+//   - value: The data to be stored
+//   - expireSeconds: Time in seconds after which the entry should expire (currently not implemented)
+//
+// Returns:
+//   - error: Always returns nil as the operation cannot fail
 func (d *DefaultCache) Set(key string, value interface{}, expireSeconds int) (err error) {
 	d.defaultCache.Store(key, value)
 	atomic.AddInt64(&d.count, int64(1))
 	return nil
 }
 
-// EntryCount 获取实体数量
+// EntryCount returns the total number of entries in the cache
+// Returns:
+//   - entryCount: The current number of entries stored in the cache
 func (d *DefaultCache) EntryCount() (entryCount int64) {
 	c := atomic.LoadInt64(&d.count)
 	return c
 }
 
-// Get 获取缓存
+// Get retrieves a value from the cache by its key
+// Parameters:
+//   - key: The unique identifier for the cache entry
+//
+// Returns:
+//   - value: The stored value if found
+//   - error: Error if the key doesn't exist in the cache
 func (d *DefaultCache) Get(key string) (value interface{}, err error) {
 	v, ok := d.defaultCache.Load(key)
 	if !ok {
@@ -50,29 +65,40 @@ func (d *DefaultCache) Get(key string) (value interface{}, err error) {
 	return v, nil
 }
 
-// Range 遍历缓存
+// Range iterates over all key/value pairs in the cache
+// Parameters:
+//   - f: The function to be executed for each cache entry
+//     Return false from f to stop iteration
 func (d *DefaultCache) Range(f func(key, value interface{}) bool) {
 	d.defaultCache.Range(f)
 }
 
-// Del 删除缓存
+// Del removes an entry from the cache by its key
+// Parameters:
+//   - key: The unique identifier of the entry to be deleted
+//
+// Returns:
+//   - affected: Always returns true regardless of whether the key existed
 func (d *DefaultCache) Del(key string) (affected bool) {
 	d.defaultCache.Delete(key)
 	atomic.AddInt64(&d.count, int64(-1))
 	return true
 }
 
-// Clear 清除所有缓存
+// Clear removes all entries from the cache
+// This operation reinitializes the underlying sync.Map and resets the counter
 func (d *DefaultCache) Clear() {
 	d.defaultCache = sync.Map{}
 	atomic.StoreInt64(&d.count, int64(0))
 }
 
-// DefaultCacheFactory 构造默认缓存组件工厂类
+// DefaultCacheFactory is a factory for creating new instances of DefaultCache
 type DefaultCacheFactory struct {
 }
 
-// Create 创建默认缓存组件
+// Create instantiates and returns a new DefaultCache instance
+// Returns:
+//   - agcache.CacheInterface: A new instance of DefaultCache
 func (d *DefaultCacheFactory) Create() agcache.CacheInterface {
 	return &DefaultCache{}
 }

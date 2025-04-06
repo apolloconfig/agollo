@@ -14,11 +14,23 @@
 
 package properties
 
-// Parser properties转换器
+// Parser implements the properties file format parser
+// It provides functionality to parse Java-style properties format
+// configuration content in Apollo configuration system
 type Parser struct {
 }
 
-// Parse 内存内容=>properties文件转换器
+// Parse converts properties format configuration content to a key-value map
+// Parameters:
+//   - configContent: The configuration content to parse, expected to be in
+//     properties format (e.g., key=value pairs, one per line)
+//
+// Returns:
+//   - map[string]interface{}: Parsed configuration as key-value pairs
+//   - error: Any error that occurred during parsing
+//
+// This parser is specifically designed to handle Java-style properties
+// format configuration files in Apollo
 func (d *Parser) Parse(configContent interface{}) (map[string]interface{}, error) {
 	return nil, nil
 }

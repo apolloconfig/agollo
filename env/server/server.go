@@ -22,25 +22,30 @@ import (
 	"github.com/apolloconfig/agollo/v4/env/config"
 )
 
-// ip -> server
+// Global variables for managing Apollo server connections
 var (
-	ipMap      map[string]*Info
+	// ipMap stores the mapping between config service IP and server information
+	ipMap = make(map[string]*Info)
+	// serverLock provides thread-safe access to ipMap
 	serverLock sync.Mutex
-	//next try connect period - 60 second
+	// nextTryConnectPeriod defines the waiting period (in seconds) before next connection attempt
 	nextTryConnectPeriod int64 = 30
 )
 
-func init() {
-	ipMap = make(map[string]*Info)
-}
-
+// Info represents Apollo server information and connection status
 type Info struct {
-	//real servers ip
-	serverMap       map[string]*config.ServerInfo
+	// serverMap stores the mapping of server URLs to their detailed information
+	serverMap map[string]*config.ServerInfo
+	// nextTryConnTime indicates the timestamp for the next connection attempt
 	nextTryConnTime int64
 }
 
-// GetServersLen 获取服务器数组
+// GetServers retrieves the server information map for a given configuration IP
+// Parameters:
+//   - configIp: The configuration service IP address
+//
+// Returns:
+//   - map[string]*config.ServerInfo: Map of server information, nil if not found
 func GetServers(configIp string) map[string]*config.ServerInfo {
 	serverLock.Lock()
 	defer serverLock.Unlock()
@@ -50,7 +55,12 @@ func GetServers(configIp string) map[string]*config.ServerInfo {
 	return ipMap[configIp].serverMap
 }
 
-// GetServersLen 获取服务器数组长度
+// GetServersLen returns the number of available servers for a given configuration IP
+// Parameters:
+//   - configIp: The configuration service IP address
+//
+// Returns:
+//   - int: Number of available servers
 func GetServersLen(configIp string) int {
 	serverLock.Lock()
 	defer serverLock.Unlock()
@@ -61,6 +71,10 @@ func GetServersLen(configIp string) int {
 	return len(s.serverMap)
 }
 
+// SetServers updates the server information for a given configuration IP
+// Parameters:
+//   - configIp: The configuration service IP address
+//   - serverMap: New server information map to be set
 func SetServers(configIp string, serverMap map[string]*config.ServerInfo) {
 	serverLock.Lock()
 	defer serverLock.Unlock()
@@ -69,7 +83,15 @@ func SetServers(configIp string, serverMap map[string]*config.ServerInfo) {
 	}
 }
 
-// SetDownNode 设置失效节点
+// SetDownNode marks a server node as unavailable
+// Parameters:
+//   - configService: The configuration service identifier
+//   - serverHost: The host address of the server to be marked down
+//
+// This function:
+// 1. Initializes server map if not exists
+// 2. Updates next connection attempt time if needed
+// 3. Marks specified server as down
 func SetDownNode(configService string, serverHost string) {
 	serverLock.Lock()
 	defer serverLock.Unlock()
@@ -102,9 +124,14 @@ func SetDownNode(configService string, serverHost string) {
 	}
 }
 
-// IsConnectDirectly is connect by ip directly
-// false : yes
-// true : no
+// IsConnectDirectly determines whether to connect to the server directly
+// Parameters:
+//   - configIp: The configuration service IP address
+//
+// Returns:
+//   - bool: true if should use meta server, false if should connect directly
+//
+// Note: The return value is inverse of the actual behavior for historical reasons
 func IsConnectDirectly(configIp string) bool {
 	serverLock.Lock()
 	defer serverLock.Unlock()
@@ -119,7 +146,13 @@ func IsConnectDirectly(configIp string) bool {
 	return false
 }
 
-// SetNextTryConnTime if this connect is fail will set this time
+// SetNextTryConnTime updates the next connection attempt time for a server
+// Parameters:
+//   - configIp: The configuration service IP address
+//   - nextPeriod: Time period in seconds to wait before next attempt
+//     If 0, uses default nextTryConnectPeriod
+//
+// This function ensures proper initialization of server info if not exists
 func SetNextTryConnTime(configIp string, nextPeriod int64) {
 	serverLock.Lock()
 	defer serverLock.Unlock()
