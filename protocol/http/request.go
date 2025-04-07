@@ -21,10 +21,10 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
-	url2 "net/url"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -97,13 +97,13 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		client.Timeout = connectTimeout
 	}
 	var err error
-	url, err := url2.Parse(requestURL)
+	u, err := url.Parse(requestURL)
 	if err != nil {
 		log.Errorf("request Apollo Server url: %q is invalid: %v", requestURL, err)
 		return nil, err
 	}
 	var insecureSkipVerify bool
-	if strings.HasPrefix(url.Scheme, "https") {
+	if strings.HasPrefix(u.Scheme, "https") {
 		insecureSkipVerify = true
 	}
 	client.Transport = getDefaultTransport(insecureSkipVerify)
@@ -157,7 +157,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		switch res.StatusCode {
 		case http.StatusOK:
 			var responseBody []byte
-			responseBody, err = ioutil.ReadAll(res.Body)
+			responseBody, err = io.ReadAll(res.Body)
 			if err != nil {
 				log.Errorf("Connect Apollo Server Fail, url: %s , error: %v", requestURL, err)
 				// if error then sleep

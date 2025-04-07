@@ -1,5 +1,7 @@
 module github.com/apolloconfig/agollo/v4
 
+go 1.20
+
 require (
 	github.com/agiledragon/gomonkey/v2 v2.13.0
 	github.com/spf13/viper v1.8.1
@@ -17,10 +19,8 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/subosito/gotenv v1.2.0 // indirect
-	golang.org/x/sys v0.0.0-20210510120138-977fb7262007 // indirect
-	golang.org/x/text v0.3.5 // indirect
+	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/text v0.3.8 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
-
-go 1.20
