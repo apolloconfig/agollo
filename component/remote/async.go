@@ -31,23 +31,36 @@ import (
 )
 
 const (
-	//notify timeout
-	notifyConnectTimeout = 10 * time.Minute //10m
+	// notifyConnectTimeout defines the timeout duration for notification connections
+	// Default value is 10 minutes to maintain long polling connections
+	notifyConnectTimeout = 10 * time.Minute
 
+	// defaultContentKey is the key used to store configuration content
 	defaultContentKey = "content"
 )
 
-// CreateAsyncApolloConfig 创建异步 apollo 配置
+// CreateAsyncApolloConfig creates and initializes a new asynchronous Apollo configuration instance
+// Returns:
+//   - ApolloConfig: A new instance of asyncApolloConfig
 func CreateAsyncApolloConfig() ApolloConfig {
 	a := &asyncApolloConfig{}
 	a.remoteApollo = a
 	return a
 }
 
+// asyncApolloConfig implements asynchronous configuration management for Apollo
+// It extends AbsApolloConfig to provide async-specific functionality
 type asyncApolloConfig struct {
 	AbsApolloConfig
 }
 
+// GetNotifyURLSuffix constructs the URL suffix for notification API
+// Parameters:
+//   - notifications: JSON string containing notification information
+//   - config: Application configuration
+//
+// Returns:
+//   - string: The constructed URL suffix for notifications endpoint
 func (*asyncApolloConfig) GetNotifyURLSuffix(notifications string, config config.AppConfig) string {
 	return fmt.Sprintf("notifications/v2?appId=%s&cluster=%s&notifications=%s",
 		url.QueryEscape(config.AppID),
@@ -55,6 +68,13 @@ func (*asyncApolloConfig) GetNotifyURLSuffix(notifications string, config config
 		url.QueryEscape(notifications))
 }
 
+// GetSyncURI constructs the URL for synchronizing configuration
+// Parameters:
+//   - config: Application configuration
+//   - namespaceName: The namespace to sync
+//
+// Returns:
+//   - string: The constructed URL for config sync endpoint
 func (*asyncApolloConfig) GetSyncURI(config config.AppConfig, namespaceName string) string {
 	return fmt.Sprintf("configs/%s/%s/%s?releaseKey=%s&ip=%s&label=%s",
 		url.QueryEscape(config.AppID),
@@ -65,6 +85,12 @@ func (*asyncApolloConfig) GetSyncURI(config config.AppConfig, namespaceName stri
 		url.QueryEscape(config.Label))
 }
 
+// Sync synchronizes configurations from remote Apollo server
+// Parameters:
+//   - appConfigFunc: Function that provides application configuration
+//
+// Returns:
+//   - []*config.ApolloConfig: Array of synchronized Apollo configurations
 func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*config.ApolloConfig {
 	appConfig := appConfigFunc()
 	remoteConfigs, err := a.notifyRemoteConfig(appConfigFunc, utils.Empty)
@@ -77,7 +103,7 @@ func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*confi
 	if len(remoteConfigs) == 0 || len(apolloConfigs) > 0 {
 		return apolloConfigs
 	}
-	//只是拉去有变化的配置, 并更新拉取成功的namespace的notify ID
+	// just fetch the changed configurations, and update the namespace that has been fetched successfully
 	for _, notifyConfig := range remoteConfigs {
 		apolloConfig := a.SyncWithNamespace(notifyConfig.NamespaceName, appConfigFunc)
 		if apolloConfig != nil {
@@ -88,6 +114,12 @@ func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*confi
 	return apolloConfigs
 }
 
+// CallBack creates a callback handler for HTTP requests
+// Parameters:
+//   - namespace: The namespace for which the callback is created
+//
+// Returns:
+//   - http.CallBack: Callback structure with success and error handlers
 func (*asyncApolloConfig) CallBack(namespace string) http.CallBack {
 	return http.CallBack{
 		SuccessCallBack:   createApolloConfigWithJSON,
@@ -96,6 +128,14 @@ func (*asyncApolloConfig) CallBack(namespace string) http.CallBack {
 	}
 }
 
+// notifyRemoteConfig handles the long polling notification process
+// Parameters:
+//   - appConfigFunc: Function that provides application configuration
+//   - namespace: The namespace to monitor
+//
+// Returns:
+//   - []*config.Notification: Array of notifications
+//   - error: Any error that occurred during the process
 func (a *asyncApolloConfig) notifyRemoteConfig(appConfigFunc func() config.AppConfig, namespace string) ([]*config.Notification, error) {
 	if appConfigFunc == nil {
 		panic("can not find apollo config!please confirm!")
@@ -125,10 +165,20 @@ func (a *asyncApolloConfig) notifyRemoteConfig(appConfigFunc func() config.AppCo
 	return notifies.([]*config.Notification), err
 }
 
+// touchApolloConfigCache is a no-op function for cache touching operations
+// Returns:
+//   - error: Always returns nil
 func touchApolloConfigCache() error {
 	return nil
 }
 
+// toApolloConfig converts response body to Apollo notification array
+// Parameters:
+//   - resBody: Raw response body from Apollo server
+//
+// Returns:
+//   - []*config.Notification: Parsed notification array
+//   - error: Any error during parsing
 func toApolloConfig(resBody []byte) ([]*config.Notification, error) {
 	remoteConfig := make([]*config.Notification, 0)
 
@@ -141,6 +191,13 @@ func toApolloConfig(resBody []byte) ([]*config.Notification, error) {
 	return remoteConfig, nil
 }
 
+// loadBackupConfig loads configuration from backup files when remote sync fails
+// Parameters:
+//   - namespace: The namespace to load
+//   - appConfig: Application configuration
+//
+// Returns:
+//   - []*config.ApolloConfig: Array of configurations loaded from backup
 func loadBackupConfig(namespace string, appConfig config.AppConfig) []*config.ApolloConfig {
 	apolloConfigs := make([]*config.ApolloConfig, 0)
 	config.SplitNamespaces(namespace, func(namespace string) {
@@ -157,6 +214,20 @@ func loadBackupConfig(namespace string, appConfig config.AppConfig) []*config.Ap
 	return apolloConfigs
 }
 
+// createApolloConfigWithJSON creates Apollo configuration from JSON response
+// Parameters:
+//   - b: Raw JSON bytes
+//   - callback: HTTP callback handler
+//
+// Returns:
+//   - interface{}: Created Apollo configuration
+//   - error: Any error during creation
+//
+// This function:
+// 1. Unmarshals JSON into Apollo config
+// 2. Determines appropriate parser based on namespace
+// 3. Parses configuration content
+// 4. Updates configuration map
 func createApolloConfigWithJSON(b []byte, callback http.CallBack) (o interface{}, err error) {
 	apolloConfig := &config.ApolloConfig{}
 	err = json.Unmarshal(b, apolloConfig)

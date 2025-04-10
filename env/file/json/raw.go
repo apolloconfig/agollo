@@ -25,15 +25,31 @@ import (
 )
 
 var (
-	raw     file.FileHandler
+	// raw is the singleton instance of FileHandler for raw file operations
+	raw file.FileHandler
+	// rawOnce ensures thread-safe initialization of the raw FileHandler
 	rawOnce sync.Once
 )
 
-// rawFileHandler 写入备份文件时，同时写入原始内容和namespace类型
+// rawFileHandler extends FileHandler to write both raw content and namespace type
+// when backing up configuration files. It provides functionality to store
+// configurations in their original format alongside the JSON representation
 type rawFileHandler struct {
 	*FileHandler
 }
 
+// writeWithRaw writes the raw configuration content to a file
+// Parameters:
+//   - config: Apollo configuration containing the raw content
+//   - configDir: Target directory for the configuration file
+//
+// Returns:
+//   - error: Any error that occurred during the write operation
+//
+// This function:
+// 1. Constructs the file path using namespace
+// 2. Creates a new file
+// 3. Writes the raw content if available
 func writeWithRaw(config *config.ApolloConfig, configDir string) error {
 	filePath := ""
 	if configDir != "" {
@@ -56,7 +72,18 @@ func writeWithRaw(config *config.ApolloConfig, configDir string) error {
 	return nil
 }
 
-// WriteConfigFile write config to file
+// WriteConfigFile implements the FileHandler interface for raw file handling
+// Parameters:
+//   - config: Apollo configuration to be written
+//   - configPath: Target directory path for the configuration file
+//
+// Returns:
+//   - error: Any error that occurred during the write operation
+//
+// This method:
+// 1. Creates the target directory if needed
+// 2. Writes the raw content to a separate file
+// 3. Writes the JSON format configuration
 func (fileHandler *rawFileHandler) WriteConfigFile(config *config.ApolloConfig, configPath string) error {
 	err := fileHandler.createDir(configPath)
 	if err != nil {
@@ -70,7 +97,11 @@ func (fileHandler *rawFileHandler) WriteConfigFile(config *config.ApolloConfig, 
 	return jsonFileConfig.Write(config, fileHandler.GetConfigFile(configPath, config.AppID, config.NamespaceName))
 }
 
-// GetRawFileHandler 获取 rawFileHandler 实例
+// GetRawFileHandler returns a singleton instance of the raw file handler
+// Returns:
+//   - file.FileHandler: Thread-safe singleton instance of rawFileHandler
+//
+// This function uses sync.Once to ensure the handler is initialized only once
 func GetRawFileHandler() file.FileHandler {
 	rawOnce.Do(func() {
 		raw = &rawFileHandler{}

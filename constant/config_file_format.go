@@ -14,20 +14,32 @@
 
 package constant
 
-// ConfigFileFormat 配置文件类型
+// ConfigFileFormat represents the supported configuration file formats in Apollo
+// It is used to determine the appropriate parser for different configuration file types
 type ConfigFileFormat string
 
 const (
-	//Properties Properties
+	// Properties represents Java properties file format (.properties)
+	// This format is commonly used for storing key-value pairs in Java applications
 	Properties ConfigFileFormat = ".properties"
-	//XML XML
+
+	// XML represents XML file format (.xml)
+	// Used for structured configuration data in XML format
 	XML ConfigFileFormat = ".xml"
-	//JSON JSON
+
+	// JSON represents JSON file format (.json)
+	// Used for structured configuration data in JSON format
 	JSON ConfigFileFormat = ".json"
-	//YML YML
+
+	// YML represents YAML file format (.yml)
+	// A human-readable format commonly used for configuration files
 	YML ConfigFileFormat = ".yml"
-	//YAML YAML
+
+	// YAML represents YAML file format (.yaml)
+	// Alternative extension for YAML format files
 	YAML ConfigFileFormat = ".yaml"
-	// DEFAULT DEFAULT
+
+	// DEFAULT represents the default format (empty string)
+	// Used when no specific format is specified or detected
 	DEFAULT ConfigFileFormat = ""
 )

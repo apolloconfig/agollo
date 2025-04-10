@@ -18,9 +18,33 @@ import (
 	"github.com/apolloconfig/agollo/v4/env/config"
 )
 
-// FileHandler 备份文件读写
+// FileHandler defines the interface for handling Apollo configuration file operations
+// This interface provides methods for reading, writing, and managing configuration files
 type FileHandler interface {
+	// WriteConfigFile writes Apollo configuration to a backup file
+	// Parameters:
+	//   - config: Apollo configuration to be written
+	//   - configPath: Target path for the configuration file
+	// Returns:
+	//   - error: Any error that occurred during the write operation
 	WriteConfigFile(config *config.ApolloConfig, configPath string) error
+
+	// GetConfigFile constructs the configuration file path
+	// Parameters:
+	//   - configDir: Base directory for configuration files
+	//   - appID: Application identifier
+	//   - namespace: Configuration namespace
+	// Returns:
+	//   - string: Complete file path for the configuration file
 	GetConfigFile(configDir string, appID string, namespace string) string
+
+	// LoadConfigFile reads and parses an Apollo configuration file
+	// Parameters:
+	//   - configDir: Base directory for configuration files
+	//   - appID: Application identifier
+	//   - namespace: Configuration namespace
+	// Returns:
+	//   - *config.ApolloConfig: Parsed configuration object
+	//   - error: Any error that occurred during loading
 	LoadConfigFile(configDir string, appID string, namespace string) (*config.ApolloConfig, error)
 }

@@ -31,22 +31,26 @@ import (
 )
 
 const (
-	// 1 minute
+	// configCacheExpireTime defines the expiration time for configuration cache in seconds
 	configCacheExpireTime = 120
 
+	// defaultNamespace is the default namespace for Apollo configuration
 	defaultNamespace = "application"
 
+	// propertiesFormat is the format string for properties file output
 	propertiesFormat = "%s=%v\n"
 )
 
-// Cache apollo 配置缓存
+// Cache represents the Apollo configuration cache
+// It maintains a thread-safe storage for configurations and manages change listeners
 type Cache struct {
 	apolloConfigCache sync.Map
 	changeListeners   *list.List
 	rw                sync.RWMutex
 }
 
-// GetConfig 根据namespace获取apollo配置
+// GetConfig retrieves the configuration for a specific namespace
+// Returns nil if the namespace is empty or not found
 func (c *Cache) GetConfig(namespace string) *Config {
 	if namespace == "" {
 		return nil
@@ -61,7 +65,8 @@ func (c *Cache) GetConfig(namespace string) *Config {
 	return config.(*Config)
 }
 
-// CreateNamespaceConfig 根据namespace初始化agollo内容配置
+// CreateNamespaceConfig initializes Apollo configuration for the given namespace
+// It creates a new cache instance and initializes configurations for each namespace
 func CreateNamespaceConfig(namespace string) *Cache {
 	// config from apollo
 	var apolloConfigCache sync.Map
@@ -78,6 +83,8 @@ func CreateNamespaceConfig(namespace string) *Cache {
 	}
 }
 
+// initConfig initializes a new Config instance for the given namespace
+// It sets up the cache and initialization flags
 func initConfig(namespace string, factory agcache.CacheFactory) *Config {
 	c := &Config{
 		namespace: namespace,
@@ -88,7 +95,8 @@ func initConfig(namespace string, factory agcache.CacheFactory) *Config {
 	return c
 }
 
-// Config apollo配置项
+// Config represents an Apollo configuration item
+// It contains the namespace, cache, and initialization state
 type Config struct {
 	namespace string
 	cache     agcache.CacheInterface
@@ -96,22 +104,24 @@ type Config struct {
 	waitInit  sync.WaitGroup
 }
 
-// GetIsInit 获取标志
+// GetIsInit returns the initialization status of the configuration
 func (c *Config) GetIsInit() bool {
 	return c.isInit.Load().(bool)
 }
 
-// GetWaitInit 获取标志
+// GetWaitInit returns the WaitGroup for initialization synchronization
 func (c *Config) GetWaitInit() *sync.WaitGroup {
 	return &c.waitInit
 }
 
-// GetCache 获取cache
+// GetCache returns the cache interface for this configuration
 func (c *Config) GetCache() agcache.CacheInterface {
 	return c.cache
 }
 
-// getConfigValue 获取配置值
+// getConfigValue retrieves a configuration value by key
+// If waitInit is true, it will wait for initialization to complete
+// Returns nil if the key doesn't exist or there's an error
 func (c *Config) getConfigValue(key string, waitInit bool) interface{} {
 	b := c.GetIsInit()
 	if !b {
@@ -135,7 +145,8 @@ func (c *Config) getConfigValue(key string, waitInit bool) interface{} {
 	return value
 }
 
-// GetValueImmediately 获取配置值（string），立即返回，初始化未完成直接返回错误
+// GetValueImmediately retrieves a string configuration value without waiting for initialization
+// Returns empty string if the key doesn't exist or there's an error
 func (c *Config) GetValueImmediately(key string) string {
 	value := c.getConfigValue(key, false)
 	if value == nil {
@@ -150,7 +161,8 @@ func (c *Config) GetValueImmediately(key string) string {
 	return v
 }
 
-// GetStringValueImmediately 获取配置值（string），立即返回，初始化未完成直接返回错误
+// GetStringValueImmediately retrieves a string configuration value with default fallback
+// Returns the default value if the key doesn't exist
 func (c *Config) GetStringValueImmediately(key string, defaultValue string) string {
 	value := c.GetValueImmediately(key)
 	if value == utils.Empty {
@@ -160,7 +172,8 @@ func (c *Config) GetStringValueImmediately(key string, defaultValue string) stri
 	return value
 }
 
-// GetStringSliceValueImmediately 获取配置值（[]string），立即返回，初始化未完成直接返回错误
+// GetStringSliceValueImmediately retrieves a string slice configuration value without waiting
+// Returns the default value if the key doesn't exist or conversion fails
 func (c *Config) GetStringSliceValueImmediately(key string, defaultValue []string) []string {
 	value := c.getConfigValue(key, false)
 	if value == nil {
@@ -175,7 +188,8 @@ func (c *Config) GetStringSliceValueImmediately(key string, defaultValue []strin
 	return v
 }
 
-// GetIntSliceValueImmediately 获取配置值（[]int)，立即返回，初始化未完成直接返回错误
+// GetIntSliceValueImmediately retrieves an integer slice configuration value without waiting
+// Returns the default value if the key doesn't exist or conversion fails
 func (c *Config) GetIntSliceValueImmediately(key string, defaultValue []int) []int {
 	value := c.getConfigValue(key, false)
 	if value == nil {
@@ -190,7 +204,8 @@ func (c *Config) GetIntSliceValueImmediately(key string, defaultValue []int) []i
 	return v
 }
 
-// GetSliceValueImmediately 获取配置值（[]interface)，立即返回，初始化未完成直接返回错误
+// GetSliceValueImmediately retrieves an interface slice configuration value without waiting
+// Returns the default value if the key doesn't exist or conversion fails
 func (c *Config) GetSliceValueImmediately(key string, defaultValue []interface{}) []interface{} {
 	value := c.getConfigValue(key, false)
 	if value == nil {
@@ -205,7 +220,8 @@ func (c *Config) GetSliceValueImmediately(key string, defaultValue []interface{}
 	return v
 }
 
-// GetIntValueImmediately 获取配置值（int），获取不到则取默认值，立即返回，初始化未完成直接返回错误
+// GetIntValueImmediately retrieves an integer configuration value without waiting
+// Returns the default value if the key doesn't exist or conversion fails
 func (c *Config) GetIntValueImmediately(key string, defaultValue int) int {
 	value := c.getConfigValue(key, false)
 	if value == nil {
@@ -232,7 +248,8 @@ func (c *Config) GetIntValueImmediately(key string, defaultValue int) int {
 	return v
 }
 
-// GetFloatValueImmediately 获取配置值（float），获取不到则取默认值，立即返回，初始化未完成直接返回错误
+// GetFloatValueImmediately retrieves a float configuration value without waiting
+// Returns the default value if the key doesn't exist or conversion fails
 func (c *Config) GetFloatValueImmediately(key string, defaultValue float64) float64 {
 	value := c.getConfigValue(key, false)
 	if value == nil {
@@ -259,7 +276,8 @@ func (c *Config) GetFloatValueImmediately(key string, defaultValue float64) floa
 	return v
 }
 
-// GetBoolValueImmediately 获取配置值（bool），获取不到则取默认值，立即返回，初始化未完成直接返回错误
+// GetBoolValueImmediately retrieves a boolean configuration value without waiting
+// Returns the default value if the key doesn't exist or conversion fails
 func (c *Config) GetBoolValueImmediately(key string, defaultValue bool) bool {
 	value := c.getConfigValue(key, false)
 	if value == nil {
@@ -286,7 +304,8 @@ func (c *Config) GetBoolValueImmediately(key string, defaultValue bool) bool {
 	return v
 }
 
-// GetValue 获取配置值（string）
+// GetValue retrieves a string configuration value, waiting for initialization if necessary
+// Returns empty string if the key doesn't exist or conversion fails
 func (c *Config) GetValue(key string) string {
 	value := c.getConfigValue(key, true)
 	if value == nil {
@@ -301,7 +320,8 @@ func (c *Config) GetValue(key string) string {
 	return v
 }
 
-// GetStringValue 获取配置值（string），获取不到则取默认值
+// GetStringValue retrieves a string configuration value with default fallback
+// Returns the default value if the key doesn't exist
 func (c *Config) GetStringValue(key string, defaultValue string) string {
 	value := c.GetValue(key)
 	if value == utils.Empty {
@@ -311,7 +331,9 @@ func (c *Config) GetStringValue(key string, defaultValue string) string {
 	return value
 }
 
-// GetStringSliceValue 获取配置值（[]string）
+// GetStringSliceValue retrieves a string slice configuration value
+// The values are split by the separator if the value is a string
+// Returns the default value if the key doesn't exist or conversion fails
 func (c *Config) GetStringSliceValue(key, separator string, defaultValue []string) []string {
 	value := c.getConfigValue(key, true)
 	if value == nil {
@@ -330,7 +352,9 @@ func (c *Config) GetStringSliceValue(key, separator string, defaultValue []strin
 	return v
 }
 
-// GetIntSliceValue 获取配置值（[]int)
+// GetIntSliceValue retrieves an integer slice configuration value
+// The values are split by the separator if the value is a string
+// Returns the default value if the key doesn't exist or conversion fails
 func (c *Config) GetIntSliceValue(key, separator string, defaultValue []int) []int {
 	value := c.getConfigValue(key, true)
 	if value == nil {
@@ -356,7 +380,8 @@ func (c *Config) GetIntSliceValue(key, separator string, defaultValue []int) []i
 	return v
 }
 
-// GetSliceValue 获取配置值（[]interface)
+// GetSliceValue retrieves an interface slice configuration value
+// Returns the default value if the key doesn't exist or conversion fails
 func (c *Config) GetSliceValue(key string, defaultValue []interface{}) []interface{} {
 	value := c.getConfigValue(key, true)
 	if value == nil {
@@ -371,7 +396,8 @@ func (c *Config) GetSliceValue(key string, defaultValue []interface{}) []interfa
 	return v
 }
 
-// GetIntValue 获取配置值（int），获取不到则取默认值
+// GetIntValue retrieves an integer configuration value with default fallback
+// Returns the default value if the key doesn't exist or conversion fails
 func (c *Config) GetIntValue(key string, defaultValue int) int {
 	value := c.getConfigValue(key, true)
 	if value == nil {
@@ -397,7 +423,8 @@ func (c *Config) GetIntValue(key string, defaultValue int) int {
 	return v
 }
 
-// GetFloatValue 获取配置值（float），获取不到则取默认值
+// GetFloatValue retrieves a float configuration value with default fallback
+// Returns the default value if the key doesn't exist or conversion fails
 func (c *Config) GetFloatValue(key string, defaultValue float64) float64 {
 	value := c.getConfigValue(key, true)
 	if value == nil {
@@ -423,7 +450,8 @@ func (c *Config) GetFloatValue(key string, defaultValue float64) float64 {
 	return v
 }
 
-// GetBoolValue 获取配置值（bool），获取不到则取默认值
+// GetBoolValue retrieves a boolean configuration value with default fallback
+// Returns the default value if the key doesn't exist or conversion fails
 func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
 	value := c.getConfigValue(key, true)
 	if value == nil {
@@ -449,8 +477,8 @@ func (c *Config) GetBoolValue(key string, defaultValue bool) bool {
 	return v
 }
 
-// UpdateApolloConfig 根据config server返回的内容更新内存
-// 并判断是否需要写备份文件
+// UpdateApolloConfig updates the in-memory configuration based on the server response
+// It also determines whether to write a backup file
 func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfigFunc func() config.AppConfig) {
 	if apolloConfig == nil {
 		log.Error("apolloConfig is null, can't update!")
@@ -484,7 +512,8 @@ func (c *Cache) UpdateApolloConfig(apolloConfig *config.ApolloConfig, appConfigF
 	}
 }
 
-// UpdateApolloConfigCache 根据conf[ig server返回的内容更新内存
+// UpdateApolloConfigCache updates the in-memory cache based on the server response
+// It returns a map of configuration changes
 func (c *Cache) UpdateApolloConfigCache(configurations map[string]interface{}, expireTime int, namespace string) map[string]*ConfigChange {
 	config := c.GetConfig(namespace)
 	if config == nil {
@@ -518,8 +547,7 @@ func (c *Cache) UpdateApolloConfigCache(configurations map[string]interface{}, e
 
 	changes := make(map[string]*ConfigChange)
 
-	// update new
-	// keys
+	// update new keys
 	for key, value := range configurations {
 		// key state insert or update
 		// insert
@@ -540,9 +568,9 @@ func (c *Cache) UpdateApolloConfigCache(configurations map[string]interface{}, e
 		delete(mp, key)
 	}
 
-	// remove del keys
+	// remove deleted keys
 	for key := range mp {
-		// get old value and del
+		// get old value and delete
 		oldValue, _ := config.cache.Get(key)
 		changes[key] = createDeletedConfigChange(oldValue)
 
@@ -553,11 +581,12 @@ func (c *Cache) UpdateApolloConfigCache(configurations map[string]interface{}, e
 	return changes
 }
 
-// GetContent 获取配置文件内容
+// GetContent retrieves the configuration content in properties format
 func (c *Config) GetContent() string {
 	return convertToProperties(c.cache)
 }
 
+// convertToProperties converts the cache content to properties format
 func convertToProperties(cache agcache.CacheInterface) string {
 	properties := utils.Empty
 	if cache == nil {
@@ -570,12 +599,13 @@ func convertToProperties(cache agcache.CacheInterface) string {
 	return properties
 }
 
-// GetDefaultNamespace 获取默认命名空间
+// GetDefaultNamespace returns the default namespace for Apollo configuration
 func GetDefaultNamespace() string {
 	return defaultNamespace
 }
 
-// AddChangeListener 增加变更监控
+// AddChangeListener adds a change listener to the cache
+// The listener will be notified when configuration changes occur
 func (c *Cache) AddChangeListener(listener ChangeListener) {
 	if listener == nil {
 		return
@@ -585,7 +615,8 @@ func (c *Cache) AddChangeListener(listener ChangeListener) {
 	c.changeListeners.PushBack(listener)
 }
 
-// RemoveChangeListener 删除变更监控
+// RemoveChangeListener removes a change listener from the cache
+// The listener will no longer receive configuration change notifications
 func (c *Cache) RemoveChangeListener(listener ChangeListener) {
 	if listener == nil {
 		return
@@ -600,7 +631,8 @@ func (c *Cache) RemoveChangeListener(listener ChangeListener) {
 	}
 }
 
-// GetChangeListeners 获取配置修改监听器列表
+// GetChangeListeners returns the list of configuration change listeners
+// Returns a new list containing all registered listeners
 func (c *Cache) GetChangeListeners() *list.List {
 	if c.changeListeners == nil {
 		return nil
@@ -612,13 +644,14 @@ func (c *Cache) GetChangeListeners() *list.List {
 	return l
 }
 
-// push config change event
+// pushChangeEvent pushes a configuration change event to all listeners
 func (c *Cache) pushChangeEvent(event *ChangeEvent) {
 	c.pushChange(func(listener ChangeListener) {
 		go listener.OnChange(event)
 	})
 }
 
+// pushNewestChanges pushes the latest configuration changes to all listeners
 func (c *Cache) pushNewestChanges(namespace string, configuration map[string]interface{}, notificationID int64) {
 	e := &FullChangeEvent{
 		Changes: configuration,
@@ -630,8 +663,10 @@ func (c *Cache) pushNewestChanges(namespace string, configuration map[string]int
 	})
 }
 
+// pushChange executes the given function for each change listener
+// It handles the case when there are no listeners
 func (c *Cache) pushChange(f func(ChangeListener)) {
-	// if channel is null ,mean no listener,don't need to push msg
+	// if channel is null, mean no listener, don't need to push msg
 	listeners := c.GetChangeListeners()
 	if listeners == nil || listeners.Len() == 0 {
 		return

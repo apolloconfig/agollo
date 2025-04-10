@@ -35,26 +35,38 @@ import (
 )
 
 var (
-	//for on error retry
-	onErrorRetryInterval = 2 * time.Second //2s
+	// onErrorRetryInterval defines the waiting period between retry attempts
+	// when a request fails (2 seconds)
+	onErrorRetryInterval = 2 * time.Second
 
-	connectTimeout = 1 * time.Second //1s
+	// connectTimeout defines the default connection timeout (1 second)
+	connectTimeout = 1 * time.Second
 
-	//max retries connect apollo
+	// maxRetries defines the maximum number of retry attempts for Apollo server connections
 	maxRetries = 5
 
-	//defaultMaxConnsPerHost defines the maximum number of concurrent connections
+	// defaultMaxConnsPerHost defines the maximum number of concurrent connections per host
 	defaultMaxConnsPerHost = 512
-	//defaultTimeoutBySecond defines the default timeout for http connections
+
+	// defaultTimeoutBySecond defines the default timeout for HTTP connections
 	defaultTimeoutBySecond = 1 * time.Second
-	//defaultKeepAliveSecond defines the connection time
+
+	// defaultKeepAliveSecond defines the duration to keep connections alive
 	defaultKeepAliveSecond = 60 * time.Second
-	// once for single http.Transport
+
+	// once ensures thread-safe initialization of the HTTP transport
 	once sync.Once
-	// defaultTransport http.Transport
+
+	// defaultTransport is the shared HTTP transport configuration
 	defaultTransport *http.Transport
 )
 
+// getDefaultTransport returns a configured HTTP transport with connection pooling
+// Parameters:
+//   - insecureSkipVerify: Whether to skip SSL certificate verification
+//
+// Returns:
+//   - *http.Transport: Configured transport instance
 func getDefaultTransport(insecureSkipVerify bool) *http.Transport {
 	once.Do(func() {
 		defaultTransport = &http.Transport{
@@ -75,18 +87,30 @@ func getDefaultTransport(insecureSkipVerify bool) *http.Transport {
 	return defaultTransport
 }
 
-// CallBack 请求回调函数
+// CallBack defines the callback functions for handling HTTP responses
 type CallBack struct {
-	SuccessCallBack   func([]byte, CallBack) (interface{}, error)
+	// SuccessCallBack handles successful responses (HTTP 200)
+	SuccessCallBack func([]byte, CallBack) (interface{}, error)
+	// NotModifyCallBack handles not modified responses (HTTP 304)
 	NotModifyCallBack func() error
-	AppConfigFunc     func() config.AppConfig
-	Namespace         string
+	// AppConfigFunc provides application configuration
+	AppConfigFunc func() config.AppConfig
+	// Namespace identifies the configuration namespace
+	Namespace string
 }
 
-// Request 建立网络请求
+// Request performs an HTTP request to the Apollo server with retry mechanism
+// Parameters:
+//   - requestURL: Target URL for the request
+//   - connectionConfig: Connection configuration including timeout and credentials
+//   - callBack: Callback functions for handling different response scenarios
+//
+// Returns:
+//   - interface{}: Response data processed by callback functions
+//   - error: Any error that occurred during the request
 func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *CallBack) (interface{}, error) {
 	client := &http.Client{}
-	//如有设置自定义超时时间即使用
+	// Use custom timeout if set
 	if connectionConfig != nil && connectionConfig.Timeout != 0 {
 		client.Timeout = connectionConfig.Timeout
 	} else {
@@ -123,7 +147,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			return nil, errors.New("generate connect Apollo request fail")
 		}
 
-		//增加header选项
+		// Add header options
 		httpAuth := extension.GetHTTPAuth()
 		if httpAuth != nil {
 			headers := httpAuth.HTTPHeaders(requestURL, connectionConfig.AppID, connectionConfig.Secret)
@@ -189,7 +213,21 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 	return nil, err
 }
 
-// RequestRecovery 可以恢复的请求
+// RequestRecovery performs requests with automatic server failover
+// Parameters:
+//   - appConfig: Application configuration containing server information
+//   - connectConfig: Connection configuration for the request
+//   - callBack: Callback functions for handling responses
+//
+// Returns:
+//   - interface{}: Processed response data
+//   - error: Any error that occurred during the request
+//
+// This function implements a failover mechanism by:
+// 1. Using load balancing to select a server
+// 2. Attempting the request
+// 3. Marking failed servers as down
+// 4. Retrying with different servers until successful
 func RequestRecovery(appConfig config.AppConfig,
 	connectConfig *env.ConnectConfig,
 	callBack *CallBack) (interface{}, error) {
@@ -213,6 +251,17 @@ func RequestRecovery(appConfig config.AppConfig,
 	}
 }
 
+// loadBalance selects an Apollo server using the configured load balancing strategy
+// Parameters:
+//   - appConfig: Application configuration containing server information
+//
+// Returns:
+//   - string: Selected server's homepage URL, empty if no server available
+//
+// This function:
+// 1. Checks if direct connection is required
+// 2. Uses load balancer to select a server if needed
+// 3. Returns the appropriate server URL
 func loadBalance(appConfig config.AppConfig) string {
 	if !server.IsConnectDirectly(appConfig.GetHost()) {
 		return appConfig.GetHost()

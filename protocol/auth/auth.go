@@ -14,8 +14,20 @@
 
 package auth
 
-// HTTPAuth http 授权
+// HTTPAuth defines the interface for HTTP authentication in Apollo client
+// This interface provides methods for generating authentication headers
+// for secure communication with Apollo configuration service
 type HTTPAuth interface {
-	// HTTPHeaders 根据 @url 获取 http 授权请求头
+	// HTTPHeaders generates HTTP authentication headers for Apollo API requests
+	// Parameters:
+	//   - url: The target API endpoint URL
+	//   - appID: Application identifier used for authentication
+	//   - secret: Secret key used for generating signatures
+	// Returns:
+	//   - map[string][]string: A map of HTTP headers where:
+	//     - key: HTTP header name (e.g., "Authorization", "Timestamp")
+	//     - value: Array of header values
+	// The implementation should generate all necessary headers for Apollo authentication,
+	// including authorization signature and timestamp
 	HTTPHeaders(url string, appID string, secret string) map[string][]string
 }

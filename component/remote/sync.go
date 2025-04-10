@@ -28,21 +28,34 @@ import (
 	"github.com/apolloconfig/agollo/v4/utils"
 )
 
-// CreateSyncApolloConfig 创建同步获取 Apollo 配置
+// CreateSyncApolloConfig creates a new instance of synchronous Apollo configuration client
+// Returns:
+//   - ApolloConfig: A new instance of syncApolloConfig
 func CreateSyncApolloConfig() ApolloConfig {
 	a := &syncApolloConfig{}
 	a.remoteApollo = a
 	return a
 }
 
+// syncApolloConfig implements synchronous configuration management for Apollo
+// It extends AbsApolloConfig to provide sync-specific functionality
 type syncApolloConfig struct {
 	AbsApolloConfig
 }
 
+// GetNotifyURLSuffix returns an empty string as notifications are not used in sync mode
+// This method is implemented to satisfy the ApolloConfig interface
 func (*syncApolloConfig) GetNotifyURLSuffix(notifications string, config config.AppConfig) string {
 	return ""
 }
 
+// GetSyncURI constructs the URL for synchronous configuration retrieval
+// Parameters:
+//   - config: Application configuration instance
+//   - namespaceName: The namespace to retrieve
+//
+// Returns:
+//   - string: The constructed URL for fetching JSON configuration files
 func (*syncApolloConfig) GetSyncURI(config config.AppConfig, namespaceName string) string {
 	return fmt.Sprintf("configfiles/json/%s/%s/%s?&ip=%s&label=%s",
 		url.QueryEscape(config.AppID),
@@ -52,6 +65,12 @@ func (*syncApolloConfig) GetSyncURI(config config.AppConfig, namespaceName strin
 		url.QueryEscape(config.Label))
 }
 
+// CallBack creates a callback handler for processing JSON configuration files
+// Parameters:
+//   - namespace: The namespace for which the callback is created
+//
+// Returns:
+//   - http.CallBack: Callback structure with JSON processing handlers
 func (*syncApolloConfig) CallBack(namespace string) http.CallBack {
 	return http.CallBack{
 		SuccessCallBack:   processJSONFiles,
@@ -60,6 +79,20 @@ func (*syncApolloConfig) CallBack(namespace string) http.CallBack {
 	}
 }
 
+// processJSONFiles processes the JSON response from Apollo server
+// Parameters:
+//   - b: Raw JSON bytes from the response
+//   - callback: Callback containing namespace information
+//
+// Returns:
+//   - interface{}: Processed Apollo configuration
+//   - error: Any error during processing
+//
+// This function:
+// 1. Creates a new Apollo configuration instance
+// 2. Unmarshals JSON into configurations
+// 3. Applies appropriate format parser based on namespace
+// 4. Processes configuration content
 func processJSONFiles(b []byte, callback http.CallBack) (o interface{}, err error) {
 	apolloConfig := &config.ApolloConfig{}
 	apolloConfig.NamespaceName = callback.Namespace
@@ -96,6 +129,17 @@ func processJSONFiles(b []byte, callback http.CallBack) (o interface{}, err erro
 	return apolloConfig, nil
 }
 
+// Sync synchronizes configurations for all namespaces
+// Parameters:
+//   - appConfigFunc: Function that provides application configuration
+//
+// Returns:
+//   - []*config.ApolloConfig: Array of synchronized configurations
+//
+// This method:
+// 1. Retrieves configurations for each namespace
+// 2. Falls back to backup configurations if sync fails
+// 3. Aggregates all configurations into a single array
 func (a *syncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*config.ApolloConfig {
 	appConfig := appConfigFunc()
 	configs := make([]*config.ApolloConfig, 0, 8)

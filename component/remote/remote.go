@@ -19,16 +19,44 @@ import (
 	"github.com/apolloconfig/agollo/v4/protocol/http"
 )
 
-// ApolloConfig apollo 配置
+// ApolloConfig defines the interface for interacting with Apollo Configuration Center
+// This interface provides methods for both synchronous and asynchronous configuration updates
 type ApolloConfig interface {
-	// GetNotifyURLSuffix 获取异步更新路径
+	// GetNotifyURLSuffix constructs the URL suffix for long polling notifications
+	// Parameters:
+	//   - notifications: JSON string containing notification information
+	//   - config: Application configuration instance
+	// Returns:
+	//   - string: The constructed URL suffix for notifications endpoint
 	GetNotifyURLSuffix(notifications string, config config.AppConfig) string
-	// GetSyncURI 获取同步路径
+
+	// GetSyncURI constructs the URL for synchronizing configuration
+	// Parameters:
+	//   - config: Application configuration instance
+	//   - namespaceName: The namespace to synchronize
+	// Returns:
+	//   - string: The constructed URL for configuration synchronization
 	GetSyncURI(config config.AppConfig, namespaceName string) string
-	// Sync 同步获取 Apollo 配置
+
+	// Sync synchronizes all configurations from Apollo server
+	// Parameters:
+	//   - appConfigFunc: Function that provides application configuration
+	// Returns:
+	//   - []*config.ApolloConfig: Array of synchronized Apollo configurations
 	Sync(appConfigFunc func() config.AppConfig) []*config.ApolloConfig
-	// CallBack 根据 namespace 获取 callback 方法
+
+	// CallBack creates a callback handler for specific namespace
+	// Parameters:
+	//   - namespace: The namespace for which the callback is created
+	// Returns:
+	//   - http.CallBack: Callback structure with success and error handlers
 	CallBack(namespace string) http.CallBack
-	// SyncWithNamespace 通过 namespace 同步 apollo 配置
+
+	// SyncWithNamespace synchronizes configuration for a specific namespace
+	// Parameters:
+	//   - namespace: The namespace to synchronize
+	//   - appConfigFunc: Function that provides application configuration
+	// Returns:
+	//   - *config.ApolloConfig: The synchronized configuration for the specified namespace
 	SyncWithNamespace(namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig
 }

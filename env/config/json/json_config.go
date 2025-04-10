@@ -24,11 +24,19 @@ import (
 	"github.com/apolloconfig/agollo/v4/utils"
 )
 
-// ConfigFile json文件读写
+// ConfigFile implements JSON file read and write operations for Apollo configuration
+// This type provides methods to load and save Apollo configurations in JSON format
 type ConfigFile struct {
 }
 
-// Load json文件读
+// Load reads and parses a JSON configuration file
+// Parameters:
+//   - fileName: The path to the JSON configuration file
+//   - unmarshal: A function that defines how to unmarshal the file content
+//
+// Returns:
+//   - interface{}: The parsed configuration object
+//   - error: Any error that occurred during reading or parsing
 func (t *ConfigFile) Load(fileName string, unmarshal func([]byte) (interface{}, error)) (interface{}, error) {
 	fs, err := ioutil.ReadFile(fileName)
 	if err != nil {
@@ -44,7 +52,18 @@ func (t *ConfigFile) Load(fileName string, unmarshal func([]byte) (interface{}, 
 	return config, nil
 }
 
-// Write json文件写
+// Write saves Apollo configuration to a JSON file
+// Parameters:
+//   - content: The configuration content to be written
+//   - configPath: The target file path where the configuration will be saved
+//
+// Returns:
+//   - error: Any error that occurred during the write operation
+//
+// This method:
+// 1. Validates the input content
+// 2. Creates or overwrites the target file
+// 3. Encodes the content as JSON
 func (t *ConfigFile) Write(content interface{}, configPath string) error {
 	if content == nil {
 		log.Error("content is null can not write backup file")

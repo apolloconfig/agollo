@@ -18,16 +18,29 @@ import (
 	"time"
 )
 
-// ConnectConfig 网络请求配置
+// ConnectConfig defines the configuration for network requests to Apollo server
+// This structure contains all necessary parameters for establishing and managing
+// HTTP connections with the Apollo configuration service
 type ConnectConfig struct {
-	//设置到http.client中timeout字段
+	// Timeout specifies the maximum duration for HTTP requests
+	// This value will be set to http.Client's timeout field
+	// A zero or negative value means no timeout
 	Timeout time.Duration
-	//连接接口的uri
+
+	// URI specifies the endpoint URL for the Apollo API
+	// This should be the complete base URL for the Apollo server
 	URI string
-	//是否重试
+
+	// IsRetry indicates whether to retry failed requests
+	// true: enable retry mechanism
+	// false: disable retry mechanism
 	IsRetry bool
-	//appID
+
+	// AppID uniquely identifies the application in Apollo
+	// This ID is used for authentication and configuration management
 	AppID string
-	//密钥
+
+	// Secret is the authentication key for the application
+	// Used for signing requests to ensure secure communication
 	Secret string
 }

@@ -17,15 +17,26 @@ package extension
 import "github.com/apolloconfig/agollo/v4/agcache"
 
 var (
+	// globalCacheFactory is the singleton instance of the cache factory
+	// It provides a centralized way to create and manage cache instances
 	globalCacheFactory agcache.CacheFactory
 )
 
-// GetCacheFactory 获取CacheFactory
+// GetCacheFactory returns the global cache factory instance
+// Returns:
+//   - agcache.CacheFactory: The current cache factory implementation
+//
+// This function is used to obtain the cache factory for creating new cache instances
 func GetCacheFactory() agcache.CacheFactory {
 	return globalCacheFactory
 }
 
-// SetCacheFactory 替换CacheFactory
+// SetCacheFactory updates the global cache factory implementation
+// Parameters:
+//   - cacheFactory: New cache factory implementation to be used
+//
+// This function allows for custom cache implementations to be injected
+// into the Apollo client for different caching strategies
 func SetCacheFactory(cacheFactory agcache.CacheFactory) {
 	globalCacheFactory = cacheFactory
 }

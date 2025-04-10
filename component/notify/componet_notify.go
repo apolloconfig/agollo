@@ -23,27 +23,42 @@ import (
 )
 
 const (
-	longPollInterval = 2 * time.Second //2s
+	// longPollInterval defines the interval for long polling operations
+	// The client will check for configuration updates every 2 seconds
+	longPollInterval = 2 * time.Second
 )
 
-// ConfigComponent 配置组件
+// ConfigComponent handles the configuration synchronization process
+// It maintains a long-polling mechanism to fetch updates from Apollo server
 type ConfigComponent struct {
+	// appConfigFunc is a function that returns the current application configuration
 	appConfigFunc func() config.AppConfig
-	cache         *storage.Cache
-	stopCh        chan interface{}
+	// cache stores the configuration data
+	cache *storage.Cache
+	// stopCh is used to signal the termination of the polling process
+	stopCh chan interface{}
 }
 
-// SetAppConfig nolint
+// SetAppConfig sets the function that provides application configuration
+// Parameters:
+//   - appConfigFunc: A function that returns the current AppConfig
 func (c *ConfigComponent) SetAppConfig(appConfigFunc func() config.AppConfig) {
 	c.appConfigFunc = appConfigFunc
 }
 
-// SetCache nolint
+// SetCache sets the cache instance for storing configuration data
+// Parameters:
+//   - cache: The storage cache instance to be used
 func (c *ConfigComponent) SetCache(cache *storage.Cache) {
 	c.cache = cache
 }
 
-// Start 启动配置组件定时器
+// Start initiates the configuration synchronization process
+// This method:
+// 1. Initializes the stop channel if not already initialized
+// 2. Creates a timer for periodic synchronization
+// 3. Starts a loop that continuously checks for configuration updates
+// 4. Updates the local cache when new configurations are received
 func (c *ConfigComponent) Start() {
 	if c.stopCh == nil {
 		c.stopCh = make(chan interface{})
@@ -67,7 +82,8 @@ loop:
 	}
 }
 
-// Stop 停止配置组件定时器
+// Stop terminates the configuration synchronization process
+// This method closes the stop channel, which will cause the polling loop to exit
 func (c *ConfigComponent) Stop() {
 	if c.stopCh != nil {
 		close(c.stopCh)

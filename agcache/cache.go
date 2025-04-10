@@ -14,23 +14,51 @@
 
 package agcache
 
-// CacheInterface 自定义缓存组件接口
+// CacheInterface defines the contract for custom cache implementations
 type CacheInterface interface {
+	// Set stores a key-value pair in the cache with an expiration time
+	// Parameters:
+	//   - key: The unique identifier for the cache entry
+	//   - value: The data to be stored
+	//   - expireSeconds: Time in seconds after which the entry should expire
+	// Returns:
+	//   - error: Any error that occurred during the operation
 	Set(key string, value interface{}, expireSeconds int) (err error)
 
+	// EntryCount returns the total number of entries in the cache
+	// Returns:
+	//   - entryCount: The current number of entries stored in the cache
 	EntryCount() (entryCount int64)
 
+	// Get retrieves a value from the cache by its key
+	// Parameters:
+	//   - key: The unique identifier for the cache entry
+	// Returns:
+	//   - value: The stored value if found
+	//   - error: Error if the key doesn't exist or any other error occurs
 	Get(key string) (value interface{}, err error)
 
+	// Del removes an entry from the cache by its key
+	// Parameters:
+	//   - key: The unique identifier of the entry to be deleted
+	// Returns:
+	//   - affected: True if the key was found and deleted, false otherwise
 	Del(key string) (affected bool)
 
+	// Range iterates over all key/value pairs in the cache
+	// Parameters:
+	//   - f: The function to be executed for each cache entry
+	//        Return false from f to stop iteration
 	Range(f func(key, value interface{}) bool)
 
+	// Clear removes all entries from the cache
 	Clear()
 }
 
-// CacheFactory 缓存组件工厂接口
+// CacheFactory defines the interface for creating cache instances
 type CacheFactory interface {
-	//Create 创建缓存组件
+	// Create instantiates and returns a new cache implementation
+	// Returns:
+	//   - CacheInterface: A new instance of a cache implementation
 	Create() CacheInterface
 }

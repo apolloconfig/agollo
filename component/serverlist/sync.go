@@ -27,26 +27,34 @@ import (
 )
 
 const (
-	//refresh ip list
-	refreshIPListInterval = 20 * time.Minute //20m
+	// refreshIPListInterval defines the interval for refreshing server IP list
+	// The client will update the server list every 20 minutes
+	refreshIPListInterval = 20 * time.Minute
 )
 
 func init() {
-
 }
 
-// InitSyncServerIPList 初始化同步服务器信息列表
+// InitSyncServerIPList initializes the synchronization of server information list
+// Parameters:
+//   - appConfig: Function that provides application configuration
+//
+// This function starts a goroutine to periodically refresh the server list
 func InitSyncServerIPList(appConfig func() config.AppConfig) {
 	go component.StartRefreshConfig(&SyncServerIPListComponent{appConfig})
 }
 
-// SyncServerIPListComponent set timer for update ip list
-// interval : 20m
+// SyncServerIPListComponent implements periodic server list synchronization
+// It maintains a timer to update the IP list every 20 minutes
 type SyncServerIPListComponent struct {
 	appConfig func() config.AppConfig
 }
 
-// Start 启动同步服务器列表
+// Start begins the server list synchronization process
+// This method:
+// 1. Performs initial synchronization
+// 2. Sets up a timer for periodic updates
+// 3. Continuously monitors for timer events
 func (s *SyncServerIPListComponent) Start() {
 	SyncServerIPList(s.appConfig)
 	log.Debug("syncServerIpList started")
@@ -91,7 +99,20 @@ func SyncServerIPList(appConfigFunc func() config.AppConfig) (map[string]*config
 	return m, err
 }
 
-// SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
+// SyncServerIPListSuccessCallBack handles the successful response from server list synchronization
+// Parameters:
+//   - responseBody: Raw response bytes from the server
+//   - callback: HTTP callback handler containing context information
+//
+// Returns:
+//   - interface{}: Map of server information processed from response
+//   - error: Any error during response processing
+//
+// This function:
+// 1. Logs the received server information
+// 2. Unmarshals JSON response into server info structures
+// 3. Validates the server list
+// 4. Creates a map of servers indexed by homepage URL
 func SyncServerIPListSuccessCallBack(responseBody []byte, callback http.CallBack) (o interface{}, err error) {
 	log.Debug("get all server info:", string(responseBody))
 

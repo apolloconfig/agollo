@@ -23,39 +23,46 @@ import (
 )
 
 const (
+	// fmtInvalidKey is the error message format for invalid key patterns
 	fmtInvalidKey = "invalid key format for key %s"
 )
 
 var (
-	//ErrNilListener 为没有找到listener的错误
+	// ErrNilListener represents an error when a nil listener is provided
 	ErrNilListener = errors.New("nil listener")
 )
 
-// Event generated when any config changes
+// Event represents a configuration change event
+// It contains the type of change, the affected key, and the new value
 type Event struct {
 	EventType ConfigChangeType
 	Key       string
 	Value     interface{}
 }
 
-// Listener All Listener should implement this Interface
+// Listener is an interface that all event listeners must implement
+// It defines the Event method that will be called when configuration changes occur
 type Listener interface {
 	Event(event *Event)
 }
 
-// Dispatcher is the observer
+// Dispatcher manages the event distribution system
+// It maintains a map of keys to their registered listeners
 type Dispatcher struct {
 	listeners map[string][]Listener
 }
 
-// UseEventDispatch 用于开启事件分发功能
+// UseEventDispatch creates and initializes a new event dispatcher
+// Returns a new Dispatcher instance with an initialized listeners map
 func UseEventDispatch() *Dispatcher {
 	eventDispatch := new(Dispatcher)
 	eventDispatch.listeners = make(map[string][]Listener)
 	return eventDispatch
 }
 
-// RegisterListener 是为某些key注释Listener的方法
+// RegisterListener registers a listener for specific configuration keys
+// The keys can be regular expressions to match multiple configuration keys
+// Returns an error if the listener is nil or if any key pattern is invalid
 func (d *Dispatcher) RegisterListener(listenerObject Listener, keys ...string) error {
 	log.Infof("start add  key %v add listener", keys)
 	if listenerObject == nil {
@@ -85,12 +92,16 @@ func (d *Dispatcher) RegisterListener(listenerObject Listener, keys ...string) e
 	return nil
 }
 
+// invalidKey checks if a key pattern is a valid regular expression
+// Returns true if the pattern is invalid, false otherwise
 func invalidKey(key string) bool {
 	_, err := regexp.Compile(key)
 	return err != nil
 }
 
-// UnRegisterListener 用于为某些key注释Listener
+// UnRegisterListener removes a listener from specific configuration keys
+// The keys can be regular expressions to match multiple configuration keys
+// Returns an error if the listener is nil
 func (d *Dispatcher) UnRegisterListener(listenerObj Listener, keys ...string) error {
 	if listenerObj == nil {
 		return ErrNilListener
@@ -117,7 +128,8 @@ func (d *Dispatcher) UnRegisterListener(listenerObj Listener, keys ...string) er
 	return nil
 }
 
-// OnChange 实现Apollo的ChangeEvent处理
+// OnChange implements the ChangeEvent handler for Apollo configuration changes
+// It processes the change event and dispatches events to registered listeners
 func (d *Dispatcher) OnChange(changeEvent *ChangeEvent) {
 	if changeEvent == nil {
 		return
@@ -128,10 +140,14 @@ func (d *Dispatcher) OnChange(changeEvent *ChangeEvent) {
 	}
 }
 
+// OnNewestChange handles the latest configuration change events
+// This method is currently empty and reserved for future implementation
 func (d *Dispatcher) OnNewestChange(event *FullChangeEvent) {
 
 }
 
+// dispatchEvent dispatches a configuration change event to all matching listeners
+// It matches the event key against registered key patterns and notifies matching listeners
 func (d *Dispatcher) dispatchEvent(eventKey string, event *ConfigChange) {
 	for regKey, listenerList := range d.listeners {
 		matched, err := regexp.MatchString(regKey, eventKey)
@@ -148,6 +164,8 @@ func (d *Dispatcher) dispatchEvent(eventKey string, event *ConfigChange) {
 	}
 }
 
+// convertToEvent converts a ConfigChange to an Event
+// It sets the appropriate value based on the change type
 func convertToEvent(key string, event *ConfigChange) *Event {
 	e := &Event{
 		EventType: event.ChangeType,

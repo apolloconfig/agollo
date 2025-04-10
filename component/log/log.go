@@ -14,113 +14,141 @@
 
 package log
 
-// Logger logger 对象
+// Logger is the global logger instance used throughout the application
 var Logger LoggerInterface
 
 func init() {
 	Logger = &DefaultLogger{}
 }
 
-// InitLogger 初始化logger对象
+// InitLogger initializes the logger with a custom implementation
+// Parameters:
+//   - ILogger: The logger implementation to be used
 func InitLogger(ILogger LoggerInterface) {
 	Logger = ILogger
 }
 
-// LoggerInterface 日志接口
+// LoggerInterface defines the contract for logger implementations
+// This interface provides methods for different logging levels and formats
 type LoggerInterface interface {
+	// Debugf logs debug messages with formatting
 	Debugf(format string, params ...interface{})
 
+	// Infof logs information messages with formatting
 	Infof(format string, params ...interface{})
 
+	// Warnf logs warning messages with formatting
 	Warnf(format string, params ...interface{})
 
+	// Errorf logs error messages with formatting
 	Errorf(format string, params ...interface{})
 
+	// Debug logs debug messages
 	Debug(v ...interface{})
 
+	// Info logs information messages
 	Info(v ...interface{})
 
+	// Warn logs warning messages
 	Warn(v ...interface{})
 
+	// Error logs error messages
 	Error(v ...interface{})
 }
 
-// Debugf debug 格式化
+// Debugf formats and logs a debug message using the global logger
+// Parameters:
+//   - format: The format string
+//   - params: The parameters to be formatted
 func Debugf(format string, params ...interface{}) {
 	Logger.Debugf(format, params...)
 }
 
-// Infof 打印info
+// Infof formats and logs an information message using the global logger
+// Parameters:
+//   - format: The format string
+//   - params: The parameters to be formatted
 func Infof(format string, params ...interface{}) {
 	Logger.Infof(format, params...)
 }
 
-// Warnf warn格式化
+// Warnf formats and logs a warning message using the global logger
+// Parameters:
+//   - format: The format string
+//   - params: The parameters to be formatted
 func Warnf(format string, params ...interface{}) {
 	Logger.Warnf(format, params...)
 }
 
-// Errorf error格式化
+// Errorf formats and logs an error message using the global logger
+// Parameters:
+//   - format: The format string
+//   - params: The parameters to be formatted
 func Errorf(format string, params ...interface{}) {
 	Logger.Errorf(format, params...)
 }
 
-// Debug 打印debug
+// Debug logs a debug message using the global logger
+// Parameters:
+//   - v: The values to be logged
 func Debug(v ...interface{}) {
 	Logger.Debug(v...)
 }
 
-// Info 打印Info
+// Info logs an information message using the global logger
+// Parameters:
+//   - v: The values to be logged
 func Info(v ...interface{}) {
 	Logger.Info(v...)
 }
 
-// Warn 打印Warn
+// Warn logs a warning message using the global logger
+// Parameters:
+//   - v: The values to be logged
 func Warn(v ...interface{}) {
 	Logger.Warn(v...)
 }
 
-// Error 打印Error
+// Error logs an error message using the global logger
+// Parameters:
+//   - v: The values to be logged
 func Error(v ...interface{}) {
 	Logger.Error(v...)
 }
 
-// DefaultLogger 默认日志实现
+// DefaultLogger provides a basic implementation of the LoggerInterface
+// This implementation is used as a fallback when no custom logger is provided
 type DefaultLogger struct {
 }
 
-// Debugf debug 格式化
+// Debugf implements debug level formatted logging (empty implementation)
 func (d *DefaultLogger) Debugf(format string, params ...interface{}) {
-
 }
 
-// Infof 打印info
+// Infof implements info level formatted logging (empty implementation)
 func (d *DefaultLogger) Infof(format string, params ...interface{}) {
-
 }
 
-// Warnf warn格式化
+// Warnf implements warning level formatted logging (empty implementation)
 func (d *DefaultLogger) Warnf(format string, params ...interface{}) {
 }
 
-// Errorf error格式化
+// Errorf implements error level formatted logging (empty implementation)
 func (d *DefaultLogger) Errorf(format string, params ...interface{}) {
 }
 
-// Debug 打印debug
+// Debug implements debug level logging (empty implementation)
 func (d *DefaultLogger) Debug(v ...interface{}) {
-
 }
 
-// Info 打印Info
+// Info implements info level logging (empty implementation)
 func (d *DefaultLogger) Info(v ...interface{}) {
-
 }
 
-// Warn 打印Warn
+// Warn implements warning level logging (empty implementation)
 func (d *DefaultLogger) Warn(v ...interface{}) {
 }
 
-// Error 打印Error
+// Error implements error level logging (empty implementation)
 func (d *DefaultLogger) Error(v ...interface{}) {
 }
