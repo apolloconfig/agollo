@@ -79,9 +79,12 @@ func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*confi
 	}
 	//只是拉去有变化的配置, 并更新拉取成功的namespace的notify ID
 	for _, notifyConfig := range remoteConfigs {
-		apolloConfig := a.SyncWithNamespace(notifyConfig.NamespaceName, appConfigFunc)
-		if apolloConfig != nil {
+		apolloConfig, wasNotModified := a.syncWithNamespaceAndDetectNotModified(notifyConfig.NamespaceName, appConfigFunc)
+		// Update notificationID if we got a successful response (including 304)
+		if apolloConfig != nil || wasNotModified {
 			appConfig.GetNotificationsMap().UpdateNotify(notifyConfig.NamespaceName, notifyConfig.NotificationID)
+		}
+		if apolloConfig != nil {
 			apolloConfigs = append(apolloConfigs, apolloConfig)
 		}
 	}
@@ -127,6 +130,49 @@ func (a *asyncApolloConfig) notifyRemoteConfig(appConfigFunc func() config.AppCo
 
 func touchApolloConfigCache() error {
 	return nil
+}
+
+// syncWithNamespaceAndDetectNotModified calls SyncWithNamespace and detects if the response was 304 Not Modified
+func (a *asyncApolloConfig) syncWithNamespaceAndDetectNotModified(namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, bool) {
+	if appConfigFunc == nil {
+		panic("can not find apollo config!please confirm!")
+	}
+	appConfig := appConfigFunc()
+	urlSuffix := a.GetSyncURI(appConfig, namespace)
+
+	c := &env.ConnectConfig{
+		URI:     urlSuffix,
+		AppID:   appConfig.AppID,
+		Secret:  appConfig.Secret,
+		Timeout: notifyConnectTimeout,
+		IsRetry: true,
+	}
+	if appConfig.SyncServerTimeout > 0 {
+		c.Timeout = time.Duration(appConfig.SyncServerTimeout) * time.Second
+	}
+
+	wasNotModified := false
+	callback := &http.CallBack{
+		SuccessCallBack: createApolloConfigWithJSON,
+		NotModifyCallBack: func() error {
+			wasNotModified = true
+			return nil
+		},
+		Namespace: namespace,
+	}
+
+	apolloConfig, err := http.RequestRecovery(appConfig, c, callback)
+	if err != nil {
+		log.Errorf("request %s fail, error:%v", urlSuffix, err)
+		return nil, false
+	}
+
+	if apolloConfig == nil {
+		// This could be due to 304 (wasNotModified=true) or other issues (wasNotModified=false)
+		return nil, wasNotModified
+	}
+
+	return apolloConfig.(*config.ApolloConfig), true
 }
 
 func toApolloConfig(resBody []byte) ([]*config.Notification, error) {

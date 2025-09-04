@@ -362,3 +362,50 @@ func TestGetConfigURLSuffix(t *testing.T) {
 	uri := asyncApollo.GetSyncURI(*appConfig, "kk")
 	Assert(t, "", NotEqual(uri))
 }
+
+// Test for the infinite loop bug fix when consecutive releases cause 304 responses
+func TestApolloConfig_SyncWith304NotModified(t *testing.T) {
+	// Create a server that returns updated notificationIds but 304 for config requests
+	currentNotificationId := int64(2)
+	
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.RequestURI
+		
+		// Handle notification requests - return increasing notificationId
+		if strings.Contains(path, "/notifications/v2") {
+			currentNotificationId++
+			response := fmt.Sprintf(`[{"namespaceName":"application","notificationId":%d}]`, currentNotificationId)
+			fmt.Fprintf(w, response)
+			return
+		}
+		
+		// Handle config requests - always return 304 to simulate up-to-date config
+		if strings.Contains(path, "/configs/") {
+			w.WriteHeader(http.StatusNotModified)
+			return
+		}
+		
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+	
+	// Setup app config
+	appConfig := initNotifications()
+	appConfig.IP = server.URL
+	
+	// Test multiple sync cycles - notificationId should update even with 304 responses
+	expectedNotificationIds := []int64{3, 4, 5}
+	
+	for i, expectedId := range expectedNotificationIds {
+		apolloConfigs := asyncApollo.Sync(func() config.AppConfig {
+			return *appConfig
+		})
+		
+		// Should get no configs due to 304, but notificationId should still update
+		Assert(t, len(apolloConfigs), Equal(0))
+		Assert(t, appConfig.GetNotificationsMap().GetNotify("application"), Equal(expectedId))
+		
+		t.Logf("Iteration %d: notificationId=%d, configs=%d", i+1, 
+			appConfig.GetNotificationsMap().GetNotify("application"), len(apolloConfigs))
+	}
+}
