@@ -1,0 +1,1 @@
+{"appId":"test","cluster":"dev","namespaceName":"application","releaseKey":"","configurations":{"bool":true,"float":1.9,"int":1,"slice":[1,2],"string":"string"}}
