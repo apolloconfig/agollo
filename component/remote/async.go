@@ -46,6 +46,8 @@ func CreateAsyncApolloConfig() ApolloConfig {
 
 type asyncApolloConfig struct {
 	AbsApolloConfig
+	// Track if the last sync call resulted in a 304 Not Modified response
+	lastCallWasNotModified bool
 }
 
 func (*asyncApolloConfig) GetNotifyURLSuffix(notifications string, config config.AppConfig) string {
@@ -79,9 +81,11 @@ func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*confi
 	}
 	//只是拉去有变化的配置, 并更新拉取成功的namespace的notify ID
 	for _, notifyConfig := range remoteConfigs {
-		apolloConfig, wasNotModified := a.syncWithNamespaceAndDetectNotModified(notifyConfig.NamespaceName, appConfigFunc)
+		// Reset the flag before each sync call
+		a.lastCallWasNotModified = false
+		apolloConfig := a.SyncWithNamespace(notifyConfig.NamespaceName, appConfigFunc)
 		// Update notificationID if we got a successful response (including 304)
-		if apolloConfig != nil || wasNotModified {
+		if apolloConfig != nil || a.lastCallWasNotModified {
 			appConfig.GetNotificationsMap().UpdateNotify(notifyConfig.NamespaceName, notifyConfig.NotificationID)
 		}
 		if apolloConfig != nil {
@@ -91,11 +95,14 @@ func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*confi
 	return apolloConfigs
 }
 
-func (*asyncApolloConfig) CallBack(namespace string) http.CallBack {
+func (a *asyncApolloConfig) CallBack(namespace string) http.CallBack {
 	return http.CallBack{
-		SuccessCallBack:   createApolloConfigWithJSON,
-		NotModifyCallBack: touchApolloConfigCache,
-		Namespace:         namespace,
+		SuccessCallBack: createApolloConfigWithJSON,
+		NotModifyCallBack: func() error {
+			a.lastCallWasNotModified = true
+			return touchApolloConfigCache()
+		},
+		Namespace: namespace,
 	}
 }
 
@@ -130,67 +137,6 @@ func (a *asyncApolloConfig) notifyRemoteConfig(appConfigFunc func() config.AppCo
 
 func touchApolloConfigCache() error {
 	return nil
-}
-
-// callbackWrapper wraps an ApolloConfig to intercept CallBack method calls
-type callbackWrapper struct {
-	wrapped         ApolloConfig
-	wasNotModified  *bool
-}
-
-func (w *callbackWrapper) GetNotifyURLSuffix(notifications string, config config.AppConfig) string {
-	return w.wrapped.GetNotifyURLSuffix(notifications, config)
-}
-
-func (w *callbackWrapper) GetSyncURI(config config.AppConfig, namespaceName string) string {
-	return w.wrapped.GetSyncURI(config, namespaceName)
-}
-
-func (w *callbackWrapper) Sync(appConfigFunc func() config.AppConfig) []*config.ApolloConfig {
-	return w.wrapped.Sync(appConfigFunc)
-}
-
-func (w *callbackWrapper) CallBack(namespace string) http.CallBack {
-	originalCallback := w.wrapped.CallBack(namespace)
-	// Wrap the NotModifyCallBack to capture the 304 status
-	return http.CallBack{
-		SuccessCallBack: originalCallback.SuccessCallBack,
-		NotModifyCallBack: func() error {
-			*w.wasNotModified = true
-			return originalCallback.NotModifyCallBack()
-		},
-		Namespace: originalCallback.Namespace,
-	}
-}
-
-func (w *callbackWrapper) SyncWithNamespace(namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
-	return w.wrapped.SyncWithNamespace(namespace, appConfigFunc)
-}
-
-// syncWithNamespaceAndDetectNotModified wraps SyncWithNamespace and detects if the response was 304 Not Modified
-func (a *asyncApolloConfig) syncWithNamespaceAndDetectNotModified(namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, bool) {
-	// Track whether we received a 304 Not Modified response
-	wasNotModified := false
-	
-	// Store the original remoteApollo to restore later
-	originalRemoteApollo := a.remoteApollo
-	
-	// Temporarily replace remoteApollo with our wrapper
-	a.remoteApollo = &callbackWrapper{
-		wrapped:        originalRemoteApollo,
-		wasNotModified: &wasNotModified,
-	}
-	
-	// Restore the original remoteApollo when done
-	defer func() {
-		a.remoteApollo = originalRemoteApollo
-	}()
-	
-	// Call the existing SyncWithNamespace method
-	apolloConfig := a.SyncWithNamespace(namespace, appConfigFunc)
-	
-	// Return both the config and whether it was a 304 response
-	return apolloConfig, wasNotModified
 }
 
 func toApolloConfig(resBody []byte) ([]*config.Notification, error) {
