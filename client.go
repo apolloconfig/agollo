@@ -160,7 +160,7 @@ func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 
 	if cfg == nil {
 		//sync config
-		apolloConfig := syncApolloConfig.SyncWithNamespace(namespace, c.getAppConfig)
+		apolloConfig, _ := syncApolloConfig.SyncWithNamespace(namespace, c.getAppConfig)
 		if apolloConfig != nil {
 			c.SyncAndUpdate(namespace, apolloConfig)
 		}

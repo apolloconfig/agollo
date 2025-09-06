@@ -46,8 +46,6 @@ func CreateAsyncApolloConfig() ApolloConfig {
 
 type asyncApolloConfig struct {
 	AbsApolloConfig
-	// Track if the last sync call resulted in a 304 Not Modified response
-	lastCallWasNotModified bool
 }
 
 func (*asyncApolloConfig) GetNotifyURLSuffix(notifications string, config config.AppConfig) string {
@@ -81,11 +79,9 @@ func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*confi
 	}
 	//只是拉去有变化的配置, 并更新拉取成功的namespace的notify ID
 	for _, notifyConfig := range remoteConfigs {
-		// Reset the flag before each sync call
-		a.lastCallWasNotModified = false
-		apolloConfig := a.SyncWithNamespace(notifyConfig.NamespaceName, appConfigFunc)
+		apolloConfig, err := a.SyncWithNamespace(notifyConfig.NamespaceName, appConfigFunc)
 		// Update notificationID if we got a successful response (including 304)
-		if apolloConfig != nil || a.lastCallWasNotModified {
+		if apolloConfig != nil || err == nil {
 			appConfig.GetNotificationsMap().UpdateNotify(notifyConfig.NamespaceName, notifyConfig.NotificationID)
 		}
 		if apolloConfig != nil {
@@ -98,10 +94,7 @@ func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*confi
 func (a *asyncApolloConfig) CallBack(namespace string) http.CallBack {
 	return http.CallBack{
 		SuccessCallBack: createApolloConfigWithJSON,
-		NotModifyCallBack: func() error {
-			a.lastCallWasNotModified = true
-			return touchApolloConfigCache()
-		},
+		NotModifyCallBack: touchApolloConfigCache,
 		Namespace: namespace,
 	}
 }
