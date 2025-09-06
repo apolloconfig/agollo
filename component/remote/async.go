@@ -81,7 +81,7 @@ func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*confi
 	for _, notifyConfig := range remoteConfigs {
 		apolloConfig, err := a.SyncWithNamespace(notifyConfig.NamespaceName, appConfigFunc)
 		// Update notificationID if we got a successful response (including 304)
-		if apolloConfig != nil || err == nil {
+		if err == nil {
 			appConfig.GetNotificationsMap().UpdateNotify(notifyConfig.NamespaceName, notifyConfig.NotificationID)
 		}
 		if apolloConfig != nil {
