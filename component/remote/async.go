@@ -132,47 +132,65 @@ func touchApolloConfigCache() error {
 	return nil
 }
 
-// syncWithNamespaceAndDetectNotModified calls SyncWithNamespace and detects if the response was 304 Not Modified
-func (a *asyncApolloConfig) syncWithNamespaceAndDetectNotModified(namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, bool) {
-	if appConfigFunc == nil {
-		panic("can not find apollo config!please confirm!")
-	}
-	appConfig := appConfigFunc()
-	urlSuffix := a.GetSyncURI(appConfig, namespace)
+// callbackWrapper wraps an ApolloConfig to intercept CallBack method calls
+type callbackWrapper struct {
+	wrapped         ApolloConfig
+	wasNotModified  *bool
+}
 
-	c := &env.ConnectConfig{
-		URI:     urlSuffix,
-		AppID:   appConfig.AppID,
-		Secret:  appConfig.Secret,
-		Timeout: notifyConnectTimeout,
-		IsRetry: true,
-	}
-	if appConfig.SyncServerTimeout > 0 {
-		c.Timeout = time.Duration(appConfig.SyncServerTimeout) * time.Second
-	}
+func (w *callbackWrapper) GetNotifyURLSuffix(notifications string, config config.AppConfig) string {
+	return w.wrapped.GetNotifyURLSuffix(notifications, config)
+}
 
-	wasNotModified := false
-	callback := &http.CallBack{
-		SuccessCallBack: createApolloConfigWithJSON,
+func (w *callbackWrapper) GetSyncURI(config config.AppConfig, namespaceName string) string {
+	return w.wrapped.GetSyncURI(config, namespaceName)
+}
+
+func (w *callbackWrapper) Sync(appConfigFunc func() config.AppConfig) []*config.ApolloConfig {
+	return w.wrapped.Sync(appConfigFunc)
+}
+
+func (w *callbackWrapper) CallBack(namespace string) http.CallBack {
+	originalCallback := w.wrapped.CallBack(namespace)
+	// Wrap the NotModifyCallBack to capture the 304 status
+	return http.CallBack{
+		SuccessCallBack: originalCallback.SuccessCallBack,
 		NotModifyCallBack: func() error {
-			wasNotModified = true
-			return nil
+			*w.wasNotModified = true
+			return originalCallback.NotModifyCallBack()
 		},
-		Namespace: namespace,
+		Namespace: originalCallback.Namespace,
 	}
+}
 
-	apolloConfig, err := http.RequestRecovery(appConfig, c, callback)
-	if err != nil {
-		log.Errorf("request %s fail, error:%v", urlSuffix, err)
-		return nil, false
+func (w *callbackWrapper) SyncWithNamespace(namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
+	return w.wrapped.SyncWithNamespace(namespace, appConfigFunc)
+}
+
+// syncWithNamespaceAndDetectNotModified wraps SyncWithNamespace and detects if the response was 304 Not Modified
+func (a *asyncApolloConfig) syncWithNamespaceAndDetectNotModified(namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, bool) {
+	// Track whether we received a 304 Not Modified response
+	wasNotModified := false
+	
+	// Store the original remoteApollo to restore later
+	originalRemoteApollo := a.remoteApollo
+	
+	// Temporarily replace remoteApollo with our wrapper
+	a.remoteApollo = &callbackWrapper{
+		wrapped:        originalRemoteApollo,
+		wasNotModified: &wasNotModified,
 	}
-
-	if apolloConfig == nil {
-		// This could be due to 304 (wasNotModified=true) or other issues (wasNotModified=false)
-		return nil, wasNotModified
-	}
-
-	return apolloConfig.(*config.ApolloConfig), true
+	
+	// Restore the original remoteApollo when done
+	defer func() {
+		a.remoteApollo = originalRemoteApollo
+	}()
+	
+	// Call the existing SyncWithNamespace method
+	apolloConfig := a.SyncWithNamespace(namespace, appConfigFunc)
+	
+	// Return both the config and whether it was a 304 response
+	return apolloConfig, wasNotModified
 }
 
 func toApolloConfig(resBody []byte) ([]*config.Notification, error) {
