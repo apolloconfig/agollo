@@ -91,11 +91,11 @@ func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*confi
 	return apolloConfigs
 }
 
-func (a *asyncApolloConfig) CallBack(namespace string) http.CallBack {
+func (*asyncApolloConfig) CallBack(namespace string) http.CallBack {
 	return http.CallBack{
-		SuccessCallBack: createApolloConfigWithJSON,
+		SuccessCallBack:   createApolloConfigWithJSON,
 		NotModifyCallBack: touchApolloConfigCache,
-		Namespace: namespace,
+		Namespace:         namespace,
 	}
 }
 
