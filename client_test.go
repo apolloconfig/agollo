@@ -355,14 +355,14 @@ func TestUseEventDispatch(t *testing.T) {
 
 func TestGetConfigAndInitValNotNil(t *testing.T) {
 	var apc *remote.AbsApolloConfig
-	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
+	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error) {
 		return &config.ApolloConfig{
 			ApolloConnConfig: config.ApolloConnConfig{
 				AppID:         "testID",
 				NamespaceName: "testNotFound",
 			},
 			Configurations: map[string]interface{}{"testKey": "testUpdatedValue"},
-		}
+		}, nil
 	})
 
 	client := createMockApolloConfig(120)
@@ -379,14 +379,14 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 	patch.Reset()
 
 	// second replace
-	patch1 := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
+	patch1 := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error) {
 		return &config.ApolloConfig{
 			ApolloConnConfig: config.ApolloConnConfig{
 				AppID:         "testID",
 				NamespaceName: "testNotFound1",
 			},
 			Configurations: map[string]interface{}{"testKey": "testUpdatedValue"},
-		}
+		}, nil
 	})
 	defer patch1.Reset()
 	client.appConfig.NamespaceName = "testNotFound1"
@@ -399,8 +399,8 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 
 func TestGetConfigAndInitValNil(t *testing.T) {
 	var apc *remote.AbsApolloConfig
-	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
-		return nil
+	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error) {
+		return nil, nil
 	})
 	defer patch.Reset()
 

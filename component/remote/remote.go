@@ -30,5 +30,5 @@ type ApolloConfig interface {
 	// CallBack 根据 namespace 获取 callback 方法
 	CallBack(namespace string) http.CallBack
 	// SyncWithNamespace 通过 namespace 同步 apollo 配置
-	SyncWithNamespace(namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig
+	SyncWithNamespace(namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error)
 }

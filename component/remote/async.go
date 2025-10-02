@@ -79,9 +79,12 @@ func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*confi
 	}
 	//只是拉去有变化的配置, 并更新拉取成功的namespace的notify ID
 	for _, notifyConfig := range remoteConfigs {
-		apolloConfig := a.SyncWithNamespace(notifyConfig.NamespaceName, appConfigFunc)
-		if apolloConfig != nil {
+		apolloConfig, err := a.SyncWithNamespace(notifyConfig.NamespaceName, appConfigFunc)
+		// Update notificationID if we got a successful response (including 304)
+		if err == nil {
 			appConfig.GetNotificationsMap().UpdateNotify(notifyConfig.NamespaceName, notifyConfig.NotificationID)
+		}
+		if apolloConfig != nil {
 			apolloConfigs = append(apolloConfigs, apolloConfig)
 		}
 	}

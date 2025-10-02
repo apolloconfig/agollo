@@ -28,7 +28,7 @@ type AbsApolloConfig struct {
 	remoteApollo ApolloConfig
 }
 
-func (a *AbsApolloConfig) SyncWithNamespace(namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
+func (a *AbsApolloConfig) SyncWithNamespace(namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error) {
 	if appConfigFunc == nil {
 		panic("can not find apollo config!please confirm!")
 	}
@@ -50,13 +50,13 @@ func (a *AbsApolloConfig) SyncWithNamespace(namespace string, appConfigFunc func
 	apolloConfig, err := http.RequestRecovery(appConfig, c, &callback)
 	if err != nil {
 		log.Errorf("request %s fail, error:%v", urlSuffix, err)
-		return nil
+		return nil, err
 	}
 
 	if apolloConfig == nil {
 		log.Debug("apolloConfig is nil")
-		return nil
+		return nil, nil
 	}
 
-	return apolloConfig.(*config.ApolloConfig)
+	return apolloConfig.(*config.ApolloConfig), nil
 }

@@ -100,7 +100,7 @@ func (a *syncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*config
 	appConfig := appConfigFunc()
 	configs := make([]*config.ApolloConfig, 0, 8)
 	config.SplitNamespaces(appConfig.NamespaceName, func(namespace string) {
-		apolloConfig := a.SyncWithNamespace(namespace, appConfigFunc)
+		apolloConfig, _ := a.SyncWithNamespace(namespace, appConfigFunc)
 		if apolloConfig != nil {
 			configs = append(configs, apolloConfig)
 			return
