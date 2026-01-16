@@ -20,6 +20,7 @@ package component
 //AbsComponent 定时组件
 type AbsComponent interface {
 	Start()
+	Stop()
 }
 
 //StartRefreshConfig 开始定时服务
