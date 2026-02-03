@@ -19,6 +19,7 @@ package serverlist
 
 import (
 	"encoding/json"
+	"sync"
 	"time"
 
 	"github.com/apolloconfig/agollo/v4/env/server"
@@ -52,6 +53,7 @@ func InitSyncServerIPList(appConfig func() config.AppConfig) component.AbsCompon
 type SyncServerIPListComponent struct {
 	appConfig func() config.AppConfig
 	stopCh    chan struct{}
+	stopOnce  sync.Once
 }
 
 // Start 启动同步服务器列表
@@ -73,9 +75,11 @@ func (s *SyncServerIPListComponent) Start() {
 }
 
 func (s *SyncServerIPListComponent) Stop() {
-	if s.stopCh != nil {
-		close(s.stopCh)
-	}
+	s.stopOnce.Do(func() {
+		if s.stopCh != nil {
+			close(s.stopCh)
+		}
+	})
 }
 
 // SyncServerIPList sync ip list from server

@@ -18,6 +18,7 @@
 package notify
 
 import (
+	"sync"
 	"time"
 
 	"github.com/apolloconfig/agollo/v4/component/log"
@@ -31,11 +32,12 @@ const (
 	longPollInterval = 2 * time.Second //2s
 )
 
-//ConfigComponent 配置组件
+// ConfigComponent 配置组件
 type ConfigComponent struct {
 	appConfigFunc func() config.AppConfig
 	cache         *storage.Cache
 	stopCh        chan struct{}
+	stopOnce      sync.Once
 }
 
 func NewConfigComponent(appConfigFunc func() config.AppConfig, cache *storage.Cache) *ConfigComponent {
@@ -46,17 +48,7 @@ func NewConfigComponent(appConfigFunc func() config.AppConfig, cache *storage.Ca
 	}
 }
 
-// SetAppConfig nolint
-func (c *ConfigComponent) SetAppConfig(appConfigFunc func() config.AppConfig) {
-	c.appConfigFunc = appConfigFunc
-}
-
-// SetCache nolint
-func (c *ConfigComponent) SetCache(cache *storage.Cache) {
-	c.cache = cache
-}
-
-//Start 启动配置组件定时器
+// Start 启动配置组件定时器
 func (c *ConfigComponent) Start() {
 	t2 := time.NewTimer(longPollInterval)
 	instance := remote.CreateAsyncApolloConfig()
@@ -79,7 +71,9 @@ func (c *ConfigComponent) Start() {
 
 // Stop 停止配置组件定时器
 func (c *ConfigComponent) Stop() {
-	if c.stopCh != nil {
-		close(c.stopCh)
-	}
+	c.stopOnce.Do(func() {
+		if c.stopCh != nil {
+			close(c.stopCh)
+		}
+	})
 }
