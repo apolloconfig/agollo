@@ -48,6 +48,18 @@ func NewConfigComponent(appConfigFunc func() config.AppConfig, cache *storage.Ca
 	}
 }
 
+// SetAppConfig nolint
+// Deprecated
+func (c *ConfigComponent) SetAppConfig(appConfigFunc func() config.AppConfig) {
+	c.appConfigFunc = appConfigFunc
+}
+
+// SetCache nolint
+// Deprecated
+func (c *ConfigComponent) SetCache(cache *storage.Cache) {
+	c.cache = cache
+}
+
 // Start 启动配置组件定时器
 func (c *ConfigComponent) Start() {
 	t2 := time.NewTimer(longPollInterval)

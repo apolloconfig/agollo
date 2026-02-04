@@ -41,7 +41,12 @@ func init() {
 }
 
 // InitSyncServerIPList 初始化同步服务器信息列表
-func InitSyncServerIPList(appConfig func() config.AppConfig) component.AbsComponent {
+// Deprecated 该方式启动的SyncServerIPListComponent无法关闭，强烈建议使用NewSyncServerIPListComponent
+func InitSyncServerIPList(appConfig func() config.AppConfig) {
+	go component.StartRefreshConfig(&SyncServerIPListComponent{appConfig: appConfig})
+}
+
+func NewSyncServerIPListComponent(appConfig func() config.AppConfig) component.AbsComponent {
 	return &SyncServerIPListComponent{
 		appConfig: appConfig,
 		stopCh:    make(chan struct{}),

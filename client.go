@@ -122,7 +122,7 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 	c.cache = storage.CreateNamespaceConfig(appConfig.NamespaceName)
 	appConfig.Init()
 	// start ipList component
-	serverIPListComponent := serverlist.InitSyncServerIPList(c.getAppConfig)
+	serverIPListComponent := serverlist.NewSyncServerIPListComponent(c.getAppConfig)
 	go component.StartRefreshConfig(serverIPListComponent)
 	c.appendComponent(serverIPListComponent)
 

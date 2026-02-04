@@ -29,7 +29,7 @@ type AbsComponent interface {
 func StartRefreshConfig(component AbsComponent) {
 	defer func() {
 		if err := recover(); err != nil {
-			log.Errorf("StartRefreshConfig component start failed,recover panic: %s", err)
+			log.Errorf("StartRefreshConfig component start failed,recover panic: %v", err)
 		}
 	}()
 	component.Start()
