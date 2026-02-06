@@ -439,7 +439,7 @@ func Test_internalClient_Close(t *testing.T) {
 	Assert(t, tc.status, Equal(0))
 	Assert(t, tc2.status, Equal(0))
 	c.Close()
-	c.Close() // replicate Close
+	c.Close() // duplicate Close
 	Assert(t, tc.status, Equal(1))
 	Assert(t, tc2.status, Equal(1))
 }

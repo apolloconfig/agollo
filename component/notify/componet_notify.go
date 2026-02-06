@@ -21,6 +21,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/apolloconfig/agollo/v4/component"
 	"github.com/apolloconfig/agollo/v4/component/log"
 	"github.com/apolloconfig/agollo/v4/component/remote"
 	"github.com/apolloconfig/agollo/v4/storage"
@@ -40,7 +41,7 @@ type ConfigComponent struct {
 	stopOnce      sync.Once
 }
 
-func NewConfigComponent(appConfigFunc func() config.AppConfig, cache *storage.Cache) *ConfigComponent {
+func NewConfigComponent(appConfigFunc func() config.AppConfig, cache *storage.Cache) component.AbsComponent {
 	return &ConfigComponent{
 		appConfigFunc: appConfigFunc,
 		cache:         cache,
