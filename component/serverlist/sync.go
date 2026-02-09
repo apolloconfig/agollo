@@ -46,7 +46,7 @@ func InitSyncServerIPList(appConfig func() config.AppConfig) {
 	go component.StartRefreshConfig(&SyncServerIPListComponent{appConfig: appConfig})
 }
 
-func NewSyncServerIPListComponent(appConfig func() config.AppConfig) component.AbsComponent {
+func NewSyncServerIPListComponent(appConfig func() config.AppConfig) *SyncServerIPListComponent {
 	return &SyncServerIPListComponent{
 		appConfig: appConfig,
 		stopCh:    make(chan struct{}),
@@ -67,6 +67,7 @@ func (s *SyncServerIPListComponent) Start() {
 	log.Debug("syncServerIpListComponent started")
 
 	t2 := time.NewTimer(refreshIPListInterval)
+	defer t2.Stop()
 	for {
 		select {
 		case <-s.stopCh:

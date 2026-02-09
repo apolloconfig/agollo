@@ -19,10 +19,13 @@ package component
 
 import "github.com/apolloconfig/agollo/v4/component/log"
 
+type Stoppable interface {
+	Stop()
+}
+
 // AbsComponent 定时组件
 type AbsComponent interface {
 	Start()
-	Stop()
 }
 
 // StartRefreshConfig 开始定时服务

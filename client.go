@@ -87,7 +87,7 @@ type internalClient struct {
 	initAppConfigFunc func() (*config.AppConfig, error)
 	appConfig         *config.AppConfig
 	cache             *storage.Cache
-	components        []component.AbsComponent
+	components        []component.Stoppable
 }
 
 func (c *internalClient) getAppConfig() config.AppConfig {
@@ -269,7 +269,7 @@ func (c *internalClient) getConfigValue(key string) interface{} {
 	return value
 }
 
-func (c *internalClient) appendComponent(comp component.AbsComponent) {
+func (c *internalClient) appendComponent(comp component.Stoppable) {
 	c.components = append(c.components, comp)
 }
 
