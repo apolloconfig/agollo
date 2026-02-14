@@ -18,8 +18,10 @@
 package notify
 
 import (
+	"sync"
 	"time"
 
+	"github.com/apolloconfig/agollo/v4/component/log"
 	"github.com/apolloconfig/agollo/v4/component/remote"
 	"github.com/apolloconfig/agollo/v4/storage"
 
@@ -30,33 +32,33 @@ const (
 	longPollInterval = 2 * time.Second //2s
 )
 
-//ConfigComponent 配置组件
+// ConfigComponent 配置组件
 type ConfigComponent struct {
 	appConfigFunc func() config.AppConfig
 	cache         *storage.Cache
-	stopCh        chan interface{}
+	stopCh        chan struct{}
+	stopOnce      sync.Once
 }
 
-// SetAppConfig nolint
-func (c *ConfigComponent) SetAppConfig(appConfigFunc func() config.AppConfig) {
-	c.appConfigFunc = appConfigFunc
-}
-
-// SetCache nolint
-func (c *ConfigComponent) SetCache(cache *storage.Cache) {
-	c.cache = cache
-}
-
-//Start 启动配置组件定时器
-func (c *ConfigComponent) Start() {
-	if c.stopCh == nil {
-		c.stopCh = make(chan interface{})
+func NewConfigComponent(appConfigFunc func() config.AppConfig, cache *storage.Cache) *ConfigComponent {
+	return &ConfigComponent{
+		appConfigFunc: appConfigFunc,
+		cache:         cache,
+		stopCh:        make(chan struct{}),
 	}
+}
 
+// Start 启动配置组件定时器
+func (c *ConfigComponent) Start() {
 	t2 := time.NewTimer(longPollInterval)
+	defer t2.Stop()
+	// 兼容直接创建ConfigComponent对象时，stopCh未初始化导致Stop()无法关闭
+	if c.stopCh == nil {
+		c.stopCh = make(chan struct{})
+	}
 	instance := remote.CreateAsyncApolloConfig()
+	log.Debug("ConfigComponent started")
 	//long poll for sync
-loop:
 	for {
 		select {
 		case <-t2.C:
@@ -66,14 +68,17 @@ loop:
 			}
 			t2.Reset(longPollInterval)
 		case <-c.stopCh:
-			break loop
+			log.Debug("ConfigComponent stopped")
+			return
 		}
 	}
 }
 
 // Stop 停止配置组件定时器
 func (c *ConfigComponent) Stop() {
-	if c.stopCh != nil {
-		close(c.stopCh)
-	}
+	c.stopOnce.Do(func() {
+		if c.stopCh != nil {
+			close(c.stopCh)
+		}
+	})
 }

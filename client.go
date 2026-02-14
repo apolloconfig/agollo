@@ -87,7 +87,7 @@ type internalClient struct {
 	initAppConfigFunc func() (*config.AppConfig, error)
 	appConfig         *config.AppConfig
 	cache             *storage.Cache
-	configComponent   *notify.ConfigComponent
+	components        []component.Stoppable
 }
 
 func (c *internalClient) getAppConfig() config.AppConfig {
@@ -121,8 +121,10 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 
 	c.cache = storage.CreateNamespaceConfig(appConfig.NamespaceName)
 	appConfig.Init()
-
-	serverlist.InitSyncServerIPList(c.getAppConfig)
+	// start ipList component
+	serverIPListComponent := serverlist.NewSyncServerIPListComponent(c.getAppConfig)
+	go component.StartRefreshConfig(serverIPListComponent)
+	c.appendComponent(serverIPListComponent)
 
 	//first sync
 	configs := syncApolloConfig.Sync(c.getAppConfig)
@@ -137,11 +139,9 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 	log.Debug("init notifySyncConfigServices finished")
 
 	//start long poll sync config
-	configComponent := &notify.ConfigComponent{}
-	configComponent.SetAppConfig(c.getAppConfig)
-	configComponent.SetCache(c.cache)
+	configComponent := notify.NewConfigComponent(c.getAppConfig, c.cache)
 	go component.StartRefreshConfig(configComponent)
-	c.configComponent = configComponent
+	c.appendComponent(configComponent)
 
 	log.Info("agollo start finished ! ")
 
@@ -269,6 +269,10 @@ func (c *internalClient) getConfigValue(key string) interface{} {
 	return value
 }
 
+func (c *internalClient) appendComponent(comp component.Stoppable) {
+	c.components = append(c.components, comp)
+}
+
 // AddChangeListener 增加变更监控
 func (c *internalClient) AddChangeListener(listener storage.ChangeListener) {
 	c.cache.AddChangeListener(listener)
@@ -289,7 +293,9 @@ func (c *internalClient) UseEventDispatch() {
 	c.AddChangeListener(storage.UseEventDispatch())
 }
 
-// Close 停止轮询
+// Close stop components
 func (c *internalClient) Close() {
-	c.configComponent.Stop()
+	for _, comp := range c.components {
+		comp.Stop()
+	}
 }
