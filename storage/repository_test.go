@@ -367,6 +367,9 @@ func TestGetIntSliceValueFromInterfaceSlice(t *testing.T) {
 	configurations["numbers"] = []interface{}{float64(1), float64(2), float64(3)}
 	configurations["mixed"] = []interface{}{1, 2, 3}
 	configurations["stringNumbers"] = []interface{}{"4", "5", "6"}
+	// 测试小数值（应该返回 defaultValue）
+	configurations["fractionalNumbers"] = []interface{}{float64(1.5), float64(2), float64(3)}
+	configurations["oneFractionalNumber"] = []interface{}{1, float64(2.9), 3}
 
 	c := creatTestApolloConfig(configurations, "test")
 	config := c.GetConfig("test")
@@ -384,6 +387,14 @@ func TestGetIntSliceValueFromInterfaceSlice(t *testing.T) {
 	slice = config.GetIntSliceValue("stringNumbers", ",", []int{})
 	Assert(t, slice, Equal([]int{4, 5, 6}))
 
+	// 测试包含小数的数组（应该返回 defaultValue）
+	slice = config.GetIntSliceValue("fractionalNumbers", ",", []int{99})
+	Assert(t, slice, Equal([]int{99}))
+
+	// 测试包含一个小数的数组（应该返回 defaultValue）
+	slice = config.GetIntSliceValue("oneFractionalNumber", ",", []int{88})
+	Assert(t, slice, Equal([]int{88}))
+
 	// Immediately 版本测试
 	slice = config.GetIntSliceValueImmediately("numbers", []int{})
 	Assert(t, slice, Equal([]int{1, 2, 3}))
@@ -393,4 +404,8 @@ func TestGetIntSliceValueFromInterfaceSlice(t *testing.T) {
 
 	slice = config.GetIntSliceValueImmediately("stringNumbers", []int{})
 	Assert(t, slice, Equal([]int{4, 5, 6}))
+
+	// 测试包含小数的数组（Immediately 版本）
+	slice = config.GetIntSliceValueImmediately("fractionalNumbers", []int{77})
+	Assert(t, slice, Equal([]int{77}))
 }

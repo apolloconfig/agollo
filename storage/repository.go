@@ -210,6 +210,11 @@ func (c *Config) GetIntSliceValueImmediately(key string, defaultValue []int) []i
 				result = append(result, v)
 			case float64:
 				// JSON/YAML 数字默认解析为 float64
+				// 验证值是否为整数（无小数部分）
+				if v != float64(int(v)) {
+					log.Debugf("convert to []int fail! float64 value has fractional part: %v", v)
+					return defaultValue
+				}
 				result = append(result, int(v))
 			case string:
 				if i, err := strconv.Atoi(v); err == nil {
@@ -406,6 +411,11 @@ func (c *Config) GetIntSliceValue(key, separator string, defaultValue []int) []i
 				result = append(result, v)
 			case float64:
 				// JSON/YAML 数字默认解析为 float64
+				// 验证值是否为整数（无小数部分）
+				if v != float64(int(v)) {
+					log.Debugf("convert to []int fail! float64 value has fractional part: %v", v)
+					return defaultValue
+				}
 				result = append(result, int(v))
 			case string:
 				if i, err := strconv.Atoi(v); err == nil {
