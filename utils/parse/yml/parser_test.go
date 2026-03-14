@@ -59,3 +59,42 @@ func TestYMLParserOnException(t *testing.T) {
 	m := convertToMap(nil)
 	Assert(t, m, NilVal())
 }
+
+// TestYMLParserArray 测试 YAML 数组解析
+func TestYMLParserArray(t *testing.T) {
+	s, err := ymlParser.Parse(`
+items:
+  - test111
+  - test222
+numbers:
+  - 1
+  - 2
+  - 3
+nested:
+  items:
+    - a
+    - b
+    - c
+`)
+	Assert(t, err, NilVal())
+
+	// 验证字符串数组被解析为 []interface{}
+	items, ok := s["items"].([]interface{})
+	Assert(t, ok, Equal(true))
+	Assert(t, len(items), Equal(2))
+	Assert(t, items[0], Equal("test111"))
+	Assert(t, items[1], Equal("test222"))
+
+	// 验证数字数组被解析为 []interface{}
+	numbers, ok := s["numbers"].([]interface{})
+	Assert(t, ok, Equal(true))
+	Assert(t, len(numbers), Equal(3))
+
+	// 验证嵌套数组
+	nestedItems, ok := s["nested.items"].([]interface{})
+	Assert(t, ok, Equal(true))
+	Assert(t, len(nestedItems), Equal(3))
+	Assert(t, nestedItems[0], Equal("a"))
+	Assert(t, nestedItems[1], Equal("b"))
+	Assert(t, nestedItems[2], Equal("c"))
+}

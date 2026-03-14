@@ -167,12 +167,26 @@ func (c *Config) GetStringSliceValueImmediately(key string, defaultValue []strin
 		return defaultValue
 	}
 
-	v, ok := value.([]string)
-	if !ok {
-		log.Debugf("convert to []string fail ! source type:%T", value)
-		return defaultValue
+	// 尝试直接转换为 []string
+	if v, ok := value.([]string); ok {
+		return v
 	}
-	return v
+
+	// 尝试从 []interface{} 转换为 []string (YAML 数组解析后的类型)
+	if ifaceSlice, ok := value.([]interface{}); ok {
+		result := make([]string, 0, len(ifaceSlice))
+		for _, item := range ifaceSlice {
+			if s, ok := item.(string); ok {
+				result = append(result, s)
+			} else {
+				result = append(result, fmt.Sprintf("%v", item))
+			}
+		}
+		return result
+	}
+
+	log.Debugf("convert to []string fail ! source type:%T", value)
+	return defaultValue
 }
 
 // GetIntSliceValueImmediately 获取配置值（[]int)，立即返回，初始化未完成直接返回错误
@@ -182,12 +196,43 @@ func (c *Config) GetIntSliceValueImmediately(key string, defaultValue []int) []i
 		return defaultValue
 	}
 
-	v, ok := value.([]int)
-	if !ok {
-		log.Debugf("convert to []int fail ! source type:%T", value)
-		return defaultValue
+	// 尝试直接转换为 []int
+	if v, ok := value.([]int); ok {
+		return v
 	}
-	return v
+
+	// 尝试从 []interface{} 转换为 []int (YAML 数组解析后的类型)
+	if ifaceSlice, ok := value.([]interface{}); ok {
+		result := make([]int, 0, len(ifaceSlice))
+		for _, item := range ifaceSlice {
+			switch v := item.(type) {
+			case int:
+				result = append(result, v)
+			case float64:
+				// JSON/YAML 数字默认解析为 float64
+				// 验证值是否为整数（无小数部分）
+				if v != float64(int(v)) {
+					log.Debugf("convert to []int fail! float64 value has fractional part: %v", v)
+					return defaultValue
+				}
+				result = append(result, int(v))
+			case string:
+				if i, err := strconv.Atoi(v); err == nil {
+					result = append(result, i)
+				} else {
+					log.Debugf("convert to []int fail! value:%s, source type:%T", v, v)
+					return defaultValue
+				}
+			default:
+				log.Debugf("convert to []int fail! value:%v, source type:%T", item, item)
+				return defaultValue
+			}
+		}
+		return result
+	}
+
+	log.Debugf("convert to []int fail ! source type:%T", value)
+	return defaultValue
 }
 
 // GetSliceValueImmediately 获取配置值（[]interface)，立即返回，初始化未完成直接返回错误
@@ -318,16 +363,31 @@ func (c *Config) GetStringSliceValue(key, separator string, defaultValue []strin
 		return defaultValue
 	}
 
-	v, ok := value.([]string)
-	if !ok {
-		s, ok := value.(string)
-		if !ok {
-			log.Debugf("convert to []string fail ! source type:%T", value)
-			return defaultValue
+	// 尝试直接转换为 []string
+	if v, ok := value.([]string); ok {
+		return v
+	}
+
+	// 尝试从 []interface{} 转换为 []string (YAML 数组解析后的类型)
+	if ifaceSlice, ok := value.([]interface{}); ok {
+		result := make([]string, 0, len(ifaceSlice))
+		for _, item := range ifaceSlice {
+			if s, ok := item.(string); ok {
+				result = append(result, s)
+			} else {
+				result = append(result, fmt.Sprintf("%v", item))
+			}
 		}
+		return result
+	}
+
+	// 尝试从字符串分割
+	if s, ok := value.(string); ok {
 		return strings.Split(s, separator)
 	}
-	return v
+
+	log.Debugf("convert to []string fail ! source type:%T", value)
+	return defaultValue
 }
 
 // GetIntSliceValue 获取配置值（[]int)
@@ -337,23 +397,56 @@ func (c *Config) GetIntSliceValue(key, separator string, defaultValue []int) []i
 		return defaultValue
 	}
 
-	v, ok := value.([]int)
-	if !ok {
-		sl := c.GetStringSliceValue(key, separator, nil)
-		if sl == nil {
-			return defaultValue
-		}
-		v = make([]int, 0, len(sl))
-		for index := range sl {
-			i, err := strconv.Atoi(sl[index])
-			if err != nil {
-				log.Debugf("convert to []int fail! value:%s,  source type:%T", sl[index], sl[index])
+	// 尝试直接转换为 []int
+	if v, ok := value.([]int); ok {
+		return v
+	}
+
+	// 尝试从 []interface{} 转换为 []int (YAML 数组解析后的类型)
+	if ifaceSlice, ok := value.([]interface{}); ok {
+		result := make([]int, 0, len(ifaceSlice))
+		for _, item := range ifaceSlice {
+			switch v := item.(type) {
+			case int:
+				result = append(result, v)
+			case float64:
+				// JSON/YAML 数字默认解析为 float64
+				// 验证值是否为整数（无小数部分）
+				if v != float64(int(v)) {
+					log.Debugf("convert to []int fail! float64 value has fractional part: %v", v)
+					return defaultValue
+				}
+				result = append(result, int(v))
+			case string:
+				if i, err := strconv.Atoi(v); err == nil {
+					result = append(result, i)
+				} else {
+					log.Debugf("convert to []int fail! value:%s, source type:%T", v, v)
+					return defaultValue
+				}
+			default:
+				log.Debugf("convert to []int fail! value:%v, source type:%T", item, item)
 				return defaultValue
 			}
-			v = append(v, i)
 		}
+		return result
 	}
-	return v
+
+	// 尝试从字符串分割后转换
+	sl := c.GetStringSliceValue(key, separator, nil)
+	if sl == nil {
+		return defaultValue
+	}
+	result := make([]int, 0, len(sl))
+	for index := range sl {
+		i, err := strconv.Atoi(sl[index])
+		if err != nil {
+			log.Debugf("convert to []int fail! value:%s,  source type:%T", sl[index], sl[index])
+			return defaultValue
+		}
+		result = append(result, i)
+	}
+	return result
 }
 
 // GetSliceValue 获取配置值（[]interface)

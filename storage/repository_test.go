@@ -327,3 +327,85 @@ func TestGetConfigImmediately(t *testing.T) {
 	sliceInter := config.GetSliceValueImmediately("sliceInter", []interface{}{})
 	Assert(t, sliceInter, Equal([]interface{}{1, "2", 3}))
 }
+
+// TestGetStringSliceValueFromInterfaceSlice 测试从 []interface{} 转换为 []string (YAML 数组场景)
+func TestGetStringSliceValueFromInterfaceSlice(t *testing.T) {
+	configurations := make(map[string]interface{})
+	// 模拟 YAML 解析后的数组类型
+	configurations["items"] = []interface{}{"test111", "test222"}
+	configurations["mixed"] = []interface{}{1, "two", 3.0}
+	configurations["nested.items"] = []interface{}{"a", "b", "c"}
+
+	c := creatTestApolloConfig(configurations, "test")
+	config := c.GetConfig("test")
+	Assert(t, config, NotNilVal())
+
+	// 测试纯字符串数组
+	slice := config.GetStringSliceValue("items", ",", []string{})
+	Assert(t, slice, Equal([]string{"test111", "test222"}))
+
+	// 测试混合类型数组（非字符串元素会被转为字符串）
+	slice = config.GetStringSliceValue("mixed", ",", []string{})
+	Assert(t, slice, Equal([]string{"1", "two", "3"}))
+
+	// 测试嵌套 key
+	slice = config.GetStringSliceValue("nested.items", ",", []string{})
+	Assert(t, slice, Equal([]string{"a", "b", "c"}))
+
+	// Immediately 版本测试
+	slice = config.GetStringSliceValueImmediately("items", []string{})
+	Assert(t, slice, Equal([]string{"test111", "test222"}))
+
+	slice = config.GetStringSliceValueImmediately("mixed", []string{})
+	Assert(t, slice, Equal([]string{"1", "two", "3"}))
+}
+
+// TestGetIntSliceValueFromInterfaceSlice 测试从 []interface{} 转换为 []int (YAML 数组场景)
+func TestGetIntSliceValueFromInterfaceSlice(t *testing.T) {
+	configurations := make(map[string]interface{})
+	// 模拟 YAML 解析后的数组类型（数字会被解析为 float64）
+	configurations["numbers"] = []interface{}{float64(1), float64(2), float64(3)}
+	configurations["mixed"] = []interface{}{1, 2, 3}
+	configurations["stringNumbers"] = []interface{}{"4", "5", "6"}
+	// 测试小数值（应该返回 defaultValue）
+	configurations["fractionalNumbers"] = []interface{}{float64(1.5), float64(2), float64(3)}
+	configurations["oneFractionalNumber"] = []interface{}{1, float64(2.9), 3}
+
+	c := creatTestApolloConfig(configurations, "test")
+	config := c.GetConfig("test")
+	Assert(t, config, NotNilVal())
+
+	// 测试 float64 数组（YAML 数字默认类型）
+	slice := config.GetIntSliceValue("numbers", ",", []int{})
+	Assert(t, slice, Equal([]int{1, 2, 3}))
+
+	// 测试 int 数组
+	slice = config.GetIntSliceValue("mixed", ",", []int{})
+	Assert(t, slice, Equal([]int{1, 2, 3}))
+
+	// 测试字符串数字数组
+	slice = config.GetIntSliceValue("stringNumbers", ",", []int{})
+	Assert(t, slice, Equal([]int{4, 5, 6}))
+
+	// 测试包含小数的数组（应该返回 defaultValue）
+	slice = config.GetIntSliceValue("fractionalNumbers", ",", []int{99})
+	Assert(t, slice, Equal([]int{99}))
+
+	// 测试包含一个小数的数组（应该返回 defaultValue）
+	slice = config.GetIntSliceValue("oneFractionalNumber", ",", []int{88})
+	Assert(t, slice, Equal([]int{88}))
+
+	// Immediately 版本测试
+	slice = config.GetIntSliceValueImmediately("numbers", []int{})
+	Assert(t, slice, Equal([]int{1, 2, 3}))
+
+	slice = config.GetIntSliceValueImmediately("mixed", []int{})
+	Assert(t, slice, Equal([]int{1, 2, 3}))
+
+	slice = config.GetIntSliceValueImmediately("stringNumbers", []int{})
+	Assert(t, slice, Equal([]int{4, 5, 6}))
+
+	// 测试包含小数的数组（Immediately 版本）
+	slice = config.GetIntSliceValueImmediately("fractionalNumbers", []int{77})
+	Assert(t, slice, Equal([]int{77}))
+}
