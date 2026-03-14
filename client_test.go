@@ -25,16 +25,15 @@ import (
 
 	"github.com/agiledragon/gomonkey/v2"
 	. "github.com/tevid/gohamcrest"
-	"github.com/apolloconfig/agollo/v4/component"
-	_ "github.com/apolloconfig/agollo/v4/env/file/json"
+	"github.com/apolloconfig/agollo/v5/component"
+	_ "github.com/apolloconfig/agollo/v5/env/file/json"
 
-	"github.com/apolloconfig/agollo/v4/agcache/memory"
-	"github.com/apolloconfig/agollo/v4/component/remote"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	_ "github.com/apolloconfig/agollo/v4/env/file/json"
-	"github.com/apolloconfig/agollo/v4/env/server"
-	"github.com/apolloconfig/agollo/v4/extension"
-	"github.com/apolloconfig/agollo/v4/storage"
+	"github.com/apolloconfig/agollo/v5/agcache/memory"
+	"github.com/apolloconfig/agollo/v5/component/remote"
+	"github.com/apolloconfig/agollo/v5/env/config"
+	"github.com/apolloconfig/agollo/v5/env/server"
+	"github.com/apolloconfig/agollo/v5/extension"
+	"github.com/apolloconfig/agollo/v5/storage"
 )
 
 const testDefaultNamespace = "application"

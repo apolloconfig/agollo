@@ -19,8 +19,8 @@ import (
 	"errors"
 	"os"
 
-	"github.com/apolloconfig/agollo/v4/component/log"
-	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/apolloconfig/agollo/v5/component/log"
+	"github.com/apolloconfig/agollo/v5/utils"
 )
 
 // ConfigFile json文件读写
