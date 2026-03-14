@@ -31,7 +31,6 @@ import (
 	"github.com/apolloconfig/agollo/v5/agcache/memory"
 	"github.com/apolloconfig/agollo/v5/component/remote"
 	"github.com/apolloconfig/agollo/v5/env/config"
-	_ "github.com/apolloconfig/agollo/v5/env/file/json"
 	"github.com/apolloconfig/agollo/v5/env/server"
 	"github.com/apolloconfig/agollo/v5/extension"
 	"github.com/apolloconfig/agollo/v5/storage"
