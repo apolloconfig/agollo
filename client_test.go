@@ -24,6 +24,7 @@ import (
 	"time"
 
 	"github.com/agiledragon/gomonkey/v2"
+	. "github.com/tevid/gohamcrest"
 	"github.com/apolloconfig/agollo/v4/component"
 	_ "github.com/apolloconfig/agollo/v4/env/file/json"
 
