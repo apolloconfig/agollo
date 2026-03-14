@@ -55,10 +55,12 @@ type SyncServerIPListComponent struct {
 	appConfig func() config.AppConfig
 	stopCh    chan struct{}
 	stopOnce  sync.Once
+	stopMu    sync.Mutex
 }
 
 // Start 启动同步服务器列表
 func (s *SyncServerIPListComponent) Start() {
+	stopCh := s.ensureStopCh()
 	SyncServerIPList(s.appConfig)
 	log.Debug("syncServerIpListComponent started")
 
@@ -66,7 +68,7 @@ func (s *SyncServerIPListComponent) Start() {
 	defer t2.Stop()
 	for {
 		select {
-		case <-s.stopCh:
+		case <-stopCh:
 			log.Debug("syncServerIpListComponent stopped")
 			return
 		case <-t2.C:
@@ -78,10 +80,21 @@ func (s *SyncServerIPListComponent) Start() {
 
 func (s *SyncServerIPListComponent) Stop() {
 	s.stopOnce.Do(func() {
+		s.stopMu.Lock()
+		defer s.stopMu.Unlock()
 		if s.stopCh != nil {
 			close(s.stopCh)
 		}
 	})
+}
+
+func (s *SyncServerIPListComponent) ensureStopCh() chan struct{} {
+	s.stopMu.Lock()
+	defer s.stopMu.Unlock()
+	if s.stopCh == nil {
+		s.stopCh = make(chan struct{})
+	}
+	return s.stopCh
 }
 
 // SyncServerIPList sync ip list from server
