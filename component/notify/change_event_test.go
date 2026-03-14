@@ -24,11 +24,9 @@ import (
 	. "github.com/tevid/gohamcrest"
 
 	"github.com/apolloconfig/agollo/v5/agcache/memory"
-	_ "github.com/apolloconfig/agollo/v5/agcache/memory"
 	"github.com/apolloconfig/agollo/v5/cluster/roundrobin"
 	"github.com/apolloconfig/agollo/v5/component/remote"
 	"github.com/apolloconfig/agollo/v5/env/config"
-	_ "github.com/apolloconfig/agollo/v5/env/file/json"
 	jsonFile "github.com/apolloconfig/agollo/v5/env/file/json"
 	"github.com/apolloconfig/agollo/v5/extension"
 	"github.com/apolloconfig/agollo/v5/storage"
