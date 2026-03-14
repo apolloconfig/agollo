@@ -21,16 +21,16 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v4/agcache/memory"
-	_ "github.com/apolloconfig/agollo/v4/agcache/memory"
-	"github.com/apolloconfig/agollo/v4/env"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	_ "github.com/apolloconfig/agollo/v4/env/file/json"
-	jsonFile "github.com/apolloconfig/agollo/v4/env/file/json"
-	"github.com/apolloconfig/agollo/v4/extension"
-	"github.com/apolloconfig/agollo/v4/utils"
-	_ "github.com/apolloconfig/agollo/v4/utils/parse/normal"
-	_ "github.com/apolloconfig/agollo/v4/utils/parse/properties"
+	"github.com/apolloconfig/agollo/v5/agcache/memory"
+	_ "github.com/apolloconfig/agollo/v5/agcache/memory"
+	"github.com/apolloconfig/agollo/v5/env"
+	"github.com/apolloconfig/agollo/v5/env/config"
+	_ "github.com/apolloconfig/agollo/v5/env/file/json"
+	jsonFile "github.com/apolloconfig/agollo/v5/env/file/json"
+	"github.com/apolloconfig/agollo/v5/extension"
+	"github.com/apolloconfig/agollo/v5/utils"
+	_ "github.com/apolloconfig/agollo/v5/utils/parse/normal"
+	_ "github.com/apolloconfig/agollo/v5/utils/parse/properties"
 )
 
 // init param

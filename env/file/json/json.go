@@ -21,9 +21,9 @@ import (
 	"os"
 	"sync"
 
-	"github.com/apolloconfig/agollo/v4/component/log"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	jsonConfig "github.com/apolloconfig/agollo/v4/env/config/json"
+	"github.com/apolloconfig/agollo/v5/component/log"
+	"github.com/apolloconfig/agollo/v5/env/config"
+	jsonConfig "github.com/apolloconfig/agollo/v5/env/config/json"
 )
 
 // Suffix 默认文件保存类型

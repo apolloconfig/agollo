@@ -23,15 +23,15 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v4/constant"
-	"github.com/apolloconfig/agollo/v4/env"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/env/server"
-	"github.com/apolloconfig/agollo/v4/extension"
-	"github.com/apolloconfig/agollo/v4/utils/parse/normal"
-	"github.com/apolloconfig/agollo/v4/utils/parse/properties"
-	"github.com/apolloconfig/agollo/v4/utils/parse/yaml"
-	"github.com/apolloconfig/agollo/v4/utils/parse/yml"
+	"github.com/apolloconfig/agollo/v5/constant"
+	"github.com/apolloconfig/agollo/v5/env"
+	"github.com/apolloconfig/agollo/v5/env/config"
+	"github.com/apolloconfig/agollo/v5/env/server"
+	"github.com/apolloconfig/agollo/v5/extension"
+	"github.com/apolloconfig/agollo/v5/utils/parse/normal"
+	"github.com/apolloconfig/agollo/v5/utils/parse/properties"
+	"github.com/apolloconfig/agollo/v5/utils/parse/yaml"
+	"github.com/apolloconfig/agollo/v5/utils/parse/yml"
 )
 
 var (

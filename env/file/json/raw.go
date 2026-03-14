@@ -19,9 +19,9 @@ import (
 	"os"
 	"sync"
 
-	"github.com/apolloconfig/agollo/v4/component/log"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/env/file"
+	"github.com/apolloconfig/agollo/v5/component/log"
+	"github.com/apolloconfig/agollo/v5/env/config"
+	"github.com/apolloconfig/agollo/v5/env/file"
 )
 
 var (

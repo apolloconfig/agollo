@@ -31,7 +31,7 @@ Agollo - Go Client for Apollo
 ### 导入 agollo
 
 ```
-go get -u github.com/apolloconfig/agollo/v4@latest
+go get -u github.com/apolloconfig/agollo/v5@latest
 ```
 
 ### 启动 agollo
@@ -41,8 +41,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/apolloconfig/agollo/v4"
-	"github.com/apolloconfig/agollo/v4/env/config"
+	"github.com/apolloconfig/agollo/v5"
+	"github.com/apolloconfig/agollo/v5/env/config"
 )
 
 func main() {

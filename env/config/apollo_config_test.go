@@ -19,7 +19,7 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/apolloconfig/agollo/v5/utils"
 )
 
 func TestCurrentApolloConfig(t *testing.T) {
