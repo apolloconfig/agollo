@@ -15,12 +15,12 @@
 package agollo
 
 import (
-	"github.com/apolloconfig/agollo/v4/agcache"
-	"github.com/apolloconfig/agollo/v4/cluster"
-	"github.com/apolloconfig/agollo/v4/component/log"
-	"github.com/apolloconfig/agollo/v4/env/file"
-	"github.com/apolloconfig/agollo/v4/extension"
-	"github.com/apolloconfig/agollo/v4/protocol/auth"
+	"github.com/apolloconfig/agollo/v5/agcache"
+	"github.com/apolloconfig/agollo/v5/cluster"
+	"github.com/apolloconfig/agollo/v5/component/log"
+	"github.com/apolloconfig/agollo/v5/env/file"
+	"github.com/apolloconfig/agollo/v5/extension"
+	"github.com/apolloconfig/agollo/v5/protocol/auth"
 )
 
 // SetSignature 设置自定义 http 授权控件

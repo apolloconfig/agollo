@@ -19,7 +19,7 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v4/constant"
+	"github.com/apolloconfig/agollo/v5/constant"
 )
 
 // TestParser 默认内容转换器

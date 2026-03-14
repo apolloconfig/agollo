@@ -14,7 +14,7 @@
 
 package component
 
-import "github.com/apolloconfig/agollo/v4/component/log"
+import "github.com/apolloconfig/agollo/v5/component/log"
 
 type Stoppable interface {
 	Stop()

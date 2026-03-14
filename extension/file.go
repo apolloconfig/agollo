@@ -14,7 +14,7 @@
 
 package extension
 
-import "github.com/apolloconfig/agollo/v4/env/file"
+import "github.com/apolloconfig/agollo/v5/env/file"
 
 var fileHandler file.FileHandler
 
