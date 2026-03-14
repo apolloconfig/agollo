@@ -121,6 +121,9 @@ type testComponent struct {
 func (s *testComponent) Start() {
 }
 
+func (s *testComponent) Stop() {
+}
+
 func TestStartRefreshConfig(t *testing.T) {
 	StartRefreshConfig(&testComponent{})
 }

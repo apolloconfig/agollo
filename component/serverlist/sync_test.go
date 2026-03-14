@@ -15,6 +15,7 @@
 package serverlist
 
 import (
+	"sync"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
@@ -81,4 +82,40 @@ func TestSetDownNode(t *testing.T) {
 	info, ok := server.GetServers(appConfig.IP)["http://10.15.128.102:8080/"]
 	Assert(t, ok, Equal(true))
 	Assert(t, info.IsDown, Equal(true))
+}
+
+func TestSyncServerIPListComponent_Stop(t *testing.T) {
+	type fields struct {
+		appConfig func() config.AppConfig
+		stopCh    chan struct{}
+		stopOnce  sync.Once
+	}
+	tests := []struct {
+		name   string
+		fields fields
+	}{
+		{
+			name: "test_stop",
+			fields: fields{
+				stopCh: make(chan struct{}),
+			},
+		},
+		{
+			name: "test_stop_chan_nil",
+			fields: fields{
+				stopCh: nil,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			s := &SyncServerIPListComponent{
+				appConfig: tt.fields.appConfig,
+				stopCh:    tt.fields.stopCh,
+				stopOnce:  tt.fields.stopOnce,
+			}
+			s.Stop()
+			s.Stop()
+		})
+	}
 }

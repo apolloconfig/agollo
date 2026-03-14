@@ -14,6 +14,12 @@
 
 package component
 
+import "github.com/apolloconfig/agollo/v4/component/log"
+
+type Stoppable interface {
+	Stop()
+}
+
 // AbsComponent 定时组件
 type AbsComponent interface {
 	Start()
@@ -21,5 +27,10 @@ type AbsComponent interface {
 
 // StartRefreshConfig 开始定时服务
 func StartRefreshConfig(component AbsComponent) {
+	defer func() {
+		if err := recover(); err != nil {
+			log.Errorf("StartRefreshConfig component start failed, recover panic: %v", err)
+		}
+	}()
 	component.Start()
 }

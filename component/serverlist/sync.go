@@ -16,6 +16,7 @@ package serverlist
 
 import (
 	"encoding/json"
+	"sync"
 	"time"
 
 	"github.com/apolloconfig/agollo/v4/component"
@@ -36,29 +37,64 @@ func init() {
 }
 
 // InitSyncServerIPList 初始化同步服务器信息列表
+// Deprecated 该方式启动的SyncServerIPListComponent无法关闭，强烈建议使用NewSyncServerIPListComponent
 func InitSyncServerIPList(appConfig func() config.AppConfig) {
-	go component.StartRefreshConfig(&SyncServerIPListComponent{appConfig})
+	go component.StartRefreshConfig(&SyncServerIPListComponent{appConfig: appConfig})
+}
+
+func NewSyncServerIPListComponent(appConfig func() config.AppConfig) *SyncServerIPListComponent {
+	return &SyncServerIPListComponent{
+		appConfig: appConfig,
+		stopCh:    make(chan struct{}),
+	}
 }
 
 // SyncServerIPListComponent set timer for update ip list
 // interval : 20m
 type SyncServerIPListComponent struct {
 	appConfig func() config.AppConfig
+	stopCh    chan struct{}
+	stopOnce  sync.Once
+	stopMu    sync.Mutex
 }
 
 // Start 启动同步服务器列表
 func (s *SyncServerIPListComponent) Start() {
+	stopCh := s.ensureStopCh()
 	SyncServerIPList(s.appConfig)
-	log.Debug("syncServerIpList started")
+	log.Debug("syncServerIpListComponent started")
 
 	t2 := time.NewTimer(refreshIPListInterval)
+	defer t2.Stop()
 	for {
 		select {
+		case <-stopCh:
+			log.Debug("syncServerIpListComponent stopped")
+			return
 		case <-t2.C:
 			SyncServerIPList(s.appConfig)
 			t2.Reset(refreshIPListInterval)
 		}
 	}
+}
+
+func (s *SyncServerIPListComponent) Stop() {
+	s.stopOnce.Do(func() {
+		s.stopMu.Lock()
+		defer s.stopMu.Unlock()
+		if s.stopCh != nil {
+			close(s.stopCh)
+		}
+	})
+}
+
+func (s *SyncServerIPListComponent) ensureStopCh() chan struct{} {
+	s.stopMu.Lock()
+	defer s.stopMu.Unlock()
+	if s.stopCh == nil {
+		s.stopCh = make(chan struct{})
+	}
+	return s.stopCh
 }
 
 // SyncServerIPList sync ip list from server
