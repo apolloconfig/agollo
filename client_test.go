@@ -1,19 +1,16 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2025 Apollo Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package agollo
 
@@ -27,17 +24,17 @@ import (
 	"time"
 
 	"github.com/agiledragon/gomonkey/v2"
+	. "github.com/tevid/gohamcrest"
 	"github.com/apolloconfig/agollo/v4/component"
 	_ "github.com/apolloconfig/agollo/v4/env/file/json"
 
 	"github.com/apolloconfig/agollo/v4/agcache/memory"
 	"github.com/apolloconfig/agollo/v4/component/remote"
 	"github.com/apolloconfig/agollo/v4/env/config"
+	_ "github.com/apolloconfig/agollo/v4/env/file/json"
 	"github.com/apolloconfig/agollo/v4/env/server"
-
 	"github.com/apolloconfig/agollo/v4/extension"
 	"github.com/apolloconfig/agollo/v4/storage"
-	. "github.com/tevid/gohamcrest"
 )
 
 const testDefaultNamespace = "application"
@@ -360,14 +357,14 @@ func TestUseEventDispatch(t *testing.T) {
 
 func TestGetConfigAndInitValNotNil(t *testing.T) {
 	var apc *remote.AbsApolloConfig
-	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
+	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error) {
 		return &config.ApolloConfig{
 			ApolloConnConfig: config.ApolloConnConfig{
 				AppID:         "testID",
 				NamespaceName: "testNotFound",
 			},
 			Configurations: map[string]interface{}{"testKey": "testUpdatedValue"},
-		}
+		}, nil
 	})
 
 	client := createMockApolloConfig(120)
@@ -384,14 +381,14 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 	patch.Reset()
 
 	// second replace
-	patch1 := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
+	patch1 := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error) {
 		return &config.ApolloConfig{
 			ApolloConnConfig: config.ApolloConnConfig{
 				AppID:         "testID",
 				NamespaceName: "testNotFound1",
 			},
 			Configurations: map[string]interface{}{"testKey": "testUpdatedValue"},
-		}
+		}, nil
 	})
 	defer patch1.Reset()
 	client.appConfig.NamespaceName = "testNotFound1"
@@ -404,8 +401,8 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 
 func TestGetConfigAndInitValNil(t *testing.T) {
 	var apc *remote.AbsApolloConfig
-	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
-		return nil
+	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error) {
+		return nil, nil
 	})
 	defer patch.Reset()
 

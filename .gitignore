@@ -19,3 +19,7 @@ application*.json
 /abc1.json
 /env_test.properties
 /vendor/
+# Test artifact JSON files
+test-*.json
+storage/test-*.json
+env/file/json/*.json

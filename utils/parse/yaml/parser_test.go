@@ -1,28 +1,26 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2025 Apollo Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package yaml
 
 import (
-	"github.com/apolloconfig/agollo/v4/utils"
-	"github.com/apolloconfig/agollo/v4/utils/parse"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
+
+	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/apolloconfig/agollo/v4/utils/parse"
 )
 
 var (
@@ -61,4 +59,43 @@ func TestYAMLParserOnException(t *testing.T) {
 
 	m := convertToMap(nil)
 	Assert(t, m, NilVal())
+}
+
+// TestYAMLParserArray 测试 YAML 数组解析
+func TestYAMLParserArray(t *testing.T) {
+	s, err := yamlParser.Parse(`
+items:
+  - test111
+  - test222
+numbers:
+  - 1
+  - 2
+  - 3
+nested:
+  items:
+    - a
+    - b
+    - c
+`)
+	Assert(t, err, NilVal())
+
+	// 验证字符串数组被解析为 []interface{}
+	items, ok := s["items"].([]interface{})
+	Assert(t, ok, Equal(true))
+	Assert(t, len(items), Equal(2))
+	Assert(t, items[0], Equal("test111"))
+	Assert(t, items[1], Equal("test222"))
+
+	// 验证数字数组被解析为 []interface{}
+	numbers, ok := s["numbers"].([]interface{})
+	Assert(t, ok, Equal(true))
+	Assert(t, len(numbers), Equal(3))
+
+	// 验证嵌套数组
+	nestedItems, ok := s["nested.items"].([]interface{})
+	Assert(t, ok, Equal(true))
+	Assert(t, len(nestedItems), Equal(3))
+	Assert(t, nestedItems[0], Equal("a"))
+	Assert(t, nestedItems[1], Equal("b"))
+	Assert(t, nestedItems[2], Equal("c"))
 }
