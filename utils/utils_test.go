@@ -21,6 +21,8 @@ import (
 	. "github.com/tevid/gohamcrest"
 )
 
+type demoStruct struct{}
+
 func TestGetInternal(t *testing.T) {
 	ip := GetInternal()
 
@@ -39,4 +41,25 @@ func TestIsNotNil(t *testing.T) {
 
 	flag = IsNotNil("")
 	Assert(t, true, Equal(flag))
+}
+
+func TestIsNilObject(t *testing.T) {
+	var nilMap map[string]string
+	var nilSlice []string
+	var nilChan chan string
+	var nilFunc func()
+	var nilPtr *demoStruct
+
+	Assert(t, true, Equal(IsNilObject(nilMap)))
+	Assert(t, true, Equal(IsNilObject(nilSlice)))
+	Assert(t, true, Equal(IsNilObject(nilChan)))
+	Assert(t, true, Equal(IsNilObject(nilFunc)))
+	Assert(t, true, Equal(IsNilObject(nilPtr)))
+
+	Assert(t, false, Equal(IsNilObject(map[string]string{})))
+	Assert(t, false, Equal(IsNilObject([]string{})))
+	Assert(t, false, Equal(IsNilObject(make(chan string))))
+	Assert(t, false, Equal(IsNilObject(func() {})))
+	Assert(t, false, Equal(IsNilObject(&demoStruct{})))
+	Assert(t, false, Equal(IsNilObject("")))
 }
