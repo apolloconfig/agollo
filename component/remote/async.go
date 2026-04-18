@@ -108,9 +108,10 @@ func (a *asyncApolloConfig) notifyRemoteConfig(appConfigFunc func() config.AppCo
 	urlSuffix := a.GetNotifyURLSuffix(notificationsMap.GetNotifies(namespace), appConfig)
 
 	connectConfig := &env.ConnectConfig{
-		URI:    urlSuffix,
-		AppID:  appConfig.AppID,
-		Secret: appConfig.Secret,
+		URI:                urlSuffix,
+		AppID:              appConfig.AppID,
+		Secret:             appConfig.Secret,
+		InsecureSkipVerify: appConfig.InsecureSkipVerify,
 	}
 	connectConfig.Timeout = notifyConnectTimeout
 	notifies, err := http.RequestRecovery(appConfig, connectConfig, &http.CallBack{

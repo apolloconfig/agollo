@@ -62,6 +62,7 @@ func TestHttpsRequestRecovery(t *testing.T) {
 	server := runNormalBackupConfigResponseWithHTTPS()
 	appConfig := getTestAppConfig()
 	appConfig.IP = server.URL
+	appConfig.InsecureSkipVerify = true
 
 	mockIPList(t, func() config.AppConfig {
 		return *appConfig
@@ -69,8 +70,9 @@ func TestHttpsRequestRecovery(t *testing.T) {
 	urlSuffix := getConfigURLSuffix(appConfig, appConfig.NamespaceName)
 
 	o, err := RequestRecovery(*appConfig, &env.ConnectConfig{
-		URI:     urlSuffix,
-		IsRetry: true,
+		URI:                urlSuffix,
+		IsRetry:            true,
+		InsecureSkipVerify: true,
 	}, &CallBack{
 		SuccessCallBack: nil,
 	})
