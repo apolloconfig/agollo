@@ -134,25 +134,35 @@ func TestFailFastStatusCode(t *testing.T) {
 	time.Sleep(1 * time.Second)
 
 	tests := []struct {
-		name   string
-		status int
+		name                 string
+		status               int
+		expectedDown         bool
+		expectedInvalid      bool
+		expectedDurationZero bool
 	}{
-		{name: "400", status: http.StatusBadRequest},
-		{name: "401", status: http.StatusUnauthorized},
-		{name: "404", status: http.StatusNotFound},
-		{name: "405", status: http.StatusMethodNotAllowed},
+		{name: "400", status: http.StatusBadRequest, expectedDown: false, expectedInvalid: true, expectedDurationZero: true},
+		{name: "401", status: http.StatusUnauthorized, expectedDown: false, expectedInvalid: true, expectedDurationZero: true},
+		{name: "404", status: http.StatusNotFound, expectedDown: false, expectedInvalid: true, expectedDurationZero: true},
+		{name: "405", status: http.StatusMethodNotAllowed, expectedDown: false, expectedInvalid: true, expectedDurationZero: true},
+		{name: "500", status: http.StatusInternalServerError, expectedDown: true, expectedInvalid: false, expectedDurationZero: false},
+		{name: "502", status: http.StatusBadGateway, expectedDown: true, expectedInvalid: false, expectedDurationZero: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			testFailFastStatusCode(t, tt.status)
+			testFailFastStatusCode(t, tt.status, tt.expectedDown, tt.expectedInvalid, tt.expectedDurationZero)
 		})
 	}
 }
 
-func testFailFastStatusCode(t *testing.T, status int) {
-	server := runStatusCodeResponse(status)
+func testFailFastStatusCode(t *testing.T, status int, expectedDown bool, expectedInvalid bool, expectedDurationZero bool) {
+	httpServer := runStatusCodeResponse(status)
 	appConfig := getTestAppConfig()
-	appConfig.IP = server.URL
+	appConfig.IP = httpServer.URL
+	server.SetServers(appConfig.GetHost(), map[string]*config.ServerInfo{
+		appConfig.GetHost(): {
+			HomepageURL: appConfig.GetHost(),
+		},
+	})
 
 	startTime := time.Now().Unix()
 	_, err := RequestRecovery(*appConfig, &env.ConnectConfig{
@@ -164,7 +174,15 @@ func testFailFastStatusCode(t *testing.T, status int) {
 	duration := time.Now().Unix() - startTime
 
 	Assert(t, err, NotNilVal())
-	Assert(t, int64(0), Equal(duration))
+	Assert(t, isClientRequestInvalidError(err), Equal(expectedInvalid))
+	if expectedDurationZero {
+		Assert(t, int64(0), Equal(duration))
+	} else {
+		Assert(t, int64(10), Equal(duration))
+	}
+	info := server.GetServers(appConfig.GetHost())[appConfig.GetHost()]
+	Assert(t, info, NotNilVal())
+	Assert(t, info.IsDown, Equal(expectedDown))
 }
 
 func mockIPList(t *testing.T, appConfigFunc func() config.AppConfig) {
