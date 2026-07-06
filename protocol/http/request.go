@@ -21,6 +21,8 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
+	"strings"
 	"sync"
 	"time"
 
@@ -106,8 +108,13 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 	} else {
 		client.Timeout = connectTimeout
 	}
+	u, err := url.Parse(requestURL)
+	if err != nil {
+		log.Errorf("request Apollo Server url: %q is invalid: %v", requestURL, err)
+		return nil, err
+	}
 	var insecureSkipVerify bool
-	if connectionConfig != nil {
+	if strings.HasPrefix(u.Scheme, "https") && connectionConfig != nil {
 		insecureSkipVerify = connectionConfig.InsecureSkipVerify
 	}
 	client.Transport = getDefaultTransport(insecureSkipVerify)
@@ -116,7 +123,6 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 	if connectionConfig != nil && !connectionConfig.IsRetry {
 		retries = 1
 	}
-	var err error
 	for {
 
 		retry++
