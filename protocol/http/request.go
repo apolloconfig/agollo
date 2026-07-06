@@ -22,7 +22,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"strings"
 	"sync"
 	"time"
 
@@ -114,7 +113,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		return nil, err
 	}
 	var insecureSkipVerify bool
-	if connectionConfig != nil && strings.HasPrefix(u.Scheme, "https") {
+	if connectionConfig != nil && u.Scheme == "https" {
 		insecureSkipVerify = connectionConfig.InsecureSkipVerify
 	}
 	client.Transport = getDefaultTransport(insecureSkipVerify)
