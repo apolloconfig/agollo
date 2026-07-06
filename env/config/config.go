@@ -53,8 +53,8 @@ type AppConfig struct {
 	// verification. This should only be set to true in test environments or
 	// when connecting to a server with a self-signed certificate. Leaving it
 	// false (the default) keeps the connection secure.
-	InsecureSkipVerify      bool `default:"false" json:"insecureSkipVerify"`
-	notificationsMap        *notificationsMap
+	InsecureSkipVerify bool `default:"false" json:"insecureSkipVerify"`
+	notificationsMap   *notificationsMap
 	currentConnApolloConfig *CurrentApolloConfig
 }
 
