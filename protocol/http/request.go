@@ -114,7 +114,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		return nil, err
 	}
 	var insecureSkipVerify bool
-	if strings.HasPrefix(u.Scheme, "https") && connectionConfig != nil {
+	if connectionConfig != nil && strings.HasPrefix(u.Scheme, "https") {
 		insecureSkipVerify = connectionConfig.InsecureSkipVerify
 	}
 	client.Transport = getDefaultTransport(insecureSkipVerify)
