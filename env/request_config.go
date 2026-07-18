@@ -30,4 +30,8 @@ type ConnectConfig struct {
 	AppID string
 	//密钥
 	Secret string
+	// InsecureSkipVerify controls whether the HTTP client skips TLS certificate
+	// verification. Defaults to false (secure). Set to true only in test
+	// environments or when connecting to servers with self-signed certificates.
+	InsecureSkipVerify bool
 }

@@ -18,6 +18,7 @@ import (
 	json2 "encoding/json"
 	"fmt"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"testing"
 	"time"
@@ -62,6 +63,7 @@ func TestHttpsRequestRecovery(t *testing.T) {
 	server := runNormalBackupConfigResponseWithHTTPS()
 	appConfig := getTestAppConfig()
 	appConfig.IP = server.URL
+	appConfig.InsecureSkipVerify = true
 
 	mockIPList(t, func() config.AppConfig {
 		return *appConfig
@@ -69,14 +71,31 @@ func TestHttpsRequestRecovery(t *testing.T) {
 	urlSuffix := getConfigURLSuffix(appConfig, appConfig.NamespaceName)
 
 	o, err := RequestRecovery(*appConfig, &env.ConnectConfig{
-		URI:     urlSuffix,
-		IsRetry: true,
+		URI:                urlSuffix,
+		IsRetry:            true,
+		InsecureSkipVerify: true,
 	}, &CallBack{
 		SuccessCallBack: nil,
 	})
 
 	Assert(t, err, NilVal())
 	Assert(t, o, NilVal())
+}
+
+func TestTLSVerificationDefaultsToEnabled(t *testing.T) {
+	server := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	_, err := Request(server.URL, &env.ConnectConfig{IsRetry: false}, nil)
+	Assert(t, err, NotNilVal())
+
+	_, err = Request(server.URL, &env.ConnectConfig{
+		IsRetry:            false,
+		InsecureSkipVerify: true,
+	}, nil)
+	Assert(t, err, NilVal())
 }
 
 func TestRequestRecovery(t *testing.T) {
