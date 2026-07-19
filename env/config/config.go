@@ -48,8 +48,13 @@ type AppConfig struct {
 	Label             string `json:"label"`
 	SyncServerTimeout int    `json:"syncServerTimeout"`
 	// MustStart 可用于控制第一次同步必须成功
-	MustStart               bool `default:"false"`
-	notificationsMap        *notificationsMap
+	MustStart bool `default:"false"`
+	// InsecureSkipVerify controls whether the client skips TLS certificate
+	// verification. This should only be set to true in test environments or
+	// when connecting to a server with a self-signed certificate. Leaving it
+	// false (the default) keeps the connection secure.
+	InsecureSkipVerify bool `default:"false" json:"insecureSkipVerify"`
+	notificationsMap   *notificationsMap
 	currentConnApolloConfig *CurrentApolloConfig
 }
 

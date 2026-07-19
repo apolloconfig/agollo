@@ -36,11 +36,12 @@ func (a *AbsApolloConfig) SyncWithNamespace(namespace string, appConfigFunc func
 	urlSuffix := a.remoteApollo.GetSyncURI(appConfig, namespace)
 
 	c := &env.ConnectConfig{
-		URI:     urlSuffix,
-		AppID:   appConfig.AppID,
-		Secret:  appConfig.Secret,
-		Timeout: notifyConnectTimeout,
-		IsRetry: true,
+		URI:                urlSuffix,
+		AppID:              appConfig.AppID,
+		Secret:             appConfig.Secret,
+		Timeout:            notifyConnectTimeout,
+		IsRetry:            true,
+		InsecureSkipVerify: appConfig.InsecureSkipVerify,
 	}
 	if appConfig.SyncServerTimeout > 0 {
 		c.Timeout = time.Duration(appConfig.SyncServerTimeout) * time.Second

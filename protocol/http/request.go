@@ -22,7 +22,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"strings"
 	"sync"
 	"time"
 
@@ -53,24 +52,40 @@ var (
 	once sync.Once
 	// defaultTransport http.Transport
 	defaultTransport *http.Transport
+	// insecureOnce for single insecure http.Transport
+	insecureOnce sync.Once
+	// insecureTransport is an http.Transport with TLS verification disabled.
+	// Use only when InsecureSkipVerify is explicitly requested.
+	insecureTransport *http.Transport
 )
 
+func newTransport(insecureSkipVerify bool) *http.Transport {
+	t := &http.Transport{
+		Proxy:               http.ProxyFromEnvironment,
+		MaxIdleConns:        defaultMaxConnsPerHost,
+		MaxIdleConnsPerHost: defaultMaxConnsPerHost,
+		DialContext: (&net.Dialer{
+			KeepAlive: defaultKeepAliveSecond,
+			Timeout:   defaultTimeoutBySecond,
+		}).DialContext,
+	}
+	if insecureSkipVerify {
+		t.TLSClientConfig = &tls.Config{
+			InsecureSkipVerify: true, //nolint:gosec // explicitly opt-in by caller
+		}
+	}
+	return t
+}
+
 func getDefaultTransport(insecureSkipVerify bool) *http.Transport {
+	if insecureSkipVerify {
+		insecureOnce.Do(func() {
+			insecureTransport = newTransport(true)
+		})
+		return insecureTransport
+	}
 	once.Do(func() {
-		defaultTransport = &http.Transport{
-			Proxy:               http.ProxyFromEnvironment,
-			MaxIdleConns:        defaultMaxConnsPerHost,
-			MaxIdleConnsPerHost: defaultMaxConnsPerHost,
-			DialContext: (&net.Dialer{
-				KeepAlive: defaultKeepAliveSecond,
-				Timeout:   defaultTimeoutBySecond,
-			}).DialContext,
-		}
-		if insecureSkipVerify {
-			defaultTransport.TLSClientConfig = &tls.Config{
-				InsecureSkipVerify: insecureSkipVerify,
-			}
-		}
+		defaultTransport = newTransport(false)
 	})
 	return defaultTransport
 }
@@ -105,15 +120,14 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 	} else {
 		client.Timeout = connectTimeout
 	}
-	var err error
 	u, err := url.Parse(requestURL)
 	if err != nil {
 		log.Errorf("request Apollo Server url: %q is invalid: %v", requestURL, err)
 		return nil, err
 	}
 	var insecureSkipVerify bool
-	if strings.HasPrefix(u.Scheme, "https") {
-		insecureSkipVerify = true
+	if connectionConfig != nil && u.Scheme == "https" {
+		insecureSkipVerify = connectionConfig.InsecureSkipVerify
 	}
 	client.Transport = getDefaultTransport(insecureSkipVerify)
 	retry := 0
@@ -151,11 +165,11 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 
 		var res *http.Response
 		res, err = client.Do(req)
-		if res != nil {
-			defer res.Body.Close()
-		}
 
 		if res == nil || err != nil {
+			if res != nil {
+				res.Body.Close()
+			}
 			log.Errorf("Connect Apollo Server Fail, url:%s, error:%v", requestURL, err)
 			// if error then sleep
 			time.Sleep(onErrorRetryInterval)
@@ -167,6 +181,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		case http.StatusOK:
 			var responseBody []byte
 			responseBody, err = io.ReadAll(res.Body)
+			res.Body.Close()
 			if err != nil {
 				log.Errorf("Connect Apollo Server Fail, url: %s , error: %v", requestURL, err)
 				// if error then sleep
@@ -179,15 +194,18 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 			}
 			return nil, nil
 		case http.StatusNotModified:
+			res.Body.Close()
 			log.Debugf("Config Not Modified, error: %v", err)
 			if callBack != nil && callBack.NotModifyCallBack != nil {
 				return nil, callBack.NotModifyCallBack()
 			}
 			return nil, nil
 		case http.StatusBadRequest, http.StatusUnauthorized, http.StatusForbidden, http.StatusNotFound, http.StatusMethodNotAllowed:
+			res.Body.Close()
 			log.Errorf("Connect Apollo Server Fail, url:%s, StatusCode:%d", requestURL, res.StatusCode)
 			return nil, &clientRequestInvalidError{statusCode: res.StatusCode}
 		default:
+			res.Body.Close()
 			log.Errorf("Connect Apollo Server Fail, url:%s, StatusCode:%d", requestURL, res.StatusCode)
 			// if error then sleep
 			time.Sleep(onErrorRetryInterval)
