@@ -142,6 +142,7 @@ func TestFailFastStatusCode(t *testing.T) {
 	}{
 		{name: "400", status: http.StatusBadRequest, expectedDown: false, expectedInvalid: true, expectedDurationZero: true},
 		{name: "401", status: http.StatusUnauthorized, expectedDown: false, expectedInvalid: true, expectedDurationZero: true},
+		{name: "403", status: http.StatusForbidden, expectedDown: false, expectedInvalid: true, expectedDurationZero: true},
 		{name: "404", status: http.StatusNotFound, expectedDown: false, expectedInvalid: true, expectedDurationZero: true},
 		{name: "405", status: http.StatusMethodNotAllowed, expectedDown: false, expectedInvalid: true, expectedDurationZero: true},
 		{name: "500", status: http.StatusInternalServerError, expectedDown: true, expectedInvalid: false, expectedDurationZero: false},

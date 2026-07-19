@@ -184,7 +184,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 				return nil, callBack.NotModifyCallBack()
 			}
 			return nil, nil
-		case http.StatusBadRequest, http.StatusUnauthorized, http.StatusNotFound, http.StatusMethodNotAllowed:
+		case http.StatusBadRequest, http.StatusUnauthorized, http.StatusForbidden, http.StatusNotFound, http.StatusMethodNotAllowed:
 			log.Errorf("Connect Apollo Server Fail, url:%s, StatusCode:%d", requestURL, res.StatusCode)
 			return nil, &clientRequestInvalidError{statusCode: res.StatusCode}
 		default:
