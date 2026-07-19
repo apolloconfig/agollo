@@ -98,6 +98,19 @@ type CallBack struct {
 	Namespace         string
 }
 
+type clientRequestInvalidError struct {
+	statusCode int
+}
+
+func (e *clientRequestInvalidError) Error() string {
+	return fmt.Sprintf("Connect Apollo Server Fail, StatusCode:%d", e.statusCode)
+}
+
+func isClientRequestInvalidError(err error) bool {
+	var target *clientRequestInvalidError
+	return errors.As(err, &target)
+}
+
 // Request 建立网络请求
 func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *CallBack) (interface{}, error) {
 	client := &http.Client{}
@@ -187,10 +200,10 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 				return nil, callBack.NotModifyCallBack()
 			}
 			return nil, nil
-		case http.StatusBadRequest, http.StatusUnauthorized, http.StatusNotFound, http.StatusMethodNotAllowed:
+		case http.StatusBadRequest, http.StatusUnauthorized, http.StatusForbidden, http.StatusNotFound, http.StatusMethodNotAllowed:
 			res.Body.Close()
 			log.Errorf("Connect Apollo Server Fail, url:%s, StatusCode:%d", requestURL, res.StatusCode)
-			return nil, errors.New(fmt.Sprintf("Connect Apollo Server Fail, StatusCode:%d", res.StatusCode))
+			return nil, &clientRequestInvalidError{statusCode: res.StatusCode}
 		default:
 			res.Body.Close()
 			log.Errorf("Connect Apollo Server Fail, url:%s, StatusCode:%d", requestURL, res.StatusCode)
@@ -225,6 +238,10 @@ func RequestRecovery(appConfig config.AppConfig,
 		response, err = Request(requestURL, connectConfig, callBack)
 		if err == nil {
 			return response, nil
+		}
+
+		if isClientRequestInvalidError(err) {
+			return nil, err
 		}
 
 		server.SetDownNode(appConfig.GetHost(), host)
