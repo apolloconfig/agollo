@@ -3,7 +3,7 @@ module github.com/apolloconfig/agollo/v5
 go 1.20
 
 require (
-	github.com/agiledragon/gomonkey/v2 v2.14.1
+	github.com/agiledragon/gomonkey/v2 v2.14.2
 	github.com/spf13/viper v1.8.1
 	github.com/tevid/gohamcrest v1.1.1
 )
