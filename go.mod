@@ -1,4 +1,4 @@
-module github.com/apolloconfig/agollo/v5
+module github.com/apolloconfig/agollo/v6
 
 go 1.20
 

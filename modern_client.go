@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 	"sync"
@@ -28,9 +29,56 @@ import (
 
 const defaultModernCluster = "default"
 
-// ClientOption configures a ConfigClient. Options are applied before any
-// network request or goroutine is created.
-type ClientOption func(*clientOptions) error
+// ClientOptions configures an ApolloClient. Its zero values select safe
+// defaults: cluster "default", long polling enabled, a standard HTTP client,
+// 1s-2m retry backoff, and a listener queue size of 32.
+//
+// AppID may be empty only when every lookup uses ConfigForApp or
+// ConfigFileForApp. ConfigServices takes precedence over MetaServer.
+type ClientOptions struct {
+	// AppID is the default application identity. ConfigForApp can override it.
+	AppID string
+	// Cluster defaults to "default".
+	Cluster string
+	// ConfigServices contains direct Config Service base URLs. When non-empty,
+	// it takes precedence over MetaServer discovery.
+	ConfigServices []string
+	// MetaServer is the base URL used for Config Service discovery.
+	MetaServer string
+	// AccessKeySecret signs requests that have no AppID-specific override.
+	AccessKeySecret string
+	// AccessKeySecrets optionally overrides the secret by AppID.
+	AccessKeySecrets map[string]string
+	// Label selects an Apollo gray release.
+	Label string
+	// DataCenter and ClientIP are sent during fetches and long polling.
+	DataCenter string
+	ClientIP   string
+	// HTTPClient is shared by discovery, fetch, and long-poll requests.
+	HTTPClient *http.Client
+	// RequestSigner overrides the default Apollo Access Key signer for this
+	// client instance. It is useful for custom gateway authentication.
+	RequestSigner RequestSigner
+	// ConfigServiceSelector selects a Config Service for each request. A nil
+	// selector uses the built-in round-robin policy.
+	ConfigServiceSelector ConfigServiceSelector
+	// CacheDir enables durable local cache fallback.
+	CacheDir string
+	// ConfigMapStore enables an optional fallback after local files.
+	ConfigMapStore ConfigMapStore
+	// Offline disables discovery, fetch, and long-poll network traffic. It
+	// requires CacheDir or ConfigMapStore.
+	Offline bool
+	// DisableLongPolling keeps remote reads on demand only.
+	DisableLongPolling bool
+	// LongPollInitialDelay delays polling after the first successful load.
+	LongPollInitialDelay time.Duration
+	// RetryBackoffMin and RetryBackoffMax bound exponential retry delays.
+	RetryBackoffMin time.Duration
+	RetryBackoffMax time.Duration
+	// ListenerQueueSize defaults to 32. Zero selects the default.
+	ListenerQueueSize int
+}
 
 type clientOptions struct {
 	appID             string
@@ -43,6 +91,8 @@ type clientOptions struct {
 	dataCenter        string
 	localIP           string
 	httpClient        *http.Client
+	requestSigner     RequestSigner
+	serviceSelector   ConfigServiceSelector
 	localCacheDir     string
 	configMapStore    ConfigMapStore
 	localMode         bool
@@ -64,202 +114,97 @@ func defaultClientOptions() clientOptions {
 	}
 }
 
-// WithAppID sets the default AppId. It is required unless every lookup uses
-// GetConfigFor/GetConfigFileFor with an explicit AppId.
-func WithAppID(appID string) ClientOption {
-	return func(options *clientOptions) error {
-		options.appID = strings.TrimSpace(appID)
-		return nil
+func resolveClientOptions(input ClientOptions) (clientOptions, error) {
+	options := defaultClientOptions()
+	options.appID = strings.TrimSpace(input.AppID)
+	if cluster := strings.TrimSpace(input.Cluster); cluster != "" {
+		options.cluster = cluster
 	}
-}
-
-// WithCluster sets the Apollo cluster. Empty values retain Apollo's default.
-func WithCluster(cluster string) ClientOption {
-	return func(options *clientOptions) error {
-		if value := strings.TrimSpace(cluster); value != "" {
-			options.cluster = value
+	options.configServiceURLs = normalizeURLs(input.ConfigServices)
+	for _, service := range options.configServiceURLs {
+		if err := validateServerURL("ConfigServices", service); err != nil {
+			return clientOptions{}, err
 		}
-		return nil
 	}
-}
-
-// WithConfigServiceURLs bypasses Meta Server discovery and uses the supplied
-// Config Service addresses in order. Each URL must include a scheme.
-func WithConfigServiceURLs(urls ...string) ClientOption {
-	return func(options *clientOptions) error {
-		options.configServiceURLs = normalizeURLs(urls)
-		if len(options.configServiceURLs) == 0 {
-			return errors.New("agollo: at least one non-empty config service URL is required")
+	options.metaServerURL = strings.TrimRight(strings.TrimSpace(input.MetaServer), "/")
+	if options.metaServerURL != "" {
+		if err := validateServerURL("MetaServer", options.metaServerURL); err != nil {
+			return clientOptions{}, err
 		}
-		return nil
 	}
-}
-
-// WithMetaServerURL configures the Meta Server used for Config Service discovery.
-func WithMetaServerURL(url string) ClientOption {
-	return func(options *clientOptions) error {
-		options.metaServerURL = strings.TrimRight(strings.TrimSpace(url), "/")
-		return nil
-	}
-}
-
-// WithAccessKeySecret configures the default AppId access key secret.
-func WithAccessKeySecret(secret string) ClientOption {
-	return func(options *clientOptions) error {
-		options.secret = secret
-		return nil
-	}
-}
-
-// WithAppIDAccessKeySecret configures an AppId-specific access key secret.
-func WithAppIDAccessKeySecret(appID, secret string) ClientOption {
-	return func(options *clientOptions) error {
-		appID = strings.TrimSpace(appID)
+	options.secret = input.AccessKeySecret
+	options.secretsByAppID = make(map[string]string, len(input.AccessKeySecrets))
+	for rawAppID, secret := range input.AccessKeySecrets {
+		appID := strings.TrimSpace(rawAppID)
 		if appID == "" {
-			return errors.New("agollo: appId for access key secret is empty")
+			return clientOptions{}, errors.New("agollo: AccessKeySecrets contains an empty AppID")
 		}
-		if options.secretsByAppID == nil {
-			options.secretsByAppID = make(map[string]string)
+		if _, exists := options.secretsByAppID[appID]; exists {
+			return clientOptions{}, fmt.Errorf("agollo: AccessKeySecrets contains duplicate AppID %q after trimming", appID)
 		}
 		options.secretsByAppID[appID] = secret
-		return nil
 	}
+	options.label = strings.TrimSpace(input.Label)
+	options.dataCenter = strings.TrimSpace(input.DataCenter)
+	options.localIP = strings.TrimSpace(input.ClientIP)
+	if input.HTTPClient != nil {
+		options.httpClient = input.HTTPClient
+	}
+	options.requestSigner = input.RequestSigner
+	options.serviceSelector = input.ConfigServiceSelector
+	options.localCacheDir = strings.TrimSpace(input.CacheDir)
+	options.configMapStore = input.ConfigMapStore
+	options.localMode = input.Offline
+	options.longPollEnabled = !input.DisableLongPolling && !input.Offline
+	if input.LongPollInitialDelay < 0 {
+		return clientOptions{}, errors.New("agollo: LongPollInitialDelay cannot be negative")
+	}
+	options.pollInitialDelay = input.LongPollInitialDelay
+	if input.RetryBackoffMin != 0 {
+		options.retryMin = input.RetryBackoffMin
+	}
+	if input.RetryBackoffMax != 0 {
+		options.retryMax = input.RetryBackoffMax
+	}
+	if options.retryMin <= 0 || options.retryMax < options.retryMin {
+		return clientOptions{}, errors.New("agollo: invalid retry backoff range")
+	}
+	if input.ListenerQueueSize < 0 {
+		return clientOptions{}, errors.New("agollo: ListenerQueueSize cannot be negative")
+	}
+	if input.ListenerQueueSize > 0 {
+		options.listenerQueueSize = input.ListenerQueueSize
+	}
+	return options, nil
 }
 
-// WithLabel configures Apollo gray-release label selection.
-func WithLabel(label string) ClientOption {
-	return func(options *clientOptions) error {
-		options.label = strings.TrimSpace(label)
-		return nil
+func validateServerURL(field, value string) error {
+	parsed, err := url.Parse(value)
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+		return fmt.Errorf("agollo: %s contains invalid URL %q", field, value)
 	}
+	if parsed.Scheme != "http" && parsed.Scheme != "https" {
+		return fmt.Errorf("agollo: %s URL %q must use http or https", field, value)
+	}
+	return nil
 }
 
-// WithDataCenter configures Apollo dataCenter routing for fetch and long poll.
-func WithDataCenter(dataCenter string) ClientOption {
-	return func(options *clientOptions) error {
-		options.dataCenter = strings.TrimSpace(dataCenter)
-		return nil
-	}
-}
-
-// WithLocalIP configures the client IP reported to Apollo. If omitted, no ip
-// query parameter is sent by the modern client.
-func WithLocalIP(ip string) ClientOption {
-	return func(options *clientOptions) error {
-		options.localIP = strings.TrimSpace(ip)
-		return nil
-	}
-}
-
-// WithHTTPClient supplies the HTTP client used by discovery, config fetches,
-// and long polling. Its Transport must be safe for concurrent use.
-func WithHTTPClient(client *http.Client) ClientOption {
-	return func(options *clientOptions) error {
-		if client == nil {
-			return errors.New("agollo: HTTP client is nil")
-		}
-		options.httpClient = client
-		return nil
-	}
-}
-
-// WithLocalCacheDir enables durable local cache fallback. The implementation
-// reads both the modern cache file and agollo's legacy JSON cache format.
-func WithLocalCacheDir(dir string) ClientOption {
-	return func(options *clientOptions) error {
-		options.localCacheDir = strings.TrimSpace(dir)
-		return nil
-	}
-}
-
-// WithConfigMapStore enables the optional Kubernetes ConfigMap fallback.
-// ConfigMap is consulted only after remote and local-file sources fail.
-func WithConfigMapStore(store ConfigMapStore) ClientOption {
-	return func(options *clientOptions) error {
-		if store == nil {
-			return errors.New("agollo: ConfigMap store is nil")
-		}
-		options.configMapStore = store
-		return nil
-	}
-}
-
-// WithLocalMode disables all remote traffic. Configurations can only be loaded
-// from the local cache directory.
-func WithLocalMode() ClientOption {
-	return func(options *clientOptions) error {
-		options.localMode = true
-		options.longPollEnabled = false
-		return nil
-	}
-}
-
-// WithoutLongPoll is useful for command line jobs and deterministic tests.
-func WithoutLongPoll() ClientOption {
-	return func(options *clientOptions) error {
-		options.longPollEnabled = false
-		return nil
-	}
-}
-
-// WithLongPollInitialDelay delays long polling after the first successful
-// namespace load.
-func WithLongPollInitialDelay(delay time.Duration) ClientOption {
-	return func(options *clientOptions) error {
-		if delay < 0 {
-			return errors.New("agollo: long poll initial delay cannot be negative")
-		}
-		options.pollInitialDelay = delay
-		return nil
-	}
-}
-
-// WithRetryBackoff configures the bounded exponential retry range.
-func WithRetryBackoff(min, max time.Duration) ClientOption {
-	return func(options *clientOptions) error {
-		if min <= 0 || max < min {
-			return errors.New("agollo: invalid retry backoff range")
-		}
-		options.retryMin = min
-		options.retryMax = max
-		return nil
-	}
-}
-
-// WithListenerQueueSize limits outstanding events per listener. On overflow,
-// intermediate events are coalesced to the latest event and recorded by Monitor.
-func WithListenerQueueSize(size int) ClientOption {
-	return func(options *clientOptions) error {
-		if size < 1 {
-			return errors.New("agollo: listener queue size must be positive")
-		}
-		options.listenerQueueSize = size
-		return nil
-	}
-}
-
-// NewClient creates an instance-scoped client. It does not perform network I/O
-// until a namespace is requested.
-func NewClient(ctx context.Context, options ...ClientOption) (ConfigClient, error) {
+// NewClient creates an instance-scoped Apollo client. It does not perform
+// network I/O until Config or ConfigFile is called.
+func NewClient(ctx context.Context, input ClientOptions) (*ApolloClient, error) {
 	if ctx == nil {
 		return nil, errors.New("agollo: context is nil")
 	}
-
-	config := defaultClientOptions()
-	for _, option := range options {
-		if option == nil {
-			continue
-		}
-		if err := option(&config); err != nil {
-			return nil, err
-		}
+	config, err := resolveClientOptions(input)
+	if err != nil {
+		return nil, err
 	}
 
-	if config.localMode && config.localCacheDir == "" {
-		return nil, errors.New("agollo: local mode requires WithLocalCacheDir")
+	if config.localMode && config.localCacheDir == "" && config.configMapStore == nil {
+		return nil, errors.New("agollo: ClientOptions.Offline requires CacheDir or ConfigMapStore")
 	}
 	if !config.localMode && len(config.configServiceURLs) == 0 && config.metaServerURL == "" {
-		return nil, errors.New("agollo: configure Config Service URLs or a Meta Server URL")
+		return nil, errors.New("agollo: configure ClientOptions.ConfigServices or MetaServer")
 	}
 	if config.localCacheDir != "" {
 		if err := os.MkdirAll(config.localCacheDir, 0o750); err != nil {
@@ -268,7 +213,7 @@ func NewClient(ctx context.Context, options ...ClientOption) (ConfigClient, erro
 	}
 
 	clientContext, cancel := context.WithCancel(ctx)
-	client := &modernClient{
+	client := &ApolloClient{
 		options:      config,
 		ctx:          clientContext,
 		cancel:       cancel,
@@ -280,7 +225,9 @@ func NewClient(ctx context.Context, options ...ClientOption) (ConfigClient, erro
 	return client, nil
 }
 
-type modernClient struct {
+// ApolloClient is the instance-scoped API. It is safe for concurrent use and
+// owns every background task it starts. Close is idempotent.
+type ApolloClient struct {
 	options clientOptions
 	ctx     context.Context
 	cancel  context.CancelFunc
@@ -295,11 +242,13 @@ type modernClient struct {
 	monitor modernMonitor
 }
 
-func (c *modernClient) GetConfig(ctx context.Context, namespace string) (Config, error) {
-	return c.GetConfigFor(ctx, c.options.appID, namespace)
+// Config returns a live property view using the client's default AppID.
+func (c *ApolloClient) Config(ctx context.Context, namespace string) (Config, error) {
+	return c.ConfigForApp(ctx, c.options.appID, namespace)
 }
 
-func (c *modernClient) GetConfigFor(ctx context.Context, appID, namespace string) (Config, error) {
+// ConfigForApp returns a live property view for an explicit AppID.
+func (c *ApolloClient) ConfigForApp(ctx context.Context, appID, namespace string) (Config, error) {
 	state, err := c.getState(ctx, appID, namespace, ParseConfigFileFormat(namespace))
 	if err != nil {
 		return nil, err
@@ -307,11 +256,13 @@ func (c *modernClient) GetConfigFor(ctx context.Context, appID, namespace string
 	return state, nil
 }
 
-func (c *modernClient) GetConfigFile(ctx context.Context, namespace string, format ConfigFileFormat) (ConfigFile, error) {
-	return c.GetConfigFileFor(ctx, c.options.appID, namespace, format)
+// ConfigFile returns a live raw-content view using the default AppID.
+func (c *ApolloClient) ConfigFile(ctx context.Context, namespace string, format ConfigFileFormat) (ConfigFile, error) {
+	return c.ConfigFileForApp(ctx, c.options.appID, namespace, format)
 }
 
-func (c *modernClient) GetConfigFileFor(ctx context.Context, appID, namespace string, format ConfigFileFormat) (ConfigFile, error) {
+// ConfigFileForApp returns a live raw-content view for an explicit AppID.
+func (c *ApolloClient) ConfigFileForApp(ctx context.Context, appID, namespace string, format ConfigFileFormat) (ConfigFile, error) {
 	if format == "" {
 		format = ParseConfigFileFormat(namespace)
 	}
@@ -323,7 +274,18 @@ func (c *modernClient) GetConfigFileFor(ctx context.Context, appID, namespace st
 	return (*modernConfigFile)(state), nil
 }
 
-func (c *modernClient) getState(ctx context.Context, appID, namespace string, format ConfigFileFormat) (*modernConfig, error) {
+// Load eagerly loads property namespaces and is the explicit v6 replacement
+// for legacy MustStart. It stops at the first failed namespace.
+func (c *ApolloClient) Load(ctx context.Context, namespaces ...string) error {
+	for _, namespace := range namespaces {
+		if _, err := c.Config(ctx, namespace); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (c *ApolloClient) getState(ctx context.Context, appID, namespace string, format ConfigFileFormat) (*modernConfig, error) {
 	appID = strings.TrimSpace(appID)
 	namespace = strings.TrimSpace(namespace)
 	if appID == "" {
@@ -358,7 +320,7 @@ func (c *modernClient) getState(ctx context.Context, appID, namespace string, fo
 	return state, nil
 }
 
-func (c *modernClient) ensurePoller(appID string) {
+func (c *ApolloClient) ensurePoller(appID string) {
 	c.mu.Lock()
 	if c.closed || c.appPollers[appID] != nil {
 		c.mu.Unlock()
@@ -375,9 +337,9 @@ func (c *modernClient) ensurePoller(appID string) {
 	}()
 }
 
-func (c *modernClient) Monitor() ClientMonitor { return &c.monitor }
+func (c *ApolloClient) Monitor() ClientMonitor { return &c.monitor }
 
-func (c *modernClient) Close() error {
+func (c *ApolloClient) Close() error {
 	c.mu.Lock()
 	if c.closed {
 		c.mu.Unlock()
@@ -398,7 +360,7 @@ func (c *modernClient) Close() error {
 	return nil
 }
 
-func (c *modernClient) goBackground(run func(context.Context)) {
+func (c *ApolloClient) goBackground(run func(context.Context)) {
 	c.mu.Lock()
 	if c.closed {
 		c.mu.Unlock()

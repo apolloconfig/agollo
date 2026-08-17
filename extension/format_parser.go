@@ -15,8 +15,8 @@
 package extension
 
 import (
-	"github.com/apolloconfig/agollo/v5/constant"
-	"github.com/apolloconfig/agollo/v5/utils/parse"
+	"github.com/apolloconfig/agollo/v6/constant"
+	"github.com/apolloconfig/agollo/v6/utils/parse"
 )
 
 var formatParser = make(map[constant.ConfigFileFormat]parse.ContentParser, 0)

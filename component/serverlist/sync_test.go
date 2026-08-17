@@ -15,15 +15,14 @@
 package serverlist
 
 import (
-	"sync"
 	"testing"
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v5/env"
-	"github.com/apolloconfig/agollo/v5/env/config"
-	"github.com/apolloconfig/agollo/v5/env/server"
-	"github.com/apolloconfig/agollo/v5/protocol/http"
+	"github.com/apolloconfig/agollo/v6/env"
+	"github.com/apolloconfig/agollo/v6/env/config"
+	"github.com/apolloconfig/agollo/v6/env/server"
+	"github.com/apolloconfig/agollo/v6/protocol/http"
 )
 
 func TestSyncServerIPList(t *testing.T) {
@@ -88,7 +87,6 @@ func TestSyncServerIPListComponent_Stop(t *testing.T) {
 	type fields struct {
 		appConfig func() config.AppConfig
 		stopCh    chan struct{}
-		stopOnce  sync.Once
 	}
 	tests := []struct {
 		name   string
@@ -112,7 +110,6 @@ func TestSyncServerIPListComponent_Stop(t *testing.T) {
 			s := &SyncServerIPListComponent{
 				appConfig: tt.fields.appConfig,
 				stopCh:    tt.fields.stopCh,
-				stopOnce:  tt.fields.stopOnce,
 			}
 			s.Stop()
 			s.Stop()

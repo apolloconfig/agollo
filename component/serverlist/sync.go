@@ -19,12 +19,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/apolloconfig/agollo/v5/component"
-	"github.com/apolloconfig/agollo/v5/component/log"
-	"github.com/apolloconfig/agollo/v5/env"
-	"github.com/apolloconfig/agollo/v5/env/config"
-	"github.com/apolloconfig/agollo/v5/env/server"
-	"github.com/apolloconfig/agollo/v5/protocol/http"
+	"github.com/apolloconfig/agollo/v6/component"
+	"github.com/apolloconfig/agollo/v6/component/log"
+	"github.com/apolloconfig/agollo/v6/env"
+	"github.com/apolloconfig/agollo/v6/env/config"
+	"github.com/apolloconfig/agollo/v6/env/server"
+	"github.com/apolloconfig/agollo/v6/protocol/http"
 )
 
 const (

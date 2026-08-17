@@ -14,7 +14,7 @@
 
 package extension
 
-import "github.com/apolloconfig/agollo/v5/agcache"
+import "github.com/apolloconfig/agollo/v6/agcache"
 
 var (
 	globalCacheFactory agcache.CacheFactory

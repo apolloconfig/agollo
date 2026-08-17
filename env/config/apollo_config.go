@@ -17,7 +17,7 @@ package config
 import (
 	"sync"
 
-	"github.com/apolloconfig/agollo/v5/utils"
+	"github.com/apolloconfig/agollo/v6/utils"
 )
 
 // CurrentApolloConfig 当前 apollo 返回的配置信息

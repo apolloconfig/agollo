@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -26,7 +27,32 @@ import (
 	"time"
 )
 
-func TestModernClientLoadsConfigAndAppliesProtocolParameters(t *testing.T) {
+func TestClientOptionsValidation(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name    string
+		options ClientOptions
+		want    string
+	}{
+		{name: "missing endpoint", options: ClientOptions{AppID: "sample"}, want: "ConfigServices or MetaServer"},
+		{name: "invalid config service", options: ClientOptions{ConfigServices: []string{"localhost:8080"}}, want: "invalid URL"},
+		{name: "unsupported scheme", options: ClientOptions{MetaServer: "ftp://apollo.example"}, want: "http or https"},
+		{name: "offline without fallback", options: ClientOptions{Offline: true}, want: "CacheDir or ConfigMapStore"},
+		{name: "negative poll delay", options: ClientOptions{MetaServer: "http://apollo.example", LongPollInitialDelay: -1}, want: "LongPollInitialDelay"},
+		{name: "invalid retry", options: ClientOptions{MetaServer: "http://apollo.example", RetryBackoffMin: 3 * time.Second, RetryBackoffMax: time.Second}, want: "retry backoff"},
+		{name: "negative listener queue", options: ClientOptions{MetaServer: "http://apollo.example", ListenerQueueSize: -1}, want: "ListenerQueueSize"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			client, err := NewClient(context.Background(), test.options)
+			if client != nil || err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("NewClient() = %#v, %v; want error containing %q", client, err, test.want)
+			}
+		})
+	}
+}
+
+func TestApolloClientLoadsConfigAndAppliesProtocolParameters(t *testing.T) {
 	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		if request.URL.Path != "/configs/sample/default/application" {
@@ -45,27 +71,27 @@ func TestModernClientLoadsConfigAndAppliesProtocolParameters(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := newTestClient(t, server.URL,
-		WithAppID("sample"),
-		WithAccessKeySecret("secret"),
-		WithLocalIP("10.0.0.8"),
-		WithDataCenter("sh-az1"),
-		WithLabel("canary"),
-	)
+	client := newTestClient(t, server.URL, ClientOptions{
+		AppID:           "sample",
+		AccessKeySecret: "secret",
+		ClientIP:        "10.0.0.8",
+		DataCenter:      "sh-az1",
+		Label:           "canary",
+	})
 	defer client.Close()
 
-	config, err := client.GetConfig(context.Background(), "application")
+	config, err := client.Config(context.Background(), "application")
 	if err != nil {
 		t.Fatalf("GetConfig() error = %v", err)
 	}
-	if got := config.GetInt("port", 0); got != 8080 {
-		t.Fatalf("GetInt(port) = %d, want 8080", got)
+	if got := config.Int("port", 0); got != 8080 {
+		t.Fatalf("Int(port) = %d, want 8080", got)
 	}
-	if got := config.GetBool("enabled", false); !got {
-		t.Fatal("GetBool(enabled) = false, want true")
+	if got := config.Bool("enabled", false); !got {
+		t.Fatal("Bool(enabled) = false, want true")
 	}
-	if got := config.GetDuration("timeout", 0); got != 250*time.Millisecond {
-		t.Fatalf("GetDuration(timeout) = %s, want 250ms", got)
+	if got := config.Duration("timeout", 0); got != 250*time.Millisecond {
+		t.Fatalf("Duration(timeout) = %s, want 250ms", got)
 	}
 	if got := config.Source(); got != ConfigSourceRemote {
 		t.Fatalf("Source() = %s, want remote", got)
@@ -78,7 +104,82 @@ func TestModernClientLoadsConfigAndAppliesProtocolParameters(t *testing.T) {
 	}
 }
 
-func TestModernClientConfigFileYAMLAndRawListener(t *testing.T) {
+func TestApolloClientV6GetterAndExtensionContracts(t *testing.T) {
+	t.Parallel()
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if request.Header.Get("X-Agollo-Test-Signer") != "orders" {
+			t.Fatalf("custom signer header = %q", request.Header.Get("X-Agollo-Test-Signer"))
+		}
+		writeJSON(t, writer, remoteConfig{ReleaseKey: "r1", Configurations: map[string]interface{}{
+			"regions": "sh, bj",
+			"ports":   []interface{}{8080, "9090"},
+		}})
+	}))
+	defer server.Close()
+
+	var selectorCalls atomic.Int32
+	client := newTestClient(t, server.URL, ClientOptions{
+		AppID: "orders",
+		RequestSigner: func(_ string, headers http.Header, appID, _ string) error {
+			headers.Set("X-Agollo-Test-Signer", appID)
+			return nil
+		},
+		ConfigServiceSelector: func(appID string, services []string) (string, error) {
+			if appID != "orders" || len(services) != 1 || services[0] != server.URL {
+				t.Fatalf("selector input = %q, %v", appID, services)
+			}
+			selectorCalls.Add(1)
+			return services[0], nil
+		},
+	})
+	defer client.Close()
+
+	config, err := client.Config(context.Background(), "application")
+	if err != nil {
+		t.Fatalf("Config() error = %v", err)
+	}
+	if got := config.StringSlice("regions", nil); strings.Join(got, ",") != "sh,bj" {
+		t.Fatalf("StringSlice(regions) = %v", got)
+	}
+	if got := config.IntSlice("ports", nil); len(got) != 2 || got[0] != 8080 || got[1] != 9090 {
+		t.Fatalf("IntSlice(ports) = %v", got)
+	}
+
+	events := make(chan ConfigChangeEvent, 1)
+	cancel := config.Subscribe(func(event ConfigChangeEvent) { events <- event }, WithInterestedKeyRegexps(regexp.MustCompile(`^ports$`)))
+	defer cancel()
+	state := onlyModernState(t, client)
+	state.publish(ConfigSnapshot{Values: map[string]interface{}{"regions": "sh,bj", "ports": "8081,9091"}, ReleaseKey: "r2", Source: ConfigSourceRemote})
+	select {
+	case event := <-events:
+		if _, ok := event.Changes["ports"]; !ok {
+			t.Fatalf("regex event = %#v", event)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("timed out waiting for regexp-filtered change")
+	}
+	if selectorCalls.Load() != 1 {
+		t.Fatalf("selector calls = %d, want 1", selectorCalls.Load())
+	}
+}
+
+func TestApolloClientLoadEagerlyLoadsNamespaces(t *testing.T) {
+	t.Parallel()
+	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
+		writeJSON(t, writer, remoteConfig{ReleaseKey: "r1", Configurations: map[string]interface{}{"ready": "true"}})
+	}))
+	defer server.Close()
+	client := newTestClient(t, server.URL, ClientOptions{AppID: "orders"})
+	defer client.Close()
+	if err := client.Load(context.Background(), "application", "feature.properties"); err != nil {
+		t.Fatalf("Load() error = %v", err)
+	}
+	if got := client.Monitor().Snapshot().ConfigCount; got != 2 {
+		t.Fatalf("ConfigCount = %d, want 2", got)
+	}
+}
+
+func TestApolloClientConfigFileYAMLAndRawListener(t *testing.T) {
 	t.Parallel()
 	var requestCount int
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -94,9 +195,9 @@ func TestModernClientConfigFileYAMLAndRawListener(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := newTestClient(t, server.URL, WithAppID("sample"))
+	client := newTestClient(t, server.URL, ClientOptions{AppID: "sample"})
 	defer client.Close()
-	file, err := client.GetConfigFile(context.Background(), "application", ConfigFileFormatYAML)
+	file, err := client.ConfigFile(context.Background(), "application", ConfigFileFormatYAML)
 	if err != nil {
 		t.Fatalf("GetConfigFile() error = %v", err)
 	}
@@ -111,7 +212,7 @@ func TestModernClientConfigFileYAMLAndRawListener(t *testing.T) {
 	cancel := file.Subscribe(func(event ConfigFileChangeEvent) { changes <- event })
 	defer cancel()
 
-	modern := client.(*modernClient)
+	modern := client
 	state := onlyModernState(t, modern)
 	if err := state.reload(context.Background(), notification{ID: 2}); err != nil {
 		t.Fatalf("reload() error = %v", err)
@@ -126,7 +227,7 @@ func TestModernClientConfigFileYAMLAndRawListener(t *testing.T) {
 	}
 }
 
-func TestModernClientMultiAppIDAndIncrementalSync(t *testing.T) {
+func TestApolloClientMultiAppIDAndIncrementalSync(t *testing.T) {
 	t.Parallel()
 	var mu sync.Mutex
 	requests := make(map[string]int)
@@ -163,32 +264,34 @@ func TestModernClientMultiAppIDAndIncrementalSync(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := newTestClient(t, server.URL,
-		WithAppID("orders"),
-		WithAppIDAccessKeySecret("orders", "orders-secret"),
-		WithAppIDAccessKeySecret("payments", "payments-secret"),
-	)
+	client := newTestClient(t, server.URL, ClientOptions{
+		AppID: "orders",
+		AccessKeySecrets: map[string]string{
+			"orders":   "orders-secret",
+			"payments": "payments-secret",
+		},
+	})
 	defer client.Close()
 
-	orders, err := client.GetConfig(context.Background(), "application")
+	orders, err := client.Config(context.Background(), "application")
 	if err != nil {
 		t.Fatalf("orders GetConfig() error = %v", err)
 	}
-	payments, err := client.GetConfigFor(context.Background(), "payments", "application")
+	payments, err := client.ConfigForApp(context.Background(), "payments", "application")
 	if err != nil {
-		t.Fatalf("payments GetConfigFor() error = %v", err)
+		t.Fatalf("payments ConfigForApp() error = %v", err)
 	}
-	if orders.GetString("db.host", "") != "orders-db" || payments.GetString("db.host", "") != "payments-db" {
-		t.Fatalf("AppId configurations were not isolated: orders=%q payments=%q", orders.GetString("db.host", ""), payments.GetString("db.host", ""))
+	if orders.String("db.host", "") != "orders-db" || payments.String("db.host", "") != "payments-db" {
+		t.Fatalf("AppId configurations were not isolated: orders=%q payments=%q", orders.String("db.host", ""), payments.String("db.host", ""))
 	}
 
 	events := make(chan ConfigChangeEvent, 1)
 	orders.Subscribe(func(event ConfigChangeEvent) { events <- event }, WithInterestedKeyPrefixes("db."))
-	state := findModernState(t, client.(*modernClient), "orders")
+	state := findModernState(t, client, "orders")
 	if err := state.reload(context.Background(), notification{ID: 4, Messages: map[string]int64{"db.host": 9}}); err != nil {
 		t.Fatalf("incremental reload() error = %v", err)
 	}
-	if got := orders.GetString("db.host", ""); got != "db-2" {
+	if got := orders.String("db.host", ""); got != "db-2" {
 		t.Fatalf("incremental value = %q, want db-2", got)
 	}
 	if _, exists := orders.Lookup("removed"); exists {
@@ -207,7 +310,7 @@ func TestModernClientMultiAppIDAndIncrementalSync(t *testing.T) {
 	}
 }
 
-func TestModernClientRejectsIncrementalConfigWithoutBaseline(t *testing.T) {
+func TestApolloClientRejectsIncrementalConfigWithoutBaseline(t *testing.T) {
 	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		writeJSON(t, writer, remoteConfig{ReleaseKey: "r2", ConfigSyncType: "INCREMENTAL_SYNC", ConfigurationChanges: []configurationChange{{
@@ -216,14 +319,14 @@ func TestModernClientRejectsIncrementalConfigWithoutBaseline(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := newTestClient(t, server.URL, WithAppID("sample"))
+	client := newTestClient(t, server.URL, ClientOptions{AppID: "sample"})
 	defer client.Close()
-	if _, err := client.GetConfig(context.Background(), "application"); err == nil || !strings.Contains(err.Error(), "without a full snapshot baseline") {
+	if _, err := client.Config(context.Background(), "application"); err == nil || !strings.Contains(err.Error(), "without a full snapshot baseline") {
 		t.Fatalf("GetConfig() error = %v, want incremental baseline error", err)
 	}
 }
 
-func TestModernClientRetriesFailedInitialLoad(t *testing.T) {
+func TestApolloClientRetriesFailedInitialLoad(t *testing.T) {
 	t.Parallel()
 	var attempts atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -235,19 +338,19 @@ func TestModernClientRetriesFailedInitialLoad(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := newTestClient(t, server.URL, WithAppID("sample"))
+	client := newTestClient(t, server.URL, ClientOptions{AppID: "sample"})
 	defer client.Close()
-	if _, err := client.GetConfig(context.Background(), "application"); err == nil {
+	if _, err := client.Config(context.Background(), "application"); err == nil {
 		t.Fatal("first GetConfig() succeeded, want remote error")
 	}
-	config, err := client.GetConfig(context.Background(), "application")
+	config, err := client.Config(context.Background(), "application")
 	if err != nil {
 		t.Fatalf("second GetConfig() error = %v, want successful retry", err)
 	}
-	if config.GetString("key", "") != "recovered" {
-		t.Fatalf("recovered config = %q", config.GetString("key", ""))
+	if config.String("key", "") != "recovered" {
+		t.Fatalf("recovered config = %q", config.String("key", ""))
 	}
-	if _, err := client.GetConfig(context.Background(), "application"); err != nil {
+	if _, err := client.Config(context.Background(), "application"); err != nil {
 		t.Fatalf("third GetConfig() returned stale error: %v", err)
 	}
 	if got := attempts.Load(); got != 2 {
@@ -255,7 +358,7 @@ func TestModernClientRetriesFailedInitialLoad(t *testing.T) {
 	}
 }
 
-func TestModernClientAcknowledges304NotificationWithoutChangeEvent(t *testing.T) {
+func TestApolloClientAcknowledges304NotificationWithoutChangeEvent(t *testing.T) {
 	t.Parallel()
 	var requests atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -270,15 +373,15 @@ func TestModernClientAcknowledges304NotificationWithoutChangeEvent(t *testing.T)
 	}))
 	defer server.Close()
 
-	client := newTestClient(t, server.URL, WithAppID("sample"))
+	client := newTestClient(t, server.URL, ClientOptions{AppID: "sample"})
 	defer client.Close()
-	config, err := client.GetConfig(context.Background(), "application")
+	config, err := client.Config(context.Background(), "application")
 	if err != nil {
 		t.Fatalf("GetConfig() error = %v", err)
 	}
 	events := make(chan ConfigChangeEvent, 1)
 	config.Subscribe(func(event ConfigChangeEvent) { events <- event })
-	state := onlyModernState(t, client.(*modernClient))
+	state := onlyModernState(t, client)
 	if err := state.reload(context.Background(), notification{ID: 9}); err != nil {
 		t.Fatalf("reload() error = %v", err)
 	}
@@ -293,7 +396,7 @@ func TestModernClientAcknowledges304NotificationWithoutChangeEvent(t *testing.T)
 	}
 }
 
-func TestModernClientRefreshFailureKeepsLastKnownGoodSnapshot(t *testing.T) {
+func TestApolloClientRefreshFailureKeepsLastKnownGoodSnapshot(t *testing.T) {
 	t.Parallel()
 	directory := t.TempDir()
 	var unavailable atomic.Bool
@@ -306,18 +409,18 @@ func TestModernClientRefreshFailureKeepsLastKnownGoodSnapshot(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := newTestClient(t, server.URL, WithAppID("sample"), WithLocalCacheDir(directory))
+	client := newTestClient(t, server.URL, ClientOptions{AppID: "sample", CacheDir: directory})
 	defer client.Close()
-	config, err := client.GetConfig(context.Background(), "application")
+	config, err := client.Config(context.Background(), "application")
 	if err != nil {
 		t.Fatalf("GetConfig() error = %v", err)
 	}
-	state := onlyModernState(t, client.(*modernClient))
+	state := onlyModernState(t, client)
 	stale := state.Snapshot()
 	stale.Values["key"] = "stale"
 	stale.ReleaseKey = "old"
 	stale.Source = ConfigSourceLocalFile
-	if err := client.(*modernClient).persistLocalSnapshot(stale); err != nil {
+	if err := client.persistLocalSnapshot(stale); err != nil {
 		t.Fatalf("persist stale cache: %v", err)
 	}
 
@@ -325,31 +428,31 @@ func TestModernClientRefreshFailureKeepsLastKnownGoodSnapshot(t *testing.T) {
 	if err := state.reload(context.Background(), notification{ID: 2}); err == nil {
 		t.Fatal("reload() succeeded by rolling back to a fallback snapshot")
 	}
-	if config.GetString("key", "") != "fresh" {
-		t.Fatalf("config rolled back to %q", config.GetString("key", ""))
+	if config.String("key", "") != "fresh" {
+		t.Fatalf("config rolled back to %q", config.String("key", ""))
 	}
 	if snapshot := state.Snapshot(); snapshot.Source != ConfigSourceRemote || snapshot.ReleaseKey != "r1" {
 		t.Fatalf("refresh replaced last known-good snapshot: %#v", snapshot)
 	}
 }
 
-func TestModernClientCloseRejectsNewStateAndSubscriptions(t *testing.T) {
+func TestApolloClientCloseRejectsNewStateAndSubscriptions(t *testing.T) {
 	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		writeJSON(t, writer, remoteConfig{ReleaseKey: "r1", Configurations: map[string]interface{}{"key": "value"}})
 	}))
 	defer server.Close()
 
-	client := newTestClient(t, server.URL, WithAppID("sample"))
-	config, err := client.GetConfig(context.Background(), "application")
+	client := newTestClient(t, server.URL, ClientOptions{AppID: "sample"})
+	config, err := client.Config(context.Background(), "application")
 	if err != nil {
 		t.Fatalf("GetConfig() error = %v", err)
 	}
-	state := onlyModernState(t, client.(*modernClient))
+	state := onlyModernState(t, client)
 	if err := client.Close(); err != nil {
 		t.Fatalf("Close() error = %v", err)
 	}
-	if _, err := client.GetConfig(context.Background(), "other"); err == nil {
+	if _, err := client.Config(context.Background(), "other"); err == nil {
 		t.Fatal("GetConfig() after Close succeeded")
 	}
 	config.Subscribe(func(ConfigChangeEvent) {})
@@ -379,19 +482,19 @@ func TestDecodeDiskSnapshotRejectsDifferentCluster(t *testing.T) {
 	}
 }
 
-func TestModernClientFallsBackToAtomicLocalCache(t *testing.T) {
+func TestApolloClientFallsBackToAtomicLocalCache(t *testing.T) {
 	t.Parallel()
 	directory := t.TempDir()
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		writeJSON(t, writer, remoteConfig{ReleaseKey: "r1", Configurations: map[string]interface{}{"key": "remote"}})
 	}))
 
-	remoteClient := newTestClient(t, server.URL, WithAppID("sample"), WithLocalCacheDir(directory))
-	config, err := remoteClient.GetConfig(context.Background(), "application")
+	remoteClient := newTestClient(t, server.URL, ClientOptions{AppID: "sample", CacheDir: directory})
+	config, err := remoteClient.Config(context.Background(), "application")
 	if err != nil {
 		t.Fatalf("remote GetConfig() error = %v", err)
 	}
-	if got := config.GetString("key", ""); got != "remote" {
+	if got := config.String("key", ""); got != "remote" {
 		t.Fatalf("remote key = %q", got)
 	}
 	if err := remoteClient.Close(); err != nil {
@@ -399,21 +502,21 @@ func TestModernClientFallsBackToAtomicLocalCache(t *testing.T) {
 	}
 	server.Close()
 
-	local, err := NewClient(context.Background(), WithAppID("sample"), WithLocalCacheDir(directory), WithLocalMode())
+	local, err := NewClient(context.Background(), ClientOptions{AppID: "sample", CacheDir: directory, Offline: true})
 	if err != nil {
 		t.Fatalf("NewClient(local mode) error = %v", err)
 	}
 	defer local.Close()
-	config, err = local.GetConfig(context.Background(), "application")
+	config, err = local.Config(context.Background(), "application")
 	if err != nil {
 		t.Fatalf("local GetConfig() error = %v", err)
 	}
-	if got := config.GetString("key", ""); got != "remote" || config.Source() != ConfigSourceLocalFile {
+	if got := config.String("key", ""); got != "remote" || config.Source() != ConfigSourceLocalFile {
 		t.Fatalf("local fallback = %q from %s", got, config.Source())
 	}
 }
 
-func TestModernClientPersistsAndFallsBackToConfigMapStore(t *testing.T) {
+func TestApolloClientPersistsAndFallsBackToConfigMapStore(t *testing.T) {
 	t.Parallel()
 	store := &memoryConfigMapStore{saved: make(chan ConfigSnapshot, 1)}
 	var status atomic.Int32
@@ -427,11 +530,13 @@ func TestModernClientPersistsAndFallsBackToConfigMapStore(t *testing.T) {
 	}))
 	defer server.Close()
 
-	remote, err := NewClient(context.Background(), WithAppID("sample"), WithConfigServiceURLs(server.URL), WithConfigMapStore(store), WithoutLongPoll())
+	remote, err := NewClient(context.Background(), ClientOptions{
+		AppID: "sample", ConfigServices: []string{server.URL}, ConfigMapStore: store, DisableLongPolling: true,
+	})
 	if err != nil {
 		t.Fatalf("NewClient(remote) error = %v", err)
 	}
-	if _, err := remote.GetConfig(context.Background(), "application"); err != nil {
+	if _, err := remote.Config(context.Background(), "application"); err != nil {
 		t.Fatalf("remote GetConfig() error = %v", err)
 	}
 	select {
@@ -447,21 +552,45 @@ func TestModernClientPersistsAndFallsBackToConfigMapStore(t *testing.T) {
 	}
 
 	status.Store(http.StatusServiceUnavailable)
-	fallback, err := NewClient(context.Background(), WithAppID("sample"), WithConfigServiceURLs(server.URL), WithConfigMapStore(store), WithoutLongPoll())
+	fallback, err := NewClient(context.Background(), ClientOptions{
+		AppID: "sample", ConfigServices: []string{server.URL}, ConfigMapStore: store, DisableLongPolling: true,
+	})
 	if err != nil {
 		t.Fatalf("NewClient(fallback) error = %v", err)
 	}
 	defer fallback.Close()
-	config, err := fallback.GetConfig(context.Background(), "application")
+	config, err := fallback.Config(context.Background(), "application")
 	if err != nil {
 		t.Fatalf("fallback GetConfig() error = %v", err)
 	}
-	if got := config.GetString("key", ""); got != "remote" || config.Source() != ConfigSourceConfigMap {
+	if got := config.String("key", ""); got != "remote" || config.Source() != ConfigSourceConfigMap {
 		t.Fatalf("ConfigMap fallback = %q from %s", got, config.Source())
 	}
 }
 
-func TestModernClientDiscoversConfigServiceFromMetaServer(t *testing.T) {
+func TestApolloClientOfflineLoadsConfigMapWithoutCacheDirectory(t *testing.T) {
+	t.Parallel()
+	store := &memoryConfigMapStore{snapshot: ConfigSnapshot{
+		Key:    ConfigKey{AppID: "sample", Cluster: "default", Namespace: "application", Format: ConfigFileFormatProperties},
+		Values: map[string]interface{}{"key": "offline"},
+	}}
+	client, err := NewClient(context.Background(), ClientOptions{
+		AppID: "sample", ConfigMapStore: store, Offline: true,
+	})
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
+	defer client.Close()
+	config, err := client.Config(context.Background(), "application")
+	if err != nil {
+		t.Fatalf("Config() error = %v", err)
+	}
+	if got := config.String("key", ""); got != "offline" || config.Source() != ConfigSourceConfigMap {
+		t.Fatalf("offline ConfigMap fallback = %q from %s", got, config.Source())
+	}
+}
+
+func TestApolloClientDiscoversConfigServiceFromMetaServer(t *testing.T) {
 	t.Parallel()
 	var server *httptest.Server
 	server = httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -479,21 +608,23 @@ func TestModernClientDiscoversConfigServiceFromMetaServer(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client, err := NewClient(context.Background(), WithAppID("sample"), WithMetaServerURL(server.URL), WithLocalIP("10.0.0.3"), WithoutLongPoll())
+	client, err := NewClient(context.Background(), ClientOptions{
+		AppID: "sample", MetaServer: server.URL, ClientIP: "10.0.0.3", DisableLongPolling: true,
+	})
 	if err != nil {
 		t.Fatalf("NewClient() error = %v", err)
 	}
 	defer client.Close()
-	config, err := client.GetConfig(context.Background(), "application")
+	config, err := client.Config(context.Background(), "application")
 	if err != nil {
 		t.Fatalf("GetConfig() error = %v", err)
 	}
-	if got := config.GetString("key", ""); got != "discovered" {
+	if got := config.String("key", ""); got != "discovered" {
 		t.Fatalf("discovered value = %q", got)
 	}
 }
 
-func TestModernClientLongPollBuildsDataCenterAndRefreshes(t *testing.T) {
+func TestApolloClientLongPollBuildsDataCenterAndRefreshes(t *testing.T) {
 	t.Parallel()
 	var configRequests int
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -521,22 +652,22 @@ func TestModernClientLongPollBuildsDataCenterAndRefreshes(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := newTestClient(t, server.URL, WithAppID("sample"), WithDataCenter("sh"), WithLocalIP("127.0.0.2"))
+	client := newTestClient(t, server.URL, ClientOptions{AppID: "sample", DataCenter: "sh", ClientIP: "127.0.0.2"})
 	defer client.Close()
-	config, err := client.GetConfig(context.Background(), "application")
+	config, err := client.Config(context.Background(), "application")
 	if err != nil {
 		t.Fatalf("GetConfig() error = %v", err)
 	}
-	poller := &appPoller{client: client.(*modernClient), appID: "sample", wake: make(chan struct{}, 1)}
+	poller := &appPoller{client: client, appID: "sample", wake: make(chan struct{}, 1)}
 	if err := poller.poll(); err != nil {
 		t.Fatalf("poll() error = %v", err)
 	}
-	if got := config.GetString("key", ""); got != "after" {
+	if got := config.String("key", ""); got != "after" {
 		t.Fatalf("long-poll refreshed value = %q", got)
 	}
 }
 
-func TestModernClientCloseCancelsLongPoll(t *testing.T) {
+func TestApolloClientCloseCancelsLongPoll(t *testing.T) {
 	t.Parallel()
 	pollStarted := make(chan struct{})
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
@@ -555,11 +686,11 @@ func TestModernClientCloseCancelsLongPoll(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client, err := NewClient(context.Background(), WithAppID("sample"), WithConfigServiceURLs(server.URL))
+	client, err := NewClient(context.Background(), ClientOptions{AppID: "sample", ConfigServices: []string{server.URL}})
 	if err != nil {
 		t.Fatalf("NewClient() error = %v", err)
 	}
-	if _, err := client.GetConfig(context.Background(), "application"); err != nil {
+	if _, err := client.Config(context.Background(), "application"); err != nil {
 		t.Fatalf("GetConfig() error = %v", err)
 	}
 	select {
@@ -579,10 +710,11 @@ func TestModernClientCloseCancelsLongPoll(t *testing.T) {
 	}
 }
 
-func newTestClient(t *testing.T, configServiceURL string, options ...ClientOption) ConfigClient {
+func newTestClient(t *testing.T, configServiceURL string, options ClientOptions) *ApolloClient {
 	t.Helper()
-	options = append(options, WithConfigServiceURLs(configServiceURL), WithoutLongPoll())
-	client, err := NewClient(context.Background(), options...)
+	options.ConfigServices = []string{configServiceURL}
+	options.DisableLongPolling = true
+	client, err := NewClient(context.Background(), options)
 	if err != nil {
 		t.Fatalf("NewClient() error = %v", err)
 	}
@@ -597,7 +729,7 @@ func writeJSON(t *testing.T, writer http.ResponseWriter, value interface{}) {
 	}
 }
 
-func onlyModernState(t *testing.T, client *modernClient) *modernConfig {
+func onlyModernState(t *testing.T, client *ApolloClient) *modernConfig {
 	t.Helper()
 	client.mu.Lock()
 	defer client.mu.Unlock()
@@ -610,7 +742,7 @@ func onlyModernState(t *testing.T, client *modernClient) *modernConfig {
 	return nil
 }
 
-func findModernState(t *testing.T, client *modernClient, appID string) *modernConfig {
+func findModernState(t *testing.T, client *ApolloClient, appID string) *modernConfig {
 	t.Helper()
 	client.mu.Lock()
 	defer client.mu.Unlock()

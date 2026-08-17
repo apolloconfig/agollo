@@ -19,7 +19,7 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/apolloconfig/agollo/v5/agcache"
+	"github.com/apolloconfig/agollo/v6/agcache"
 )
 
 // DefaultCache 默认缓存

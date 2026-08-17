@@ -35,7 +35,7 @@ type notification struct {
 }
 
 type appPoller struct {
-	client *modernClient
+	client *ApolloClient
 	appID  string
 	wake   chan struct{}
 }
@@ -150,7 +150,7 @@ func (p *appPoller) notificationsURL(serviceURL string, states []*modernConfig) 
 	return base.String(), nil
 }
 
-func (c *modernClient) statesForAppID(appID string) []*modernConfig {
+func (c *ApolloClient) statesForAppID(appID string) []*modernConfig {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	states := make([]*modernConfig, 0)

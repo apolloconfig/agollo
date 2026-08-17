@@ -333,16 +333,16 @@
       <article id="document">
 <h1>agollo 重构与 Apollo Java Client 能力迁移方案</h1>
 <blockquote>
-<p>状态：方案已评审并完成首轮内核落地；完整迁移仍按第 8 节分阶段推进。<br>调研日期：2026-08-17<br>目标：在保持 agollo v5 既有功能和主要公开 API 可兼容迁移的前提下，完成内核重构，并补齐 Apollo Java Client 中适用于 Go 客户端的能力。</p>
+<p>状态：v6 内核与公开 API 已落地；发布前仍须完成第 8 节的生态适配和稳定性门禁。<br>调研日期：2026-08-17<br>目标：以 <code>github.com/apolloconfig/agollo/v6</code> 发布实例级 API，在保留 v5 的业务能力前提下完成 API 迁移，并补齐 Apollo Java Client 中适用于 Go 客户端的能力。</p>
 </blockquote>
 <h2>1. 结论摘要</h2>
-<p>建议采用“兼容优先、内核替换、能力分批补齐”的双阶段策略：</p>
+<p>建议采用“v6 API 收敛、内核替换、能力分批补齐”的双阶段策略：</p>
 <ol>
-<li>先在 v5 兼容线上建立行为基线和兼容门面，不直接重写公开 API。</li>
-<li>用实例级、无全局可变状态的新内核替换发现、拉取、长轮询、缓存、事件和容灾链路。</li>
+<li>以 v5 行为基线约束结果，但以 <code>/v6</code> 模块和实例级 API 作为唯一公开文档入口。</li>
+<li>用实例级、无全局可变状态的新内核实现发现、拉取、长轮询、缓存、事件和容灾链路。</li>
 <li>优先迁移多 AppId、增量同步、ConfigFile、监听过滤、来源标识、本地文件容灾等 Java Client 核心能力。</li>
 <li>再补齐 Kubernetes ConfigMap、客户端监控、Prometheus/OpenTelemetry、Mock Server/TestKit 等增强能力。</li>
-<li>v5.x 先发布兼容实现；经过至少一个稳定周期后，再决定是否发布用于清理历史 API 的 v6。不要一开始就以 v6 大改作为交付前提。</li>
+<li>以 <code>v6.0.0-rc.1</code> 完成真实业务验证后发布 <code>v6.0.0</code>；旧 API 仅作为迁移参考，不在 v6 README 中继续推广。</li>
 </ol>
 <p>推荐的目标架构不是逐个翻译 Java 类，而是保持 Apollo 协议和行为语义一致，同时使用 Go 的 <code>context.Context</code>、不可变快照、显式依赖注入、接口组合和可关闭 goroutine 来实现。</p>
 <p>预计总工作量为 <strong>16～21 人周</strong>。2～3 名熟悉 Go、Apollo 协议和 Kubernetes 的开发者并行实施，建议排期 <strong>9～12 周</strong>，另预留 2 周灰度观察期。</p>
@@ -405,7 +405,7 @@
 </tr>
 <tr>
 <td>Java SPI/Guice</td>
-<td>用构造参数、Functional Options 和小接口替代</td>
+<td>用 <code>ClientOptions</code>、显式依赖字段和消费侧小接口替代</td>
 </tr>
 <tr>
 <td>Log4j2 插件</td>
@@ -439,7 +439,7 @@
 <ul>
 <li>仓库有 41 个 <code>*_test.go</code> 文件、约 149 个 <code>Test*</code> 用例。</li>
 <li>首轮实现前，根包 <code>TestGetConfigAndInitValNotNil</code> 依赖 <code>gomonkey</code> 的运行时代码替换，在 Go 1.26.4 上会因测试顺序而失效。现已将同步函数改为 <code>internalClient</code> 的实例依赖并删除该运行时 patch；协议超时用例也改为单调时钟的区间断言。</li>
-<li>当前分支已验证 <code>go test ./... -count=1</code> 和新客户端的 <code>go test -race . -run '^TestModernClient' -count=1</code>。持续多轮、跨平台稳定性仍是 M0/M6 发布门禁的一部分。</li>
+<li>当前分支已验证 <code>go test ./... -count=1</code> 和新客户端的 <code>go test -race . -run '^TestApolloClient|^TestPublicApolloClientAPI|^TestClientOptionsValidation' -count=1</code>。持续多轮、跨平台稳定性仍是 M0/M6 发布门禁的一部分。</li>
 </ul>
 <h3>3.3 需要在重构中解决的结构问题</h3>
 <table>
@@ -676,7 +676,7 @@
 <tr>
 <td>SPI/Injector 定制</td>
 <td>依赖全局 setter</td>
-<td>Functional Options + 明确接口；无隐式 Service Loader</td>
+<td><code>ClientOptions</code> + 明确依赖字段；无隐式 Service Loader</td>
 <td>P0</td>
 </tr>
 <tr>
@@ -716,7 +716,7 @@
 <pre><code class="language-text">agollo/
 ├── client.go                  # 新公开 Client API
 ├── config.go                  # Config / ConfigFile / Snapshot
-├── options.go                 # Functional Options
+├── options.go                 # ClientOptions 校验和默认值
 ├── monitor.go                 # 稳定的监控查询接口
 ├── legacy/                    # 内部兼容适配实现，不新增用户依赖
 ├── internal/
@@ -748,18 +748,18 @@
 </code></pre>
 <ul>
 <li><code>AppID + Cluster + Namespace + Format</code> 决定唯一配置对象。</li>
-<li><code>GetConfig</code>/<code>GetConfigFile</code> 对同一 Key 返回同一逻辑实例。</li>
+<li><code>Config</code>/<code>ConfigFile</code> 对同一 Key 返回同一逻辑实例。</li>
 <li>动态 namespace 通过 registry 注册，不修改启动配置。</li>
 <li>Secret 支持默认值和按 AppId 覆盖。</li>
 <li>一个 Client 共享 HTTP、服务发现和监控，但按 AppId 维护长轮询通知表。</li>
 </ul>
-<p>建议新增 API 形态：</p>
-<pre><code class="language-go">client, err := agollo.NewClient(ctx,
-    agollo.WithAppID(&quot;sample-app&quot;),
-    agollo.WithCluster(&quot;default&quot;),
-    agollo.WithMetaServer(&quot;http://apollo-meta:8080&quot;),
-    agollo.WithLocalCacheDir(&quot;/opt/data/sample-app/config-cache&quot;),
-)
+<p>发布级 API 形态：</p>
+<pre><code class="language-go">client, err := agollo.NewClient(ctx, agollo.ClientOptions{
+    AppID:      &quot;sample-app&quot;,
+    Cluster:    &quot;default&quot;,
+    MetaServer: &quot;http://apollo-meta:8080&quot;,
+    CacheDir:   &quot;/opt/data/sample-app/config-cache&quot;,
+})
 
 cfg, err := client.Config(ctx, &quot;application&quot;)
 value, ok := cfg.Lookup(&quot;timeout&quot;)
@@ -769,7 +769,7 @@ cancel := cfg.Subscribe(listener,
 )
 defer cancel()
 </code></pre>
-<p>最终 API 需要单独进行 API Review；上述代码只确定设计方向，不在方案阶段锁死命名。</p>
+<p><code>NewClient</code> 返回具体的 <code>*ApolloClient</code>，避免由库定义一个不断膨胀的大 Client 接口；业务需要 mock 时，应在消费侧声明只包含实际使用方法的小接口。<code>ClientOptions</code> 的零值采用安全默认值并在构造期集中校验，适合从配置文件映射，也避免大量 <code>With...</code> 符号占用根包命名空间。完整的旧 API 对照与渐进迁移步骤见<a href="migration-to-apollo-client.md">迁移指南</a>。</p>
 <h3>6.2 不可变 Snapshot</h3>
 <ul>
 <li>每个 namespace 当前状态保存为不可变 Snapshot，并通过 <code>atomic.Pointer</code> 原子替换。</li>
@@ -817,7 +817,7 @@ defer cancel()
 <h3>6.5 Config 与 ConfigFile</h3>
 <p><code>Config</code> 面向 KV：</p>
 <ul>
-<li><code>Lookup/GetString/GetInt/GetInt64/GetFloat64/GetBool/GetDuration/GetTime</code>。</li>
+<li><code>Lookup/String/Int/Int64/Float64/Bool/Duration</code>。</li>
 <li><code>Keys/Range/Decode</code>。</li>
 <li><code>Source/ReleaseKey/LastUpdated</code>。</li>
 <li>namespace 级 change listener，支持精确 key 和前缀过滤。</li>
@@ -841,7 +841,7 @@ defer cancel()
 <h3>6.7 配置优先级</h3>
 <p>新 API 使用以下明确优先级，避免 Java System Property 语义直接搬到 Go：</p>
 <ol>
-<li>显式 Functional Option。</li>
+<li>显式 <code>ClientOptions</code> 字段。</li>
 <li>显式传入的配置结构体/配置文件。</li>
 <li>Apollo 标准环境变量，例如 <code>APP_ID</code>、<code>APOLLO_META</code>、<code>APOLLO_CONFIG_SERVICE</code>、<code>APOLLO_CLUSTER</code>、<code>APOLLO_ACCESS_KEY_SECRET</code>。</li>
 <li>兼容的 <code>app.properties</code>。</li>
@@ -867,20 +867,11 @@ defer cancel()
 <li><code>apollo_client_exception_num</code></li>
 </ul>
 <p>严禁把配置值、Secret、完整 URL query 或无限量 AppId/namespace 直接作为高基数 label。</p>
-<h2>7. 兼容策略</h2>
-<h3>7.1 兼容承诺</h3>
-<p>v5 兼容阶段保留以下入口及主要行为：</p>
-<ul>
-<li><code>Start</code>、<code>StartWithConfig</code>。</li>
-<li>当前 <code>Client</code> 接口的全部方法。</li>
-<li><code>env/config.AppConfig</code> 现有字段。</li>
-<li><code>storage.Config</code> 的 Getter、立即返回 Getter 和内容读取。</li>
-<li>现有 ChangeListener、FullChangeEvent、Event Dispatcher。</li>
-<li>Logger、CacheFactory、FileHandler、LoadBalance、HTTPAuth、FormatParser 扩展点。</li>
-<li><code>MustStart</code>、备份配置、灰度和签名能力。</li>
-</ul>
-<p>不得直接给现有 <code>Client</code>、<code>CacheInterface</code>、<code>ChangeListener</code> 等公开接口增加方法；Go 用户可能自行实现这些接口，新增方法会造成源码破坏。新能力应放入新接口，或通过可选的类型断言/adapter 暴露。</p>
-<p>兼容不等于保留明显缺陷。以下修复允许改变错误行为，但必须写入 release note 和迁移文档：</p>
+<h2>7. v6 迁移与兼容策略</h2>
+<h3>7.1 v6 API 承诺</h3>
+<p>v6 的公开契约是 <code>NewClient</code>、<code>ApolloClient</code>、<code>Config</code>、<code>ConfigFile</code> 和 <code>ClientOptions</code>。不再为新增能力扩展旧接口；业务应按迁移指南转为 namespace 级 <code>Config</code> 视图。</p>
+<p>v5 的配置读取、多 AppId、动态 namespace、灰度、签名、发现、长轮询、正则监听、显式 <code>Load</code> 预加载、原子本地快照和 ConfigMap 容灾必须在 v6 中以实例级 API 保留。</p>
+<p>以下修复是 v6 的既定行为，必须写入 release note 和迁移文档：</p>
 <ul>
 <li>HTTPS 默认恢复证书校验。</li>
 <li>空配置不再永久阻塞 Getter。</li>
@@ -888,22 +879,18 @@ defer cancel()
 <li>缓存覆盖写不再错误增加 EntryCount。</li>
 <li>备份文件不再因全局路径 map 发生 namespace/AppId 串扰。</li>
 </ul>
-<h3>7.2 Compatibility Adapter</h3>
+<h3>7.2 v5 到 v6 的破坏性变更</h3>
 <ul>
-<li><code>StartWithConfig</code> 将旧 <code>AppConfig</code> 翻译成新 Options，再创建新内核 Client。</li>
-<li>legacy Getter 继续返回默认值；新 API 额外暴露 <code>ok/error</code>。</li>
-<li>legacy 全局 setter 维护一个带锁的默认 Builder，仅影响之后创建的 legacy Client；已经运行的 Client 不被修改。</li>
-<li>自定义旧 Cache 通过 Snapshot adapter 驱动，但新内核正确性不能依赖其 TTL/EntryCount 语义。</li>
-<li>旧备份文件只读兼容，新文件用安全格式写入；提供一次性迁移工具和 dry-run。</li>
+<li>模块 import 从 <code>github.com/apolloconfig/agollo/v5</code> 改为 <code>github.com/apolloconfig/agollo/v6</code>。</li>
+<li>使用 <code>NewClient</code>、<code>Config</code>、<code>Load</code> 和不可变 <code>Snapshot</code> 取代进程级启动、全局 setter、默认 namespace Getter 与可变 Cache。</li>
+<li>监听范围从全 Client 变为 namespace；使用精确 key、prefix 或编译后的正则表达式过滤，并保存取消函数。</li>
+<li><code>AppConfig</code> 字段映射到 <code>ClientOptions</code>；<code>MustStart</code> 转为显式 <code>Load</code>。</li>
 </ul>
-<h3>7.3 版本策略</h3>
+<h3>7.3 发布策略</h3>
 <ul>
-<li><strong>v5.x-alpha/beta</strong>：新内核 + 完整兼容门面，默认可通过 feature flag 回退旧内核。</li>
-<li><strong>v5.x stable</strong>：新内核默认启用，旧内核保留一个发布周期作为紧急回退。</li>
-<li><strong>后续 v5.x</strong>：删除旧内核运行代码，但保留公开兼容门面。</li>
-<li><strong>v6（可选）</strong>：只在需要真正删除旧 API/全局 setter 时发布；提前至少一个 minor 标记 deprecated。</li>
+<li>发布 <code>v6.0.0-rc.1</code>，执行外部消费者编译、真实服务灰度和回滚演练。</li>
+<li>修复阻断问题后发布 <code>v6.0.0</code>，tag 与 <code>go.mod</code> 的 <code>/v6</code> 模块路径严格一致。</li>
 </ul>
-<p>不建议同时长期维护两套轮询、缓存和事件实现，否则 Java 能力会出现双份 bug 和语义漂移。</p>
 <h2>8. 分阶段实施计划</h2>
 <table>
 <thead>
@@ -965,7 +952,7 @@ defer cancel()
 <li>Transport 和 Discovery。</li>
 <li>Poller 和 Repository。</li>
 <li>新 Client API。</li>
-<li>legacy adapter。</li>
+<li>v5→v6 迁移验证与外部消费者 fixture。</li>
 <li>multi-AppId 和增量同步。</li>
 <li>ConfigFile 和事件过滤。</li>
 <li>本地文件与 ConfigMap。</li>
@@ -1004,7 +991,7 @@ defer cancel()
 <li><code>go test ./... -count=20</code> 无偶发失败。</li>
 <li><code>go test -race ./...</code> 通过。</li>
 <li><code>go vet ./...</code> 和选定 linter 通过。</li>
-<li>公开 API 兼容检查无非计划破坏。</li>
+<li>无 <code>/v5</code> 的 v6 源码 import，且外部消费者使用 <code>/v6</code> 编译通过。</li>
 <li>协议契约测试和 Java/Go 对照测试通过。</li>
 <li>关键 benchmark 相比 v5：Getter P99 不退化超过 10%，稳态内存不退化超过 15%，每个 Client 的后台 goroutine 数有明确上限。</li>
 <li>关闭 Client 后，无 poller/discovery/dispatcher goroutine 泄漏。</li>
@@ -1075,9 +1062,9 @@ defer cancel()
 <p>最终交付不只是一组代码，应包括：</p>
 <ul>
 <li>架构决策记录（ADR）：Snapshot、容灾链、事件背压、多 AppId、增量同步、兼容策略。</li>
-<li>v5 公开 API 和行为兼容清单。</li>
+<li>v5→v6 API、行为与扩展点迁移清单。</li>
 <li>Apollo 协议 fixture 与 Java/Go 对照测试工具。</li>
-<li>新内核、legacy adapter、Kubernetes/Prometheus adapter、testkit。</li>
+<li>新内核、Kubernetes/Prometheus adapter、testkit。</li>
 <li>旧备份扫描/迁移工具，支持 dry-run 和回滚说明。</li>
 <li>README 快速开始、完整配置参考、从旧 API 到新 API 的迁移指南。</li>
 <li>性能、race、故障注入和灰度报告。</li>
@@ -1086,7 +1073,7 @@ defer cancel()
 <h2>12. 需要维护者确认的决策</h2>
 <p>建议按以下默认选项推进；如维护者不同意，应在 M0 结束前冻结：</p>
 <ol>
-<li><strong>版本策略</strong>：先发布兼容的 v5.x，新 API 稳定后再评估 v6。</li>
+<li><strong>版本策略</strong>：以 <code>/v6</code> 和 <code>v6.0.0-rc.1</code> 发布候选版本，完成灰度后发布 <code>v6.0.0</code>。</li>
 <li><strong>核心依赖</strong>：Kubernetes 和 Prometheus 均为可选 adapter，不进入核心依赖。</li>
 <li><strong>TLS</strong>：默认严格校验证书，自签名通过 CA 配置解决；insecure 仅显式开启。</li>
 <li><strong>事件过载</strong>：默认合并为最新 Snapshot 并记录 dropped 指标，不允许无限 goroutine。</li>
@@ -1098,7 +1085,7 @@ defer cancel()
 <h2>13. 完成定义</h2>
 <p>只有同时满足以下条件，才能宣称迁移完成：</p>
 <ul>
-<li>agollo v5 已有功能和公开调用方式可兼容迁移。</li>
+<li>agollo v5 已有业务功能均可迁移到 v6 公开 API，且迁移路径和行为差异已文档化。</li>
 <li>本方案 P0、P1 项均有实现、文档和自动化测试。</li>
 <li>多 AppId、ConfigFile、增量同步、来源链、监听过滤、ConfigMap 和 Monitor 通过验收。</li>
 <li>Java/Go 对照测试在同一协议脚本下结果一致；语言特有差异已有书面说明。</li>

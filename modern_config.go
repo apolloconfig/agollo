@@ -26,7 +26,7 @@ import (
 )
 
 type modernConfig struct {
-	client *modernClient
+	client *ApolloClient
 	key    ConfigKey
 
 	snapshot atomic.Value // *ConfigSnapshot
@@ -42,7 +42,7 @@ type modernConfig struct {
 	nextListener  uint64
 }
 
-func newModernConfig(client *modernClient, key ConfigKey) *modernConfig {
+func newModernConfig(client *ApolloClient, key ConfigKey) *modernConfig {
 	state := &modernConfig{
 		client:        client,
 		key:           key,
@@ -76,14 +76,14 @@ func (c *modernConfig) Lookup(key string) (string, bool) {
 	return stringify(value)
 }
 
-func (c *modernConfig) GetString(key, defaultValue string) string {
+func (c *modernConfig) String(key, defaultValue string) string {
 	if value, ok := c.Lookup(key); ok {
 		return value
 	}
 	return defaultValue
 }
 
-func (c *modernConfig) GetInt(key string, defaultValue int) int {
+func (c *modernConfig) Int(key string, defaultValue int) int {
 	value, ok := c.Lookup(key)
 	if !ok {
 		return defaultValue
@@ -95,7 +95,7 @@ func (c *modernConfig) GetInt(key string, defaultValue int) int {
 	return parsed
 }
 
-func (c *modernConfig) GetInt64(key string, defaultValue int64) int64 {
+func (c *modernConfig) Int64(key string, defaultValue int64) int64 {
 	value, ok := c.Lookup(key)
 	if !ok {
 		return defaultValue
@@ -107,7 +107,7 @@ func (c *modernConfig) GetInt64(key string, defaultValue int64) int64 {
 	return parsed
 }
 
-func (c *modernConfig) GetFloat64(key string, defaultValue float64) float64 {
+func (c *modernConfig) Float64(key string, defaultValue float64) float64 {
 	value, ok := c.Lookup(key)
 	if !ok {
 		return defaultValue
@@ -119,7 +119,7 @@ func (c *modernConfig) GetFloat64(key string, defaultValue float64) float64 {
 	return parsed
 }
 
-func (c *modernConfig) GetBool(key string, defaultValue bool) bool {
+func (c *modernConfig) Bool(key string, defaultValue bool) bool {
 	value, ok := c.Lookup(key)
 	if !ok {
 		return defaultValue
@@ -131,7 +131,7 @@ func (c *modernConfig) GetBool(key string, defaultValue bool) bool {
 	return parsed
 }
 
-func (c *modernConfig) GetDuration(key string, defaultValue time.Duration) time.Duration {
+func (c *modernConfig) Duration(key string, defaultValue time.Duration) time.Duration {
 	value, ok := c.Lookup(key)
 	if !ok {
 		return defaultValue
@@ -143,11 +143,35 @@ func (c *modernConfig) GetDuration(key string, defaultValue time.Duration) time.
 	return parsed
 }
 
+func (c *modernConfig) StringSlice(key string, defaultValue []string) []string {
+	value, exists := c.current().Values[key]
+	if !exists {
+		return append([]string(nil), defaultValue...)
+	}
+	result, ok := stringSlice(value)
+	if !ok {
+		return append([]string(nil), defaultValue...)
+	}
+	return result
+}
+
+func (c *modernConfig) IntSlice(key string, defaultValue []int) []int {
+	value, exists := c.current().Values[key]
+	if !exists {
+		return append([]int(nil), defaultValue...)
+	}
+	result, ok := intSlice(value)
+	if !ok {
+		return append([]int(nil), defaultValue...)
+	}
+	return result
+}
+
 func (c *modernConfig) Keys() []string { return sortedKeys(c.current().Values) }
 
 func (c *modernConfig) Source() ConfigSourceType { return c.current().Source }
 
-func (c *modernConfig) Subscribe(listener ConfigChangeListenerV2, options ...SubscribeOption) func() {
+func (c *modernConfig) Subscribe(listener ConfigChangeHandler, options ...SubscribeOption) func() {
 	if listener == nil {
 		return func() {}
 	}
@@ -333,7 +357,7 @@ func (c *modernConfigFile) AsMap() (map[string]interface{}, bool) {
 	return cloneValues(c.config().current().Values), true
 }
 
-func (c *modernConfigFile) Subscribe(listener ConfigFileChangeListener) func() {
+func (c *modernConfigFile) Subscribe(listener ConfigFileChangeHandler) func() {
 	config := c.config()
 	if listener == nil {
 		return func() {}
@@ -395,7 +419,7 @@ func diffValues(previous, next map[string]interface{}) map[string]PropertyChange
 }
 
 type configSubscription struct {
-	listener ConfigChangeListenerV2
+	listener ConfigChangeHandler
 	options  subscribeOptions
 	queue    chan ConfigChangeEvent
 	done     chan struct{}
@@ -403,7 +427,7 @@ type configSubscription struct {
 	monitor  *modernMonitor
 }
 
-func newConfigSubscription(listener ConfigChangeListenerV2, options subscribeOptions, size int, monitor *modernMonitor) *configSubscription {
+func newConfigSubscription(listener ConfigChangeHandler, options subscribeOptions, size int, monitor *modernMonitor) *configSubscription {
 	subscription := &configSubscription{listener: listener, options: options, queue: make(chan ConfigChangeEvent, size), done: make(chan struct{}), monitor: monitor}
 	go subscription.run()
 	return subscription
@@ -450,14 +474,14 @@ func (s *configSubscription) run() {
 func (s *configSubscription) close() { s.once.Do(func() { close(s.done) }) }
 
 type fileSubscription struct {
-	listener ConfigFileChangeListener
+	listener ConfigFileChangeHandler
 	queue    chan ConfigFileChangeEvent
 	done     chan struct{}
 	once     sync.Once
 	monitor  *modernMonitor
 }
 
-func newFileSubscription(listener ConfigFileChangeListener, size int, monitor *modernMonitor) *fileSubscription {
+func newFileSubscription(listener ConfigFileChangeHandler, size int, monitor *modernMonitor) *fileSubscription {
 	subscription := &fileSubscription{listener: listener, queue: make(chan ConfigFileChangeEvent, size), done: make(chan struct{}), monitor: monitor}
 	go subscription.run()
 	return subscription

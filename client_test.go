@@ -22,15 +22,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/apolloconfig/agollo/v5/component"
-	_ "github.com/apolloconfig/agollo/v5/env/file/json"
+	"github.com/apolloconfig/agollo/v6/component"
+	_ "github.com/apolloconfig/agollo/v6/env/file/json"
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v5/agcache/memory"
-	"github.com/apolloconfig/agollo/v5/env/config"
-	"github.com/apolloconfig/agollo/v5/env/server"
-	"github.com/apolloconfig/agollo/v5/extension"
-	"github.com/apolloconfig/agollo/v5/storage"
+	"github.com/apolloconfig/agollo/v6/agcache/memory"
+	"github.com/apolloconfig/agollo/v6/env/config"
+	"github.com/apolloconfig/agollo/v6/env/server"
+	"github.com/apolloconfig/agollo/v6/extension"
+	"github.com/apolloconfig/agollo/v6/storage"
 )
 
 const testDefaultNamespace = "application"
@@ -414,13 +414,12 @@ func (t *testComponent) Stop() {
 func Test_internalClient_Close(t *testing.T) {
 	c := &internalClient{}
 	tc := &testComponent{}
-	go component.StartRefreshConfig(tc)
+	component.StartRefreshConfig(tc)
 	c.appendComponent(tc)
 
 	tc2 := &testComponent{}
-	go component.StartRefreshConfig(tc2)
+	component.StartRefreshConfig(tc2)
 	c.appendComponent(tc2)
-	time.Sleep(300 * time.Millisecond) // wait goroutine
 	Assert(t, tc.status, Equal(0))
 	Assert(t, tc2.status, Equal(0))
 	c.Close()

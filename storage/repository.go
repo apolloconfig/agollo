@@ -23,11 +23,11 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/apolloconfig/agollo/v5/agcache"
-	"github.com/apolloconfig/agollo/v5/component/log"
-	"github.com/apolloconfig/agollo/v5/env/config"
-	"github.com/apolloconfig/agollo/v5/extension"
-	"github.com/apolloconfig/agollo/v5/utils"
+	"github.com/apolloconfig/agollo/v6/agcache"
+	"github.com/apolloconfig/agollo/v6/component/log"
+	"github.com/apolloconfig/agollo/v6/env/config"
+	"github.com/apolloconfig/agollo/v6/extension"
+	"github.com/apolloconfig/agollo/v6/utils"
 )
 
 const (
@@ -41,7 +41,7 @@ const (
 
 // Cache apollo 配置缓存
 type Cache struct {
-	apolloConfigCache sync.Map
+	apolloConfigCache *sync.Map
 	changeListeners   *list.List
 	rw                sync.RWMutex
 }
@@ -64,7 +64,7 @@ func (c *Cache) GetConfig(namespace string) *Config {
 // CreateNamespaceConfig 根据namespace初始化agollo内容配置
 func CreateNamespaceConfig(namespace string) *Cache {
 	// config from apollo
-	var apolloConfigCache sync.Map
+	apolloConfigCache := &sync.Map{}
 	config.SplitNamespaces(namespace, func(namespace string) {
 		if _, ok := apolloConfigCache.Load(namespace); ok {
 			return

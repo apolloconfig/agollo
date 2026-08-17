@@ -20,13 +20,13 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v5/cluster/roundrobin"
-	"github.com/apolloconfig/agollo/v5/env"
-	"github.com/apolloconfig/agollo/v5/env/config"
-	jsonConfig "github.com/apolloconfig/agollo/v5/env/config/json"
-	jsonFile "github.com/apolloconfig/agollo/v5/env/file/json"
-	"github.com/apolloconfig/agollo/v5/extension"
-	"github.com/apolloconfig/agollo/v5/storage"
+	"github.com/apolloconfig/agollo/v6/cluster/roundrobin"
+	"github.com/apolloconfig/agollo/v6/env"
+	"github.com/apolloconfig/agollo/v6/env/config"
+	jsonConfig "github.com/apolloconfig/agollo/v6/env/config/json"
+	jsonFile "github.com/apolloconfig/agollo/v6/env/file/json"
+	"github.com/apolloconfig/agollo/v6/extension"
+	"github.com/apolloconfig/agollo/v6/storage"
 )
 
 func init() {

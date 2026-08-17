@@ -80,11 +80,11 @@ func (set *serviceSet) stale() bool {
 	return len(set.urls) == 0 || time.Now().After(set.expires)
 }
 
-func (c *modernClient) loadConfig(ctx context.Context, state *modernConfig) error {
+func (c *ApolloClient) loadConfig(ctx context.Context, state *modernConfig) error {
 	return c.loadConfigWithNotification(ctx, state, notification{})
 }
 
-func (c *modernClient) loadConfigWithNotification(ctx context.Context, state *modernConfig, notification notification) error {
+func (c *ApolloClient) loadConfigWithNotification(ctx context.Context, state *modernConfig, notification notification) error {
 	if c.options.localMode {
 		if snapshot, err := c.loadLocalSnapshot(state.key); err == nil {
 			state.publish(snapshot)
@@ -138,7 +138,7 @@ func (c *modernClient) loadConfigWithNotification(ctx context.Context, state *mo
 	return err
 }
 
-func (c *modernClient) loadConfigMapSnapshot(state *modernConfig) error {
+func (c *ApolloClient) loadConfigMapSnapshot(state *modernConfig) error {
 	if c.options.configMapStore == nil {
 		return errors.New("agollo: ConfigMap fallback is not configured")
 	}
@@ -159,7 +159,7 @@ func (c *modernClient) loadConfigMapSnapshot(state *modernConfig) error {
 	return nil
 }
 
-func (c *modernClient) fetchRemoteSnapshot(ctx context.Context, state *modernConfig, notice notification) (ConfigSnapshot, error) {
+func (c *ApolloClient) fetchRemoteSnapshot(ctx context.Context, state *modernConfig, notice notification) (ConfigSnapshot, error) {
 	services, err := c.configServices(ctx, state.key.AppID)
 	if err != nil {
 		return ConfigSnapshot{}, err
@@ -167,7 +167,10 @@ func (c *modernClient) fetchRemoteSnapshot(ctx context.Context, state *modernCon
 	previous := state.current()
 	var lastErr error
 	for range services {
-		serviceURL := c.nextConfigService(state.key.AppID)
+		serviceURL, selectErr := c.selectConfigService(state.key.AppID, services)
+		if selectErr != nil {
+			return ConfigSnapshot{}, selectErr
+		}
 		if serviceURL == "" {
 			break
 		}
@@ -191,7 +194,24 @@ func (c *modernClient) fetchRemoteSnapshot(ctx context.Context, state *modernCon
 	return ConfigSnapshot{}, lastErr
 }
 
-func (c *modernClient) configServices(ctx context.Context, appID string) ([]string, error) {
+func (c *ApolloClient) selectConfigService(appID string, services []string) (string, error) {
+	if c.options.serviceSelector != nil {
+		selected, err := c.options.serviceSelector(appID, append([]string(nil), services...))
+		if err != nil {
+			return "", fmt.Errorf("agollo: select Config Service: %w", err)
+		}
+		selected = strings.TrimRight(strings.TrimSpace(selected), "/")
+		for _, service := range services {
+			if selected == service {
+				return selected, nil
+			}
+		}
+		return "", fmt.Errorf("agollo: ConfigServiceSelector returned unknown service %q", selected)
+	}
+	return c.nextConfigService(appID), nil
+}
+
+func (c *ApolloClient) configServices(ctx context.Context, appID string) ([]string, error) {
 	if len(c.options.configServiceURLs) > 0 {
 		return append([]string(nil), c.options.configServiceURLs...), nil
 	}
@@ -239,7 +259,7 @@ func (c *modernClient) configServices(ctx context.Context, appID string) ([]stri
 	return urls, nil
 }
 
-func (c *modernClient) nextConfigService(appID string) string {
+func (c *ApolloClient) nextConfigService(appID string) string {
 	if len(c.options.configServiceURLs) > 0 {
 		c.mu.Lock()
 		set := c.serviceState[appID]
@@ -260,7 +280,7 @@ func (c *modernClient) nextConfigService(appID string) string {
 	return set.choose()
 }
 
-func (c *modernClient) configURL(serviceURL string, key ConfigKey, previous *ConfigSnapshot, messages map[string]int64) (string, error) {
+func (c *ApolloClient) configURL(serviceURL string, key ConfigKey, previous *ConfigSnapshot, messages map[string]int64) (string, error) {
 	base, err := url.Parse(serviceURL)
 	if err != nil {
 		return "", fmt.Errorf("agollo: invalid Config Service URL %q: %w", serviceURL, err)
@@ -290,7 +310,7 @@ func (c *modernClient) configURL(serviceURL string, key ConfigKey, previous *Con
 	return base.String(), nil
 }
 
-func (c *modernClient) getJSON(ctx context.Context, endpoint, appID string, timeout time.Duration, headers http.Header) ([]byte, error) {
+func (c *ApolloClient) getJSON(ctx context.Context, endpoint, appID string, timeout time.Duration, headers http.Header) ([]byte, error) {
 	if timeout > 0 {
 		var cancel context.CancelFunc
 		ctx, cancel = context.WithTimeout(ctx, timeout)
@@ -305,7 +325,9 @@ func (c *modernClient) getJSON(ctx context.Context, endpoint, appID string, time
 			req.Header.Add(key, value)
 		}
 	}
-	c.addSignature(req, appID)
+	if err := c.addSignature(req, appID); err != nil {
+		return nil, err
+	}
 	c.monitor.requests.Add(1)
 	response, err := c.options.httpClient.Do(req)
 	if err != nil {
@@ -329,13 +351,19 @@ func (c *modernClient) getJSON(ctx context.Context, endpoint, appID string, time
 	return body, nil
 }
 
-func (c *modernClient) addSignature(request *http.Request, appID string) {
+func (c *ApolloClient) addSignature(request *http.Request, appID string) error {
 	secret := c.options.secret
 	if configured, ok := c.options.secretsByAppID[appID]; ok {
 		secret = configured
 	}
+	if c.options.requestSigner != nil {
+		if err := c.options.requestSigner(request.URL.String(), request.Header, appID, secret); err != nil {
+			return fmt.Errorf("agollo: sign request: %w", err)
+		}
+		return nil
+	}
 	if secret == "" {
-		return
+		return nil
 	}
 	timestamp := strconv.FormatInt(time.Now().UnixMilli(), 10)
 	pathWithQuery := request.URL.EscapedPath()
@@ -346,6 +374,7 @@ func (c *modernClient) addSignature(request *http.Request, appID string) {
 	_, _ = mac.Write([]byte(timestamp + "\n" + pathWithQuery))
 	request.Header.Set("Authorization", "Apollo "+appID+":"+base64.StdEncoding.EncodeToString(mac.Sum(nil)))
 	request.Header.Set("Timestamp", timestamp)
+	return nil
 }
 
 type remoteConfig struct {

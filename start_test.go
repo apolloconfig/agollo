@@ -23,12 +23,12 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v5/agcache/memory"
-	"github.com/apolloconfig/agollo/v5/component/log"
-	"github.com/apolloconfig/agollo/v5/env"
-	"github.com/apolloconfig/agollo/v5/env/config"
-	jsonFile "github.com/apolloconfig/agollo/v5/env/config/json"
-	"github.com/apolloconfig/agollo/v5/extension"
+	"github.com/apolloconfig/agollo/v6/agcache/memory"
+	"github.com/apolloconfig/agollo/v6/component/log"
+	"github.com/apolloconfig/agollo/v6/env"
+	"github.com/apolloconfig/agollo/v6/env/config"
+	jsonFile "github.com/apolloconfig/agollo/v6/env/config/json"
+	"github.com/apolloconfig/agollo/v6/extension"
 )
 
 var (

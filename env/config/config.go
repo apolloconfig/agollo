@@ -21,7 +21,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/apolloconfig/agollo/v5/utils"
+	"github.com/apolloconfig/agollo/v6/utils"
 )
 
 var (
@@ -106,8 +106,8 @@ func (a *AppConfig) initAllNotifications(callback func(namespace string)) {
 }
 
 // SplitNamespaces 根据namespace字符串分割后，并执行callback函数
-func SplitNamespaces(namespacesStr string, callback func(namespace string)) sync.Map {
-	namespaces := sync.Map{}
+func SplitNamespaces(namespacesStr string, callback func(namespace string)) *sync.Map {
+	namespaces := &sync.Map{}
 	split := strings.Split(namespacesStr, Comma)
 	for _, namespace := range split {
 		if callback != nil {
@@ -143,7 +143,7 @@ func (a *AppConfig) GetCurrentApolloConfig() *CurrentApolloConfig {
 
 // map[string]int64
 type notificationsMap struct {
-	notifications sync.Map
+	notifications *sync.Map
 }
 
 func (n *notificationsMap) UpdateAllNotifications(remoteConfigs []*Notification) {
@@ -179,16 +179,15 @@ func (n *notificationsMap) GetNotify(namespace string) int64 {
 }
 
 func (n *notificationsMap) GetNotifyLen() int {
-	s := n.notifications
 	l := 0
-	s.Range(func(k, v interface{}) bool {
+	n.notifications.Range(func(k, v interface{}) bool {
 		l++
 		return true
 	})
 	return l
 }
 
-func (n *notificationsMap) GetNotifications() sync.Map {
+func (n *notificationsMap) GetNotifications() *sync.Map {
 	return n.notifications
 }
 

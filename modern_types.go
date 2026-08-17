@@ -17,7 +17,10 @@ package agollo
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -144,15 +147,17 @@ type Config interface {
 	Key() ConfigKey
 	Snapshot() ConfigSnapshot
 	Lookup(key string) (string, bool)
-	GetString(key, defaultValue string) string
-	GetInt(key string, defaultValue int) int
-	GetInt64(key string, defaultValue int64) int64
-	GetFloat64(key string, defaultValue float64) float64
-	GetBool(key string, defaultValue bool) bool
-	GetDuration(key string, defaultValue time.Duration) time.Duration
+	String(key, defaultValue string) string
+	Int(key string, defaultValue int) int
+	Int64(key string, defaultValue int64) int64
+	Float64(key string, defaultValue float64) float64
+	Bool(key string, defaultValue bool) bool
+	Duration(key string, defaultValue time.Duration) time.Duration
+	StringSlice(key string, defaultValue []string) []string
+	IntSlice(key string, defaultValue []int) []int
 	Keys() []string
 	Source() ConfigSourceType
-	Subscribe(listener ConfigChangeListenerV2, options ...SubscribeOption) (cancel func())
+	Subscribe(listener ConfigChangeHandler, options ...SubscribeOption) (cancel func())
 }
 
 // ConfigFile is the live raw-content view of one namespace.
@@ -163,7 +168,7 @@ type ConfigFile interface {
 	Format() ConfigFileFormat
 	Source() ConfigSourceType
 	AsMap() (map[string]interface{}, bool)
-	Subscribe(listener ConfigFileChangeListener) (cancel func())
+	Subscribe(listener ConfigFileChangeHandler) (cancel func())
 }
 
 // ChangeType describes one property mutation.
@@ -191,8 +196,8 @@ type ConfigChangeEvent struct {
 	OccurredAt time.Time
 }
 
-// ConfigChangeListenerV2 receives filtered namespace change events.
-type ConfigChangeListenerV2 func(ConfigChangeEvent)
+// ConfigChangeHandler receives filtered namespace change events.
+type ConfigChangeHandler func(ConfigChangeEvent)
 
 // ConfigFileChangeEvent is emitted when raw namespace content changes.
 type ConfigFileChangeEvent struct {
@@ -204,8 +209,8 @@ type ConfigFileChangeEvent struct {
 	OccurredAt time.Time
 }
 
-// ConfigFileChangeListener receives raw content changes.
-type ConfigFileChangeListener func(ConfigFileChangeEvent)
+// ConfigFileChangeHandler receives raw content changes.
+type ConfigFileChangeHandler func(ConfigFileChangeEvent)
 
 // ConfigMapStore is the optional persistence adapter for Kubernetes ConfigMap
 // fallback. The core deliberately depends only on this small contract; a
@@ -215,9 +220,21 @@ type ConfigMapStore interface {
 	Save(ctx context.Context, snapshot ConfigSnapshot) error
 }
 
+// RequestSigner adds authentication headers to an outgoing Apollo request.
+// It is invoked after the request has been built and before it is sent. When
+// nil, Apollo's standard Access Key signature is used when a secret is set.
+// Implementations must be safe for concurrent use.
+type RequestSigner func(requestURL string, headers http.Header, appID, secret string) error
+
+// ConfigServiceSelector selects one Config Service from the currently known
+// service set. It replaces the legacy process-global load balancer with an
+// instance-scoped policy. A nil selector uses round-robin selection.
+type ConfigServiceSelector func(appID string, services []string) (string, error)
+
 type subscribeOptions struct {
 	keys     map[string]struct{}
 	prefixes []string
+	patterns []*regexp.Regexp
 }
 
 // SubscribeOption limits which changes a listener observes.
@@ -248,8 +265,21 @@ func WithInterestedKeyPrefixes(prefixes ...string) SubscribeOption {
 	}
 }
 
+// WithInterestedKeyRegexps limits a listener to changes whose keys match at
+// least one compiled regular expression. Supplying compiled expressions keeps
+// Subscribe free of delayed validation failures.
+func WithInterestedKeyRegexps(patterns ...*regexp.Regexp) SubscribeOption {
+	return func(options *subscribeOptions) {
+		for _, pattern := range patterns {
+			if pattern != nil {
+				options.patterns = append(options.patterns, pattern)
+			}
+		}
+	}
+}
+
 func (options subscribeOptions) matches(changes map[string]PropertyChange) bool {
-	if len(options.keys) == 0 && len(options.prefixes) == 0 {
+	if len(options.keys) == 0 && len(options.prefixes) == 0 && len(options.patterns) == 0 {
 		return true
 	}
 	for key := range changes {
@@ -261,19 +291,57 @@ func (options subscribeOptions) matches(changes map[string]PropertyChange) bool 
 				return true
 			}
 		}
+		for _, pattern := range options.patterns {
+			if pattern.MatchString(key) {
+				return true
+			}
+		}
 	}
 	return false
 }
 
-// ConfigClient is the new instance-scoped Apollo client. Its methods are safe
-// for concurrent use and it owns every goroutine it starts.
-type ConfigClient interface {
-	GetConfig(ctx context.Context, namespace string) (Config, error)
-	GetConfigFor(ctx context.Context, appID, namespace string) (Config, error)
-	GetConfigFile(ctx context.Context, namespace string, format ConfigFileFormat) (ConfigFile, error)
-	GetConfigFileFor(ctx context.Context, appID, namespace string, format ConfigFileFormat) (ConfigFile, error)
-	Monitor() ClientMonitor
-	Close() error
+func stringSlice(value interface{}) ([]string, bool) {
+	switch typed := value.(type) {
+	case []string:
+		return append([]string(nil), typed...), true
+	case []interface{}:
+		result := make([]string, len(typed))
+		for index, item := range typed {
+			text, ok := stringify(item)
+			if !ok {
+				return nil, false
+			}
+			result[index] = text
+		}
+		return result, true
+	case string:
+		if typed == "" {
+			return []string{}, true
+		}
+		parts := strings.Split(typed, ",")
+		for index := range parts {
+			parts[index] = strings.TrimSpace(parts[index])
+		}
+		return parts, true
+	default:
+		return nil, false
+	}
+}
+
+func intSlice(value interface{}) ([]int, bool) {
+	strings, ok := stringSlice(value)
+	if !ok {
+		return nil, false
+	}
+	result := make([]int, len(strings))
+	for index, value := range strings {
+		parsed, err := strconv.Atoi(value)
+		if err != nil {
+			return nil, false
+		}
+		result[index] = parsed
+	}
+	return result, true
 }
 
 // ClientMonitor exposes a stable, dependency-free view of client health.

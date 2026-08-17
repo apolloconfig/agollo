@@ -23,6 +23,8 @@ Agollo - Go Client for Apollo
 * 客户端，配置文件容灾
 * 自定义日志，缓存组件
 * 支持配置访问秘钥
+* 实例级 `ApolloClient`，支持多 AppId 隔离、类型化读取、ConfigFile 和 key/prefix 监听
+* 支持全量/增量同步、长轮询及 Remote → 本地缓存 → 可选 ConfigMap 容灾
 
 # Usage
 
@@ -31,41 +33,33 @@ Agollo - Go Client for Apollo
 ### 导入 agollo
 
 ```
-go get -u github.com/apolloconfig/agollo/v5@latest
+go get github.com/apolloconfig/agollo/v6@latest
 ```
 
 ### 启动 agollo
 
-```
-package main
+新项目使用实例级 `ApolloClient`，避免进程全局状态并显式管理客户端生命周期：
 
-import (
-	"fmt"
-	"github.com/apolloconfig/agollo/v5"
-	"github.com/apolloconfig/agollo/v5/env/config"
-)
-
-func main() {
-	c := &config.AppConfig{
-		AppID:          "testApplication_yang",
-		Cluster:        "dev",
-		IP:             "http://106.54.227.205:8080",
-		NamespaceName:  "dubbo",
-		IsBackupConfig: true,
-		Secret:         "6ce3ff7e96a24335a9634fe9abca6d51",
-	}
-
-	client, _ := agollo.StartWithConfig(func() (*config.AppConfig, error) {
-		return c, nil
-	})
-	fmt.Println("初始化Apollo配置成功")
-
-	//Use your apollo key to test
-	cache := client.GetConfigCache(c.NamespaceName)
-	value, _ := cache.Get("key")
-	fmt.Println(value)
+```go
+client, err := agollo.NewClient(context.Background(), agollo.ClientOptions{
+	AppID:      "orders",
+	Cluster:    "default",
+	MetaServer: "http://apollo-meta:8080",
+	CacheDir:   "/var/lib/orders/apollo",
+})
+if err != nil {
+	panic(err)
 }
+defer client.Close()
+
+cfg, err := client.Config(context.Background(), "application")
+if err != nil {
+	panic(err)
+}
+port := cfg.Int("server.port", 8080)
 ```
+
+新版通过 `ConfigForApp` 支持单 Client 多 AppId，通过 `ConfigFile` 读取 YAML、JSON、XML、TXT 等 namespace 原文。需要启动即失败的服务可调用 `Load` 预加载必需 namespace。v5 到 v6 的字段映射、Getter、监听器和扩展点替代方式见[迁移指南](docs/migration-to-apollo-client.md)。
 
 ## 更多用法
 

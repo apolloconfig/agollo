@@ -19,8 +19,8 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v5/utils"
-	"github.com/apolloconfig/agollo/v5/utils/parse"
+	"github.com/apolloconfig/agollo/v6/utils"
+	"github.com/apolloconfig/agollo/v6/utils/parse"
 )
 
 var (

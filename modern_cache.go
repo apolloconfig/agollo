@@ -39,18 +39,18 @@ type diskSnapshot struct {
 	NotificationID int64                  `json:"notificationId"`
 }
 
-func (c *modernClient) cacheFile(key ConfigKey) string {
+func (c *ApolloClient) cacheFile(key ConfigKey) string {
 	// Base64 keeps the filename one segment even if an AppId or namespace has
 	// punctuation that would otherwise be interpreted as a path separator.
 	identity := base64.RawURLEncoding.EncodeToString([]byte(key.String()))
 	return filepath.Join(c.options.localCacheDir, identity+".agollo.json")
 }
 
-func (c *modernClient) legacyCacheFile(key ConfigKey) string {
+func (c *ApolloClient) legacyCacheFile(key ConfigKey) string {
 	return filepath.Join(c.options.localCacheDir, key.AppID+"-"+key.Namespace+".json")
 }
 
-func (c *modernClient) persistLocalSnapshot(snapshot ConfigSnapshot) error {
+func (c *ApolloClient) persistLocalSnapshot(snapshot ConfigSnapshot) error {
 	if c.options.localCacheDir == "" {
 		return nil
 	}
@@ -93,7 +93,7 @@ func (c *modernClient) persistLocalSnapshot(snapshot ConfigSnapshot) error {
 	return nil
 }
 
-func (c *modernClient) loadLocalSnapshot(key ConfigKey) (ConfigSnapshot, error) {
+func (c *ApolloClient) loadLocalSnapshot(key ConfigKey) (ConfigSnapshot, error) {
 	for _, file := range []string{c.cacheFile(key), c.legacyCacheFile(key)} {
 		body, err := os.ReadFile(file)
 		if err != nil {
