@@ -19,17 +19,14 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
-	"reflect"
 	"testing"
 	"time"
 
-	"github.com/agiledragon/gomonkey/v2"
-	. "github.com/tevid/gohamcrest"
 	"github.com/apolloconfig/agollo/v5/component"
 	_ "github.com/apolloconfig/agollo/v5/env/file/json"
+	. "github.com/tevid/gohamcrest"
 
 	"github.com/apolloconfig/agollo/v5/agcache/memory"
-	"github.com/apolloconfig/agollo/v5/component/remote"
 	"github.com/apolloconfig/agollo/v5/env/config"
 	"github.com/apolloconfig/agollo/v5/env/server"
 	"github.com/apolloconfig/agollo/v5/extension"
@@ -355,8 +352,8 @@ func TestUseEventDispatch(t *testing.T) {
 }
 
 func TestGetConfigAndInitValNotNil(t *testing.T) {
-	var apc *remote.AbsApolloConfig
-	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error) {
+	client := createMockApolloConfig(120)
+	client.syncWithNamespace = func(namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error) {
 		return &config.ApolloConfig{
 			ApolloConnConfig: config.ApolloConnConfig{
 				AppID:         "testID",
@@ -364,9 +361,7 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 			},
 			Configurations: map[string]interface{}{"testKey": "testUpdatedValue"},
 		}, nil
-	})
-
-	client := createMockApolloConfig(120)
+	}
 	cf := client.GetConfig("testNotFound")
 	Assert(t, cf, NotNilVal())
 
@@ -377,10 +372,8 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 	Assert(t, client.cache.GetConfig("testNotFound"), NotNilVal())
 	Assert(t, client.cache.GetConfig("testNotFound").GetValue("testKey"), Equal("testUpdatedValue"))
 	Assert(t, client.appConfig.NamespaceName, Equal("application,testNotFound"))
-	patch.Reset()
-
 	// second replace
-	patch1 := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error) {
+	client.syncWithNamespace = func(namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error) {
 		return &config.ApolloConfig{
 			ApolloConnConfig: config.ApolloConnConfig{
 				AppID:         "testID",
@@ -388,8 +381,7 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 			},
 			Configurations: map[string]interface{}{"testKey": "testUpdatedValue"},
 		}, nil
-	})
-	defer patch1.Reset()
+	}
 	client.appConfig.NamespaceName = "testNotFound1"
 	cf1 := client.GetConfig("testNotFound1")
 	Assert(t, cf1, NotNilVal())
@@ -399,13 +391,10 @@ func TestGetConfigAndInitValNotNil(t *testing.T) {
 }
 
 func TestGetConfigAndInitValNil(t *testing.T) {
-	var apc *remote.AbsApolloConfig
-	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error) {
-		return nil, nil
-	})
-	defer patch.Reset()
-
 	client := createMockApolloConfig(120)
+	client.syncWithNamespace = func(namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error) {
+		return nil, nil
+	}
 	cf := client.GetConfig("testNotFound")
 	Assert(t, cf, NilVal())
 	Assert(t, client.cache.GetConfig("testNotFound"), NilVal())

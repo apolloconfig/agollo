@@ -102,12 +102,12 @@ func TestRequestRecovery(t *testing.T) {
 }
 
 func TestCustomTimeout(t *testing.T) {
-	time.Sleep(1 * time.Second)
 	server := runLongTimeResponse()
+	defer server.Close()
 	appConfig := getTestAppConfig()
 	appConfig.IP = server.URL
 
-	startTime := time.Now().Unix()
+	startTime := time.Now()
 	mockIPList(t, func() config.AppConfig {
 		return *appConfig
 	})
@@ -120,12 +120,15 @@ func TestCustomTimeout(t *testing.T) {
 		SuccessCallBack: nil,
 	})
 
-	endTime := time.Now().Unix()
-	duration := endTime - startTime
-	t.Log("start time:", startTime)
-	t.Log("endTime:", endTime)
-	t.Log("duration:", duration)
-	Assert(t, int64(11), Equal(duration))
+	duration := time.Since(startTime)
+	// The test server responds after 10 seconds.  Wall-clock seconds are not a
+	// stable assertion here: crossing a one-second boundary used to make this
+	// test randomly expect either 10 or 11.  Leave room for normal scheduling,
+	// while still proving that the configured 11-second timeout permits the
+	// response to complete.
+	if duration < 10*time.Second || duration >= 12*time.Second {
+		t.Fatalf("request duration = %s, want [10s, 12s)", duration)
+	}
 	Assert(t, err, NilVal())
 	Assert(t, o, NilVal())
 }

@@ -1,0 +1,1189 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>agollo 重构与 Apollo Java Client 能力迁移方案</title>
+  <style>
+    :root {
+      --bg: #f4f7fb;
+      --paper: #ffffff;
+      --ink: #182230;
+      --muted: #64748b;
+      --line: #dce4ee;
+      --brand: #2457d6;
+      --brand-soft: #eaf0ff;
+      --accent: #00a896;
+      --code-bg: #101827;
+      --code-ink: #e7edf6;
+      --shadow: 0 18px 60px rgba(30, 58, 95, .10);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 24px;
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 0%, rgba(36, 87, 214, .12), transparent 28rem),
+        radial-gradient(circle at 100% 15%, rgba(0, 168, 150, .10), transparent 24rem),
+        var(--bg);
+      font: 15px/1.75 -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+        "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--brand); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 58px;
+      padding: 10px clamp(18px, 4vw, 52px);
+      color: #fff;
+      background: rgba(18, 32, 57, .94);
+      border-bottom: 1px solid rgba(255, 255, 255, .12);
+      backdrop-filter: blur(14px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      font-weight: 700;
+      letter-spacing: .01em;
+    }
+
+    .brand-mark {
+      display: grid;
+      flex: 0 0 auto;
+      place-items: center;
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #5b8cff, #00c4a9);
+      border-radius: 9px;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.25);
+      font: 800 14px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+
+    .brand-title {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .actions { display: flex; gap: 8px; }
+
+    .button {
+      appearance: none;
+      padding: 7px 12px;
+      color: #fff;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 8px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 13px;
+    }
+
+    .button:hover { background: rgba(255,255,255,.16); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 278px minmax(0, 980px);
+      justify-content: center;
+      gap: 28px;
+      padding: 34px clamp(18px, 4vw, 52px) 80px;
+    }
+
+    .toc {
+      position: sticky;
+      top: 82px;
+      align-self: start;
+      max-height: calc(100vh - 104px);
+      overflow: auto;
+      padding: 18px 14px;
+      background: rgba(255,255,255,.76);
+      border: 1px solid rgba(220,228,238,.92);
+      border-radius: 14px;
+      box-shadow: 0 8px 30px rgba(30, 58, 95, .07);
+      backdrop-filter: blur(10px);
+    }
+
+    .toc-title {
+      margin: 0 8px 10px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .toc a {
+      display: block;
+      padding: 6px 9px;
+      color: #40516a;
+      border-left: 2px solid transparent;
+      border-radius: 0 7px 7px 0;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .toc a[data-level="3"] { padding-left: 22px; font-size: 12.5px; }
+    .toc a:hover { color: var(--brand); background: var(--brand-soft); text-decoration: none; }
+    .toc a.active { color: var(--brand); border-left-color: var(--brand); background: var(--brand-soft); font-weight: 700; }
+
+    main {
+      min-width: 0;
+      padding: clamp(28px, 5vw, 64px);
+      background: var(--paper);
+      border: 1px solid rgba(220,228,238,.92);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    article > h1:first-child {
+      margin: 0 0 20px;
+      max-width: 820px;
+      color: #10213d;
+      font-size: clamp(30px, 4vw, 48px);
+      line-height: 1.18;
+      letter-spacing: -.035em;
+    }
+
+    h2, h3, h4 { scroll-margin-top: 80px; }
+
+    h2 {
+      margin: 58px 0 20px;
+      padding-top: 10px;
+      color: #152849;
+      border-top: 1px solid var(--line);
+      font-size: 26px;
+      line-height: 1.35;
+      letter-spacing: -.02em;
+    }
+
+    h3 {
+      margin: 34px 0 14px;
+      color: #1b365f;
+      font-size: 20px;
+      line-height: 1.4;
+    }
+
+    h4 { margin: 28px 0 12px; font-size: 17px; }
+    p { margin: 11px 0; }
+    strong { color: #102c5e; }
+
+    blockquote {
+      margin: 20px 0 32px;
+      padding: 16px 20px;
+      color: #42526b;
+      background: linear-gradient(90deg, var(--brand-soft), #f4fbfa);
+      border: 0;
+      border-left: 4px solid var(--brand);
+      border-radius: 0 10px 10px 0;
+    }
+
+    blockquote p { margin: 0; }
+
+    ul, ol { padding-left: 1.55em; }
+    li { margin: 5px 0; padding-left: .18em; }
+    li::marker { color: var(--brand); font-weight: 700; }
+
+    .table-wrap {
+      width: 100%;
+      margin: 18px 0 28px;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    table {
+      width: 100%;
+      min-width: 640px;
+      border-collapse: collapse;
+      font-size: 13.5px;
+      line-height: 1.55;
+    }
+
+    thead { background: #edf3ff; }
+    th { color: #173565; text-align: left; font-weight: 750; }
+    th, td { padding: 11px 13px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); vertical-align: top; }
+    th:last-child, td:last-child { border-right: 0; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:nth-child(even) { background: #fafcff; }
+    tbody tr:hover { background: #f3f7ff; }
+
+    code {
+      padding: .14em .4em;
+      color: #23457c;
+      background: #edf2f8;
+      border: 1px solid #dbe5f0;
+      border-radius: 5px;
+      font: .9em/1.5 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    pre {
+      position: relative;
+      margin: 18px 0 26px;
+      padding: 18px 20px;
+      overflow: auto;
+      color: var(--code-ink);
+      background: var(--code-bg);
+      border: 1px solid #26364e;
+      border-radius: 12px;
+      box-shadow: 0 10px 28px rgba(11, 20, 34, .14);
+    }
+
+    pre code { padding: 0; color: inherit; background: transparent; border: 0; font-size: 13px; }
+
+    .mermaid {
+      margin: 22px 0 30px;
+      padding: 22px;
+      overflow-x: auto;
+      text-align: center;
+      background: #fbfdff;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+    }
+
+    .section-anchor {
+      margin-left: .35em;
+      color: #a1afc1;
+      opacity: 0;
+      font-size: .7em;
+      vertical-align: middle;
+    }
+
+    h2:hover .section-anchor, h3:hover .section-anchor { opacity: 1; text-decoration: none; }
+
+    .footer {
+      margin-top: 56px;
+      padding-top: 18px;
+      color: var(--muted);
+      border-top: 1px solid var(--line);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 980px) {
+      .layout { grid-template-columns: 1fr; padding-top: 20px; }
+      .toc { position: static; max-height: 280px; }
+      main { padding: clamp(22px, 5vw, 44px); }
+    }
+
+    @media (max-width: 640px) {
+      .topbar { padding-inline: 14px; }
+      .brand-title { max-width: 58vw; }
+      .layout { padding-inline: 10px; }
+      main { border-radius: 12px; }
+      article > h1:first-child { font-size: 30px; }
+      h2 { font-size: 23px; }
+    }
+
+    @media print {
+      @page { size: A4; margin: 16mm 14mm; }
+      body { background: #fff; color: #111; font-size: 10.5pt; }
+      .topbar, .toc { display: none !important; }
+      .layout { display: block; padding: 0; }
+      main { padding: 0; border: 0; box-shadow: none; }
+      h2 { break-after: avoid; margin-top: 28px; }
+      h3, h4 { break-after: avoid; }
+      pre, blockquote, .table-wrap { break-inside: avoid; }
+      .table-wrap { overflow: visible; }
+      table { min-width: 0; font-size: 8pt; }
+      a { color: inherit; }
+      a[href^="http"]::after { content: " (" attr(href) ")"; color: #666; font-size: 8pt; word-break: break-all; }
+      .section-anchor { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark">A</span>
+      <span class="brand-title">agollo 重构迁移方案</span>
+    </div>
+    <div class="actions">
+      <button class="button" type="button" onclick="window.print()">打印 / 导出 PDF</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="文档目录">
+      <div class="toc-title">Contents</div>
+      <div id="toc-list"></div>
+    </nav>
+
+    <main>
+      <article id="document">
+<h1>agollo 重构与 Apollo Java Client 能力迁移方案</h1>
+<blockquote>
+<p>状态：方案已评审并完成首轮内核落地；完整迁移仍按第 8 节分阶段推进。<br>调研日期：2026-08-17<br>目标：在保持 agollo v5 既有功能和主要公开 API 可兼容迁移的前提下，完成内核重构，并补齐 Apollo Java Client 中适用于 Go 客户端的能力。</p>
+</blockquote>
+<h2>1. 结论摘要</h2>
+<p>建议采用“兼容优先、内核替换、能力分批补齐”的双阶段策略：</p>
+<ol>
+<li>先在 v5 兼容线上建立行为基线和兼容门面，不直接重写公开 API。</li>
+<li>用实例级、无全局可变状态的新内核替换发现、拉取、长轮询、缓存、事件和容灾链路。</li>
+<li>优先迁移多 AppId、增量同步、ConfigFile、监听过滤、来源标识、本地文件容灾等 Java Client 核心能力。</li>
+<li>再补齐 Kubernetes ConfigMap、客户端监控、Prometheus/OpenTelemetry、Mock Server/TestKit 等增强能力。</li>
+<li>v5.x 先发布兼容实现；经过至少一个稳定周期后，再决定是否发布用于清理历史 API 的 v6。不要一开始就以 v6 大改作为交付前提。</li>
+</ol>
+<p>推荐的目标架构不是逐个翻译 Java 类，而是保持 Apollo 协议和行为语义一致，同时使用 Go 的 <code>context.Context</code>、不可变快照、显式依赖注入、接口组合和可关闭 goroutine 来实现。</p>
+<p>预计总工作量为 <strong>16～21 人周</strong>。2～3 名熟悉 Go、Apollo 协议和 Kubernetes 的开发者并行实施，建议排期 <strong>9～12 周</strong>，另预留 2 周灰度观察期。</p>
+<h2>2. 调研基线与范围</h2>
+<h3>2.1 固定基线</h3>
+<p>为避免后续因主分支变化造成范围漂移，本方案以以下版本为基线：</p>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>基线</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>agollo</td>
+<td><a href="https://github.com/apolloconfig/agollo/commit/2ced0e9caf6aecd5a4fa9c6ec98658c8431766ba"><code>2ced0e9</code></a></td>
+<td>本地工作树，<code>v5.0.0-2-g2ced0e9</code>，2026-05-30</td>
+</tr>
+<tr>
+<td>Apollo Server/文档</td>
+<td><a href="https://github.com/apolloconfig/apollo/commit/2e2d59173360be51c4720e7d2334226ed7d5dcb8"><code>2e2d591</code></a></td>
+<td>Apollo 主仓库，2026-08-16</td>
+</tr>
+<tr>
+<td>Apollo Java Client</td>
+<td><a href="https://github.com/apolloconfig/apollo-java/commit/023217c7683d647de52f44045655b9e8b382d0fd"><code>023217c</code></a></td>
+<td><code>2.6.0-SNAPSHOT</code>，2026-06-21</td>
+</tr>
+</tbody></table>
+<p>需要特别说明：Apollo Java Client 源码已经从 <code>apolloconfig/apollo</code> 主仓库迁到独立的 <a href="https://github.com/apolloconfig/apollo-java"><code>apolloconfig/apollo-java</code></a> 仓库。Apollo 主仓库仍然是服务端协议和用户文档基准，能力实现应以 <code>apollo-java</code> 为准。</p>
+<h3>2.2 纳入范围</h3>
+<ul>
+<li>agollo 现有公开能力和行为兼容。</li>
+<li>Apollo Config Service 的服务发现、配置拉取、长轮询、灰度、签名、容灾协议。</li>
+<li>Java Client 中与语言无关或可以自然映射到 Go 的客户端能力。</li>
+<li>测试、可观测性、安全性、性能、发布和回滚方案。</li>
+<li>从 v5 旧 API 到新 API 的迁移路径。</li>
+</ul>
+<h3>2.3 不直接移植的能力</h3>
+<p>以下能力与 Java/Spring 运行时强绑定，不应机械移植到 agollo 核心包：</p>
+<table>
+<thead>
+<tr>
+<th>Java 能力</th>
+<th>Go 侧处理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Spring Placeholder、<code>@ApolloConfig</code>、<code>@ApolloJsonValue</code></td>
+<td>不进入核心；可提供独立的结构体绑定/回调适配包</td>
+</tr>
+<tr>
+<td>Spring Boot ConfigData、自动刷新 Bean</td>
+<td>不移植；由各 Go 框架适配器实现</td>
+</tr>
+<tr>
+<td>JMX</td>
+<td>用进程内 <code>Monitor</code> API、Prometheus 和 OpenTelemetry 替代</td>
+</tr>
+<tr>
+<td>Java SPI/Guice</td>
+<td>用构造参数、Functional Options 和小接口替代</td>
+</tr>
+<tr>
+<td>Log4j2 插件</td>
+<td>不移植；保留 <code>slog</code>/自定义 Logger 适配能力</td>
+</tr>
+<tr>
+<td>Java <code>apollo-openapi</code> 管理端 SDK</td>
+<td>不属于运行时配置 Client；如有需求应作为独立 Go 模块立项</td>
+</tr>
+<tr>
+<td>Java System Properties 覆盖 Spring Environment</td>
+<td>转化为明确的 Go 配置优先级，不模拟 JVM 行为</td>
+</tr>
+</tbody></table>
+<h2>3. agollo 现状盘点</h2>
+<h3>3.1 已具备能力</h3>
+<p>当前 agollo 已具备以下基础，重构必须保留：</p>
+<ul>
+<li>多 Config Service 地址、Meta Server 服务发现和可替换负载均衡。</li>
+<li>配置首次同步、长轮询更新、<code>releaseKey</code>/HTTP 304。</li>
+<li>多 namespace、运行时延迟加载 namespace。</li>
+<li>灰度发布 <code>label</code>、客户端 IP、访问密钥签名。</li>
+<li>内存缓存和本地 JSON 备份降级。</li>
+<li>properties、yaml/yml 解析，其他格式原文可经 <code>content</code> 获取。</li>
+<li>字符串、整数、浮点数、布尔值、字符串/整数切片读取。</li>
+<li>全量和差量变更事件、正则 key 分发。</li>
+<li>Logger、Cache、FileHandler、认证、解析器、负载均衡扩展点。</li>
+<li><code>MustStart</code> 启动保护及 <code>Close</code> 停止后台组件。</li>
+</ul>
+<h3>3.2 当前测试基线</h3>
+<ul>
+<li>仓库有 41 个 <code>*_test.go</code> 文件、约 149 个 <code>Test*</code> 用例。</li>
+<li>首轮实现前，根包 <code>TestGetConfigAndInitValNotNil</code> 依赖 <code>gomonkey</code> 的运行时代码替换，在 Go 1.26.4 上会因测试顺序而失效。现已将同步函数改为 <code>internalClient</code> 的实例依赖并删除该运行时 patch；协议超时用例也改为单调时钟的区间断言。</li>
+<li>当前分支已验证 <code>go test ./... -count=1</code> 和新客户端的 <code>go test -race . -run '^TestModernClient' -count=1</code>。持续多轮、跨平台稳定性仍是 M0/M6 发布门禁的一部分。</li>
+</ul>
+<h3>3.3 需要在重构中解决的结构问题</h3>
+<table>
+<thead>
+<tr>
+<th>问题</th>
+<th>影响</th>
+<th>处理原则</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>extension</code>、<code>env</code>、HTTP Transport、同步器等包级全局状态</td>
+<td>多 Client 相互污染，测试不稳定，难以支持多 AppId</td>
+<td>新内核全部实例化；旧全局 setter 只配置后续创建的 legacy client</td>
+</tr>
+<tr>
+<td><code>AppConfig.NamespaceName</code> 在运行时拼接修改</td>
+<td>长轮询与动态 namespace 并发读写风险</td>
+<td>使用并发安全的 subscription registry，不再修改配置字符串</td>
+</tr>
+<tr>
+<td>事件回调每次直接启动 goroutine</td>
+<td>无背压、无顺序保证、慢监听器可能造成 goroutine 膨胀</td>
+<td>每 Client 使用有界 dispatcher，定义顺序和溢出策略</td>
+</tr>
+<tr>
+<td>内存缓存接口带过期时间，但默认实现忽略过期；计数在覆盖写时仍递增</td>
+<td>扩展实现语义不一致，<code>EntryCount</code> 不准确</td>
+<td>新 Snapshot Store 不使用 TTL；旧 Cache 仅作为兼容适配器</td>
+</tr>
+<tr>
+<td>HTTPS 路径可能默认设置 <code>InsecureSkipVerify</code>，且 Transport 由首次请求决定</td>
+<td>安全风险、不同请求顺序导致行为不一致</td>
+<td>TLS 校验默认开启；不安全模式必须显式配置并告警</td>
+</tr>
+<tr>
+<td>HTTP 重试固定次数、固定间隔、不可通过 Context 取消</td>
+<td>关停慢、雪崩时放大请求</td>
+<td>指数退避、抖动、错误分类、Context 取消、QPS 限制</td>
+</tr>
+<tr>
+<td>响应体关闭、大小限制、错误类型不清晰</td>
+<td>连接复用和故障诊断受限</td>
+<td>每次请求及时关闭，限制 body，暴露结构化错误</td>
+</tr>
+<tr>
+<td>备份文件路径存在全局 map 和 key 语义问题，写入非原子</td>
+<td>多 AppId/namespace 可能串文件，崩溃时可能留下半文件</td>
+<td>纯函数生成路径，临时文件 + rename，兼容读取旧文件名</td>
+</tr>
+<tr>
+<td>空配置可能无法完成初始化等待</td>
+<td>Getter 可能永久等待</td>
+<td>空配置也是有效快照，必须完成 ready 状态</td>
+</tr>
+<tr>
+<td><code>UseEventDispatch</code> 返回值不可用、监听器范围是 Client 全局</td>
+<td>难以按 namespace/key 精确订阅</td>
+<td>新 API 返回取消函数，支持 namespace、精确 key 和 key 前缀</td>
+</tr>
+<tr>
+<td>核心依赖和配置加载耦合较重</td>
+<td>升级、裁剪、测试成本高</td>
+<td>核心优先标准库；YAML、K8s、指标放到可选模块</td>
+</tr>
+</tbody></table>
+<h2>4. Java Client 能力差距矩阵</h2>
+<p>优先级定义：P0 为首个兼容版本必须具备；P1 为 Java 能力对齐版本必须具备；P2 为可选生态增强。</p>
+<table>
+<thead>
+<tr>
+<th>能力</th>
+<th>agollo 现状</th>
+<th>目标</th>
+<th>优先级</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>基础 KV 获取</td>
+<td>已支持</td>
+<td>保持 v5 行为；新 API 返回明确的存在性/错误</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>类型化读取</td>
+<td>int/float/bool/slice</td>
+<td>增加 int64、uint、duration、time、文本反序列化和泛型 decode helper</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>Property Names</td>
+<td>需遍历底层 Cache</td>
+<td>提供稳定的 <code>Keys()</code>/<code>Range()</code> 快照 API</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>多 namespace</td>
+<td>已支持，动态修改字符串</td>
+<td>并发安全、按需创建、同一 namespace 单例</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>单进程多 AppId</td>
+<td>主要依赖多个 Client，内部全局状态有冲突风险</td>
+<td><code>{appId, cluster, namespace, format}</code> 作为完整身份，单 Client 可读取指定 AppId</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>ConfigFile API</td>
+<td>无等价公开 API</td>
+<td>原文内容、格式、来源、监听；properties/yaml 可转换 KV</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>文件格式</td>
+<td>properties/yaml/yml 较完整，XML/JSON/TXT 原文语义不统一</td>
+<td>properties、xml、json、yaml、yml、txt 与 Java 枚举对齐</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>变更监听</td>
+<td>Client 全局监听；有正则 dispatcher</td>
+<td>namespace 级监听、精确 key、key prefix、取消订阅；保留 legacy 事件</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>配置来源</td>
+<td>无公开来源类型</td>
+<td><code>Remote</code>、<code>LocalFile</code>、<code>ConfigMap</code>、<code>None</code></td>
+<td>P0/P1</td>
+</tr>
+<tr>
+<td>服务发现</td>
+<td>已支持 Meta/直连</td>
+<td>明确配置优先级、周期刷新、QPS 限制、可观测状态</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>负载均衡</td>
+<td>全局可插拔 round-robin</td>
+<td>实例级策略；默认随机/轮转并优先使用通知节点</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>长轮询</td>
+<td>已支持</td>
+<td>按 AppId 分组；90 秒读超时；失败指数退避和抖动</td>
+<td>P0</td>
+</tr>
+<tr>
+<td><code>messages</code> 通知元数据</td>
+<td>未支持</td>
+<td>接收、合并并在配置拉取时回传，为增量同步提供基础</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>增量配置同步</td>
+<td>未支持</td>
+<td>识别 <code>configSyncType</code> 和 <code>configurationChanges</code>，原子合并；未知类型安全失败</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>Data Center</td>
+<td>未形成完整配置/请求语义</td>
+<td>配置拉取和长轮询均传递 <code>dataCenter</code></td>
+<td>P0</td>
+</tr>
+<tr>
+<td><code>releaseKey</code>/304</td>
+<td>已支持</td>
+<td>保持，纳入协议契约测试</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>Label/灰度</td>
+<td>已支持</td>
+<td>保持，纳入协议契约测试</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>Access Secret</td>
+<td>已支持</td>
+<td>支持按 AppId 提供 Secret，日志统一脱敏</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>本地文件容灾</td>
+<td>JSON 备份，读写语义较弱</td>
+<td>Repository 链；原子持久化；兼容旧 JSON 和 Java properties 命名</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>Local Mode</td>
+<td>无完整离线模式</td>
+<td>禁止访问远端，仅从指定本地目录加载</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>Kubernetes ConfigMap 容灾</td>
+<td>未支持</td>
+<td><code>remote -&gt; local file -&gt; ConfigMap</code> 降级；冲突重试和 RBAC 文档</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>客户端 Monitor API</td>
+<td>无</td>
+<td>启动参数、namespace 状态、异常计数、任务队列、来源和更新时间</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>Prometheus exporter</td>
+<td>无</td>
+<td>独立可选模块，指标名尽量与 Java Client 对齐</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>OpenTelemetry</td>
+<td>无</td>
+<td>提供 metric/tracing hook，默认不引入 OTel SDK</td>
+<td>P2</td>
+</tr>
+<tr>
+<td>Mock Server/TestKit</td>
+<td>仅仓库内部测试</td>
+<td>可被业务项目引用的 mock server、fixture 和断言工具</td>
+<td>P1</td>
+</tr>
+<tr>
+<td>HTTP Client 扩展</td>
+<td>认证可替换，Transport 不易定制</td>
+<td>支持自定义 <code>http.Client</code>/<code>RoundTripper</code>/middleware</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>SPI/Injector 定制</td>
+<td>依赖全局 setter</td>
+<td>Functional Options + 明确接口；无隐式 Service Loader</td>
+<td>P0</td>
+</tr>
+<tr>
+<td>配置项顺序</td>
+<td>Go map 无顺序保证</td>
+<td>ConfigFile 保留原文；KV API 不承诺顺序；必要时提供有序解析结果</td>
+<td>P2</td>
+</tr>
+</tbody></table>
+<h2>5. 目标架构</h2>
+<h3>5.1 分层结构</h3>
+<pre><code class="language-mermaid">flowchart TB
+    Legacy[&quot;v5 兼容门面\nStart / StartWithConfig / Client / storage.Config&quot;]
+    Public[&quot;新公开 API\nNewClient / Config / ConfigFile / Subscribe / Monitor&quot;]
+    Core[&quot;Client Runtime\n实例级生命周期、Registry、调度器&quot;]
+    Poll[&quot;Long Poll Coordinator\n按 AppId 分组、通知状态、退避&quot;]
+    Fetch[&quot;Config Fetcher\n全量/增量、签名、灰度、DC&quot;]
+    Discovery[&quot;Service Discovery\nMeta/直连、健康状态、负载均衡&quot;]
+    Repo[&quot;Repository Chain\nRemote → Local File → ConfigMap&quot;]
+    Store[&quot;Immutable Snapshot Store\n原子替换、diff、source type&quot;]
+    Events[&quot;Bounded Event Dispatcher\nnamespace/key/prefix 过滤&quot;]
+    Observe[&quot;Monitor + Hooks\nlogs/metrics/traces&quot;]
+
+    Legacy --&gt; Public
+    Public --&gt; Core
+    Core --&gt; Poll
+    Core --&gt; Repo
+    Poll --&gt; Fetch
+    Fetch --&gt; Discovery
+    Repo --&gt; Store
+    Store --&gt; Events
+    Core --&gt; Observe
+    Poll --&gt; Observe
+    Repo --&gt; Observe
+</code></pre>
+<h3>5.2 建议目录</h3>
+<pre><code class="language-text">agollo/
+├── client.go                  # 新公开 Client API
+├── config.go                  # Config / ConfigFile / Snapshot
+├── options.go                 # Functional Options
+├── monitor.go                 # 稳定的监控查询接口
+├── legacy/                    # 内部兼容适配实现，不新增用户依赖
+├── internal/
+│   ├── runtime/               # 生命周期、registry、任务编排
+│   ├── protocol/              # DTO、URL、签名、全量/增量协议
+│   ├── transport/             # HTTP、重试、限流、middleware
+│   ├── discovery/             # Meta/直连和负载均衡
+│   ├── poller/                # 按 AppId 的长轮询协调器
+│   ├── repository/            # Remote/File/ConfigMap repository
+│   ├── snapshot/              # 不可变快照、diff、source
+│   ├── event/                 # 有界事件分发
+│   └── observability/         # 内部指标与 hook
+├── adapter/
+│   ├── kubernetes/            # 可选 ConfigMap Store
+│   ├── prometheus/            # 可选 exporter
+│   └── slog/                  # 标准日志适配
+└── testkit/                   # Mock Apollo、fixture、协议断言
+</code></pre>
+<p>目录名可以在实现阶段调整，但必须坚持三个边界：公开 API 不依赖内部包；核心不强依赖 Kubernetes/Prometheus；legacy 只能调用新内核，不能复制一套运行时。</p>
+<h2>6. 核心设计</h2>
+<h3>6.1 Client 与配置身份</h3>
+<p>内部统一使用以下身份键：</p>
+<pre><code class="language-go">type ConfigKey struct {
+    AppID     string
+    Cluster   string
+    Namespace string
+    Format    ConfigFileFormat
+}
+</code></pre>
+<ul>
+<li><code>AppID + Cluster + Namespace + Format</code> 决定唯一配置对象。</li>
+<li><code>GetConfig</code>/<code>GetConfigFile</code> 对同一 Key 返回同一逻辑实例。</li>
+<li>动态 namespace 通过 registry 注册，不修改启动配置。</li>
+<li>Secret 支持默认值和按 AppId 覆盖。</li>
+<li>一个 Client 共享 HTTP、服务发现和监控，但按 AppId 维护长轮询通知表。</li>
+</ul>
+<p>建议新增 API 形态：</p>
+<pre><code class="language-go">client, err := agollo.NewClient(ctx,
+    agollo.WithAppID(&quot;sample-app&quot;),
+    agollo.WithCluster(&quot;default&quot;),
+    agollo.WithMetaServer(&quot;http://apollo-meta:8080&quot;),
+    agollo.WithLocalCacheDir(&quot;/opt/data/sample-app/config-cache&quot;),
+)
+
+cfg, err := client.Config(ctx, &quot;application&quot;)
+value, ok := cfg.Lookup(&quot;timeout&quot;)
+cancel := cfg.Subscribe(listener,
+    agollo.WithInterestedKeys(&quot;timeout&quot;),
+    agollo.WithInterestedKeyPrefixes(&quot;db.&quot;),
+)
+defer cancel()
+</code></pre>
+<p>最终 API 需要单独进行 API Review；上述代码只确定设计方向，不在方案阶段锁死命名。</p>
+<h3>6.2 不可变 Snapshot</h3>
+<ul>
+<li>每个 namespace 当前状态保存为不可变 Snapshot，并通过 <code>atomic.Pointer</code> 原子替换。</li>
+<li>Snapshot 至少包含：Key、原文、KV、releaseKey、notificationId、source、更新时间和格式。</li>
+<li>Getter 只读当前 Snapshot，不持有长锁。</li>
+<li>增量配置先在副本合并并校验，再一次性发布，监听器永远看不到半更新状态。</li>
+<li>空 map 是有效配置，必须发布并解除首次加载等待。</li>
+<li>返回 map/slice 时复制或提供只读遍历，避免调用方修改内部状态。</li>
+</ul>
+<h3>6.3 协议和增量同步</h3>
+<p>配置拉取保持 <code>/configs/{appId}/{cluster}/{namespace}</code> 语义，并完整支持：</p>
+<ul>
+<li><code>releaseKey</code>、<code>ip</code>、<code>label</code>、<code>dataCenter</code>、<code>messages</code>。</li>
+<li>200 全量结果、304 未变化、404 namespace 未发布、401/403 认证错误。</li>
+<li><code>configSyncType=FULL_SYNC</code>：替换整个 KV。</li>
+<li><code>configSyncType=INCREMENTAL_SYNC</code>：按 ADDED/MODIFIED/DELETED 合并 <code>configurationChanges</code>。</li>
+<li>未知 sync type、缺失关键字段或非法 change type：不发布新 Snapshot，保留旧配置并记录错误。</li>
+<li>当本地没有可作为基线的旧 Snapshot 时，不接受增量结果，应立即发起一次不带增量上下文的全量拉取。</li>
+</ul>
+<p>长轮询保持 <code>/notifications/v2</code> 语义：</p>
+<ul>
+<li>通知 ID 按 AppId + namespace 隔离。</li>
+<li>保存服务端返回的 <code>messages</code>，下次配置拉取时回传。</li>
+<li>优先从返回通知的 Config Service 节点获取配置，随后恢复正常负载均衡。</li>
+<li>网络/5xx 使用带抖动指数退避；401/403/404 不进行无意义快速重试。</li>
+<li>所有等待均响应 Context 和 <code>Close</code>。</li>
+</ul>
+<h3>6.4 Repository 容灾链</h3>
+<p>默认顺序建议与 Java Client 行为对齐：</p>
+<ol>
+<li>Remote Config Service。</li>
+<li>Local File Cache。</li>
+<li>Kubernetes ConfigMap（显式启用时）。</li>
+<li>全部失败则来源为 <code>None</code>。</li>
+</ol>
+<p>规则：</p>
+<ul>
+<li>远端成功后同步更新内存、本地文件，并异步更新 ConfigMap。</li>
+<li>远端失败时优先读本地文件；本地也不可用时再读 ConfigMap。</li>
+<li>ConfigMap 写失败不能阻塞配置发布，但必须记录监控事件。</li>
+<li>Local Mode 下完全不创建远端发现和长轮询任务。</li>
+<li>文件写入使用同目录临时文件、<code>fsync</code>（可配置）和原子 rename；默认权限不宽于 <code>0640</code>。</li>
+<li>新格式建议兼容 Java 的 <code>{appId}+{cluster}+{namespace}.properties</code>；迁移期同时读取 agollo 旧 JSON 文件，成功读取后可惰性升级，但不得自动删除旧文件。</li>
+</ul>
+<h3>6.5 Config 与 ConfigFile</h3>
+<p><code>Config</code> 面向 KV：</p>
+<ul>
+<li><code>Lookup/GetString/GetInt/GetInt64/GetFloat64/GetBool/GetDuration/GetTime</code>。</li>
+<li><code>Keys/Range/Decode</code>。</li>
+<li><code>Source/ReleaseKey/LastUpdated</code>。</li>
+<li>namespace 级 change listener，支持精确 key 和前缀过滤。</li>
+</ul>
+<p><code>ConfigFile</code> 面向原文：</p>
+<ul>
+<li><code>Content/HasContent/AppID/Namespace/Format/Source</code>。</li>
+<li>原文变化监听。</li>
+<li>YAML/YML/Properties 可提供 <code>AsMap</code>；XML/JSON/TXT 不强制扁平化。</li>
+<li>原文必须由服务端返回内容产生，不能通过 map 无序拼接伪造。</li>
+</ul>
+<h3>6.6 事件语义</h3>
+<ul>
+<li>同一 namespace 内按 Snapshot 发布顺序投递事件。</li>
+<li>每次事件包含 old/new value、ADDED/MODIFIED/DELETED、releaseKey、source 和时间。</li>
+<li>监听器异常或 panic 被隔离，不能终止 poller。</li>
+<li>默认使用有界队列；达到上限时不静默丢弃，应增加 dropped 指标并按配置选择“合并到最新快照”或“阻塞有限时长”。</li>
+<li>回调中调用 Getter 必须安全，不能产生死锁。</li>
+<li>旧 <code>ChangeListener</code> 和 <code>FullChangeEvent</code> 由 compatibility adapter 生成，保持旧字段语义。</li>
+</ul>
+<h3>6.7 配置优先级</h3>
+<p>新 API 使用以下明确优先级，避免 Java System Property 语义直接搬到 Go：</p>
+<ol>
+<li>显式 Functional Option。</li>
+<li>显式传入的配置结构体/配置文件。</li>
+<li>Apollo 标准环境变量，例如 <code>APP_ID</code>、<code>APOLLO_META</code>、<code>APOLLO_CONFIG_SERVICE</code>、<code>APOLLO_CLUSTER</code>、<code>APOLLO_ACCESS_KEY_SECRET</code>。</li>
+<li>兼容的 <code>app.properties</code>。</li>
+<li>默认值。</li>
+</ol>
+<p>同一层冲突必须返回错误或记录确定性告警，不能依赖 map 遍历顺序。</p>
+<h3>6.8 可观测性</h3>
+<p>提供无第三方依赖的 <code>Monitor</code> 查询接口，并通过 hook 输出到具体系统。至少包括：</p>
+<ul>
+<li>Client 启动参数的非敏感子集、版本和当前 Config Service 地址。</li>
+<li>每个 namespace 的使用次数、首次加载耗时、配置项数量、来源、releaseKey、最后更新时间。</li>
+<li>namespace not-found、timeout、拉取/长轮询错误计数。</li>
+<li>poller/dispatcher 当前队列深度、活跃任务、丢弃事件数。</li>
+<li>请求次数、状态码、重试、发现刷新、文件/ConfigMap 读写结果。</li>
+</ul>
+<p>Prometheus 模块尽量沿用 Java Client 的核心指标名，例如：</p>
+<ul>
+<li><code>apollo_client_namespace_item_num</code></li>
+<li><code>apollo_client_namespace_first_load_time_spend_in_ms</code></li>
+<li><code>apollo_client_namespace_usage</code></li>
+<li><code>apollo_client_namespace_not_found</code></li>
+<li><code>apollo_client_namespace_timeout</code></li>
+<li><code>apollo_client_exception_num</code></li>
+</ul>
+<p>严禁把配置值、Secret、完整 URL query 或无限量 AppId/namespace 直接作为高基数 label。</p>
+<h2>7. 兼容策略</h2>
+<h3>7.1 兼容承诺</h3>
+<p>v5 兼容阶段保留以下入口及主要行为：</p>
+<ul>
+<li><code>Start</code>、<code>StartWithConfig</code>。</li>
+<li>当前 <code>Client</code> 接口的全部方法。</li>
+<li><code>env/config.AppConfig</code> 现有字段。</li>
+<li><code>storage.Config</code> 的 Getter、立即返回 Getter 和内容读取。</li>
+<li>现有 ChangeListener、FullChangeEvent、Event Dispatcher。</li>
+<li>Logger、CacheFactory、FileHandler、LoadBalance、HTTPAuth、FormatParser 扩展点。</li>
+<li><code>MustStart</code>、备份配置、灰度和签名能力。</li>
+</ul>
+<p>不得直接给现有 <code>Client</code>、<code>CacheInterface</code>、<code>ChangeListener</code> 等公开接口增加方法；Go 用户可能自行实现这些接口，新增方法会造成源码破坏。新能力应放入新接口，或通过可选的类型断言/adapter 暴露。</p>
+<p>兼容不等于保留明显缺陷。以下修复允许改变错误行为，但必须写入 release note 和迁移文档：</p>
+<ul>
+<li>HTTPS 默认恢复证书校验。</li>
+<li>空配置不再永久阻塞 Getter。</li>
+<li><code>Close</code> 变为幂等并等待后台任务退出。</li>
+<li>缓存覆盖写不再错误增加 EntryCount。</li>
+<li>备份文件不再因全局路径 map 发生 namespace/AppId 串扰。</li>
+</ul>
+<h3>7.2 Compatibility Adapter</h3>
+<ul>
+<li><code>StartWithConfig</code> 将旧 <code>AppConfig</code> 翻译成新 Options，再创建新内核 Client。</li>
+<li>legacy Getter 继续返回默认值；新 API 额外暴露 <code>ok/error</code>。</li>
+<li>legacy 全局 setter 维护一个带锁的默认 Builder，仅影响之后创建的 legacy Client；已经运行的 Client 不被修改。</li>
+<li>自定义旧 Cache 通过 Snapshot adapter 驱动，但新内核正确性不能依赖其 TTL/EntryCount 语义。</li>
+<li>旧备份文件只读兼容，新文件用安全格式写入；提供一次性迁移工具和 dry-run。</li>
+</ul>
+<h3>7.3 版本策略</h3>
+<ul>
+<li><strong>v5.x-alpha/beta</strong>：新内核 + 完整兼容门面，默认可通过 feature flag 回退旧内核。</li>
+<li><strong>v5.x stable</strong>：新内核默认启用，旧内核保留一个发布周期作为紧急回退。</li>
+<li><strong>后续 v5.x</strong>：删除旧内核运行代码，但保留公开兼容门面。</li>
+<li><strong>v6（可选）</strong>：只在需要真正删除旧 API/全局 setter 时发布；提前至少一个 minor 标记 deprecated。</li>
+</ul>
+<p>不建议同时长期维护两套轮询、缓存和事件实现，否则 Java 能力会出现双份 bug 和语义漂移。</p>
+<h2>8. 分阶段实施计划</h2>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>主要工作</th>
+<th>交付物/退出条件</th>
+<th>工作量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>M0 基线冻结</td>
+<td>API 清单、行为 golden test、稳定现有测试、race 基线、协议 fixture</td>
+<td>连续 20 次 <code>go test ./...</code> 无顺序失败；兼容清单评审通过</td>
+<td>1～2 人周</td>
+</tr>
+<tr>
+<td>M1 新内核骨架</td>
+<td>Client lifecycle、Options、ConfigKey、Snapshot、registry、结构化错误、Context</td>
+<td>无网络的单元测试全绿；无包级运行时可变状态</td>
+<td>2～3 人周</td>
+</tr>
+<tr>
+<td>M2 协议与运行时</td>
+<td>HTTP、发现、负载均衡、签名、全量拉取、长轮询、退避、动态 namespace</td>
+<td>与现有 v5 协议 fixture 等价；<code>-race</code> 通过</td>
+<td>3～4 人周</td>
+</tr>
+<tr>
+<td>M3 兼容门面</td>
+<td>旧 Client/AppConfig/Getter/Listener/扩展适配、旧备份读取</td>
+<td>现有用户示例无需改调用逻辑；兼容测试全绿</td>
+<td>2～3 人周</td>
+</tr>
+<tr>
+<td>M4 Java 核心对齐</td>
+<td>多 AppId、ConfigFile、来源、key/prefix 监听、dataCenter/messages、增量同步、完整格式</td>
+<td>Java/Go 双实现契约用例结果一致</td>
+<td>3～4 人周</td>
+</tr>
+<tr>
+<td>M5 高可用与可观测</td>
+<td>Local Mode、原子文件、ConfigMap、Monitor、Prometheus hook</td>
+<td>故障注入和 K8s 集成测试通过</td>
+<td>3 人周</td>
+</tr>
+<tr>
+<td>M6 TestKit 与发布</td>
+<td>Mock Server、文档、迁移工具、benchmark、alpha/beta、灰度和回滚演练</td>
+<td>发布门禁全部通过，至少两个真实业务灰度</td>
+<td>2 人周</td>
+</tr>
+</tbody></table>
+<h3>8.1 推荐合并顺序</h3>
+<p>每个 PR 应保持可回滚和单一关注点，推荐顺序：</p>
+<ol>
+<li>测试隔离与协议 fixtures。</li>
+<li>Snapshot/ConfigKey/错误模型。</li>
+<li>Transport 和 Discovery。</li>
+<li>Poller 和 Repository。</li>
+<li>新 Client API。</li>
+<li>legacy adapter。</li>
+<li>multi-AppId 和增量同步。</li>
+<li>ConfigFile 和事件过滤。</li>
+<li>本地文件与 ConfigMap。</li>
+<li>Monitor/exporter/TestKit/文档。</li>
+</ol>
+<p>不要在一个 PR 中同时改公开 API、网络协议和缓存实现。</p>
+<h2>9. 测试与验收</h2>
+<h3>9.1 测试层次</h3>
+<ol>
+<li><strong>公开 API 编译测试</strong>：编译 README、Wiki 和常见用户代码，保证旧 API 可用。</li>
+<li><strong>行为 Golden Test</strong>：记录 v5 的 Getter 默认值、初始化等待、listener 和备份恢复行为。</li>
+<li><strong>协议契约测试</strong>：覆盖 URL 编码、headers、签名、200/304/400/401/403/404/5xx、超时和 malformed body。</li>
+<li><strong>Java/Go 对照测试</strong>：同一组 Mock Server 脚本分别驱动 Java 和 Go Client，对比 Snapshot、来源和事件序列。</li>
+<li><strong>并发测试</strong>：动态 namespace、并发 Getter、订阅/取消、Close、服务列表刷新、多 AppId。</li>
+<li><strong>容灾测试</strong>：远端不可用、缓存损坏、磁盘只读、ConfigMap 冲突/无权限、DNS 故障、节点切换。</li>
+<li><strong>资源测试</strong>：长时间长轮询、慢 listener、频繁变更，检查 goroutine、连接、FD 和内存。</li>
+<li><strong>兼容矩阵</strong>：至少覆盖 Apollo Server 1.9.x、2.0.x、2.4.x、当前稳定版和主分支协议 fixture。</li>
+</ol>
+<h3>9.2 必测场景</h3>
+<ul>
+<li>首次加载成功、首次远端失败但本地恢复、所有来源失败且 <code>MustStart=true/false</code>。</li>
+<li>namespace 配置为空、删除最后一个 key、全量与增量混合。</li>
+<li>304 不产生伪变更事件。</li>
+<li>同一通知重复到达、通知乱序、notificationId 回退。</li>
+<li>properties namespace 的 <code>.properties</code> 后缀兼容。</li>
+<li>同名 namespace 分属不同 AppId 时完全隔离。</li>
+<li>每个 AppId 使用不同 Secret 时签名正确且日志不泄露。</li>
+<li>listener 只收到感兴趣 key/prefix，取消后不再收到事件。</li>
+<li>回调阻塞、panic 或递归读取配置时 Client 继续工作。</li>
+<li><code>Close</code> 在首次拉取、重试 sleep 和长轮询中都能及时退出。</li>
+<li>旧 JSON 备份可读取，新备份原子写入，崩溃恢复无半文件。</li>
+<li>ConfigMap key 对 namespace 中下划线的转义与 Java Client 一致。</li>
+</ul>
+<h3>9.3 发布门禁</h3>
+<ul>
+<li><code>go test ./... -count=20</code> 无偶发失败。</li>
+<li><code>go test -race ./...</code> 通过。</li>
+<li><code>go vet ./...</code> 和选定 linter 通过。</li>
+<li>公开 API 兼容检查无非计划破坏。</li>
+<li>协议契约测试和 Java/Go 对照测试通过。</li>
+<li>关键 benchmark 相比 v5：Getter P99 不退化超过 10%，稳态内存不退化超过 15%，每个 Client 的后台 goroutine 数有明确上限。</li>
+<li>关闭 Client 后，无 poller/discovery/dispatcher goroutine 泄漏。</li>
+<li>安全审查确认 TLS、Secret、文件权限、日志脱敏和 ConfigMap RBAC。</li>
+<li>至少两个真实业务完成 7 天灰度，无配置丢失、事件乱序导致的业务故障或资源持续增长。</li>
+</ul>
+<h2>10. 风险与缓解</h2>
+<table>
+<thead>
+<tr>
+<th>风险</th>
+<th>概率/影响</th>
+<th>缓解措施</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>重构同时引入大量能力，回归面过大</td>
+<td>高/高</td>
+<td>分阶段 PR、兼容门面、协议 fixture、feature flag 和快速回退</td>
+</tr>
+<tr>
+<td>旧用户依赖未文档化行为</td>
+<td>高/高</td>
+<td>收集真实用法、golden test、beta 灰度、明确列出允许修复的错误行为</td>
+</tr>
+<tr>
+<td>多 AppId 导致通知和 Secret 串用</td>
+<td>中/高</td>
+<td>全链路使用 ConfigKey/AppId 分区，契约和 race 测试</td>
+</tr>
+<tr>
+<td>增量结果丢失/乱序造成错误配置</td>
+<td>中/高</td>
+<td>无基线拒绝增量、原子合并、releaseKey/notification 校验、异常时强制全量</td>
+</tr>
+<tr>
+<td>慢 listener 拖垮客户端</td>
+<td>中/高</td>
+<td>有界队列、合并策略、超时/丢弃指标、panic 隔离</td>
+</tr>
+<tr>
+<td>ConfigMap RBAC 或更新冲突</td>
+<td>高/中</td>
+<td>默认关闭、最小权限示例、resourceVersion 冲突重试、不阻塞内存发布</td>
+</tr>
+<tr>
+<td>文件格式与旧备份不兼容</td>
+<td>中/高</td>
+<td>双读单写、dry-run 迁移工具、保留旧文件、故障注入</td>
+</tr>
+<tr>
+<td>TLS 行为修复影响使用自签名证书的用户</td>
+<td>中/中</td>
+<td>明确 CA 配置和显式 insecure 开关；beta 日志提前告警</td>
+</tr>
+<tr>
+<td>指标 label 高基数</td>
+<td>中/中</td>
+<td>label 白名单、默认不暴露 AppId 或对 namespace 数量设上限</td>
+</tr>
+<tr>
+<td>核心依赖膨胀</td>
+<td>中/中</td>
+<td>Kubernetes、Prometheus、YAML 增强放独立 adapter，核心优先标准库</td>
+</tr>
+</tbody></table>
+<h2>11. 交付物</h2>
+<p>最终交付不只是一组代码，应包括：</p>
+<ul>
+<li>架构决策记录（ADR）：Snapshot、容灾链、事件背压、多 AppId、增量同步、兼容策略。</li>
+<li>v5 公开 API 和行为兼容清单。</li>
+<li>Apollo 协议 fixture 与 Java/Go 对照测试工具。</li>
+<li>新内核、legacy adapter、Kubernetes/Prometheus adapter、testkit。</li>
+<li>旧备份扫描/迁移工具，支持 dry-run 和回滚说明。</li>
+<li>README 快速开始、完整配置参考、从旧 API 到新 API 的迁移指南。</li>
+<li>性能、race、故障注入和灰度报告。</li>
+<li>Alpha/Beta/Stable 发布说明和一键回退操作手册。</li>
+</ul>
+<h2>12. 需要维护者确认的决策</h2>
+<p>建议按以下默认选项推进；如维护者不同意，应在 M0 结束前冻结：</p>
+<ol>
+<li><strong>版本策略</strong>：先发布兼容的 v5.x，新 API 稳定后再评估 v6。</li>
+<li><strong>核心依赖</strong>：Kubernetes 和 Prometheus 均为可选 adapter，不进入核心依赖。</li>
+<li><strong>TLS</strong>：默认严格校验证书，自签名通过 CA 配置解决；insecure 仅显式开启。</li>
+<li><strong>事件过载</strong>：默认合并为最新 Snapshot 并记录 dropped 指标，不允许无限 goroutine。</li>
+<li><strong>本地缓存</strong>：双读旧 JSON/新 properties，单写新安全格式，不自动删除旧文件。</li>
+<li><strong>配置源顺序</strong>：Remote → Local File → ConfigMap；Local Mode 例外。</li>
+<li><strong>Java 特有能力</strong>：Spring/JMX/OpenAPI 不进入 agollo 核心，使用 Go 原生等价能力或单独立项。</li>
+<li><strong>Go 版本</strong>：兼容重构阶段先维持当前 <code>go 1.20</code> 声明；确需提高最低版本时单独评审并公告，优先让 Kubernetes 等 adapter 使用独立模块隔离依赖。</li>
+</ol>
+<h2>13. 完成定义</h2>
+<p>只有同时满足以下条件，才能宣称迁移完成：</p>
+<ul>
+<li>agollo v5 已有功能和公开调用方式可兼容迁移。</li>
+<li>本方案 P0、P1 项均有实现、文档和自动化测试。</li>
+<li>多 AppId、ConfigFile、增量同步、来源链、监听过滤、ConfigMap 和 Monitor 通过验收。</li>
+<li>Java/Go 对照测试在同一协议脚本下结果一致；语言特有差异已有书面说明。</li>
+<li>完整测试连续稳定，race、资源、安全和性能门禁通过。</li>
+<li>至少两个生产或等价环境业务完成灰度，且回滚方案演练成功。</li>
+</ul>
+<h2>14. 参考资料</h2>
+<ul>
+<li><a href="https://github.com/apolloconfig/agollo">agollo</a></li>
+<li><a href="https://github.com/apolloconfig/apollo">Apollo 主仓库</a></li>
+<li><a href="https://github.com/apolloconfig/apollo-java">Apollo Java Client</a></li>
+<li><a href="https://github.com/apolloconfig/apollo/blob/master/docs/zh/client/java-sdk-user-guide.md">Apollo Java SDK 使用指南</a></li>
+<li><a href="https://github.com/apolloconfig/apollo-java/blob/main/changes/changes-2.4.0.md">Apollo Java 2.4.0 变更记录</a></li>
+<li><a href="https://github.com/apolloconfig/apollo-java/blob/main/apollo-client/src/main/java/com/ctrip/framework/apollo/Config.java">Apollo Java Client Config API</a></li>
+<li><a href="https://github.com/apolloconfig/apollo-java/blob/main/apollo-client/src/main/java/com/ctrip/framework/apollo/ConfigFile.java">Apollo Java Client ConfigFile API</a></li>
+</ul>
+
+      </article>
+      <div class="footer">由 Markdown 方案生成 · 2026-08-17</div>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+  <script>
+    (() => {
+      const article = document.getElementById('document');
+
+      article.querySelectorAll('table').forEach((table) => {
+        const wrap = document.createElement('div');
+        wrap.className = 'table-wrap';
+        table.parentNode.insertBefore(wrap, table);
+        wrap.appendChild(table);
+      });
+
+      const headings = [...article.querySelectorAll('h2, h3')];
+      const toc = document.getElementById('toc-list');
+      headings.forEach((heading, index) => {
+        heading.id = `section-${index + 1}`;
+
+        const anchor = document.createElement('a');
+        anchor.className = 'section-anchor';
+        anchor.href = `#${heading.id}`;
+        anchor.setAttribute('aria-label', '复制章节链接');
+        anchor.textContent = '#';
+        heading.appendChild(anchor);
+
+        const link = document.createElement('a');
+        link.href = `#${heading.id}`;
+        link.dataset.level = heading.tagName.substring(1);
+        link.textContent = heading.childNodes[0].textContent.trim();
+        toc.appendChild(link);
+      });
+
+      const tocLinks = [...toc.querySelectorAll('a')];
+      if ('IntersectionObserver' in window) {
+        const observer = new IntersectionObserver((entries) => {
+          const visible = entries.filter((entry) => entry.isIntersecting).pop();
+          if (!visible) return;
+          tocLinks.forEach((link) => link.classList.toggle('active', link.hash === `#${visible.target.id}`));
+        }, { rootMargin: '-15% 0px -72% 0px' });
+        headings.forEach((heading) => observer.observe(heading));
+      }
+
+      article.querySelectorAll('a[href^="http"]').forEach((link) => {
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+      });
+
+      const mermaidBlocks = [...article.querySelectorAll('pre > code.language-mermaid')];
+      if (window.mermaid && mermaidBlocks.length) {
+        mermaidBlocks.forEach((code) => {
+          const container = document.createElement('div');
+          container.className = 'mermaid';
+          container.textContent = code.textContent;
+          code.parentElement.replaceWith(container);
+        });
+        window.mermaid.initialize({
+          startOnLoad: false,
+          theme: 'neutral',
+          securityLevel: 'strict',
+          flowchart: { curve: 'basis', htmlLabels: true }
+        });
+        window.mermaid.run({ querySelector: '.mermaid' });
+      }
+    })();
+  </script>
+</body>
+</html>
