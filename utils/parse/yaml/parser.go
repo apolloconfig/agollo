@@ -19,7 +19,7 @@ import (
 
 	"github.com/spf13/viper"
 
-	"github.com/apolloconfig/agollo/v5/utils"
+	"github.com/apolloconfig/agollo/v6/utils"
 )
 
 var vp = viper.New()

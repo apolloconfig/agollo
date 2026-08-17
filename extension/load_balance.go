@@ -14,7 +14,7 @@
 
 package extension
 
-import "github.com/apolloconfig/agollo/v5/cluster"
+import "github.com/apolloconfig/agollo/v6/cluster"
 
 var defaultLoadBalance cluster.LoadBalance
 

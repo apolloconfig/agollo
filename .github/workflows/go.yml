@@ -22,6 +22,11 @@ jobs:
         run: |
           go test -covermode=count -coverprofile=coverage.out ./...
 
+      - name: Verify v6 module imports
+        run: |
+          ! git grep -n 'github.com/apolloconfig/agollo/v5' -- '*.go'
+          test "$(go list -m)" = "github.com/apolloconfig/agollo/v6"
+
       - name: Convert coverage to lcov
         uses: jandelgado/gcov2lcov-action@v1.0.9
 
@@ -31,6 +36,5 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: coverage.lcov
 
-      - name: Build
-        run: |
-          go build -o "$Project"
+      - name: Compile packages
+        run: go build ./...

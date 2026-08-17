@@ -15,7 +15,7 @@
 package cluster
 
 import (
-	"github.com/apolloconfig/agollo/v5/env/config"
+	"github.com/apolloconfig/agollo/v6/env/config"
 )
 
 // LoadBalance 负载均衡器

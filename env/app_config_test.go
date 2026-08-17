@@ -17,15 +17,14 @@ package env
 import (
 	"encoding/json"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v5/env/config"
-	jsonConfig "github.com/apolloconfig/agollo/v5/env/config/json"
-	"github.com/apolloconfig/agollo/v5/utils"
+	"github.com/apolloconfig/agollo/v6/env/config"
+	jsonConfig "github.com/apolloconfig/agollo/v6/env/config/json"
+	"github.com/apolloconfig/agollo/v6/utils"
 )
 
 const servicesConfigResponseStr = `[{
@@ -153,13 +152,4 @@ func TestLoadEnvConfig(t *testing.T) {
 	Assert(t, envConfig.IP, Equal(config.IP))
 
 	os.Remove(envConfigFile)
-}
-
-func getNotifyLen(s sync.Map) int {
-	l := 0
-	s.Range(func(k, v interface{}) bool {
-		l++
-		return true
-	})
-	return l
 }

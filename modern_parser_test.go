@@ -1,4 +1,4 @@
-// Copyright 2025 Apollo Authors
+// Copyright 2026 Apollo Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -12,20 +12,19 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package extension
+package agollo
 
-import "github.com/apolloconfig/agollo/v6/agcache"
+import "testing"
 
-var (
-	globalCacheFactory agcache.CacheFactory
-)
-
-// GetCacheFactory 获取CacheFactory
-func GetCacheFactory() agcache.CacheFactory {
-	return globalCacheFactory
-}
-
-// SetCacheFactory 替换CacheFactory
-func SetCacheFactory(cacheFactory agcache.CacheFactory) {
-	globalCacheFactory = cacheFactory
+func TestParseYAMLPreservesKeyCase(t *testing.T) {
+	values, err := parseYAML("myApp:\n  Timeout: 250ms\n", "yaml")
+	if err != nil {
+		t.Fatalf("parseYAML() error = %v", err)
+	}
+	if got := values["myApp.Timeout"]; got != "250ms" {
+		t.Fatalf("exact-case value = %#v", got)
+	}
+	if _, exists := values["myapp.timeout"]; exists {
+		t.Fatal("lower-cased YAML key was published")
+	}
 }

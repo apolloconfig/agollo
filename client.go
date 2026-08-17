@@ -19,26 +19,26 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/apolloconfig/agollo/v5/agcache"
-	"github.com/apolloconfig/agollo/v5/agcache/memory"
-	"github.com/apolloconfig/agollo/v5/cluster/roundrobin"
-	"github.com/apolloconfig/agollo/v5/component"
-	"github.com/apolloconfig/agollo/v5/component/log"
-	"github.com/apolloconfig/agollo/v5/component/notify"
-	"github.com/apolloconfig/agollo/v5/component/remote"
-	"github.com/apolloconfig/agollo/v5/component/serverlist"
-	"github.com/apolloconfig/agollo/v5/constant"
-	"github.com/apolloconfig/agollo/v5/env"
-	"github.com/apolloconfig/agollo/v5/env/config"
-	jsonFile "github.com/apolloconfig/agollo/v5/env/file/json"
-	"github.com/apolloconfig/agollo/v5/extension"
-	"github.com/apolloconfig/agollo/v5/protocol/auth/sign"
-	"github.com/apolloconfig/agollo/v5/storage"
-	"github.com/apolloconfig/agollo/v5/utils"
-	"github.com/apolloconfig/agollo/v5/utils/parse/normal"
-	"github.com/apolloconfig/agollo/v5/utils/parse/properties"
-	"github.com/apolloconfig/agollo/v5/utils/parse/yaml"
-	"github.com/apolloconfig/agollo/v5/utils/parse/yml"
+	"github.com/apolloconfig/agollo/v6/agcache"
+	"github.com/apolloconfig/agollo/v6/agcache/memory"
+	"github.com/apolloconfig/agollo/v6/cluster/roundrobin"
+	"github.com/apolloconfig/agollo/v6/component"
+	"github.com/apolloconfig/agollo/v6/component/log"
+	"github.com/apolloconfig/agollo/v6/component/notify"
+	"github.com/apolloconfig/agollo/v6/component/remote"
+	"github.com/apolloconfig/agollo/v6/component/serverlist"
+	"github.com/apolloconfig/agollo/v6/constant"
+	"github.com/apolloconfig/agollo/v6/env"
+	"github.com/apolloconfig/agollo/v6/env/config"
+	jsonFile "github.com/apolloconfig/agollo/v6/env/file/json"
+	"github.com/apolloconfig/agollo/v6/extension"
+	"github.com/apolloconfig/agollo/v6/protocol/auth/sign"
+	"github.com/apolloconfig/agollo/v6/storage"
+	"github.com/apolloconfig/agollo/v6/utils"
+	"github.com/apolloconfig/agollo/v6/utils/parse/normal"
+	"github.com/apolloconfig/agollo/v6/utils/parse/properties"
+	"github.com/apolloconfig/agollo/v6/utils/parse/yaml"
+	"github.com/apolloconfig/agollo/v6/utils/parse/yml"
 )
 
 const separator = ","
@@ -85,6 +85,9 @@ type internalClient struct {
 	appConfig         *config.AppConfig
 	cache             *storage.Cache
 	components        []component.Stoppable
+	// syncWithNamespace is instance-scoped to keep delayed namespace loading
+	// testable and to avoid relying on runtime code patching.
+	syncWithNamespace func(namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error)
 }
 
 func (c *internalClient) getAppConfig() config.AppConfig {
@@ -94,7 +97,8 @@ func (c *internalClient) getAppConfig() config.AppConfig {
 func create() *internalClient {
 	appConfig := env.InitFileConfig()
 	return &internalClient{
-		appConfig: appConfig,
+		appConfig:         appConfig,
+		syncWithNamespace: syncApolloConfig.SyncWithNamespace,
 	}
 }
 
@@ -160,7 +164,11 @@ func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 
 	if cfg == nil {
 		//sync config
-		apolloConfig, _ := syncApolloConfig.SyncWithNamespace(namespace, c.getAppConfig)
+		syncWithNamespace := c.syncWithNamespace
+		if syncWithNamespace == nil {
+			syncWithNamespace = syncApolloConfig.SyncWithNamespace
+		}
+		apolloConfig, _ := syncWithNamespace(namespace, c.getAppConfig)
 		if apolloConfig != nil {
 			c.SyncAndUpdate(namespace, apolloConfig)
 		}

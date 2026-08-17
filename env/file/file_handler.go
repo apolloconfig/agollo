@@ -15,7 +15,7 @@
 package file
 
 import (
-	"github.com/apolloconfig/agollo/v5/env/config"
+	"github.com/apolloconfig/agollo/v6/env/config"
 )
 
 // FileHandler 备份文件读写

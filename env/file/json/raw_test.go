@@ -20,7 +20,7 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v5/extension"
+	"github.com/apolloconfig/agollo/v6/extension"
 )
 
 func TestRawHandler_WriteConfigDirFile(t *testing.T) {

@@ -24,14 +24,14 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v5/cluster/roundrobin"
-	"github.com/apolloconfig/agollo/v5/component/log"
-	"github.com/apolloconfig/agollo/v5/env"
-	"github.com/apolloconfig/agollo/v5/env/config"
-	"github.com/apolloconfig/agollo/v5/env/config/json"
-	"github.com/apolloconfig/agollo/v5/env/server"
-	"github.com/apolloconfig/agollo/v5/extension"
-	"github.com/apolloconfig/agollo/v5/utils"
+	"github.com/apolloconfig/agollo/v6/cluster/roundrobin"
+	"github.com/apolloconfig/agollo/v6/component/log"
+	"github.com/apolloconfig/agollo/v6/env"
+	"github.com/apolloconfig/agollo/v6/env/config"
+	"github.com/apolloconfig/agollo/v6/env/config/json"
+	"github.com/apolloconfig/agollo/v6/env/server"
+	"github.com/apolloconfig/agollo/v6/extension"
+	"github.com/apolloconfig/agollo/v6/utils"
 )
 
 func init() {
@@ -102,17 +102,17 @@ func TestRequestRecovery(t *testing.T) {
 }
 
 func TestCustomTimeout(t *testing.T) {
-	time.Sleep(1 * time.Second)
 	server := runLongTimeResponse()
+	defer server.Close()
 	appConfig := getTestAppConfig()
 	appConfig.IP = server.URL
 
-	startTime := time.Now().Unix()
 	mockIPList(t, func() config.AppConfig {
 		return *appConfig
 	})
 	urlSuffix := getConfigURLSuffix(appConfig, appConfig.NamespaceName)
 
+	startTime := time.Now()
 	o, err := RequestRecovery(*appConfig, &env.ConnectConfig{
 		URI:     urlSuffix,
 		Timeout: 11 * time.Second,
@@ -120,12 +120,15 @@ func TestCustomTimeout(t *testing.T) {
 		SuccessCallBack: nil,
 	})
 
-	endTime := time.Now().Unix()
-	duration := endTime - startTime
-	t.Log("start time:", startTime)
-	t.Log("endTime:", endTime)
-	t.Log("duration:", duration)
-	Assert(t, int64(11), Equal(duration))
+	duration := time.Since(startTime)
+	// The test server responds after 10 seconds.  Wall-clock seconds are not a
+	// stable assertion here: crossing a one-second boundary used to make this
+	// test randomly expect either 10 or 11.  Leave room for normal scheduling,
+	// while still proving that the configured 11-second timeout permits the
+	// response to complete.
+	if duration < 10*time.Second || duration >= 15*time.Second {
+		t.Fatalf("request duration = %s, want [10s, 15s)", duration)
+	}
 	Assert(t, err, NilVal())
 	Assert(t, o, NilVal())
 }

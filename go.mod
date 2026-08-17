@@ -1,11 +1,11 @@
-module github.com/apolloconfig/agollo/v5
+module github.com/apolloconfig/agollo/v6
 
 go 1.20
 
 require (
-	github.com/agiledragon/gomonkey/v2 v2.13.0
 	github.com/spf13/viper v1.8.1
 	github.com/tevid/gohamcrest v1.1.1
+	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
@@ -22,5 +22,4 @@ require (
 	golang.org/x/sys v0.1.0 // indirect
 	golang.org/x/text v0.3.8 // indirect
 	gopkg.in/ini.v1 v1.62.0 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

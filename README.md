@@ -23,50 +23,71 @@ A Golang client for the configuration center framework [Apollo](https://github.c
 * Client-side and configuration file fallback
 * Customizable logger and cache components
 * Support for configuration access keys
+* Instance-scoped `ApolloClient` API with multi-AppID isolation, typed getters, `ConfigFile`, and key/prefix change subscriptions
+* Config Service discovery, Access Key signing, incremental sync, long polling, and Remote → local cache → optional ConfigMap fallback
 
 # Usage
 
-## Quick Start
+Quick Start
+-----------
 
 ### Import agollo
 
-```
-go get -u github.com/apolloconfig/agollo/v5@latest
+```sh
+# Run after the v6.0.0 release tag is published.
+go get github.com/apolloconfig/agollo/v6@v6.0.0
 ```
 
 ### Initialize agollo
+
+New integrations should use the instance-scoped `ApolloClient` to avoid
+process-global state and explicitly own the client lifecycle.
 
 ```go
 package main
 
 import (
+	"context"
 	"fmt"
 
-	"github.com/apolloconfig/agollo/v5"
-	"github.com/apolloconfig/agollo/v5/env/config"
+	"github.com/apolloconfig/agollo/v6"
 )
 
 func main() {
-	c := &config.AppConfig{
-		AppID:          "testApplication_yang",
-		Cluster:        "dev",
-		IP:             "http://localhost:8080",
-		NamespaceName:  "dubbo",
-		IsBackupConfig: true,
-		Secret:         "6ce3ff7e96a24335a9634fe9abca6d51",
-	}
-
-	client, _ := agollo.StartWithConfig(func() (*config.AppConfig, error) {
-		return c, nil
+	client, err := agollo.NewClient(context.Background(), agollo.ClientOptions{
+		AppID:      "orders",
+		Cluster:    "default",
+		MetaServer: "http://apollo-meta:8080",
+		CacheDir:   "/var/lib/orders/apollo",
 	})
-	fmt.Println("Apollo configuration initialized successfully")
+	if err != nil {
+		panic(err)
+	}
+	defer client.Close()
 
-	//Use your apollo key to test
-	cache := client.GetConfigCache(c.NamespaceName)
-	value, _ := cache.Get("key")
-	fmt.Println(value)
+	config, err := client.Config(context.Background(), "application")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(config.Int("server.port", 8080))
+
+	// Subscribe only to changes under the db. prefix.
+	cancel := config.Subscribe(func(event agollo.ConfigChangeEvent) {
+		fmt.Printf("configuration changed: %#v\n", event.Changes)
+	}, agollo.WithInterestedKeyPrefixes("db."))
+	defer cancel()
 }
 ```
+
+`ApolloClient` additionally supports multiple AppIDs through `ConfigForApp`,
+raw namespace files through `ConfigFile`, and source inspection through
+`Config.Source()`. It keeps the last successful in-memory snapshot on a refresh
+failure; local cache and `ConfigMapStore` are used only to establish the first
+usable snapshot. See the [v5 to v6 migration guide](docs/migration-to-apollo-client.md),
+[migration plan](docs/agollo-refactor-java-client-migration-plan.md),
+and [implementation/test matrix](docs/agollo-java-client-parity-implementation.md)
+for the v6 options, migration scope, and validation coverage. `Load` can
+eagerly load required namespaces when the application needs fail-fast startup.
 
 ## More Examples
 

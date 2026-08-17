@@ -23,13 +23,13 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v5/agcache/memory"
-	"github.com/apolloconfig/agollo/v5/cluster/roundrobin"
-	"github.com/apolloconfig/agollo/v5/component/remote"
-	"github.com/apolloconfig/agollo/v5/env/config"
-	jsonFile "github.com/apolloconfig/agollo/v5/env/file/json"
-	"github.com/apolloconfig/agollo/v5/extension"
-	"github.com/apolloconfig/agollo/v5/storage"
+	"github.com/apolloconfig/agollo/v6/agcache/memory"
+	"github.com/apolloconfig/agollo/v6/cluster/roundrobin"
+	"github.com/apolloconfig/agollo/v6/component/remote"
+	"github.com/apolloconfig/agollo/v6/env/config"
+	jsonFile "github.com/apolloconfig/agollo/v6/env/file/json"
+	"github.com/apolloconfig/agollo/v6/extension"
+	"github.com/apolloconfig/agollo/v6/storage"
 )
 
 func init() {
@@ -118,7 +118,6 @@ func TestListenChangeEvent(t *testing.T) {
 
 func TestRemoveChangeListener(t *testing.T) {
 	cache := storage.CreateNamespaceConfig("abc")
-	go buildNotifyResult(t)
 
 	listener := &CustomChangeListener{}
 	cache.AddChangeListener(listener)

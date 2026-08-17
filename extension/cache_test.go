@@ -21,7 +21,7 @@ import (
 
 	. "github.com/tevid/gohamcrest"
 
-	"github.com/apolloconfig/agollo/v5/agcache"
+	"github.com/apolloconfig/agollo/v6/agcache"
 )
 
 type TestCacheFactory struct {
