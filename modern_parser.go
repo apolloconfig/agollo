@@ -15,21 +15,44 @@
 package agollo
 
 import (
-	"bytes"
 	"fmt"
 
-	"github.com/spf13/viper"
+	"gopkg.in/yaml.v2"
 )
 
 func parseYAML(content, format string) (map[string]interface{}, error) {
-	parser := viper.New()
-	parser.SetConfigType(format)
-	if err := parser.ReadConfig(bytes.NewBufferString(content)); err != nil {
+	var document map[interface{}]interface{}
+	if err := yaml.Unmarshal([]byte(content), &document); err != nil {
 		return nil, fmt.Errorf("agollo: parse %s config: %w", format, err)
 	}
 	values := make(map[string]interface{})
-	for _, key := range parser.AllKeys() {
-		values[key] = cloneValue(parser.Get(key))
-	}
+	flattenYAML(values, "", document)
 	return values, nil
+}
+
+func flattenYAML(values map[string]interface{}, prefix string, value interface{}) {
+	switch typed := value.(type) {
+	case map[interface{}]interface{}:
+		for rawKey, child := range typed {
+			key, ok := rawKey.(string)
+			if !ok {
+				continue
+			}
+			if prefix != "" {
+				key = prefix + "." + key
+			}
+			flattenYAML(values, key, child)
+		}
+	case map[string]interface{}:
+		for key, child := range typed {
+			if prefix != "" {
+				key = prefix + "." + key
+			}
+			flattenYAML(values, key, child)
+		}
+	default:
+		if prefix != "" {
+			values[prefix] = cloneValue(typed)
+		}
+	}
 }

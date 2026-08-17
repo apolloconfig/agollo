@@ -58,14 +58,20 @@ func TestApolloClientLoadsConfigAndAppliesProtocolParameters(t *testing.T) {
 	t.Parallel()
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		if request.URL.Path != "/configs/sample/default/application" {
-			t.Fatalf("unexpected request path: %s", request.URL.Path)
+			t.Errorf("unexpected request path: %s", request.URL.Path)
+			http.Error(writer, "unexpected request path", http.StatusNotFound)
+			return
 		}
 		query := request.URL.Query()
 		if query.Get("ip") != "10.0.0.8" || query.Get("dataCenter") != "sh-az1" || query.Get("label") != "canary" {
-			t.Fatalf("unexpected Apollo query: %v", query)
+			t.Errorf("unexpected Apollo query: %v", query)
+			http.Error(writer, "unexpected Apollo query", http.StatusBadRequest)
+			return
 		}
 		if !strings.HasPrefix(request.Header.Get("Authorization"), "Apollo sample:") || request.Header.Get("Timestamp") == "" {
-			t.Fatalf("Apollo access-key signature was not sent: %v", request.Header)
+			t.Errorf("Apollo access-key signature was not sent: %v", request.Header)
+			http.Error(writer, "missing signature", http.StatusUnauthorized)
+			return
 		}
 		writeJSON(t, writer, remoteConfig{ReleaseKey: "r1", Configurations: map[string]interface{}{
 			"port": "8080", "enabled": "true", "timeout": "250ms",
@@ -312,19 +318,31 @@ func TestApolloClientMultiAppIDAndIncrementalSync(t *testing.T) {
 	}
 }
 
-func TestApolloClientRejectsIncrementalConfigWithoutBaseline(t *testing.T) {
+func TestApolloClientRecoversIncrementalConfigWithoutBaseline(t *testing.T) {
 	t.Parallel()
+	var requests atomic.Int32
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-		writeJSON(t, writer, remoteConfig{ReleaseKey: "r2", ConfigSyncType: "INCREMENTAL_SYNC", ConfigurationChanges: []configurationChange{{
-			Key: "key", NewValue: "value", ConfigurationChangeType: "ADDED",
-		}}})
+		if requests.Add(1) == 1 {
+			writeJSON(t, writer, remoteConfig{ReleaseKey: "r2", ConfigSyncType: "INCREMENTAL_SYNC", ConfigurationChanges: []configurationChange{{
+				Key: "key", NewValue: "value", ConfigurationChangeType: "ADDED",
+			}}})
+			return
+		}
+		writeJSON(t, writer, remoteConfig{ReleaseKey: "r1", Configurations: map[string]interface{}{"key": "full"}})
 	}))
 	defer server.Close()
 
 	client := newTestClient(t, server.URL, ClientOptions{AppID: "sample"})
 	defer client.Close()
-	if _, err := client.Config(context.Background(), "application"); err == nil || !strings.Contains(err.Error(), "without a full snapshot baseline") {
-		t.Fatalf("GetConfig() error = %v, want incremental baseline error", err)
+	config, err := client.Config(context.Background(), "application")
+	if err != nil {
+		t.Fatalf("Config() error = %v", err)
+	}
+	if got := config.String("key", ""); got != "full" {
+		t.Fatalf("Config() value = %q, want full snapshot", got)
+	}
+	if got := requests.Load(); got != 2 {
+		t.Fatalf("remote requests = %d, want incremental response plus full retry", got)
 	}
 }
 
@@ -515,6 +533,52 @@ func TestDecodeDiskSnapshotRejectsDifferentCluster(t *testing.T) {
 	_, err = decodeDiskSnapshot(ConfigKey{AppID: "sample", Cluster: "staging", Namespace: "application", Format: ConfigFileFormatProperties}, body)
 	if err == nil || !strings.Contains(err.Error(), "cluster") {
 		t.Fatalf("decodeDiskSnapshot() error = %v, want cluster mismatch", err)
+	}
+}
+
+func TestDecodeDiskSnapshotRejectsUnsupportedVersion(t *testing.T) {
+	key := ConfigKey{AppID: "sample", Cluster: "default", Namespace: "application", Format: ConfigFileFormatProperties}
+	body, err := json.Marshal(diskSnapshot{Version: modernCacheVersion + 1, AppID: key.AppID, Cluster: key.Cluster, Namespace: key.Namespace})
+	if err != nil {
+		t.Fatalf("marshal cache snapshot: %v", err)
+	}
+	if _, err := decodeDiskSnapshot(key, body); err == nil || !strings.Contains(err.Error(), "newer than supported") {
+		t.Fatalf("decodeDiskSnapshot() error = %v, want unsupported version", err)
+	}
+}
+
+func TestApolloClientSerializesMetaDiscovery(t *testing.T) {
+	var discoveryRequests atomic.Int32
+	server := httptest.NewUnstartedServer(nil)
+	server.Config.Handler = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		if request.URL.Path != "/services/config" {
+			http.Error(writer, "unexpected path", http.StatusNotFound)
+			return
+		}
+		discoveryRequests.Add(1)
+		writeJSON(t, writer, []map[string]string{{"homepageUrl": "http://config.example"}})
+	})
+	server.Start()
+	defer server.Close()
+
+	client, err := NewClient(context.Background(), ClientOptions{AppID: "sample", MetaServer: server.URL, DisableLongPolling: true})
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
+	defer client.Close()
+	var group sync.WaitGroup
+	for index := 0; index < 8; index++ {
+		group.Add(1)
+		go func() {
+			defer group.Done()
+			if _, err := client.configServices(context.Background(), "sample"); err != nil {
+				t.Errorf("configServices() error = %v", err)
+			}
+		}()
+	}
+	group.Wait()
+	if got := discoveryRequests.Load(); got != 1 {
+		t.Fatalf("Meta discovery requests = %d, want 1", got)
 	}
 }
 
@@ -739,20 +803,24 @@ func TestApolloClientIntSliceReadsNativeIntSlice(t *testing.T) {
 
 func TestApolloClientDiscoversConfigServiceFromMetaServer(t *testing.T) {
 	t.Parallel()
-	var server *httptest.Server
-	server = httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	server := httptest.NewUnstartedServer(nil)
+	server.Config.Handler = http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		switch request.URL.Path {
 		case "/services/config":
 			if request.URL.Query().Get("appId") != "sample" || request.URL.Query().Get("ip") != "10.0.0.3" {
-				t.Fatalf("unexpected discovery query: %v", request.URL.Query())
+				t.Errorf("unexpected discovery query: %v", request.URL.Query())
+				http.Error(writer, "unexpected discovery query", http.StatusBadRequest)
+				return
 			}
 			writeJSON(t, writer, []map[string]string{{"homepageUrl": server.URL}})
 		case "/configs/sample/default/application":
 			writeJSON(t, writer, remoteConfig{ReleaseKey: "r1", Configurations: map[string]interface{}{"key": "discovered"}})
 		default:
-			t.Fatalf("unexpected request path: %s", request.URL.Path)
+			t.Errorf("unexpected request path: %s", request.URL.Path)
+			http.Error(writer, "unexpected request path", http.StatusNotFound)
 		}
-	}))
+	})
+	server.Start()
 	defer server.Close()
 
 	client, err := NewClient(context.Background(), ClientOptions{
@@ -768,6 +836,35 @@ func TestApolloClientDiscoversConfigServiceFromMetaServer(t *testing.T) {
 	}
 	if got := config.String("key", ""); got != "discovered" {
 		t.Fatalf("discovered value = %q", got)
+	}
+}
+
+func TestConfigURLRejectsUnsafeIdentifiers(t *testing.T) {
+	client := newTestClient(t, "http://config.example", ClientOptions{AppID: "sample"})
+	defer client.Close()
+	for _, key := range []ConfigKey{
+		{AppID: "", Namespace: "application"},
+		{AppID: "../orders", Namespace: "application"},
+		{AppID: "orders", Namespace: "../application"},
+		{AppID: "orders", Namespace: "team/application"},
+	} {
+		key.Cluster = "default"
+		key.Format = ConfigFileFormatProperties
+		if _, err := client.configURL("http://config.example", key, nil, nil); err == nil {
+			t.Fatalf("configURL(%+v) succeeded", key)
+		}
+	}
+}
+
+func TestNotificationMatchesNamespacePropertiesSuffix(t *testing.T) {
+	if !notificationMatchesNamespace("application.properties", "application") {
+		t.Fatal("properties notification did not match extensionless namespace")
+	}
+	if !notificationMatchesNamespace("application", "application.properties") {
+		t.Fatal("extensionless notification did not match properties namespace")
+	}
+	if notificationMatchesNamespace("other.properties", "application") {
+		t.Fatal("different namespaces matched")
 	}
 }
 

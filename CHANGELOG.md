@@ -6,8 +6,9 @@
 
 * **Module path updated** from `github.com/apolloconfig/agollo/v5` to `github.com/apolloconfig/agollo/v6`:
 
-  ```
-  go get github.com/apolloconfig/agollo/v6@latest
+  ```sh
+  # Run after the v6.0.0 release tag is published.
+  go get github.com/apolloconfig/agollo/v6@v6.0.0
   ```
 
 * New integrations use the instance-scoped `NewClient` / `ApolloClient` API.

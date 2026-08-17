@@ -11,10 +11,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
+          cache: false
       - name: Verify v6 release contract
         run: |
           test "$(go list -m)" = "github.com/apolloconfig/agollo/v6"

@@ -28,12 +28,14 @@ Agollo - Go Client for Apollo
 
 # Usage
 
-## 快速入门
+快速入门
+--------
 
 ### 导入 agollo
 
-```
-go get github.com/apolloconfig/agollo/v6@latest
+```sh
+# 请在 v6.0.0 release tag 发布后执行。
+go get github.com/apolloconfig/agollo/v6@v6.0.0
 ```
 
 ### 启动 agollo
@@ -41,22 +43,33 @@ go get github.com/apolloconfig/agollo/v6@latest
 新项目使用实例级 `ApolloClient`，避免进程全局状态并显式管理客户端生命周期：
 
 ```go
-client, err := agollo.NewClient(context.Background(), agollo.ClientOptions{
-	AppID:      "orders",
-	Cluster:    "default",
-	MetaServer: "http://apollo-meta:8080",
-	CacheDir:   "/var/lib/orders/apollo",
-})
-if err != nil {
-	panic(err)
-}
-defer client.Close()
+package main
 
-cfg, err := client.Config(context.Background(), "application")
-if err != nil {
-	panic(err)
+import (
+	"context"
+	"fmt"
+
+	"github.com/apolloconfig/agollo/v6"
+)
+
+func main() {
+	client, err := agollo.NewClient(context.Background(), agollo.ClientOptions{
+		AppID:      "orders",
+		Cluster:    "default",
+		MetaServer: "http://apollo-meta:8080",
+		CacheDir:   "/var/lib/orders/apollo",
+	})
+	if err != nil {
+		panic(err)
+	}
+	defer client.Close()
+
+	cfg, err := client.Config(context.Background(), "application")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(cfg.Int("server.port", 8080))
 }
-port := cfg.Int("server.port", 8080)
 ```
 
 新版通过 `ConfigForApp` 支持单 Client 多 AppId，通过 `ConfigFile` 读取 YAML、JSON、XML、TXT 等 namespace 原文。需要启动即失败的服务可调用 `Load` 预加载必需 namespace。v5 到 v6 的字段映射、Getter、监听器和扩展点替代方式见[迁移指南](docs/migration-to-apollo-client.md)。

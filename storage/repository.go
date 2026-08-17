@@ -41,7 +41,7 @@ const (
 
 // Cache apollo 配置缓存
 type Cache struct {
-	apolloConfigCache *sync.Map
+	apolloConfigCache sync.Map
 	changeListeners   *list.List
 	rw                sync.RWMutex
 }
@@ -64,18 +64,15 @@ func (c *Cache) GetConfig(namespace string) *Config {
 // CreateNamespaceConfig 根据namespace初始化agollo内容配置
 func CreateNamespaceConfig(namespace string) *Cache {
 	// config from apollo
-	apolloConfigCache := &sync.Map{}
+	cache := &Cache{changeListeners: list.New()}
 	config.SplitNamespaces(namespace, func(namespace string) {
-		if _, ok := apolloConfigCache.Load(namespace); ok {
+		if _, ok := cache.apolloConfigCache.Load(namespace); ok {
 			return
 		}
 		c := initConfig(namespace, extension.GetCacheFactory())
-		apolloConfigCache.Store(namespace, c)
+		cache.apolloConfigCache.Store(namespace, c)
 	})
-	return &Cache{
-		apolloConfigCache: apolloConfigCache,
-		changeListeners:   list.New(),
-	}
+	return cache
 }
 
 func initConfig(namespace string, factory agcache.CacheFactory) *Config {

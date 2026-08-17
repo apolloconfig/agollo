@@ -15,13 +15,15 @@ client, err := agollo.NewClient(ctx, agollo.ClientOptions{
     MetaServer: "http://apollo-meta:8080",
     CacheDir:   "/var/lib/orders/apollo",
 })
-if err != nil { /* handle error */ }
+if err != nil { panic(err) }
 defer client.Close()
 
 cfg, err := client.Config(ctx, "application")
+if err != nil { panic(err) }
 port := cfg.Int("server.port", 8080)
 
 file, err := client.ConfigFile(ctx, "application", agollo.ConfigFileFormatYAML)
+if err != nil { panic(err) }
 cancel := cfg.Subscribe(onChange, agollo.WithInterestedKeyPrefixes("db."))
 defer cancel()
 _ = port
@@ -34,7 +36,7 @@ _ = file
 - `Config` 的并发安全实时快照、`Lookup`、字符串/int/int64/float/bool/duration/字符串切片/整数切片 Getter、有序 `Keys` 与来源查询。
 - `ConfigFile` 的原文、格式、来源、变更订阅；properties、yaml/yml 支持 `AsMap`。
 - Config Service 直连或 Meta `/services/config` 发现、轮转节点选择、`releaseKey`、`ip`、`label`、`dataCenter`、`messages` 与按 AppId 的 Access Key 签名。
-- `FULL_SYNC` 和 `INCREMENTAL_SYNC`；增量结果在无全量基线、未知同步类型或非法变更类型时拒绝发布。
+- `FULL_SYNC` 和 `INCREMENTAL_SYNC`；无全量基线的增量结果会立即重试全量拉取，未知同步类型或非法变更类型拒绝发布。
 - 按 AppId 的 `/notifications/v2` 长轮询、Context/`Close` 取消、退避和通知触发刷新。
 - 容灾链：Remote → 原子本地 JSON 缓存 → 可选 `ConfigMapStore`；Local Mode 只读取本地缓存。读取兼容旧 agollo JSON 缓存。
 - 有界监听队列、溢出合并到最新事件、panic 隔离、精确 key/prefix/正则监听，以及无第三方依赖的 `Monitor` 快照。
@@ -53,7 +55,7 @@ _ = file
 | 基础加载和鉴权 | Config URL、ip/DC/label、签名、类型化读取、来源、指标 | `TestApolloClientLoadsConfigAndAppliesProtocolParameters` |
 | YAML ConfigFile | `.yaml` namespace、原文、扁平化 Map、原文变更事件 | `TestApolloClientConfigFileYAMLAndRawListener` |
 | 多 AppId + 增量 | Secret 隔离、`messages`/`releaseKey` 回传、增加/修改/删除、key 前缀过滤 | `TestApolloClientMultiAppIDAndIncrementalSync` |
-| 安全失败 | 无基线的增量同步不能覆盖内存配置 | `TestApolloClientRejectsIncrementalConfigWithoutBaseline` |
+| 增量恢复 | 无基线的增量同步立即回退全量拉取 | `TestApolloClientRecoversIncrementalConfigWithoutBaseline` |
 | 失败后的恢复 | 首次加载失败后可成功重试；成功后不再返回过期错误 | `TestApolloClientRetriesFailedInitialLoad` |
 | 304 通知确认 | 保持内容和事件不变，同时推进 `notificationId` | `TestApolloClientAcknowledges304NotificationWithoutChangeEvent` |
 | 刷新故障 | 已有远端快照时拒绝以旧缓存回滚 | `TestApolloClientRefreshFailureKeepsLastKnownGoodSnapshot` |
@@ -77,7 +79,7 @@ go test -race . -run '^TestApolloClient|^TestPublicApolloClientAPI|^TestClientOp
 go test ./protocol/http ./storage ./utils ./utils/parse/... -count=1
 ```
 
-`go vet ./...` 仍会报告旧包中复制 `sync.Map`/`sync.Once` 的告警（`env`、`storage`、`component/serverlist`）；本次新增文件没有对应告警。它们应在后续 M0/M3 单独清理，不能据此宣称发布门禁已全部达成。
+`go vet ./...` 已通过；同步映射和零值 `Cache` 的实现避免复制或解引用未初始化的同步原语。
 
 ## 尚未完成的发布级工作
 

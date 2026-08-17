@@ -53,6 +53,17 @@ func creatTestApolloConfig(configurations map[string]interface{}, namespace stri
 	return c
 }
 
+func TestCacheZeroValueSupportsNamespaceUpdate(t *testing.T) {
+	cache := &Cache{}
+	if got := cache.GetConfig("application"); got != nil {
+		t.Fatalf("zero-value GetConfig() = %#v, want nil", got)
+	}
+	cache.UpdateApolloConfigCache(map[string]interface{}{"key": "value"}, configCacheExpireTime, "application")
+	if got := cache.GetConfig("application"); got == nil || got.GetStringValue("key", "") != "value" {
+		t.Fatalf("zero-value cache update = %#v", got)
+	}
+}
+
 func TestUpdateApolloConfigNull(t *testing.T) {
 	time.Sleep(1 * time.Second)
 	c := CreateNamespaceConfig(defaultNamespace)

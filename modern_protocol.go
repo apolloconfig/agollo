@@ -37,6 +37,7 @@ import (
 const maxApolloResponseBytes = 8 << 20
 
 var errNotModified = errors.New("agollo: configuration not modified")
+var errIncrementalBaseline = errors.New("agollo: received incremental config without a full snapshot baseline")
 
 type httpStatusError struct {
 	StatusCode int
@@ -48,11 +49,12 @@ func (e *httpStatusError) Error() string {
 }
 
 type serviceSet struct {
-	mu      sync.Mutex
-	urls    []string
-	next    uint64
-	updated time.Time
-	expires time.Time
+	mu          sync.Mutex
+	discoveryMu sync.Mutex
+	urls        []string
+	next        uint64
+	updated     time.Time
+	expires     time.Time
 }
 
 func (set *serviceSet) choose() string {
@@ -192,7 +194,24 @@ func (c *ApolloClient) fetchRemoteSnapshot(ctx context.Context, state *modernCon
 			lastErr = err
 			continue
 		}
-		return snapshotFromRemote(state.key, previous, notice.ID, result)
+		snapshot, snapshotErr := snapshotFromRemote(state.key, previous, notice.ID, result)
+		if !errors.Is(snapshotErr, errIncrementalBaseline) {
+			return snapshot, snapshotErr
+		}
+
+		// An incremental response is unusable without a local full snapshot.
+		// Immediately retry without releaseKey or notification messages so the
+		// Config Service can return a complete baseline.
+		fullEndpoint, endpointErr := c.configURL(serviceURL, state.key, nil, nil)
+		if endpointErr != nil {
+			return ConfigSnapshot{}, endpointErr
+		}
+		fullResult, fullErr := c.getJSON(ctx, fullEndpoint, state.key.AppID, 10*time.Second, nil)
+		if fullErr != nil {
+			lastErr = fullErr
+			continue
+		}
+		return snapshotFromRemote(state.key, nil, notice.ID, fullResult)
 	}
 	if lastErr == nil {
 		lastErr = errors.New("agollo: no available Config Service")
@@ -229,6 +248,8 @@ func (c *ApolloClient) configServices(ctx context.Context, appID string) ([]stri
 		c.serviceState[appID] = set
 	}
 	c.mu.Unlock()
+	set.discoveryMu.Lock()
+	defer set.discoveryMu.Unlock()
 	if !set.stale() {
 		set.mu.Lock()
 		urls := append([]string(nil), set.urls...)
@@ -287,6 +308,12 @@ func (c *ApolloClient) nextConfigService(appID string) string {
 }
 
 func (c *ApolloClient) configURL(serviceURL string, key ConfigKey, previous *ConfigSnapshot, messages map[string]int64) (string, error) {
+	if err := validateConfigIdentifier("AppID", key.AppID); err != nil {
+		return "", err
+	}
+	if err := validateConfigIdentifier("namespace", key.Namespace); err != nil {
+		return "", err
+	}
 	base, err := url.Parse(serviceURL)
 	if err != nil {
 		return "", fmt.Errorf("agollo: invalid Config Service URL %q: %w", serviceURL, err)
@@ -314,6 +341,13 @@ func (c *ApolloClient) configURL(serviceURL string, key ConfigKey, previous *Con
 	}
 	base.RawQuery = query.Encode()
 	return base.String(), nil
+}
+
+func validateConfigIdentifier(field, value string) error {
+	if value == "" || value == "." || value == ".." || strings.ContainsAny(value, `/\\`) {
+		return fmt.Errorf("agollo: invalid %s %q", field, value)
+	}
+	return nil
 }
 
 func (c *ApolloClient) getJSON(ctx context.Context, endpoint, appID string, timeout time.Duration, headers http.Header) ([]byte, error) {
@@ -408,7 +442,7 @@ func snapshotFromRemote(key ConfigKey, previous *ConfigSnapshot, notificationID 
 	syncType := strings.ToUpper(strings.TrimSpace(response.ConfigSyncType))
 	if syncType == "INCREMENTAL_SYNC" {
 		if previous == nil || previous.Source == ConfigSourceNone || previous.ReleaseKey == "" {
-			return ConfigSnapshot{}, errors.New("agollo: received incremental config without a full snapshot baseline")
+			return ConfigSnapshot{}, errIncrementalBaseline
 		}
 		merged, err := mergeIncremental(previous.Values, response.ConfigurationChanges)
 		if err != nil {

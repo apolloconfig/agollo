@@ -11,7 +11,8 @@ import "github.com/apolloconfig/agollo/v6"
 ```
 
 ```sh
-go get github.com/apolloconfig/agollo/v6@latest
+# Run after the v6.0.0 release tag is published.
+go get github.com/apolloconfig/agollo/v6@v6.0.0
 ```
 
 ## 为什么重新设计 API
@@ -181,7 +182,7 @@ cancel := cfg.Subscribe(func(event agollo.ConfigChangeEvent) {
 },
     agollo.WithInterestedKeys("server.port"),
     agollo.WithInterestedKeyPrefixes("db."),
-	    agollo.WithInterestedKeyRegexps(regexp.MustCompile(`^feature\\.`)),
+    agollo.WithInterestedKeyRegexps(regexp.MustCompile(`^feature\.`)),
 )
 defer cancel()
 ```

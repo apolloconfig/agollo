@@ -332,12 +332,12 @@ func intSlice(value interface{}) ([]int, bool) {
 	if values, ok := value.([]int); ok {
 		return append([]int(nil), values...), true
 	}
-	strings, ok := stringSlice(value)
+	items, ok := stringSlice(value)
 	if !ok {
 		return nil, false
 	}
-	result := make([]int, len(strings))
-	for index, value := range strings {
+	result := make([]int, len(items))
+	for index, value := range items {
 		parsed, err := strconv.Atoi(value)
 		if err != nil {
 			return nil, false

@@ -17,7 +17,6 @@ package env
 import (
 	"encoding/json"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
@@ -153,13 +152,4 @@ func TestLoadEnvConfig(t *testing.T) {
 	Assert(t, envConfig.IP, Equal(config.IP))
 
 	os.Remove(envConfigFile)
-}
-
-func getNotifyLen(s *sync.Map) int {
-	l := 0
-	s.Range(func(k, v interface{}) bool {
-		l++
-		return true
-	})
-	return l
 }

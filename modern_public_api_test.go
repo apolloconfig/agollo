@@ -32,7 +32,9 @@ func TestPublicApolloClientAPI(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		parts := strings.Split(request.URL.Path, "/")
 		if len(parts) != 5 || parts[1] != "configs" {
-			t.Fatalf("unexpected request path: %s", request.URL.Path)
+			t.Errorf("unexpected request path: %s", request.URL.Path)
+			http.Error(writer, "unexpected request path", http.StatusNotFound)
+			return
 		}
 		configurations := map[string]interface{}{"owner": parts[2]}
 		if strings.HasSuffix(parts[4], ".yaml") {
@@ -42,7 +44,7 @@ func TestPublicApolloClientAPI(t *testing.T) {
 		if err := json.NewEncoder(writer).Encode(map[string]interface{}{
 			"releaseKey": "r1", "configurations": configurations,
 		}); err != nil {
-			t.Fatalf("encode response: %v", err)
+			t.Errorf("encode response: %v", err)
 		}
 	}))
 	defer server.Close()

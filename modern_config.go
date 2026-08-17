@@ -19,7 +19,6 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -549,9 +548,4 @@ func waitWithContext(ctx context.Context, duration time.Duration) error {
 	case <-timer.C:
 		return nil
 	}
-}
-
-func splitCommaSeparated(value string) []string {
-	parts := strings.Split(value, ",")
-	return normalizeURLs(parts)
 }

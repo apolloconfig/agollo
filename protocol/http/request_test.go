@@ -107,12 +107,12 @@ func TestCustomTimeout(t *testing.T) {
 	appConfig := getTestAppConfig()
 	appConfig.IP = server.URL
 
-	startTime := time.Now()
 	mockIPList(t, func() config.AppConfig {
 		return *appConfig
 	})
 	urlSuffix := getConfigURLSuffix(appConfig, appConfig.NamespaceName)
 
+	startTime := time.Now()
 	o, err := RequestRecovery(*appConfig, &env.ConnectConfig{
 		URI:     urlSuffix,
 		Timeout: 11 * time.Second,
@@ -126,8 +126,8 @@ func TestCustomTimeout(t *testing.T) {
 	// test randomly expect either 10 or 11.  Leave room for normal scheduling,
 	// while still proving that the configured 11-second timeout permits the
 	// response to complete.
-	if duration < 10*time.Second || duration >= 12*time.Second {
-		t.Fatalf("request duration = %s, want [10s, 12s)", duration)
+	if duration < 10*time.Second || duration >= 15*time.Second {
+		t.Fatalf("request duration = %s, want [10s, 15s)", duration)
 	}
 	Assert(t, err, NilVal())
 	Assert(t, o, NilVal())

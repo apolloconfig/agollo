@@ -40,6 +40,8 @@ type appPoller struct {
 	wake   chan struct{}
 }
 
+const minimumLongPollInterval = time.Second
+
 func (p *appPoller) run() {
 	if delay := p.client.options.pollInitialDelay; delay > 0 {
 		if waitWithContext(p.client.ctx, delay) != nil {
@@ -60,6 +62,9 @@ func (p *appPoller) run() {
 			continue
 		}
 		attempt = 0
+		if waitWithContext(p.client.ctx, minimumLongPollInterval) != nil {
+			return
+		}
 	}
 }
 
@@ -106,6 +111,7 @@ func (p *appPoller) poll() error {
 	if err := json.Unmarshal(body, &notifications); err != nil {
 		return fmt.Errorf("agollo: decode notifications response: %w", err)
 	}
+	var reloadErrors []error
 	for _, notice := range notifications {
 		if notice.NamespaceName == "" {
 			continue
@@ -115,11 +121,11 @@ func (p *appPoller) poll() error {
 				continue
 			}
 			if err := state.reload(p.client.ctx, notice); err != nil && !errors.Is(err, errNotModified) {
-				return err
+				reloadErrors = append(reloadErrors, err)
 			}
 		}
 	}
-	return nil
+	return errors.Join(reloadErrors...)
 }
 
 func (p *appPoller) notificationsURL(serviceURL string, states []*modernConfig) (string, error) {
@@ -169,8 +175,5 @@ func (c *ApolloClient) statesForAppID(appID string) []*modernConfig {
 }
 
 func notificationMatchesNamespace(notified, requested string) bool {
-	if notified == requested {
-		return true
-	}
-	return strings.TrimSuffix(requested, ".properties") == notified
+	return strings.TrimSuffix(notified, ".properties") == strings.TrimSuffix(requested, ".properties")
 }

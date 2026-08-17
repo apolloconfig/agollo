@@ -28,12 +28,14 @@ A Golang client for the configuration center framework [Apollo](https://github.c
 
 # Usage
 
-## Quick Start
+Quick Start
+-----------
 
 ### Import agollo
 
-```
-go get github.com/apolloconfig/agollo/v6@latest
+```sh
+# Run after the v6.0.0 release tag is published.
+go get github.com/apolloconfig/agollo/v6@v6.0.0
 ```
 
 ### Initialize agollo

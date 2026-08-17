@@ -95,6 +95,7 @@ func (c *ApolloClient) persistLocalSnapshot(snapshot ConfigSnapshot) error {
 }
 
 func (c *ApolloClient) loadLocalSnapshot(ctx context.Context, key ConfigKey) (ConfigSnapshot, error) {
+	var lastDecodeErr error
 	for _, file := range []string{c.cacheFile(key), c.legacyCacheFile(key)} {
 		if err := ctx.Err(); err != nil {
 			return ConfigSnapshot{}, err
@@ -111,7 +112,12 @@ func (c *ApolloClient) loadLocalSnapshot(ctx context.Context, key ConfigKey) (Co
 		}
 		if snapshot, err := decodeDiskSnapshot(key, body); err == nil {
 			return snapshot, nil
+		} else {
+			lastDecodeErr = err
 		}
+	}
+	if lastDecodeErr != nil {
+		return ConfigSnapshot{}, fmt.Errorf("agollo: no readable local cache for %s: %w", key, lastDecodeErr)
 	}
 	return ConfigSnapshot{}, fmt.Errorf("agollo: no readable local cache for %s", key)
 }
@@ -120,6 +126,9 @@ func decodeDiskSnapshot(key ConfigKey, body []byte) (ConfigSnapshot, error) {
 	var disk diskSnapshot
 	if err := json.Unmarshal(body, &disk); err != nil {
 		return ConfigSnapshot{}, err
+	}
+	if disk.Version > modernCacheVersion {
+		return ConfigSnapshot{}, fmt.Errorf("local cache version %d is newer than supported version %d", disk.Version, modernCacheVersion)
 	}
 	// agollo legacy cache has the same JSON field names but no version/format.
 	if disk.AppID != "" && disk.AppID != key.AppID {
