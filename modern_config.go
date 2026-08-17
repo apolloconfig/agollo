@@ -187,9 +187,13 @@ func (c *modernConfig) Subscribe(listener ConfigChangeHandler, options ...Subscr
 		c.listenerMu.Unlock()
 		return func() {}
 	}
+	if !c.client.beginSubscription() {
+		c.listenerMu.Unlock()
+		return func() {}
+	}
 	id := c.nextListener
 	c.nextListener++
-	subscription := newConfigSubscription(listener, settings, c.client.options.listenerQueueSize, &c.client.monitor)
+	subscription := newConfigSubscription(listener, settings, c.client.options.listenerQueueSize, &c.client.monitor, &c.client.wg)
 	c.listeners[id] = subscription
 	c.listenerMu.Unlock()
 
@@ -367,9 +371,13 @@ func (c *modernConfigFile) Subscribe(listener ConfigFileChangeHandler) func() {
 		config.listenerMu.Unlock()
 		return func() {}
 	}
+	if !config.client.beginSubscription() {
+		config.listenerMu.Unlock()
+		return func() {}
+	}
 	id := config.nextListener
 	config.nextListener++
-	subscription := newFileSubscription(listener, config.client.options.listenerQueueSize, &config.client.monitor)
+	subscription := newFileSubscription(listener, config.client.options.listenerQueueSize, &config.client.monitor, &config.client.wg)
 	config.fileListeners[id] = subscription
 	config.listenerMu.Unlock()
 	return func() {
@@ -425,10 +433,11 @@ type configSubscription struct {
 	done     chan struct{}
 	once     sync.Once
 	monitor  *modernMonitor
+	wg       *sync.WaitGroup
 }
 
-func newConfigSubscription(listener ConfigChangeHandler, options subscribeOptions, size int, monitor *modernMonitor) *configSubscription {
-	subscription := &configSubscription{listener: listener, options: options, queue: make(chan ConfigChangeEvent, size), done: make(chan struct{}), monitor: monitor}
+func newConfigSubscription(listener ConfigChangeHandler, options subscribeOptions, size int, monitor *modernMonitor, wg *sync.WaitGroup) *configSubscription {
+	subscription := &configSubscription{listener: listener, options: options, queue: make(chan ConfigChangeEvent, size), done: make(chan struct{}), monitor: monitor, wg: wg}
 	go subscription.run()
 	return subscription
 }
@@ -458,6 +467,7 @@ func (s *configSubscription) offer(event ConfigChangeEvent) {
 }
 
 func (s *configSubscription) run() {
+	defer s.wg.Done()
 	for {
 		select {
 		case <-s.done:
@@ -479,10 +489,11 @@ type fileSubscription struct {
 	done     chan struct{}
 	once     sync.Once
 	monitor  *modernMonitor
+	wg       *sync.WaitGroup
 }
 
-func newFileSubscription(listener ConfigFileChangeHandler, size int, monitor *modernMonitor) *fileSubscription {
-	subscription := &fileSubscription{listener: listener, queue: make(chan ConfigFileChangeEvent, size), done: make(chan struct{}), monitor: monitor}
+func newFileSubscription(listener ConfigFileChangeHandler, size int, monitor *modernMonitor, wg *sync.WaitGroup) *fileSubscription {
+	subscription := &fileSubscription{listener: listener, queue: make(chan ConfigFileChangeEvent, size), done: make(chan struct{}), monitor: monitor, wg: wg}
 	go subscription.run()
 	return subscription
 }
@@ -510,6 +521,7 @@ func (s *fileSubscription) offer(event ConfigFileChangeEvent) {
 }
 
 func (s *fileSubscription) run() {
+	defer s.wg.Done()
 	for {
 		select {
 		case <-s.done:

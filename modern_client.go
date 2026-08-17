@@ -286,6 +286,9 @@ func (c *ApolloClient) Load(ctx context.Context, namespaces ...string) error {
 }
 
 func (c *ApolloClient) getState(ctx context.Context, appID, namespace string, format ConfigFileFormat) (*modernConfig, error) {
+	if ctx == nil {
+		return nil, errors.New("agollo: context is nil")
+	}
 	appID = strings.TrimSpace(appID)
 	namespace = strings.TrimSpace(namespace)
 	if appID == "" {
@@ -372,6 +375,31 @@ func (c *ApolloClient) goBackground(run func(context.Context)) {
 		defer c.wg.Done()
 		run(c.ctx)
 	}()
+}
+
+func (c *ApolloClient) beginSubscription() bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	if c.closed {
+		return false
+	}
+	c.wg.Add(1)
+	return true
+}
+
+// loadContext is canceled when either the operation context or the client
+// lifecycle context ends. The watcher exits as soon as the returned cancel
+// function is called, so individual loads do not leave goroutines behind.
+func (c *ApolloClient) loadContext(ctx context.Context) (context.Context, context.CancelFunc) {
+	loadContext, cancel := context.WithCancel(ctx)
+	go func() {
+		select {
+		case <-c.ctx.Done():
+			cancel()
+		case <-loadContext.Done():
+		}
+	}()
+	return loadContext, cancel
 }
 
 func normalizeURLs(urls []string) []string {

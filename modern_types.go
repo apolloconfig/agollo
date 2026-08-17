@@ -329,6 +329,9 @@ func stringSlice(value interface{}) ([]string, bool) {
 }
 
 func intSlice(value interface{}) ([]int, bool) {
+	if values, ok := value.([]int); ok {
+		return append([]int(nil), values...), true
+	}
 	strings, ok := stringSlice(value)
 	if !ok {
 		return nil, false

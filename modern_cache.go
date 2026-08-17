@@ -15,6 +15,7 @@
 package agollo
 
 import (
+	"context"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -93,14 +94,20 @@ func (c *ApolloClient) persistLocalSnapshot(snapshot ConfigSnapshot) error {
 	return nil
 }
 
-func (c *ApolloClient) loadLocalSnapshot(key ConfigKey) (ConfigSnapshot, error) {
+func (c *ApolloClient) loadLocalSnapshot(ctx context.Context, key ConfigKey) (ConfigSnapshot, error) {
 	for _, file := range []string{c.cacheFile(key), c.legacyCacheFile(key)} {
+		if err := ctx.Err(); err != nil {
+			return ConfigSnapshot{}, err
+		}
 		body, err := os.ReadFile(file)
 		if err != nil {
 			if errors.Is(err, os.ErrNotExist) {
 				continue
 			}
 			return ConfigSnapshot{}, fmt.Errorf("agollo: read local cache: %w", err)
+		}
+		if err := ctx.Err(); err != nil {
+			return ConfigSnapshot{}, err
 		}
 		if snapshot, err := decodeDiskSnapshot(key, body); err == nil {
 			return snapshot, nil

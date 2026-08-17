@@ -80,8 +80,14 @@ func (p *appPoller) poll() error {
 	if err != nil {
 		return err
 	}
-	serviceURL := p.client.nextConfigService(p.appID)
-	if serviceURL == "" || len(services) == 0 {
+	if len(services) == 0 {
+		return errors.New("agollo: no Config Service for long poll")
+	}
+	serviceURL, err := p.client.selectConfigService(p.appID, services)
+	if err != nil {
+		return err
+	}
+	if serviceURL == "" {
 		return errors.New("agollo: no Config Service for long poll")
 	}
 	endpoint, err := p.notificationsURL(serviceURL, states)

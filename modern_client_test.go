@@ -17,8 +17,10 @@ package agollo
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"regexp"
 	"strings"
 	"sync"
@@ -465,6 +467,40 @@ func TestApolloClientCloseRejectsNewStateAndSubscriptions(t *testing.T) {
 	}
 }
 
+func TestApolloClientCloseWaitsForConfigSubscription(t *testing.T) {
+	client := newTestClient(t, "http://127.0.0.1", ClientOptions{AppID: "sample"})
+	state := newModernConfig(client, ConfigKey{AppID: "sample", Cluster: "default", Namespace: "application", Format: ConfigFileFormatProperties})
+	client.mu.Lock()
+	client.states[state.key] = state
+	client.mu.Unlock()
+
+	started := make(chan struct{})
+	release := make(chan struct{})
+	state.Subscribe(func(ConfigChangeEvent) {
+		close(started)
+		<-release
+	})
+	state.publish(ConfigSnapshot{Values: map[string]interface{}{"key": "value"}, Source: ConfigSourceRemote})
+	<-started
+
+	closed := make(chan error, 1)
+	go func() { closed <- client.Close() }()
+	select {
+	case err := <-closed:
+		t.Fatalf("Close() returned before listener finished: %v", err)
+	case <-time.After(50 * time.Millisecond):
+	}
+	close(release)
+	select {
+	case err := <-closed:
+		if err != nil {
+			t.Fatalf("Close() error = %v", err)
+		}
+	case <-time.After(time.Second):
+		t.Fatal("Close() did not wait for listener completion")
+	}
+}
+
 func TestDecodeDiskSnapshotRejectsDifferentCluster(t *testing.T) {
 	t.Parallel()
 	body, err := json.Marshal(diskSnapshot{
@@ -590,6 +626,117 @@ func TestApolloClientOfflineLoadsConfigMapWithoutCacheDirectory(t *testing.T) {
 	}
 }
 
+func TestApolloClientOfflineConfigMapDoesNotReadWorkingDirectoryCache(t *testing.T) {
+	workingDirectory, err := os.Getwd()
+	if err != nil {
+		t.Fatalf("Getwd() error = %v", err)
+	}
+	temporaryDirectory := t.TempDir()
+	if err := os.Chdir(temporaryDirectory); err != nil {
+		t.Fatalf("Chdir() error = %v", err)
+	}
+	t.Cleanup(func() { _ = os.Chdir(workingDirectory) })
+	if err := os.WriteFile("sample-application.json", []byte(`{"appId":"sample","cluster":"default","namespaceName":"application","configurations":{"key":"disk"}}`), 0o600); err != nil {
+		t.Fatalf("WriteFile() error = %v", err)
+	}
+
+	store := &memoryConfigMapStore{snapshot: ConfigSnapshot{
+		Key:    ConfigKey{AppID: "sample", Cluster: "default", Namespace: "application", Format: ConfigFileFormatProperties},
+		Values: map[string]interface{}{"key": "configmap"},
+	}}
+	client, err := NewClient(context.Background(), ClientOptions{AppID: "sample", ConfigMapStore: store, Offline: true})
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
+	defer client.Close()
+	config, err := client.Config(context.Background(), "application")
+	if err != nil {
+		t.Fatalf("Config() error = %v", err)
+	}
+	if got := config.String("key", ""); got != "configmap" || config.Source() != ConfigSourceConfigMap {
+		t.Fatalf("offline ConfigMap value = %q from %s", got, config.Source())
+	}
+}
+
+func TestApolloClientLoadHonorsOperationAndLifecycleContexts(t *testing.T) {
+	t.Run("operation context cancels ConfigMap load", func(t *testing.T) {
+		store := &blockingConfigMapStore{started: make(chan struct{}, 1)}
+		client, err := NewClient(context.Background(), ClientOptions{AppID: "sample", ConfigMapStore: store, Offline: true})
+		if err != nil {
+			t.Fatalf("NewClient() error = %v", err)
+		}
+		defer client.Close()
+		ctx, cancel := context.WithCancel(context.Background())
+		result := make(chan error, 1)
+		go func() {
+			_, err := client.Config(ctx, "application")
+			result <- err
+		}()
+		<-store.started
+		cancel()
+		select {
+		case err := <-result:
+			if !errors.Is(err, context.Canceled) {
+				t.Fatalf("Config() error = %v, want context cancellation", err)
+			}
+		case <-time.After(time.Second):
+			t.Fatal("ConfigMap load did not observe operation cancellation")
+		}
+	})
+
+	t.Run("client lifecycle cancels remote load", func(t *testing.T) {
+		started := make(chan struct{}, 1)
+		server := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, request *http.Request) {
+			select {
+			case started <- struct{}{}:
+			default:
+			}
+			<-request.Context().Done()
+		}))
+		defer server.Close()
+		clientContext, cancelClient := context.WithCancel(context.Background())
+		client, err := NewClient(clientContext, ClientOptions{AppID: "sample", ConfigServices: []string{server.URL}, DisableLongPolling: true})
+		if err != nil {
+			t.Fatalf("NewClient() error = %v", err)
+		}
+		defer client.Close()
+		result := make(chan error, 1)
+		go func() {
+			_, err := client.Config(context.Background(), "application")
+			result <- err
+		}()
+		<-started
+		cancelClient()
+		select {
+		case err := <-result:
+			if !errors.Is(err, context.Canceled) {
+				t.Fatalf("Config() error = %v, want context cancellation", err)
+			}
+		case <-time.After(time.Second):
+			t.Fatal("remote load did not observe client cancellation")
+		}
+	})
+}
+
+func TestApolloClientIntSliceReadsNativeIntSlice(t *testing.T) {
+	store := &memoryConfigMapStore{snapshot: ConfigSnapshot{
+		Key:    ConfigKey{AppID: "sample", Cluster: "default", Namespace: "application", Format: ConfigFileFormatProperties},
+		Values: map[string]interface{}{"ports": []int{8080, 9090}},
+	}}
+	client, err := NewClient(context.Background(), ClientOptions{AppID: "sample", ConfigMapStore: store, Offline: true})
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
+	defer client.Close()
+	config, err := client.Config(context.Background(), "application")
+	if err != nil {
+		t.Fatalf("Config() error = %v", err)
+	}
+	if got := config.IntSlice("ports", nil); len(got) != 2 || got[0] != 8080 || got[1] != 9090 {
+		t.Fatalf("IntSlice(ports) = %v", got)
+	}
+}
+
 func TestApolloClientDiscoversConfigServiceFromMetaServer(t *testing.T) {
 	t.Parallel()
 	var server *httptest.Server
@@ -651,8 +798,29 @@ func TestApolloClientLongPollBuildsDataCenterAndRefreshes(t *testing.T) {
 		}
 	}))
 	defer server.Close()
+	wrongServer := httptest.NewServer(http.HandlerFunc(func(_ http.ResponseWriter, request *http.Request) {
+		t.Fatalf("selector was bypassed for %s", request.URL.Path)
+	}))
+	defer wrongServer.Close()
 
-	client := newTestClient(t, server.URL, ClientOptions{AppID: "sample", DataCenter: "sh", ClientIP: "127.0.0.2"})
+	var selectorCalls atomic.Int32
+	client, err := NewClient(context.Background(), ClientOptions{
+		AppID:              "sample",
+		DataCenter:         "sh",
+		ClientIP:           "127.0.0.2",
+		ConfigServices:     []string{wrongServer.URL, server.URL},
+		DisableLongPolling: true,
+		ConfigServiceSelector: func(appID string, services []string) (string, error) {
+			if appID != "sample" || len(services) != 2 {
+				t.Fatalf("selector input = %q, %v", appID, services)
+			}
+			selectorCalls.Add(1)
+			return server.URL, nil
+		},
+	})
+	if err != nil {
+		t.Fatalf("NewClient() error = %v", err)
+	}
 	defer client.Close()
 	config, err := client.Config(context.Background(), "application")
 	if err != nil {
@@ -664,6 +832,9 @@ func TestApolloClientLongPollBuildsDataCenterAndRefreshes(t *testing.T) {
 	}
 	if got := config.String("key", ""); got != "after" {
 		t.Fatalf("long-poll refreshed value = %q", got)
+	}
+	if got := selectorCalls.Load(); got != 3 {
+		t.Fatalf("selector calls = %d, want initial fetch, long-poll, and refresh selection", got)
 	}
 }
 
@@ -760,6 +931,21 @@ type memoryConfigMapStore struct {
 	snapshot ConfigSnapshot
 	saved    chan ConfigSnapshot
 }
+
+type blockingConfigMapStore struct {
+	started chan struct{}
+}
+
+func (s *blockingConfigMapStore) Load(ctx context.Context, _ ConfigKey) (ConfigSnapshot, error) {
+	select {
+	case s.started <- struct{}{}:
+	default:
+	}
+	<-ctx.Done()
+	return ConfigSnapshot{}, ctx.Err()
+}
+
+func (s *blockingConfigMapStore) Save(context.Context, ConfigSnapshot) error { return nil }
 
 func (s *memoryConfigMapStore) Load(ctx context.Context, key ConfigKey) (ConfigSnapshot, error) {
 	s.mu.Lock()

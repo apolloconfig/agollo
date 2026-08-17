@@ -85,16 +85,22 @@ func (c *ApolloClient) loadConfig(ctx context.Context, state *modernConfig) erro
 }
 
 func (c *ApolloClient) loadConfigWithNotification(ctx context.Context, state *modernConfig, notification notification) error {
+	loadContext, cancel := c.loadContext(ctx)
+	defer cancel()
+
 	if c.options.localMode {
-		if snapshot, err := c.loadLocalSnapshot(state.key); err == nil {
-			state.publish(snapshot)
-			return nil
+		if c.options.localCacheDir != "" {
+			snapshot, err := c.loadLocalSnapshot(loadContext, state.key)
+			if err == nil {
+				state.publish(snapshot)
+				return nil
+			}
 		}
-		return c.loadConfigMapSnapshot(state)
+		return c.loadConfigMapSnapshot(loadContext, state)
 	}
 
-	requestContext, cancel := context.WithTimeout(ctx, 10*time.Second)
-	defer cancel()
+	requestContext, requestCancel := context.WithTimeout(loadContext, 10*time.Second)
+	defer requestCancel()
 	snapshot, err := c.fetchRemoteSnapshot(requestContext, state, notification)
 	if err == nil {
 		state.publish(snapshot)
@@ -127,22 +133,22 @@ func (c *ApolloClient) loadConfigWithNotification(ctx context.Context, state *mo
 		return err
 	}
 	if c.options.localCacheDir != "" {
-		if localSnapshot, localErr := c.loadLocalSnapshot(state.key); localErr == nil {
+		if localSnapshot, localErr := c.loadLocalSnapshot(loadContext, state.key); localErr == nil {
 			state.publish(localSnapshot)
 			return nil
 		}
 	}
-	if err := c.loadConfigMapSnapshot(state); err == nil {
+	if err := c.loadConfigMapSnapshot(loadContext, state); err == nil {
 		return nil
 	}
 	return err
 }
 
-func (c *ApolloClient) loadConfigMapSnapshot(state *modernConfig) error {
+func (c *ApolloClient) loadConfigMapSnapshot(ctx context.Context, state *modernConfig) error {
 	if c.options.configMapStore == nil {
 		return errors.New("agollo: ConfigMap fallback is not configured")
 	}
-	snapshot, err := c.options.configMapStore.Load(c.ctx, state.key)
+	snapshot, err := c.options.configMapStore.Load(ctx, state.key)
 	if err != nil {
 		return fmt.Errorf("agollo: load ConfigMap fallback: %w", err)
 	}
