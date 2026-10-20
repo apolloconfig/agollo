@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/env/server"
+	"github.com/apolloconfig/agollo/v5/env/config"
+	"github.com/apolloconfig/agollo/v5/env/server"
 )
 
 func TestNotificationMessagesFetch(t *testing.T) {
@@ -57,7 +57,7 @@ func TestNotificationMessagesFetch(t *testing.T) {
 				t.Fatalf("expected new release, got %+v", got)
 			}
 			wantID := int64(102)
-			if status != http.StatusOK {
+			if status == http.StatusBadRequest {
 				wantID = -1
 			}
 			if id := c.GetNotificationsMap().GetNotify("application"); id != wantID {
@@ -65,7 +65,7 @@ func TestNotificationMessagesFetch(t *testing.T) {
 			}
 			// A later fetch/retry still carries the observed versions, even after failure.
 			server.SetNextTryConnTime(c.GetHost(), -1)
-			_ = client.SyncWithNamespace("application", getConfig)
+			_, _ = client.SyncWithNamespace("application", getConfig)
 			if requests != 2 {
 				t.Fatalf("got %d config requests, want 2", requests)
 			}

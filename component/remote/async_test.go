@@ -1,19 +1,16 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2025 Apollo Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package remote
 
@@ -25,14 +22,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
-	"github.com/apolloconfig/agollo/v4/env"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	jsonFile "github.com/apolloconfig/agollo/v4/env/file/json"
-	"github.com/apolloconfig/agollo/v4/env/server"
-	"github.com/apolloconfig/agollo/v4/extension"
-	http2 "github.com/apolloconfig/agollo/v4/protocol/http"
 	. "github.com/tevid/gohamcrest"
+
+	"github.com/apolloconfig/agollo/v5/cluster/roundrobin"
+	"github.com/apolloconfig/agollo/v5/env"
+	"github.com/apolloconfig/agollo/v5/env/config"
+	jsonFile "github.com/apolloconfig/agollo/v5/env/file/json"
+	"github.com/apolloconfig/agollo/v5/env/server"
+	"github.com/apolloconfig/agollo/v5/extension"
+	http2 "github.com/apolloconfig/agollo/v5/protocol/http"
 )
 
 var asyncApollo *asyncApolloConfig
@@ -89,6 +87,7 @@ const configAbc1ResponseStr = `{
 }`
 
 const responseStr = `[{"namespaceName":"application","notificationId":%d}]`
+
 const tworesponseStr = `[{"namespaceName":"application","notificationId":%d},{"namespaceName":"abc1","notificationId":%d}]`
 
 func onlyNormalConfigResponse(rw http.ResponseWriter, req *http.Request) {
@@ -146,7 +145,7 @@ func initMockNotifyAndConfigServerWithTwoErrResponse() *httptest.Server {
 	return runMockConfigServer(handlerMap, onlynormaltworesponse)
 }
 
-//run mock config server
+// run mock config server
 func runMockConfigServer(handlerMap map[string]func(http.ResponseWriter, *http.Request),
 	notifyHandler func(http.ResponseWriter, *http.Request)) *httptest.Server {
 	appConfig := env.InitFileConfig()
@@ -177,11 +176,11 @@ func initNotifications() *config.AppConfig {
 	return appConfig
 }
 
-//Error response
-//will hold 5s and keep response 404
-func runErrorResponse() *httptest.Server {
+// Error response with status and body
+func runErrorResponse(status int, body []byte) *httptest.Server {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(status)
+		_, _ = w.Write(body)
 	}))
 
 	return ts
@@ -281,10 +280,26 @@ func TestGetRemoteConfig(t *testing.T) {
 }
 
 func TestErrorGetRemoteConfig(t *testing.T) {
+	tests := []struct {
+		name         string
+		status       int
+		errContained string
+	}{
+		{name: "500", status: http.StatusInternalServerError, errContained: "over Max Retry Still Error"},
+		{name: "404", status: http.StatusNotFound, errContained: "Connect Apollo Server Fail"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testErrorGetRemoteConfig(t, tt.status, tt.errContained)
+		})
+	}
+}
+
+func testErrorGetRemoteConfig(t *testing.T, status int, errContained string) {
 	//clear
 	initNotifications()
 	appConfig := initNotifications()
-	server1 := runErrorResponse()
+	server1 := runErrorResponse(status, nil)
 	appConfig.IP = server1.URL
 	server.SetNextTryConnTime(appConfig.GetHost(), 0)
 
@@ -303,7 +318,7 @@ func TestErrorGetRemoteConfig(t *testing.T) {
 	t.Log("remoteConfigs:", remoteConfigs)
 	t.Log("remoteConfigs size:", len(remoteConfigs))
 
-	Assert(t, "over Max Retry Still Error", Equal(err.Error()))
+	Assert(t, err.Error(), StartWith(errContained))
 }
 
 func TestCreateApolloConfigWithJson(t *testing.T) {
@@ -346,4 +361,90 @@ func TestGetConfigURLSuffix(t *testing.T) {
 	appConfig.Init()
 	uri := asyncApollo.GetSyncURI(*appConfig, "kk")
 	Assert(t, "", NotEqual(uri))
+}
+
+// Test for the infinite loop bug fix when consecutive releases cause 304 responses
+func TestApolloConfig_SyncWith304NotModified(t *testing.T) {
+	// This test simulates the exact infinite loop scenario:
+	// 1. Server has notification ID 3, client has 2
+	// 2. Client gets notified of ID 3 
+	// 3. Client fetches config, gets 304 (already up-to-date)
+	// 4. Client should update notification ID to 3 to acknowledge the notification
+	// 5. If it doesn't update, next poll will get same notification again -> infinite loop
+	
+	serverNotificationId := int64(3)
+	requestCount := 0
+	
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		path := r.RequestURI
+		requestCount++
+		
+		// Handle notification requests
+		if strings.Contains(path, "/notifications/v2") {
+			// Parse the current client notification ID from the URL
+			// If client has notification ID < serverNotificationId, return the server's ID
+			if strings.Contains(path, "notificationId%22%3A-1") || strings.Contains(path, "notificationId%22%3A2") {
+				// Client has -1 or 2, server has 3
+				response := fmt.Sprintf(`[{"namespaceName":"application","notificationId":%d}]`, serverNotificationId)
+				fmt.Fprintf(w, response)
+			} else if strings.Contains(path, "notificationId%22%3A3") {
+				// Client has 3, server has 3 -> no update needed
+				fmt.Fprintf(w, "[]")
+			} else {
+				// Fallback for other cases
+				response := fmt.Sprintf(`[{"namespaceName":"application","notificationId":%d}]`, serverNotificationId)
+				fmt.Fprintf(w, response)
+			}
+			return
+		}
+		
+		// Handle config requests - always return 304 to simulate up-to-date config
+		if strings.Contains(path, "/configs/") {
+			w.WriteHeader(http.StatusNotModified)
+			return
+		}
+		
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+	
+	// Setup app config with notification ID 2 (behind server's 3)
+	appConfig := initNotifications()
+	appConfig.IP = server.URL
+	appConfig.GetNotificationsMap().UpdateNotify("application", 2)
+	
+	// Check initial notification state
+	initialNotifyId := appConfig.GetNotificationsMap().GetNotify("application")
+	t.Logf("Initial notificationId=%d", initialNotifyId)
+	
+	// First sync: should get notification ID 3 and update successfully
+	apolloConfigs := asyncApollo.Sync(func() config.AppConfig {
+		return *appConfig
+	})
+	
+	actualNotifyId := appConfig.GetNotificationsMap().GetNotify("application")
+	t.Logf("After first sync: notificationId=%d, configs=%d", actualNotifyId, len(apolloConfigs))
+	
+	// Should get no configs due to 304, but notificationId should update to 3
+	Assert(t, len(apolloConfigs), Equal(0))
+	Assert(t, actualNotifyId, Equal(int64(3)))
+	
+	// Second sync: should result in no notifications since client is now up-to-date
+	apolloConfigs2 := asyncApollo.Sync(func() config.AppConfig {
+		return *appConfig
+	})
+	
+	finalNotifyId := appConfig.GetNotificationsMap().GetNotify("application")
+	t.Logf("After second sync: notificationId=%d, configs=%d", finalNotifyId, len(apolloConfigs2))
+	
+	// Should still have notification ID 3 and no configs
+	Assert(t, len(apolloConfigs2), Equal(0))
+	Assert(t, finalNotifyId, Equal(int64(3)))
+	
+	// Verify the infinite loop is fixed by checking that we don't get stuck
+	// If the bug existed, the first sync would not update the notification ID,
+	// and the second sync would get the same notification again
+	if requestCount > 10 {
+		t.Errorf("Too many requests (%d), possible infinite loop", requestCount)
+	}
 }

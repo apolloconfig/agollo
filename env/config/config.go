@@ -1,19 +1,16 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2025 Apollo Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package config
 
@@ -24,22 +21,22 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/apolloconfig/agollo/v5/utils"
 )
 
 var (
 	defaultNotificationID = int64(-1)
-	comma                 = ","
+	Comma                 = ","
 )
 
-//File 读写配置文件
+// File 读写配置文件
 type File interface {
 	Load(fileName string, unmarshal func([]byte) (interface{}, error)) (interface{}, error)
 
 	Write(content interface{}, configPath string) error
 }
 
-//AppConfig 配置文件
+// AppConfig 配置文件
 type AppConfig struct {
 	AppID             string `json:"appId"`
 	Cluster           string `json:"cluster"`
@@ -56,7 +53,7 @@ type AppConfig struct {
 	currentConnApolloConfig *CurrentApolloConfig
 }
 
-//ServerInfo 服务器信息
+// ServerInfo 服务器信息
 type ServerInfo struct {
 	AppName     string `json:"appName"`
 	InstanceID  string `json:"instanceId"`
@@ -64,19 +61,19 @@ type ServerInfo struct {
 	IsDown      bool   `json:"-"`
 }
 
-//GetIsBackupConfig whether backup config after fetch config from apollo
-//false : no
-//true : yes (default)
+// GetIsBackupConfig whether backup config after fetch config from apollo
+// false : no
+// true : yes (default)
 func (a *AppConfig) GetIsBackupConfig() bool {
 	return a.IsBackupConfig
 }
 
-//GetBackupConfigPath GetBackupConfigPath
+// GetBackupConfigPath GetBackupConfigPath
 func (a *AppConfig) GetBackupConfigPath() string {
 	return a.BackupConfigPath
 }
 
-//GetHost GetHost
+// GetHost GetHost
 func (a *AppConfig) GetHost() string {
 	u, err := url.Parse(a.IP)
 	if err != nil {
@@ -114,10 +111,10 @@ func (a *AppConfig) initAllNotifications(callback func(namespace string)) {
 	}
 }
 
-//SplitNamespaces 根据namespace字符串分割后，并执行callback函数
+// SplitNamespaces 根据namespace字符串分割后，并执行callback函数
 func SplitNamespaces(namespacesStr string, callback func(namespace string)) sync.Map {
 	namespaces := sync.Map{}
-	split := strings.Split(namespacesStr, comma)
+	split := strings.Split(namespacesStr, Comma)
 	for _, namespace := range split {
 		if callback != nil {
 			callback(namespace)
@@ -132,7 +129,7 @@ func (a *AppConfig) GetNotificationsMap() *notificationsMap {
 	return a.notificationsMap
 }
 
-//GetServicesConfigURL 获取服务器列表url
+// GetServicesConfigURL 获取服务器列表url
 func (a *AppConfig) GetServicesConfigURL() string {
 	return fmt.Sprintf("%sservices/config?appId=%s&ip=%s",
 		a.GetHost(),

@@ -1,19 +1,16 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2025 Apollo Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package http
 
@@ -21,21 +18,20 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net"
 	"net/http"
-	url2 "net/url"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/apolloconfig/agollo/v4/env/server"
-
-	"github.com/apolloconfig/agollo/v4/component/log"
-	"github.com/apolloconfig/agollo/v4/env"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/extension"
-	"github.com/apolloconfig/agollo/v4/utils"
+	"github.com/apolloconfig/agollo/v5/component/log"
+	"github.com/apolloconfig/agollo/v5/env"
+	"github.com/apolloconfig/agollo/v5/env/config"
+	"github.com/apolloconfig/agollo/v5/env/server"
+	"github.com/apolloconfig/agollo/v5/extension"
+	"github.com/apolloconfig/agollo/v5/utils"
 )
 
 var (
@@ -79,7 +75,7 @@ func getDefaultTransport(insecureSkipVerify bool) *http.Transport {
 	return defaultTransport
 }
 
-//CallBack 请求回调函数
+// CallBack 请求回调函数
 type CallBack struct {
 	SuccessCallBack   func([]byte, CallBack) (interface{}, error)
 	NotModifyCallBack func() error
@@ -87,7 +83,7 @@ type CallBack struct {
 	Namespace         string
 }
 
-//Request 建立网络请求
+// Request 建立网络请求
 func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *CallBack) (interface{}, error) {
 	client := &http.Client{}
 	//如有设置自定义超时时间即使用
@@ -97,13 +93,13 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		client.Timeout = connectTimeout
 	}
 	var err error
-	url, err := url2.Parse(requestURL)
+	u, err := url.Parse(requestURL)
 	if err != nil {
 		log.Errorf("request Apollo Server url: %q is invalid: %v", requestURL, err)
 		return nil, err
 	}
 	var insecureSkipVerify bool
-	if strings.HasPrefix(url.Scheme, "https") {
+	if strings.HasPrefix(u.Scheme, "https") {
 		insecureSkipVerify = true
 	}
 	client.Transport = getDefaultTransport(insecureSkipVerify)
@@ -157,7 +153,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 		switch res.StatusCode {
 		case http.StatusOK:
 			var responseBody []byte
-			responseBody, err = ioutil.ReadAll(res.Body)
+			responseBody, err = io.ReadAll(res.Body)
 			if err != nil {
 				log.Errorf("Connect Apollo Server Fail, url: %s , error: %v", requestURL, err)
 				// if error then sleep
@@ -175,6 +171,9 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 				return nil, callBack.NotModifyCallBack()
 			}
 			return nil, nil
+		case http.StatusBadRequest, http.StatusUnauthorized, http.StatusNotFound, http.StatusMethodNotAllowed:
+			log.Errorf("Connect Apollo Server Fail, url:%s, StatusCode:%d", requestURL, res.StatusCode)
+			return nil, errors.New(fmt.Sprintf("Connect Apollo Server Fail, StatusCode:%d", res.StatusCode))
 		default:
 			log.Errorf("Connect Apollo Server Fail, url:%s, StatusCode:%d", requestURL, res.StatusCode)
 			// if error then sleep
@@ -190,7 +189,7 @@ func Request(requestURL string, connectionConfig *env.ConnectConfig, callBack *C
 	return nil, err
 }
 
-//RequestRecovery 可以恢复的请求
+// RequestRecovery 可以恢复的请求
 func RequestRecovery(appConfig config.AppConfig,
 	connectConfig *env.ConnectConfig,
 	callBack *CallBack) (interface{}, error) {

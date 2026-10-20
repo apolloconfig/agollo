@@ -1,34 +1,30 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2025 Apollo Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package serverlist
 
 import (
 	"encoding/json"
-	"strconv"
+	"sync"
 	"time"
 
-	"github.com/apolloconfig/agollo/v4/env/server"
-
-	"github.com/apolloconfig/agollo/v4/component"
-	"github.com/apolloconfig/agollo/v4/component/log"
-	"github.com/apolloconfig/agollo/v4/env"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/protocol/http"
+	"github.com/apolloconfig/agollo/v5/component"
+	"github.com/apolloconfig/agollo/v5/component/log"
+	"github.com/apolloconfig/agollo/v5/env"
+	"github.com/apolloconfig/agollo/v5/env/config"
+	"github.com/apolloconfig/agollo/v5/env/server"
+	"github.com/apolloconfig/agollo/v5/protocol/http"
 )
 
 const (
@@ -40,25 +36,41 @@ func init() {
 
 }
 
-//InitSyncServerIPList 初始化同步服务器信息列表
+// InitSyncServerIPList 初始化同步服务器信息列表
+// Deprecated 该方式启动的SyncServerIPListComponent无法关闭，强烈建议使用NewSyncServerIPListComponent
 func InitSyncServerIPList(appConfig func() config.AppConfig) {
-	go component.StartRefreshConfig(&SyncServerIPListComponent{appConfig})
+	go component.StartRefreshConfig(&SyncServerIPListComponent{appConfig: appConfig})
 }
 
-//SyncServerIPListComponent set timer for update ip list
-//interval : 20m
+func NewSyncServerIPListComponent(appConfig func() config.AppConfig) *SyncServerIPListComponent {
+	return &SyncServerIPListComponent{
+		appConfig: appConfig,
+		stopCh:    make(chan struct{}),
+	}
+}
+
+// SyncServerIPListComponent set timer for update ip list
+// interval : 20m
 type SyncServerIPListComponent struct {
 	appConfig func() config.AppConfig
+	stopCh    chan struct{}
+	stopOnce  sync.Once
+	stopMu    sync.Mutex
 }
 
-//Start 启动同步服务器列表
+// Start 启动同步服务器列表
 func (s *SyncServerIPListComponent) Start() {
+	stopCh := s.ensureStopCh()
 	SyncServerIPList(s.appConfig)
-	log.Debug("syncServerIpList started")
+	log.Debug("syncServerIpListComponent started")
 
 	t2 := time.NewTimer(refreshIPListInterval)
+	defer t2.Stop()
 	for {
 		select {
+		case <-stopCh:
+			log.Debug("syncServerIpListComponent stopped")
+			return
 		case <-t2.C:
 			SyncServerIPList(s.appConfig)
 			t2.Reset(refreshIPListInterval)
@@ -66,10 +78,29 @@ func (s *SyncServerIPListComponent) Start() {
 	}
 }
 
-//SyncServerIPList sync ip list from server
-//then
-//1.update agcache
-//2.store in disk
+func (s *SyncServerIPListComponent) Stop() {
+	s.stopOnce.Do(func() {
+		s.stopMu.Lock()
+		defer s.stopMu.Unlock()
+		if s.stopCh != nil {
+			close(s.stopCh)
+		}
+	})
+}
+
+func (s *SyncServerIPListComponent) ensureStopCh() chan struct{} {
+	s.stopMu.Lock()
+	defer s.stopMu.Unlock()
+	if s.stopCh == nil {
+		s.stopCh = make(chan struct{})
+	}
+	return s.stopCh
+}
+
+// SyncServerIPList sync ip list from server
+// then
+// 1.update agcache
+// 2.store in disk
 func SyncServerIPList(appConfigFunc func() config.AppConfig) (map[string]*config.ServerInfo, error) {
 	if appConfigFunc == nil {
 		panic("can not find apollo config!please confirm!")
@@ -80,12 +111,8 @@ func SyncServerIPList(appConfigFunc func() config.AppConfig) (map[string]*config
 		AppID:  appConfig.AppID,
 		Secret: appConfig.Secret,
 	}
-	if appConfigFunc().SyncServerTimeout > 0 {
-		duration, err := time.ParseDuration(strconv.Itoa(appConfigFunc().SyncServerTimeout) + "s")
-		if err != nil {
-			return nil, err
-		}
-		c.Timeout = duration
+	if appConfig.SyncServerTimeout > 0 {
+		c.Timeout = time.Duration(appConfig.SyncServerTimeout) * time.Second
 	}
 	serverMap, err := http.Request(appConfig.GetServicesConfigURL(), c, &http.CallBack{
 		SuccessCallBack: SyncServerIPListSuccessCallBack,
@@ -100,7 +127,7 @@ func SyncServerIPList(appConfigFunc func() config.AppConfig) (map[string]*config
 	return m, err
 }
 
-//SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
+// SyncServerIPListSuccessCallBack 同步服务器列表成功后的回调
 func SyncServerIPListSuccessCallBack(responseBody []byte, callback http.CallBack) (o interface{}, err error) {
 	log.Debug("get all server info:", string(responseBody))
 

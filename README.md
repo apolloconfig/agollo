@@ -1,5 +1,6 @@
 Agollo - Go Client for Apollo
 ================
+English | [中文](/README_CN.md)
 
 [![golang](https://img.shields.io/badge/Language-Go-green.svg?style=flat)](https://golang.org)
 [![Build Status](https://github.com/apolloconfig/agollo/actions/workflows/go.yml/badge.svg)](https://github.com/apolloconfig/agollo/actions/workflows/go.yml)
@@ -11,44 +12,45 @@ Agollo - Go Client for Apollo
 [![GitHub release](https://img.shields.io/github/release/apolloconfig/agollo.svg)](https://github.com/apolloconfig/apolloconfig/releases)
 [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
 
-方便Golang接入配置中心框架 [Apollo](https://github.com/ctripcorp/apollo) 所开发的Golang版本客户端。
+A Golang client for the configuration center framework [Apollo](https://github.com/apolloconfig/apollo).
 
 # Features
 
-* 支持多 IP、AppID、namespace
-* 实时同步配置
-* 灰度配置
-* 延迟加载（运行时）namespace
-* 客户端，配置文件容灾
-* 自定义日志，缓存组件
-* 支持配置访问秘钥
+* Support for multiple IPs, AppIDs, and namespaces
+* Real-time configuration synchronization
+* Gray release configuration
+* Lazy loading (runtime) namespaces
+* Client-side and configuration file fallback
+* Customizable logger and cache components
+* Support for configuration access keys
 
 # Usage
 
-## 快速入门
+## Quick Start
 
-### 导入 agollo
-
-```
-go get -u github.com/apolloconfig/agollo/v4@latest
-```
-
-### 启动 agollo
+### Import agollo
 
 ```
+go get -u github.com/apolloconfig/agollo/v5@latest
+```
+
+### Initialize agollo
+
+```go
 package main
 
 import (
 	"fmt"
-	"github.com/apolloconfig/agollo/v4"
-	"github.com/apolloconfig/agollo/v4/env/config"
+
+	"github.com/apolloconfig/agollo/v5"
+	"github.com/apolloconfig/agollo/v5/env/config"
 )
 
 func main() {
 	c := &config.AppConfig{
 		AppID:          "testApplication_yang",
 		Cluster:        "dev",
-		IP:             "http://106.54.227.205:8080",
+		IP:             "http://localhost:8080",
 		NamespaceName:  "dubbo",
 		IsBackupConfig: true,
 		Secret:         "6ce3ff7e96a24335a9634fe9abca6d51",
@@ -57,7 +59,7 @@ func main() {
 	client, _ := agollo.StartWithConfig(func() (*config.AppConfig, error) {
 		return c, nil
 	})
-	fmt.Println("初始化Apollo配置成功")
+	fmt.Println("Apollo configuration initialized successfully")
 
 	//Use your apollo key to test
 	cache := client.GetConfigCache(c.NamespaceName)
@@ -66,19 +68,19 @@ func main() {
 }
 ```
 
-## 更多用法
+## More Examples
 
-***使用Demo*** ：[agollo_demo](https://github.com/zouyx/agollo_demo)
+***Demo Project***: [agollo_demo](https://github.com/zouyx/agollo_demo)
 
-***其他语言*** ： [agollo-agent](https://github.com/zouyx/agollo-agent.git) 做本地agent接入，如：PHP
+***Other Languages:***: Use [agollo-agent](https://github.com/zouyx/agollo-agent.git) as a local agent for languages like PHP.
 
-欢迎查阅 [Wiki](https://github.com/apolloconfig/agollo/wiki) 或者 [godoc](http://godoc.org/github.com/zouyx/agollo) 获取更多有用的信息
+Check out our [Wiki](https://github.com/apolloconfig/agollo/wiki) or [godoc](http://godoc.org/github.com/zouyx/agollo) for more information.
 
-如果你觉得该工具还不错或者有问题，一定要让我知道，可以发邮件或者[留言](https://github.com/apolloconfig/agollo/issues)。
+If you find this tool useful or encounter any issues, please let me know via email or by [creating an issue](https://github.com/apolloconfig/agollo/issues)。
 
 # User
 
-* [使用者名单](https://github.com/apolloconfig/agollo/issues/20)
+* [User List](https://github.com/apolloconfig/agollo/issues/20)
 
 # Contribution
 
@@ -91,4 +93,4 @@ The project is licensed under the [Apache 2 license](https://github.com/apolloco
 
 # Reference
 
-Apollo : https://github.com/ctripcorp/apollo
+Apollo: [https://github.com/apolloconfig/apollo](https://github.com/apolloconfig/apollo)

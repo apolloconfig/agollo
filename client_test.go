@@ -1,19 +1,16 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2025 Apollo Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package agollo
 
@@ -27,16 +24,16 @@ import (
 	"time"
 
 	"github.com/agiledragon/gomonkey/v2"
-
-	"github.com/apolloconfig/agollo/v4/agcache/memory"
-	"github.com/apolloconfig/agollo/v4/component/remote"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	"github.com/apolloconfig/agollo/v4/env/server"
-
-	_ "github.com/apolloconfig/agollo/v4/env/file/json"
-	"github.com/apolloconfig/agollo/v4/extension"
-	"github.com/apolloconfig/agollo/v4/storage"
 	. "github.com/tevid/gohamcrest"
+	"github.com/apolloconfig/agollo/v5/component"
+	_ "github.com/apolloconfig/agollo/v5/env/file/json"
+
+	"github.com/apolloconfig/agollo/v5/agcache/memory"
+	"github.com/apolloconfig/agollo/v5/component/remote"
+	"github.com/apolloconfig/agollo/v5/env/config"
+	"github.com/apolloconfig/agollo/v5/env/server"
+	"github.com/apolloconfig/agollo/v5/extension"
+	"github.com/apolloconfig/agollo/v5/storage"
 )
 
 const testDefaultNamespace = "application"
@@ -359,29 +356,52 @@ func TestUseEventDispatch(t *testing.T) {
 
 func TestGetConfigAndInitValNotNil(t *testing.T) {
 	var apc *remote.AbsApolloConfig
-	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
+	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error) {
 		return &config.ApolloConfig{
 			ApolloConnConfig: config.ApolloConnConfig{
 				AppID:         "testID",
 				NamespaceName: "testNotFound",
 			},
-			Configurations: map[string]interface{}{"testKey": "testValue"},
-		}
+			Configurations: map[string]interface{}{"testKey": "testUpdatedValue"},
+		}, nil
 	})
-	defer patch.Reset()
 
 	client := createMockApolloConfig(120)
 	cf := client.GetConfig("testNotFound")
 	Assert(t, cf, NotNilVal())
-	// cache should be updated
+
+	// appConfig notificationsMap appConfig should be updated
+	Assert(t, client.appConfig.GetNotificationsMap().GetNotify("testNotFound"), Equal(int64(0)))
+
+	// cache should be updated with new configuration
 	Assert(t, client.cache.GetConfig("testNotFound"), NotNilVal())
-	Assert(t, client.cache.GetConfig("testNotFound").GetValue("testKey"), Equal("testValue"))
+	Assert(t, client.cache.GetConfig("testNotFound").GetValue("testKey"), Equal("testUpdatedValue"))
+	Assert(t, client.appConfig.NamespaceName, Equal("application,testNotFound"))
+	patch.Reset()
+
+	// second replace
+	patch1 := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error) {
+		return &config.ApolloConfig{
+			ApolloConnConfig: config.ApolloConnConfig{
+				AppID:         "testID",
+				NamespaceName: "testNotFound1",
+			},
+			Configurations: map[string]interface{}{"testKey": "testUpdatedValue"},
+		}, nil
+	})
+	defer patch1.Reset()
+	client.appConfig.NamespaceName = "testNotFound1"
+	cf1 := client.GetConfig("testNotFound1")
+	Assert(t, cf1, NotNilVal())
+	Assert(t, client.cache.GetConfig("testNotFound1"), NotNilVal())
+	// appConfig namespace existed, should not be appended
+	Assert(t, client.appConfig.NamespaceName, Equal("testNotFound1"))
 }
 
 func TestGetConfigAndInitValNil(t *testing.T) {
 	var apc *remote.AbsApolloConfig
-	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) *config.ApolloConfig {
-		return nil
+	patch := gomonkey.ApplyMethod(reflect.TypeOf(apc), "SyncWithNamespace", func(_ *remote.AbsApolloConfig, namespace string, appConfigFunc func() config.AppConfig) (*config.ApolloConfig, error) {
+		return nil, nil
 	})
 	defer patch.Reset()
 
@@ -389,4 +409,33 @@ func TestGetConfigAndInitValNil(t *testing.T) {
 	cf := client.GetConfig("testNotFound")
 	Assert(t, cf, NilVal())
 	Assert(t, client.cache.GetConfig("testNotFound"), NilVal())
+}
+
+type testComponent struct {
+	status int // 0 start 1 stop
+}
+
+func (t *testComponent) Start() {
+	t.status = 0
+}
+func (t *testComponent) Stop() {
+	t.status = 1
+}
+
+func Test_internalClient_Close(t *testing.T) {
+	c := &internalClient{}
+	tc := &testComponent{}
+	go component.StartRefreshConfig(tc)
+	c.appendComponent(tc)
+
+	tc2 := &testComponent{}
+	go component.StartRefreshConfig(tc2)
+	c.appendComponent(tc2)
+	time.Sleep(300 * time.Millisecond) // wait goroutine
+	Assert(t, tc.status, Equal(0))
+	Assert(t, tc2.status, Equal(0))
+	c.Close()
+	c.Close() // duplicate Close
+	Assert(t, tc.status, Equal(1))
+	Assert(t, tc2.status, Equal(1))
 }

@@ -1,19 +1,16 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2025 Apollo Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package sign
 
@@ -22,6 +19,7 @@ import (
 	"crypto/sha1"
 	"encoding/base64"
 	"fmt"
+	"hash"
 	"net/url"
 	"strconv"
 	"time"
@@ -36,6 +34,17 @@ const (
 	delimiter = "\n"
 	question  = "?"
 )
+
+var (
+	h = sha1.New
+)
+
+// SetHash set hash function
+func SetHash(f func() hash.Hash) func() hash.Hash {
+	o := h
+	h = f
+	return o
+}
 
 // AuthSignature apollo 授权
 type AuthSignature struct {
@@ -63,7 +72,7 @@ func (t *AuthSignature) HTTPHeaders(url string, appID string, secret string) map
 
 func signString(stringToSign string, accessKeySecret string) string {
 	key := []byte(accessKeySecret)
-	mac := hmac.New(sha1.New, key)
+	mac := hmac.New(h, key)
 	mac.Write([]byte(stringToSign))
 	return base64.StdEncoding.EncodeToString(mac.Sum(nil))
 }

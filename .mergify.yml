@@ -30,5 +30,7 @@ pull_request_rules:
       - check-failure=Semantic Pull Request
     actions:
       comment:
-        message: |
+        message: |-
           这个 PR 发生了检查失败，@{{author}} 是否能帮忙修复呢？🙏pull_request_rules:
+merge_protections_settings:
+  reporting_method: check-runs

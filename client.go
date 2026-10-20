@@ -1,46 +1,44 @@
-/*
- * Licensed to the Apache Software Foundation (ASF) under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The ASF licenses this file to You under the Apache License, Version 2.0
- * (the "License"); you may not use this file except in compliance with
- * the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+// Copyright 2025 Apollo Authors
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 package agollo
 
 import (
 	"container/list"
 	"errors"
+	"strings"
 
-	"github.com/apolloconfig/agollo/v4/agcache"
-	"github.com/apolloconfig/agollo/v4/agcache/memory"
-	"github.com/apolloconfig/agollo/v4/cluster/roundrobin"
-	"github.com/apolloconfig/agollo/v4/component"
-	"github.com/apolloconfig/agollo/v4/component/log"
-	"github.com/apolloconfig/agollo/v4/component/notify"
-	"github.com/apolloconfig/agollo/v4/component/remote"
-	"github.com/apolloconfig/agollo/v4/component/serverlist"
-	"github.com/apolloconfig/agollo/v4/constant"
-	"github.com/apolloconfig/agollo/v4/env"
-	"github.com/apolloconfig/agollo/v4/env/config"
-	jsonFile "github.com/apolloconfig/agollo/v4/env/file/json"
-	"github.com/apolloconfig/agollo/v4/extension"
-	"github.com/apolloconfig/agollo/v4/protocol/auth/sign"
-	"github.com/apolloconfig/agollo/v4/storage"
-	"github.com/apolloconfig/agollo/v4/utils"
-	"github.com/apolloconfig/agollo/v4/utils/parse/normal"
-	"github.com/apolloconfig/agollo/v4/utils/parse/properties"
-	"github.com/apolloconfig/agollo/v4/utils/parse/yaml"
-	"github.com/apolloconfig/agollo/v4/utils/parse/yml"
+	"github.com/apolloconfig/agollo/v5/agcache"
+	"github.com/apolloconfig/agollo/v5/agcache/memory"
+	"github.com/apolloconfig/agollo/v5/cluster/roundrobin"
+	"github.com/apolloconfig/agollo/v5/component"
+	"github.com/apolloconfig/agollo/v5/component/log"
+	"github.com/apolloconfig/agollo/v5/component/notify"
+	"github.com/apolloconfig/agollo/v5/component/remote"
+	"github.com/apolloconfig/agollo/v5/component/serverlist"
+	"github.com/apolloconfig/agollo/v5/constant"
+	"github.com/apolloconfig/agollo/v5/env"
+	"github.com/apolloconfig/agollo/v5/env/config"
+	jsonFile "github.com/apolloconfig/agollo/v5/env/file/json"
+	"github.com/apolloconfig/agollo/v5/extension"
+	"github.com/apolloconfig/agollo/v5/protocol/auth/sign"
+	"github.com/apolloconfig/agollo/v5/storage"
+	"github.com/apolloconfig/agollo/v5/utils"
+	"github.com/apolloconfig/agollo/v5/utils/parse/normal"
+	"github.com/apolloconfig/agollo/v5/utils/parse/properties"
+	"github.com/apolloconfig/agollo/v5/utils/parse/yaml"
+	"github.com/apolloconfig/agollo/v5/utils/parse/yml"
 )
 
 const separator = ","
@@ -86,7 +84,7 @@ type internalClient struct {
 	initAppConfigFunc func() (*config.AppConfig, error)
 	appConfig         *config.AppConfig
 	cache             *storage.Cache
-	configComponent   *notify.ConfigComponent
+	components        []component.Stoppable
 }
 
 func (c *internalClient) getAppConfig() config.AppConfig {
@@ -120,8 +118,10 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 
 	c.cache = storage.CreateNamespaceConfig(appConfig.NamespaceName)
 	appConfig.Init()
-
-	serverlist.InitSyncServerIPList(c.getAppConfig)
+	// start ipList component
+	serverIPListComponent := serverlist.NewSyncServerIPListComponent(c.getAppConfig)
+	go component.StartRefreshConfig(serverIPListComponent)
+	c.appendComponent(serverIPListComponent)
 
 	//first sync
 	configs := syncApolloConfig.Sync(c.getAppConfig)
@@ -136,11 +136,9 @@ func StartWithConfig(loadAppConfig func() (*config.AppConfig, error)) (Client, e
 	log.Debug("init notifySyncConfigServices finished")
 
 	//start long poll sync config
-	configComponent := &notify.ConfigComponent{}
-	configComponent.SetAppConfig(c.getAppConfig)
-	configComponent.SetCache(c.cache)
+	configComponent := notify.NewConfigComponent(c.getAppConfig, c.cache)
 	go component.StartRefreshConfig(configComponent)
-	c.configComponent = configComponent
+	c.appendComponent(configComponent)
 
 	log.Info("agollo start finished ! ")
 
@@ -158,19 +156,40 @@ func (c *internalClient) GetConfigAndInit(namespace string) *storage.Config {
 		return nil
 	}
 
-	config := c.cache.GetConfig(namespace)
+	cfg := c.cache.GetConfig(namespace)
 
-	if config == nil {
+	if cfg == nil {
 		//sync config
-		apolloConfig := syncApolloConfig.SyncWithNamespace(namespace, c.getAppConfig)
+		apolloConfig, _ := syncApolloConfig.SyncWithNamespace(namespace, c.getAppConfig)
 		if apolloConfig != nil {
-			c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
+			c.SyncAndUpdate(namespace, apolloConfig)
 		}
 	}
 
-	config = c.cache.GetConfig(namespace)
+	cfg = c.cache.GetConfig(namespace)
 
-	return config
+	return cfg
+}
+
+func (c *internalClient) SyncAndUpdate(namespace string, apolloConfig *config.ApolloConfig) {
+	// update appConfig only if namespace does not exist yet
+	namespaces := strings.Split(c.appConfig.NamespaceName, ",")
+	exists := false
+	for _, n := range namespaces {
+		if n == namespace {
+			exists = true
+			break
+		}
+	}
+	if !exists {
+		c.appConfig.NamespaceName += "," + namespace
+	}
+
+	// update notification
+	c.appConfig.GetNotificationsMap().UpdateNotify(namespace, 0)
+
+	// update cache
+	c.cache.UpdateApolloConfig(apolloConfig, c.getAppConfig)
 }
 
 // GetConfigCache 根据namespace获取apollo配置的缓存
@@ -247,6 +266,10 @@ func (c *internalClient) getConfigValue(key string) interface{} {
 	return value
 }
 
+func (c *internalClient) appendComponent(comp component.Stoppable) {
+	c.components = append(c.components, comp)
+}
+
 // AddChangeListener 增加变更监控
 func (c *internalClient) AddChangeListener(listener storage.ChangeListener) {
 	c.cache.AddChangeListener(listener)
@@ -267,7 +290,9 @@ func (c *internalClient) UseEventDispatch() {
 	c.AddChangeListener(storage.UseEventDispatch())
 }
 
-// Close 停止轮询
+// Close stop components
 func (c *internalClient) Close() {
-	c.configComponent.Stop()
+	for _, comp := range c.components {
+		comp.Stop()
+	}
 }
