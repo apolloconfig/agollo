@@ -56,13 +56,19 @@ func (*asyncApolloConfig) GetNotifyURLSuffix(notifications string, config config
 }
 
 func (*asyncApolloConfig) GetSyncURI(config config.AppConfig, namespaceName string) string {
-	return fmt.Sprintf("configs/%s/%s/%s?releaseKey=%s&ip=%s&label=%s",
+	uri := fmt.Sprintf("configs/%s/%s/%s?releaseKey=%s&ip=%s&label=%s",
 		url.QueryEscape(config.AppID),
 		url.QueryEscape(config.Cluster),
 		url.QueryEscape(namespaceName),
 		url.QueryEscape(config.GetCurrentApolloConfig().GetReleaseKey(namespaceName)),
 		utils.GetInternal(),
 		url.QueryEscape(config.Label))
+	if messages := config.GetNotificationsMap().GetMessageIDs(namespaceName); messages != nil {
+		// String keys and int64 values always encode successfully. Escape '+' in message keys.
+		encoded, _ := json.Marshal(messages)
+		uri += "&messages=" + url.QueryEscape(string(encoded))
+	}
+	return uri
 }
 
 func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*config.ApolloConfig {
@@ -79,6 +85,8 @@ func (a *asyncApolloConfig) Sync(appConfigFunc func() config.AppConfig) []*confi
 	}
 	//只是拉去有变化的配置, 并更新拉取成功的namespace的notify ID
 	for _, notifyConfig := range remoteConfigs {
+		// Retain observed IDs before fetching, independently of notification acknowledgment.
+		appConfig.GetNotificationsMap().RecordMessageIDs(notifyConfig.NamespaceName, notifyConfig.Messages)
 		apolloConfig, err := a.SyncWithNamespace(notifyConfig.NamespaceName, appConfigFunc)
 		// Update notificationID if we got a successful response (including 304)
 		if err == nil {

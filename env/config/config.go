@@ -93,8 +93,14 @@ func (a *AppConfig) Init() {
 
 // Notification 用于保存 apollo Notification 信息
 type Notification struct {
-	NamespaceName  string `json:"namespaceName"`
-	NotificationID int64  `json:"notificationId"`
+	NamespaceName  string                `json:"namespaceName"`
+	NotificationID int64                 `json:"notificationId"`
+	Messages       *NotificationMessages `json:"messages,omitempty"`
+}
+
+// NotificationMessages identifies the server-side releases observed by this client.
+type NotificationMessages struct {
+	Details map[string]int64 `json:"details"`
 }
 
 // InitAllNotifications 初始化notificationsMap
@@ -144,6 +150,43 @@ func (a *AppConfig) GetCurrentApolloConfig() *CurrentApolloConfig {
 // map[string]int64
 type notificationsMap struct {
 	notifications sync.Map
+	messagesMu    sync.RWMutex
+	messages      map[string]map[string]int64
+}
+
+// RecordMessageIDs retains the highest observed ID per key without acknowledging the notification.
+// Keep every server-provided key, including public namespaces and fallback clusters.
+func (n *notificationsMap) RecordMessageIDs(namespace string, messages *NotificationMessages) {
+	if messages == nil || len(messages.Details) == 0 {
+		return
+	}
+	n.messagesMu.Lock()
+	defer n.messagesMu.Unlock()
+	if n.messages == nil {
+		n.messages = make(map[string]map[string]int64)
+	}
+	if n.messages[namespace] == nil {
+		n.messages[namespace] = make(map[string]int64)
+	}
+	for key, id := range messages.Details {
+		if old, exists := n.messages[namespace][key]; !exists || id > old {
+			n.messages[namespace][key] = id
+		}
+	}
+}
+
+// GetMessageIDs returns an independent snapshot safe to serialize outside the lock.
+func (n *notificationsMap) GetMessageIDs(namespace string) *NotificationMessages {
+	n.messagesMu.RLock()
+	defer n.messagesMu.RUnlock()
+	if len(n.messages[namespace]) == 0 {
+		return nil
+	}
+	details := make(map[string]int64, len(n.messages[namespace]))
+	for key, id := range n.messages[namespace] {
+		details[key] = id
+	}
+	return &NotificationMessages{Details: details}
 }
 
 func (n *notificationsMap) UpdateAllNotifications(remoteConfigs []*Notification) {
